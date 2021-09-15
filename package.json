@@ -1,0 +1,28 @@
+{
+  "name": "tfjs",
+  "version": "0.0.1",
+  "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
+  "main": "build.js",
+  "scripts": {
+    "download": "./download.sh",
+    "build-wasm": "./wasm.sh",
+    "build-tfjs": "node build.js",
+    "build": "npm run download && npm run build-wasm && npm run build-tfjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladmandic/tfjs.git"
+  },
+  "author": "Vladimir Mandic <mandic00@live.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vladmandic/tfjs/issues"
+  },
+  "homepage": "https://github.com/vladmandic/tfjs#readme",
+  "dependencies": {
+    "@vladmandic/pilogger": "^0.3.1",
+    "@webgpu/glslang": "0.0.12",
+    "esbuild": "^0.12.28",
+    "long": "^4.0.0"
+  }
+}

@@ -1,0 +1,34 @@
+lockfileVersion: 5.3
+
+specifiers:
+  '@vladmandic/pilogger': ^0.3.1
+  '@webgpu/glslang': 0.0.12
+  esbuild: ^0.12.28
+  long: ^4.0.0
+
+dependencies:
+  '@vladmandic/pilogger': 0.3.1
+  '@webgpu/glslang': 0.0.12
+  esbuild: 0.12.28
+  long: 4.0.0
+
+packages:
+
+  /@vladmandic/pilogger/0.3.1:
+    resolution: {integrity: sha512-Oip5FHzO3J3AXbrxWLKKKxO2Xr4oLVXE4mULxPRyQuWNLPHsz6eTNq0966hmpMCNDlpdreseHHFpyVJkFsY41Q==}
+    engines: {node: '>=12.0.0'}
+    dev: false
+
+  /@webgpu/glslang/0.0.12:
+    resolution: {integrity: sha512-GfEVo1GUxNfXjO4Z7I06XXYJA45N6sHoKqI5Ptf3vafnPowq2C1woCqVe7frsClMfBB2yLn1vJss2oWl5EdTig==}
+    dev: false
+
+  /esbuild/0.12.28:
+    resolution: {integrity: sha512-pZ0FrWZXlvQOATlp14lRSk1N9GkeJ3vLIwOcUoo3ICQn9WNR4rWoNi81pbn6sC1iYUy7QPqNzI3+AEzokwyVcA==}
+    hasBin: true
+    requiresBuild: true
+    dev: false
+
+  /long/4.0.0:
+    resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
+    dev: false
