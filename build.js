@@ -7,10 +7,8 @@ const resolve = { // plugin for esbuild
   name: 'aliases',
   setup(f) { // intercept and remap import paths
     f.onResolve({ filter: /^@tensorflow\/tfjs-core$/ }, (args) => ({ path: path.join(__dirname, args.path.replace('@tensorflow/tfjs-core', 'src/tfjs-core/src/index.ts')) }));
-    // f.onResolve({ filter: /^@tensorflow\/tfjs-core$/ }, (args) => ({ path: path.join(__dirname, args.path.replace('@tensorflow/tfjs-core', 'dist/tfjs-core.esm.js')) }));
     f.onResolve({ filter: /^@tensorflow\/tfjs-core\/dist\// }, (args) => ({ path: path.join(__dirname, args.path.replace('@tensorflow/tfjs-core/dist/', 'src/tfjs-core/src/') + '.ts') }));
     f.onResolve({ filter: /^@tensorflow\/tfjs-backend-cpu\/dist\/shared$/ }, (args) => ({ path: path.join(__dirname, args.path.replace('@tensorflow/tfjs-backend-cpu/dist/shared', 'src/tfjs-backend-cpu/src/shared.ts')) }));
-    // f.onResolve({ filter: /^.\/op_list\// }, (args) => ({ path: path.join(__dirname, args.path.replace('./op_list', 'src/tfjs-converter/python/tensorflowjs/op_list') + '.json') }));
     f.onResolve({ filter: /tfjs-backend-wasm.js$/ }, (args) => ({ path: path.join(__dirname, 'src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/tfjs-backend-wasm.js') }));
     f.onResolve({ filter: /tfjs-backend-wasm-threaded-simd.js$/ }, (args) => ({ path: path.join(__dirname, 'src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js') }));
     f.onResolve({ filter: /tfjs-backend-wasm-threaded-simd.worker.js$/ }, (args) => ({ path: path.join(__dirname, 'src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.worker.js') }));
