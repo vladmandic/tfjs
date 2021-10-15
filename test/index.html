@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+  </head>
+  <body>
+    <script type="module">
+      import * as tf from '../dist/tfjs.esm.js'
+      // import * as wasm from '../dist/tfjs-backend-wasm.esm.js'
+      // import '../dist/tfjs-backend-webgl.esm.js'
+      // import '../dist/tfjs-backend-webgpu.esm.js'
+
+      window.tf = tf;
+      const log = (...msg) => console.log(...msg);
+      const backends = ['cpu', 'webgl', 'webgpu'];
+
+      async function image(url) {
+        const img = document.createElement('img');
+        const loaded = new Promise((resolve) => img.onload = () => resolve(true));
+        img.src = url;
+        await loaded;
+        const canvas = new OffscreenCanvas(img.naturalWidth, img.naturalHeight);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        return { imageElement: img, imageData: data };
+      }
+
+      async function main() {
+        log('tfjs:', tf.version);
+        tf.setWasmPaths('../dist/');
+        await tf.ready();
+        const img = await image('../test.jpg')
+
+        // tf.ENV.set('CHECK_COMPUTATION_FOR_ERRORS', false);
+        // tf.ENV.set('WEBGL_PACK_DEPTHWISECONV', true);
+        // tf.ENV.set('WEBGL_USE_SHAPES_UNIFORMS', true);
+        // tf.ENV.set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 0);
+
+        const model = await tf.loadGraphModel('./movenet-lightning.json');
+        log('model:', model);
+        log('tensors', tf.memory().numTensors);
+
+        for (const backend of backends) {
+          log('trying:', backend);
+          await tf.setBackend(backend);
+          const t0 = performance.now();
+          let result = {};
+          for (let i = 0; i < 10; i++) {
+            const tensor = tf.browser.fromPixels(img.imageElement);
+            const data = tf.tensor(img.imageData.data, [img.imageData.height, img.imageData.width, 4]);
+            const resize = tf.image.resizeBilinear(tensor, [192, 192]);
+            const norm0 = tf.div(resize, [255]);
+            const norm1 = tf.mul(norm0, [255]);
+            const cast = tf.cast(norm1, 'int32');
+            const expand = tf.expandDims(cast, 0);
+            result = { ...result, tensor: tensor.shape, data: data.shape, resize: resize.shape, cast: cast.dtype };
+            if (i === 0) {
+              const predict = model.predict(expand);
+              result.result = predict.shape;
+              tf.dispose(predict);
+            }
+            tf.dispose([tensor, data, resize, norm0, norm1, cast, expand]);
+          }
+          const t1 = performance.now();
+          log('result:', tf.getBackend(), Math.round(t1 - t0), result);
+        }
+        log('tensors', tf.memory().numTensors);
+      }
+
+      window.onload = main;
+    </script>
+  </body>
+</html>

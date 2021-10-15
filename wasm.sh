@@ -2,6 +2,7 @@
 
 # build wasm binaries and js bindings
 cd src
+bazel --version | awk '{print $NF}' >.bazelversion
 bazel build --symlink_prefix="wasm-out/" -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm
 bazel build --symlink_prefix="wasm-out/" -c opt --copt="-msimd128" //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd
 bazel build --symlink_prefix="wasm-out/" -c opt --copt="-pthread" --copt="-msimd128" //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd

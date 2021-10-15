@@ -6,7 +6,7 @@
  *   long@4.0.0
  */
 
-const externalVersion = '3.9.0-20210914';
+const externalVersion = '3.9.0-20211015';
 
 /*
 import './src/tfjs-core/src/flags';
