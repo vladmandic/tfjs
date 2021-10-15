@@ -2,3 +2,6 @@ node_modules/**
 src/**
 test/*.json
 test/*.bin
+.latest*
+pnpm-lock.yaml
+package-lock.json

@@ -30,7 +30,7 @@
         log('tfjs:', tf.version);
         tf.setWasmPaths('../dist/');
         await tf.ready();
-        const img = await image('../test.jpg')
+        const img = await image('./test.jpg')
 
         // tf.ENV.set('CHECK_COMPUTATION_FOR_ERRORS', false);
         // tf.ENV.set('WEBGL_PACK_DEPTHWISECONV', true);
