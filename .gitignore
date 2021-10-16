@@ -1,7 +1,5 @@
 node_modules/**
 src/**
-test/*.json
-test/*.bin
 .tfjs*
 pnpm-lock.yaml
 package-lock.json
