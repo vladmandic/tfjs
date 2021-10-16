@@ -12,7 +12,11 @@
 
       window.tf = tf;
       const log = (...msg) => console.log(...msg);
-      const backends = ['cpu', 'webgl', 'webgpu'];
+      const backends = ['cpu'];
+      if (tf.setWasmPaths) backends.push('wasm');
+      if (tf.MathBackendWebGL) backends.push('webgl');
+      if (navigator.gpu) backends.push('webgpu');
+      log('backends:', backends);
 
       async function image(url) {
         const img = document.createElement('img');
@@ -28,16 +32,19 @@
 
       async function main() {
         log('tfjs:', tf.version);
+        
         tf.setWasmPaths('../dist/');
         await tf.ready();
-        const img = await image('./test.jpg')
+        const img = await image('test/test.jpg')
 
         // tf.ENV.set('CHECK_COMPUTATION_FOR_ERRORS', false);
         // tf.ENV.set('WEBGL_PACK_DEPTHWISECONV', true);
         // tf.ENV.set('WEBGL_USE_SHAPES_UNIFORMS', true);
         // tf.ENV.set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 0);
+        tf.ENV.set('WASM_HAS_MULTITHREAD_SUPPORT', false); // tfjs-backend-wasm-threaded-simd.wasm hangs on load
+        tf.ENV.set('WASM_HAS_SIMD_SUPPORT', true);
 
-        const model = await tf.loadGraphModel('./movenet-lightning.json');
+        const model = await tf.loadGraphModel('test/movenet-lightning.json');
         log('model:', model);
         log('tensors', tf.memory().numTensors);
 
