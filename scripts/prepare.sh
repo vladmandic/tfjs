@@ -8,7 +8,7 @@ sed "s/PLACEHOLDER/$VERSION-$DATE/g" scripts/tfjs-bundle-template.ts >.tfjs-brow
 printf "$VERSION-$DATE" >.tfjs-version
 
 # create js exports from json files
-OPLIST=src/tfjs-converter/src/operations/op_list
+OPLIST=src/tfjs-converter/python/tensorflowjs/op_list/
 mkdir $OPLIST 2>/dev/null
 if [ -d $OPLIST ]; then
   echo "Creating op list imports"

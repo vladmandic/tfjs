@@ -32,8 +32,10 @@ cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfj
 chmod 644 dist/*.wasm
 
 echo "Patching loaders"
-cp -f src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.worker.js src/tfjs-backend-wasm/wasm-out/
-cp -f src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js src/tfjs-backend-wasm/wasm-out/
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/* src/tfjs-backend-wasm/wasm-out/
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.worker.js src/tfjs-backend-wasm/wasm-out/
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js src/tfjs-backend-wasm/wasm-out/
+chmod 644 src/tfjs-backend-wasm/wasm-out/*
 cd src/tfjs-backend-wasm/scripts
 node ./create-worker-module.js
 node ./patch-threaded-simd-module.js
