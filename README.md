@@ -34,7 +34,7 @@ Run `npm run build` which performs following steps:
    creates versioned `.tfjs-*.ts` from build templates and `.js` imports from `.json` files
 3. `scripts/build-wasm.sh`  
    build wasm binaries and wasm `.js` exports using `bazel`  
-4. `node build-tfjs.js`  
+4. `node scripts/build-tfjs.js`  
    build targets in `/dist` using `esbuild` with custom plugins  
 
 ## Dependencies

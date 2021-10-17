@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 // @ts-nocheck
 
 const externalVersion = 'PLACEHOLDER';

@@ -1,16 +1,22 @@
 {
   "name": "tfjs",
-  "version": "0.0.1",
+  "version": "3.9.0-20211017",
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
-  "main": "build.js",
+  "sideEffects": false,
+  "module": "dist/tfjs.esm.js",
+  "browser": "dist/tfjs.esm.js",
   "scripts": {
     "download": "scripts/download.sh",
-    "prepare": "scripts/prepare.sh",
+    "patch": "scripts/prepare.sh",
     "build-wasm": "scripts/build-wasm.sh",
-    "build-tfjs": "node build-tfjs.js",
-    "build": "npm run download && npm run prepare && npm run build-wasm && npm run build-tfjs",
+    "build-tfjs": "node scripts/build-tfjs.js",
+    "clean": "rimraf .tfjs*",
+    "build": "npm run download && npm run patch && npm run build-wasm && npm run build-tfjs",
     "fast": "npm run build-tfjs",
     "serve": "build --profile serve"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   },
   "repository": {
     "type": "git",
@@ -22,11 +28,22 @@
     "url": "https://github.com/vladmandic/tfjs/issues"
   },
   "homepage": "https://github.com/vladmandic/tfjs#readme",
-  "dependencies": {
-    "@vladmandic/build": "^0.6.0",
-    "@vladmandic/pilogger": "^0.3.1",
-    "esbuild": "^0.12.28",
+  "keywords": [
+    "tensorflowjs",
+    "tfjs"
+  ],
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "@vladmandic/build": "^0.6.1",
+    "@vladmandic/pilogger": "^0.3.3",
+    "esbuild": "^0.13.8",
+    "eslint": "8.0.1",
+    "eslint-config-airbnb-base": "^14.2.1",
     "long": "^4.0.0",
-    "seedrandom": "^3.0.5"
+    "rimraf": "^3.0.2",
+    "seedrandom": "^3.0.5",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.4"
   }
 }

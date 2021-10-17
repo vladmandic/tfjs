@@ -1,0 +1,7 @@
+{
+  "log": { "enabled": false },
+  "profiles": {
+    "serve": [ "serve" ]
+  },
+  "default": "serve"
+}

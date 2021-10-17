@@ -5,10 +5,7 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
-var __require = typeof require !== "undefined" ? require : (x) => {
-  throw new Error('Dynamic require of "' + x + '" is not supported');
-};
-var __commonJS = (cb, mod2) => function __require2() {
+var __commonJS = (cb, mod2) => function __require() {
   return mod2 || (0, cb[Object.keys(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
 };
 var __export = (target, all2) => {
@@ -28,9 +25,9 @@ var __toModule = (module) => {
   return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
 };
 
-// src/node_modules/long/src/long.js
+// node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
 var require_long = __commonJS({
-  "src/node_modules/long/src/long.js"(exports, module) {
+  "node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js"(exports, module) {
     module.exports = Long2;
     var wasm = null;
     try {
@@ -853,9 +850,9 @@ var require_long = __commonJS({
   }
 });
 
-// (disabled):src/node_modules/node-fetch/browser.js
-var require_browser = __commonJS({
-  "(disabled):src/node_modules/node-fetch/browser.js"() {
+// (disabled):node-fetch
+var require_node_fetch = __commonJS({
+  "(disabled):node-fetch"() {
   }
 });
 
@@ -865,9 +862,9 @@ var require_util = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/lib/alea.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js
 var require_alea = __commonJS({
-  "src/node_modules/seedrandom/lib/alea.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js"(exports, module) {
     (function(global2, module2, define2) {
       function Alea(seed) {
         var me = this, mash = Mash();
@@ -951,9 +948,9 @@ var require_alea = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/lib/xor128.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js
 var require_xor128 = __commonJS({
-  "src/node_modules/seedrandom/lib/xor128.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1019,9 +1016,9 @@ var require_xor128 = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/lib/xorwow.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js
 var require_xorwow = __commonJS({
-  "src/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1094,9 +1091,9 @@ var require_xorwow = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/lib/xorshift7.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js
 var require_xorshift7 = __commonJS({
-  "src/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1185,9 +1182,9 @@ var require_xorshift7 = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/lib/xor4096.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js
 var require_xor4096 = __commonJS({
-  "src/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1291,9 +1288,9 @@ var require_xor4096 = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/lib/tychei.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js
 var require_tychei = __commonJS({
-  "src/node_modules/seedrandom/lib/tychei.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1371,9 +1368,9 @@ var require_crypto = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/seedrandom.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js
 var require_seedrandom = __commonJS({
-  "src/node_modules/seedrandom/seedrandom.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js"(exports, module) {
     (function(global2, pool2, math) {
       var width = 256, chunks = 6, digits = 52, rngname = "random", startdenom = math.pow(width, chunks), significance = math.pow(2, digits), overflow = significance * 2, mask = width - 1, nodecrypto;
       function seedrandom2(seed, options, callback) {
@@ -1504,9 +1501,9 @@ var require_seedrandom = __commonJS({
   }
 });
 
-// src/node_modules/seedrandom/index.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js
 var require_seedrandom2 = __commonJS({
-  "src/node_modules/seedrandom/index.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js"(exports, module) {
     var alea2 = require_alea();
     var xor128 = require_xor128();
     var xorwow = require_xorwow();
@@ -3094,6 +3091,7 @@ var TensorBuffer = class {
 var trackerFn = null;
 var opHandler = null;
 var deprecationWarningFn = null;
+[deprecationWarningFn];
 function setTensorTracker(fn) {
   trackerFn = fn;
 }
@@ -3103,7 +3101,7 @@ function setOpHandler(handler) {
 function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
-var Tensor = class {
+var Tensor4 = class {
   constructor(shape, dtype, dataId, id) {
     this.kept = false;
     this.isDisposedInternal = false;
@@ -3201,18 +3199,18 @@ var Tensor = class {
     return trackerFn().makeVariable(this, trainable, name, dtype);
   }
 };
-Object.defineProperty(Tensor, Symbol.hasInstance, {
+Object.defineProperty(Tensor4, Symbol.hasInstance, {
   value: (instance) => {
     return !!instance && instance.data != null && instance.dataSync != null && instance.throwIfDisposed != null;
   }
 });
 function getGlobalTensorClass() {
   return getGlobal("Tensor", () => {
-    return Tensor;
+    return Tensor4;
   });
 }
 getGlobalTensorClass();
-var Variable = class extends Tensor {
+var Variable = class extends Tensor4 {
   constructor(initialValue, trainable, name, tensorId) {
     super(initialValue.shape, initialValue.dtype, initialValue.dataId, tensorId);
     this.trainable = trainable;
@@ -3236,7 +3234,7 @@ var Variable = class extends Tensor {
 };
 Object.defineProperty(Variable, Symbol.hasInstance, {
   value: (instance) => {
-    return instance instanceof Tensor && instance.assign != null && instance.assign instanceof Function;
+    return instance instanceof Tensor4 && instance.assign != null && instance.assign instanceof Function;
   }
 });
 
@@ -3250,16 +3248,16 @@ __export(tensor_util_exports, {
 });
 
 // src/tfjs-core/src/types.ts
-var Rank;
-(function(Rank2) {
-  Rank2["R0"] = "R0";
-  Rank2["R1"] = "R1";
-  Rank2["R2"] = "R2";
-  Rank2["R3"] = "R3";
-  Rank2["R4"] = "R4";
-  Rank2["R5"] = "R5";
-  Rank2["R6"] = "R6";
-})(Rank || (Rank = {}));
+var Rank2;
+(function(Rank22) {
+  Rank22["R0"] = "R0";
+  Rank22["R1"] = "R1";
+  Rank22["R2"] = "R2";
+  Rank22["R3"] = "R3";
+  Rank22["R4"] = "R4";
+  Rank22["R5"] = "R5";
+  Rank22["R6"] = "R6";
+})(Rank2 || (Rank2 = {}));
 var UpcastInt32AndMap;
 (function(UpcastInt32AndMap2) {
   UpcastInt32AndMap2["float32"] = "float32";
@@ -3331,7 +3329,7 @@ function walkTensorContainer(container, list, seen) {
   if (container == null) {
     return;
   }
-  if (container instanceof Tensor) {
+  if (container instanceof Tensor4) {
     list.push(container);
     return;
   }
@@ -3784,7 +3782,7 @@ var _Engine = class {
       backendVals = values.map((d) => encodeString(d));
     }
     const dataId = backend2.write(backendVals, shape, dtype);
-    const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
+    const t = new Tensor4(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend2);
     if (dtype === "string") {
       const info = this.state.tensorInfo.get(dataId);
@@ -3796,7 +3794,7 @@ var _Engine = class {
   }
   makeTensorFromDataId(dataId, shape, dtype, backend2) {
     dtype = dtype || "float32";
-    const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
+    const t = new Tensor4(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend2);
     return t;
   }
@@ -3978,7 +3976,7 @@ var _Engine = class {
       throw new Error(`dy must have 'float32' dtype, but has '${dy.dtype}'`);
     }
     const y = this.scopedRun(() => this.startTape(), () => this.endTape(), () => this.tidy("forward", f));
-    assert(y instanceof Tensor, () => "The result y returned by f() must be a tensor.");
+    assert(y instanceof Tensor4, () => "The result y returned by f() must be a tensor.");
     const filteredTape = getFilteredNodesXToY(this.state.activeTape, xs, y);
     if (!allowNoGradients && filteredTape.length === 0 && xs.length > 0) {
       throw new Error("Cannot compute gradient of y=f(x) with respect to x. Make sure that the f you passed encloses all operations that lead from x to y.");
@@ -4002,7 +4000,7 @@ var _Engine = class {
   customGrad(f) {
     assert(isFunction(f), () => "The f passed in customGrad(f) must be a function.");
     return (...inputs) => {
-      assert(inputs.every((t) => t instanceof Tensor), () => "The args passed in customGrad(f)(x1, x2,...) must all be tensors");
+      assert(inputs.every((t) => t instanceof Tensor4), () => "The args passed in customGrad(f)(x1, x2,...) must all be tensors");
       let res;
       const inputMap = {};
       inputs.forEach((input, i) => {
@@ -4010,7 +4008,7 @@ var _Engine = class {
       });
       const forwardFunc = (_, save) => {
         res = f(...[...inputs, save]);
-        assert(res.value instanceof Tensor, () => "The function f passed in customGrad(f) must return an object where `obj.value` is a tensor");
+        assert(res.value instanceof Tensor4, () => "The function f passed in customGrad(f) must return an object where `obj.value` is a tensor");
         assert(isFunction(res.gradFunc), () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function.");
         return res.value;
       };
@@ -4018,7 +4016,7 @@ var _Engine = class {
         const gradRes = res.gradFunc(dy, saved);
         const grads2 = Array.isArray(gradRes) ? gradRes : [gradRes];
         assert(grads2.length === inputs.length, () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function that returns the same number of tensors as inputs passed to f(...).");
-        assert(grads2.every((t) => t instanceof Tensor), () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function that returns a list of only tensors.");
+        assert(grads2.every((t) => t instanceof Tensor4), () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function that returns a list of only tensors.");
         const gradMap = {};
         grads2.forEach((grad2, i) => {
           gradMap[i] = () => grad2;
@@ -4193,7 +4191,7 @@ function assertDtype(expectedDtype, actualDType, argName, functionName) {
   }
 }
 function convertToTensor(x, argName, functionName, parseAsDtype = "numeric") {
-  if (x instanceof Tensor) {
+  if (x instanceof Tensor4) {
     assertDtype(parseAsDtype, x.dtype, argName, functionName);
     return x;
   }
@@ -4690,6 +4688,14 @@ var DATABASE_NAME = "tensorflowjs";
 var DATABASE_VERSION = 1;
 var MODEL_STORE_NAME = "models_store";
 var INFO_STORE_NAME = "model_info_store";
+async function deleteDatabase() {
+  const idbFactory = getIndexedDBFactory();
+  return new Promise((resolve, reject) => {
+    const deleteRequest = idbFactory.deleteDatabase(DATABASE_NAME);
+    deleteRequest.onsuccess = () => resolve();
+    deleteRequest.onerror = (error) => reject(error);
+  });
+}
 function getIndexedDBFactory() {
   if (!env().getBool("IS_BROWSER")) {
     throw new Error("Failed to obtain IndexedDB factory because the current environmentis not a web browser.");
@@ -4897,6 +4903,25 @@ var MODEL_TOPOLOGY_SUFFIX = "model_topology";
 var WEIGHT_SPECS_SUFFIX = "weight_specs";
 var WEIGHT_DATA_SUFFIX = "weight_data";
 var MODEL_METADATA_SUFFIX = "model_metadata";
+function purgeLocalStorageArtifacts() {
+  if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
+    throw new Error("purgeLocalStorageModels() cannot proceed because local storage is unavailable in the current environment.");
+  }
+  const LS = window.localStorage;
+  const purgedModelPaths = [];
+  for (let i = 0; i < LS.length; ++i) {
+    const key = LS.key(i);
+    const prefix = PATH_PREFIX + PATH_SEPARATOR;
+    if (key.startsWith(prefix) && key.length > prefix.length) {
+      LS.removeItem(key);
+      const modelName = getModelPathFromKey(key);
+      if (purgedModelPaths.indexOf(modelName) === -1) {
+        purgedModelPaths.push(modelName);
+      }
+    }
+  }
+  return purgedModelPaths;
+}
 function getModelKeys(path) {
   return {
     info: [PATH_PREFIX, path, INFO_SUFFIX].join(PATH_SEPARATOR),
@@ -5182,9 +5207,18 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
-  importFetch: () => require_browser()
+  importFetch: () => require_node_fetch()
 };
 var systemFetch;
+function resetSystemFetch() {
+  systemFetch = null;
+}
+function setSystemFetch(fetchFn) {
+  systemFetch = fetchFn;
+}
+function getSystemFetch() {
+  return systemFetch;
+}
 var PlatformNode = class {
   constructor() {
     this.util = require_util();
@@ -5953,7 +5987,7 @@ async function fromPixelsAsync(pixels, numChannels = 3) {
 }
 async function toPixels(img, canvas) {
   let $img = convertToTensor(img, "img", "toPixels");
-  if (!(img instanceof Tensor)) {
+  if (!(img instanceof Tensor4)) {
     const originalImgTensor = $img;
     $img = cast(originalImgTensor, "int32");
     originalImgTensor.dispose();
@@ -7258,12 +7292,12 @@ function xAs4D(x) {
 }
 
 // src/tfjs-core/src/ops/batchnorm.ts
-function batchNorm_(x, mean2, variance, offset, scale, varianceEpsilon) {
+function batchNorm_(x, mean3, variance, offset, scale, varianceEpsilon) {
   if (varianceEpsilon == null) {
     varianceEpsilon = 1e-3;
   }
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean2, "mean", "batchNorm");
+  const $mean = convertToTensor(mean3, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -7291,9 +7325,9 @@ function batchNorm_(x, mean2, variance, offset, scale, varianceEpsilon) {
 var batchNorm = op({ batchNorm_ });
 
 // src/tfjs-core/src/ops/batchnorm2d.ts
-function batchNorm2d_(x, mean2, variance, offset, scale, varianceEpsilon) {
+function batchNorm2d_(x, mean3, variance, offset, scale, varianceEpsilon) {
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean2, "mean", "batchNorm");
+  const $mean = convertToTensor(mean3, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -7317,9 +7351,9 @@ function batchNorm2d_(x, mean2, variance, offset, scale, varianceEpsilon) {
 var batchNorm2d = op({ batchNorm2d_ });
 
 // src/tfjs-core/src/ops/batchnorm3d.ts
-function batchNorm3d_(x, mean2, variance, offset, scale, varianceEpsilon) {
+function batchNorm3d_(x, mean3, variance, offset, scale, varianceEpsilon) {
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean2, "mean", "batchNorm");
+  const $mean = convertToTensor(mean3, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -7343,9 +7377,9 @@ function batchNorm3d_(x, mean2, variance, offset, scale, varianceEpsilon) {
 var batchNorm3d = op({ batchNorm3d_ });
 
 // src/tfjs-core/src/ops/batchnorm4d.ts
-function batchNorm4d_(x, mean2, variance, offset, scale, varianceEpsilon) {
+function batchNorm4d_(x, mean3, variance, offset, scale, varianceEpsilon) {
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean2, "mean", "batchNorm");
+  const $mean = convertToTensor(mean3, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -8169,8 +8203,8 @@ function grads(f) {
 function valueAndGrad(f) {
   assert(isFunction(f), () => "The f passed in valueAndGrad(f) must be a function");
   return (x, dy) => {
-    assert(x instanceof Tensor, () => "The x passed in valueAndGrad(f)(x) must be a tensor");
-    assert(dy == null || dy instanceof Tensor, () => "The dy passed in valueAndGrad(f)(x, dy) must be a tensor");
+    assert(x instanceof Tensor4, () => "The x passed in valueAndGrad(f)(x) must be a tensor");
+    assert(dy == null || dy instanceof Tensor4, () => "The dy passed in valueAndGrad(f)(x, dy) must be a tensor");
     const { grads: grads2, value } = ENGINE.gradients(() => f(x), [x], dy);
     checkGrads(grads2);
     return { grad: grads2[0], value };
@@ -8179,8 +8213,8 @@ function valueAndGrad(f) {
 function valueAndGrads(f) {
   assert(isFunction(f), () => "The f passed in valueAndGrads(f) must be a function");
   return (args, dy) => {
-    assert(Array.isArray(args) && args.every((arg) => arg instanceof Tensor), () => "The args passed in valueAndGrads(f)(args) must be array of tensors");
-    assert(dy == null || dy instanceof Tensor, () => "The dy passed in valueAndGrads(f)(args, dy) must be a tensor");
+    assert(Array.isArray(args) && args.every((arg) => arg instanceof Tensor4), () => "The args passed in valueAndGrads(f)(args) must be array of tensors");
+    assert(dy == null || dy instanceof Tensor4, () => "The dy passed in valueAndGrads(f)(args, dy) must be a tensor");
     const res = ENGINE.gradients(() => f(...args), args, dy);
     if (dy != null) {
       assertShapesMatch(res.value.shape, dy.shape, "The shape of dy passed in valueAndGrads(f)([x1,...], dy) must match the shape returned by f([x1,...])");
@@ -8551,11 +8585,11 @@ function meshgrid(x, y, { indexing = "xy" } = {}) {
   if (x === void 0) {
     return [];
   }
-  let $x = convertToTensor(x, "x", "meshgrid", x instanceof Tensor ? x.dtype : "float32");
+  let $x = convertToTensor(x, "x", "meshgrid", x instanceof Tensor4 ? x.dtype : "float32");
   if (y === void 0) {
     return [$x];
   }
-  let $y = convertToTensor(y, "y", "meshgrid", y instanceof Tensor ? y.dtype : "float32");
+  let $y = convertToTensor(y, "y", "meshgrid", y instanceof Tensor4 ? y.dtype : "float32");
   const w = sizeFromShape($x.shape);
   const h = sizeFromShape($y.shape);
   if (indexing === "xy") {
@@ -8896,8 +8930,8 @@ var rand = op({ rand_ });
 // src/tfjs-core/src/ops/rand_util.ts
 var seedrandom = __toModule(require_seedrandom2());
 var MPRandGauss = class {
-  constructor(mean2, stdDeviation, dtype, truncated, seed) {
-    this.mean = mean2;
+  constructor(mean3, stdDeviation, dtype, truncated, seed) {
+    this.mean = mean3;
     this.stdDev = stdDeviation;
     this.dtype = dtype;
     this.nextVal = NaN;
@@ -9017,6 +9051,63 @@ var UniformRandom = class {
     return this.convertValue(this.min + this.range * this.random());
   }
 };
+function jarqueBeraNormalityTest(values) {
+  const n = values.length;
+  const s = skewness(values);
+  const k = kurtosis(values);
+  const jb = n / 6 * (Math.pow(s, 2) + 0.25 * Math.pow(k - 3, 2));
+  const CHI_SQUARE_2DEG = 5.991;
+  if (jb > CHI_SQUARE_2DEG) {
+    throw new Error(`Invalid p-value for JB: ${jb}`);
+  }
+}
+function expectArrayInMeanStdRange(actual, expectedMean, expectedStdDev, epsilon) {
+  if (epsilon == null) {
+    epsilon = testEpsilon();
+  }
+  const actualMean = mean2(actual);
+  expectNumbersClose(actualMean, expectedMean, epsilon);
+  expectNumbersClose(standardDeviation(actual, actualMean), expectedStdDev, epsilon);
+}
+function mean2(values) {
+  let sum3 = 0;
+  for (let i = 0; i < values.length; i++) {
+    sum3 += values[i];
+  }
+  return sum3 / values.length;
+}
+function standardDeviation(values, mean3) {
+  let squareDiffSum = 0;
+  for (let i = 0; i < values.length; i++) {
+    const diff = values[i] - mean3;
+    squareDiffSum += diff * diff;
+  }
+  return Math.sqrt(squareDiffSum / values.length);
+}
+function kurtosis(values) {
+  const valuesMean = mean2(values);
+  const n = values.length;
+  let sum22 = 0;
+  let sum4 = 0;
+  for (let i = 0; i < n; i++) {
+    const v = values[i] - valuesMean;
+    sum22 += Math.pow(v, 2);
+    sum4 += Math.pow(v, 4);
+  }
+  return 1 / n * sum4 / Math.pow(1 / n * sum22, 2);
+}
+function skewness(values) {
+  const valuesMean = mean2(values);
+  const n = values.length;
+  let sum22 = 0;
+  let sum3 = 0;
+  for (let i = 0; i < n; i++) {
+    const v = values[i] - valuesMean;
+    sum22 += Math.pow(v, 2);
+    sum3 += Math.pow(v, 3);
+  }
+  return 1 / n * sum3 / Math.pow(1 / (n - 1) * sum22, 3 / 2);
+}
 
 // src/tfjs-core/src/ops/random_gamma.ts
 function randomGamma_(shape, alpha, beta = 1, dtype = "float32", seed) {
@@ -9039,11 +9130,11 @@ function randomGamma_(shape, alpha, beta = 1, dtype = "float32", seed) {
 var randomGamma = op({ randomGamma_ });
 
 // src/tfjs-core/src/ops/random_normal.ts
-function randomNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
+function randomNormal_(shape, mean3 = 0, stdDev = 1, dtype, seed) {
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type ${dtype}`);
   }
-  const randGauss = new MPRandGauss(mean2, stdDev, dtype, false, seed);
+  const randGauss = new MPRandGauss(mean3, stdDev, dtype, false, seed);
   const res = buffer(shape, dtype);
   for (let i = 0; i < res.values.length; i++) {
     res.values[i] = randGauss.nextValue();
@@ -9575,11 +9666,11 @@ function topk_(x, k = 1, sorted = true) {
 var topk = op({ topk_ });
 
 // src/tfjs-core/src/ops/truncated_normal.ts
-function truncatedNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
+function truncatedNormal_(shape, mean3 = 0, stdDev = 1, dtype, seed) {
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type $ { dtype }`);
   }
-  const randGauss = new MPRandGauss(mean2, stdDev, dtype, true, seed);
+  const randGauss = new MPRandGauss(mean3, stdDev, dtype, true, seed);
   const res = buffer(shape, dtype);
   for (let i = 0; i < res.values.length; i++) {
     res.values[i] = randGauss.nextValue();
@@ -9845,7 +9936,7 @@ function dropout_(x, rate, noiseShape, seed) {
   assert($x.dtype === "float32", () => `x has to be a floating point tensor since it's going to be scaled, but got a ${$x.dtype} tensor instead.`);
   assert(rate >= 0 && rate < 1, () => `rate must be a float in the range [0, 1), but got ${rate}.`);
   if (rate === 0) {
-    return x instanceof Tensor ? $x.clone() : $x;
+    return x instanceof Tensor4 ? $x.clone() : $x;
   }
   const $noiseShape = getNoiseShape($x, noiseShape);
   const keepProb = 1 - rate;
@@ -12062,6 +12153,15 @@ var OptimizerConstructors = class {
 };
 
 // src/tfjs-core/src/train.ts
+[
+  MomentumOptimizer,
+  SGDOptimizer,
+  AdadeltaOptimizer,
+  AdagradOptimizer,
+  RMSPropOptimizer,
+  AdamaxOptimizer,
+  AdamOptimizer
+];
 var train = {
   sgd: OptimizerConstructors.sgd,
   momentum: OptimizerConstructors.momentum,
@@ -12732,7 +12832,7 @@ export {
   Prod,
   RMSPropOptimizer,
   Range,
-  Rank,
+  Rank2 as Rank,
   Real,
   RealDiv,
   Reciprocal,
@@ -12778,7 +12878,7 @@ export {
   Sum,
   Tan,
   Tanh,
-  Tensor,
+  Tensor4 as Tensor,
   TensorBuffer,
   Tile,
   TopK,
