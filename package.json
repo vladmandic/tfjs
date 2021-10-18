@@ -1,5 +1,5 @@
 {
-  "name": "tfjs",
+  "name": "@vladmandic/tfjs",
   "version": "3.9.0-20211017",
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
   "sideEffects": false,
