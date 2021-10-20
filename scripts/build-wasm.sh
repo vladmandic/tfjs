@@ -5,7 +5,7 @@ if [ ! -d src ]; then
   exit 1
 fi
 
-if [ ! command -v bazel &> /dev/null ]; then
+if ! [ -x "$(command -v bazel)" ]; then
   echo "Bazel cannot be found"
   exit 1
 else

@@ -20115,7 +20115,6 @@ function sum3(args) {
   const out = backend2.makeOutput(outShape, input.dtype);
   if (util_exports.sizeFromShape(input.shape) !== 0) {
     const outId = backend2.dataIdMap.get(out.dataId).id;
-    console.log("reduceshape", reduceShape);
     wasmSum(inputId, reduceSize, CppDType[out.dtype], outId);
   }
   if (inputWasTransposed) {

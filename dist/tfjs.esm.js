@@ -71810,7 +71810,6 @@ function sum7(args) {
   const out = backend3.makeOutput(outShape, input2.dtype);
   if (util_exports.sizeFromShape(input2.shape) !== 0) {
     const outId = backend3.dataIdMap.get(out.dataId).id;
-    console.log("reduceshape", reduceShape);
     wasmSum(inputId, reduceSize, CppDType[out.dtype], outId);
   }
   if (inputWasTransposed) {
@@ -72501,7 +72500,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.9.0-20211017";
+var externalVersion = "3.9.0-20211020";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
