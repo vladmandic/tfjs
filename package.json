@@ -1,10 +1,6 @@
 {
   "name": "@vladmandic/tfjs",
-<<<<<<< HEAD
-  "version": "3.9.0-20211020",
-=======
   "version": "3.9.0-20211021",
->>>>>>> be1584c (update)
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
   "sideEffects": false,
   "module": "dist/tfjs.esm.js",

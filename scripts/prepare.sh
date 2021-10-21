@@ -11,14 +11,8 @@ printf "$VERSION-$DATE" >.tfjs-version
 # create js exports from json files
 SRC=src/tfjs-converter/python/tensorflowjs/op_list/
 DST=src/tfjs-converter/src/operations/op_list
-<<<<<<< HEAD
-mkdir $SRC 2>/dev/null
-mkdir $DST 2>/dev/null
-src/tfjs-converter/src/operations/op_list
-=======
 if [ ! -d $SRC ]; then mkdir $SRC; fi;
 if [ ! -d $DST ]; then mkdir $DST; fi;
->>>>>>> be1584c (update)
 echo "Creating op list imports"
 find $SRC -name '*.json' -exec basename {} .json \; | while read F; do
   sed '1i export const json = ' $SRC/$F.json >$DST/$F.js
