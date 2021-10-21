@@ -1,6 +1,10 @@
 {
   "name": "@vladmandic/tfjs",
+<<<<<<< HEAD
   "version": "3.9.0-20211020",
+=======
+  "version": "3.9.0-20211021",
+>>>>>>> be1584c (update)
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
   "sideEffects": false,
   "module": "dist/tfjs.esm.js",
@@ -33,9 +37,9 @@
     "tfjs"
   ],
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "@vladmandic/build": "^0.6.1",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "@vladmandic/build": "^0.6.2",
     "@vladmandic/pilogger": "^0.3.3",
     "esbuild": "^0.13.8",
     "eslint": "8.0.1",

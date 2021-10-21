@@ -16407,6 +16407,7 @@ var {
   stringNGramsImpl: stringNGramsImplCPU,
   subImpl: subImplCPU,
   tileImpl: tileImplCPU,
+  topKImpl: topKImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU
 } = shared_exports;
@@ -19493,12 +19494,6 @@ function gatherV2(args) {
   const { x, indices } = inputs;
   const { axis, batchDims } = attrs;
   const parsedAxis = util_exports.parseAxisParam(axis, x.shape)[0];
-  const indicesVals = backend2.readSync(indices.dataId);
-  const axisDim = x.shape[parsedAxis];
-  for (let i = 0; i < indicesVals.length; ++i) {
-    const index = indicesVals[i];
-    util_exports.assert(index <= axisDim - 1 && index >= 0, () => `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
-  }
   const shapeInfo = backend_util_exports.segment_util.collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
   const indicesSize = util_exports.sizeFromShape(indices.shape);
   const toDispose = [];
@@ -20930,6 +20925,276 @@ var tileConfig = {
   kernelFunc: tile2
 };
 
+// src/tfjs-backend-webgpu/src/kernels/top_k_webgpu.ts
+var SwapProgram = class {
+  constructor(shape) {
+    this.variableNames = ["x", "indices"];
+    this.workGroupSize = [256, 1, 1];
+    this.outputShape = shape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.uniforms = `inputSize : i32; firstPass : i32; negativeInf : f32;
+        dir : i32; inc : i32;`;
+    this.shaderKey = "swap";
+    this.size = util_exports.sizeFromShape(this.outputShape);
+  }
+  getUserCode() {
+    const userCode = `
+        ${getMainHeaderString()} {
+          ${getGlobalIndexString()}
+          if (index < uniforms.size) {
+            let outC = getOutputCoords(globalId, index);
+            let batch = outC[0];
+            let elemIdx = outC[1];
+            // We compare elements pair-wise within a group of size 2 * inc.
+            // The comparing rule for each group alternates between ascending
+            // and descending. Within each group, we compare each pair at
+            // positions i and i+inc. To decide whether an element at position i
+            // is x0 or x1, we mod it by 2 * inc, if the result is smaller than
+            // inc, it is in the first half of the group, we denote it as x0,
+            // otherwise we denote it as x1.
+            // For example, as shown in the Bitonic top K paper referenced
+            // above, Figure5(a) shows that element[1] is in the second half of
+            // the group when group size is 2, but it is in the first half of
+            // the group when group size is 4.
+            let isFirstInPair = elemIdx % (2 * uniforms.inc) < uniforms.inc;
+            var i = 0;
+            if (isFirstInPair) {
+              i = elemIdx;
+            } else {
+              i = elemIdx - uniforms.inc;
+            }
+
+            var i0 = 0;
+            if (uniforms.firstPass == 1) {
+              i0 = i;
+            } else {
+              i0 = i32(getIndices(batch, i));
+            }
+
+            var i1 = 0;
+            if (uniforms.firstPass == 1) {
+              i1 = i + uniforms.inc;
+            } else {
+              i1 = i32(getIndices(batch, i + uniforms.inc));
+            }
+
+            var x0 = f32(0.0);
+            var x1 = f32(0.0);
+            if (i0 < uniforms.inputSize) {
+              x0 = getX(batch, i0);
+            } else {
+              x0 = uniforms.negativeInf;
+            }
+            if (i1 < uniforms.inputSize) {
+              x1 = getX(batch, i1);
+            } else {
+              x1 = uniforms.negativeInf;
+            }
+
+            let reverse = elemIdx % (2 * uniforms.dir) >= uniforms.dir;
+            let isGreater = x0 > x1 || (x0 == x1 && i1 > i0);
+            if (reverse == isGreater) {
+              // Elements in opposite order of direction
+              let iTemp = i0;
+              i0 = i1;
+              i1 = iTemp;
+            }
+            if (isFirstInPair) {
+              setOutputFlat(index, f32(i0));
+            } else {
+              setOutputFlat(index, f32(i1));
+            }
+          }
+        }
+      `;
+    return userCode;
+  }
+};
+var MergeProgram = class {
+  constructor(shape) {
+    this.variableNames = ["x", "indices"];
+    this.workGroupSize = [256, 1, 1];
+    this.outputShape = shape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.uniforms = `inputSize : i32; firstPass : i32; k : i32;`;
+    this.shaderKey = "merge";
+    this.size = util_exports.sizeFromShape(this.outputShape);
+  }
+  getUserCode() {
+    const userCode = `
+        ${getMainHeaderString()} {
+          ${getGlobalIndexString()}
+          if (index < uniforms.size) {
+            let outC = getOutputCoords(globalId, index);
+            let batch = outC[0];
+            let elemIdx = outC[1];
+            // The output size is half of the previous size.
+            // If the previous sequence is | | | | _ _ _ _  | | | |  _ _ _ _
+            // (k=4), we only need to output the indices at positions |, the
+            // indices at positions _ can be thrown away, see Figure5(b) After
+            // Phase 2 (Merge phase) in the Bitonic Top K paper referenced
+            // above.
+            // For example, the paper shows we only need to output the orange
+            // bars. The output sequence should look like this | | | | | | | |.
+            // Because the sequence is halved, to map the output index back to
+            // the previous sequence to find the corresponding value, we need
+            // to double the index. When we double the index, we basically
+            // interpolate a position, so 2i looks like
+            // | _ | _ | _ | _ | _ | _ | _. We move the | to the first k
+            // position of each 2k positions by - elemIdx % k. E.g. for output
+            // at index 4,5,6,7, we want to get the corresponding element at
+            // original index 8,9,10,11, for output at index 8,9,10,11,
+            // we want to get the corresponding element at original index
+            // 16,17,18,19, so on and so forth.
+
+            var i = 0;
+            if (elemIdx < uniforms.k) {
+              i = elemIdx;
+            } else {
+              i = elemIdx * 2 - elemIdx % uniforms.k;
+            }
+            var i0 = 0;
+            if (uniforms.firstPass == 1) {
+              i0 = i;
+            } else {
+              i0 = i32(getIndices(batch, i));
+            }
+            var i1 = 0;
+            if (uniforms.firstPass == 1) {
+              i1 = i + uniforms.k;
+            } else {
+              i1 = i32(getIndices(batch, i + uniforms.k));
+            }
+
+            let x0 = getX(batch, i0);
+            var x1 = f32(0.0);
+            if (i1 < uniforms.inputSize) {
+              x1 = getX(batch, i1);
+            } else {
+              x1 = x0;
+            }
+
+            if (x0 >= x1) {
+              setOutputFlat(index, f32(i0));
+            } else {
+              setOutputFlat(index, f32(i1));
+            }
+          }
+        }
+      `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/TopK.ts
+function disposeIntermediateTensorInfoOrNull(backend2, tensorInfo) {
+  if (tensorInfo !== null) {
+    backend2.disposeData(tensorInfo.dataId);
+  }
+}
+function roundUpToPow2(num) {
+  let pow22 = 1;
+  while (pow22 < num) {
+    pow22 *= 2;
+  }
+  return pow22;
+}
+function topK(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { k, sorted } = attrs;
+  const xShape = x.shape;
+  const lastDim = xShape[xShape.length - 1];
+  if (backend2.shouldExecuteOnCPU([x])) {
+    const xVals = backend2.readSync(x.dataId);
+    const [allTopKVals, allTopKIndices] = topKImplCPU(xVals, xShape, x.dtype, k, sorted);
+    return [
+      backend2.makeTensorInfo(allTopKVals.shape, allTopKVals.dtype, allTopKVals.values),
+      backend2.makeTensorInfo(allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
+    ];
+  }
+  if (k === 0) {
+    xShape[xShape.length - 1] = 0;
+    return [
+      backend2.makeTensorInfo(xShape, x.dtype, []),
+      backend2.makeTensorInfo(xShape, "int32", [])
+    ];
+  }
+  if (lastDim === 1) {
+    return [
+      x,
+      fill2({ attrs: { shape: xShape, dtype: "int32", value: 0 }, backend: backend2 })
+    ];
+  }
+  const xSize = util_exports.sizeFromShape(xShape);
+  const batch = xSize / lastDim;
+  const x2D = reshape2({ inputs: { x }, attrs: { shape: [batch, lastDim] }, backend: backend2 });
+  const kPow2 = roundUpToPow2(k);
+  const lastDimPow2 = roundUpToPow2(lastDim);
+  let indices = null;
+  const getInputs = () => indices === null ? [x2D, x2D] : [x2D, indices];
+  const runSwap = (dir, inc, shape) => {
+    const inputs2 = getInputs();
+    const program = new SwapProgram(shape);
+    const firstPass = indices === null ? 1 : 0;
+    const uniformDataSwap = [
+      { type: "int32", data: [lastDim] },
+      { type: "int32", data: [firstPass] },
+      { type: "float32", data: [Number.NEGATIVE_INFINITY] },
+      { type: "int32", data: [dir] },
+      { type: "int32", data: [inc] }
+    ];
+    const prevIndices2 = indices;
+    indices = backend2.runWebGPUProgram(program, inputs2, "int32", uniformDataSwap);
+    disposeIntermediateTensorInfoOrNull(backend2, prevIndices2);
+  };
+  for (let len = 1; len < kPow2; len *= 2) {
+    const dir = len * 2;
+    for (let inc = len; inc >= 1; inc /= 2) {
+      runSwap(dir, inc, [batch, lastDimPow2]);
+    }
+  }
+  for (let indicesSize = lastDimPow2; indicesSize > kPow2; indicesSize /= 2) {
+    const inputs2 = getInputs();
+    const mergeProgram = new MergeProgram([batch, indicesSize / 2]);
+    const firstPass = indices === null ? 1 : 0;
+    const uniformDataMerge = [
+      { type: "int32", data: [lastDim] },
+      { type: "int32", data: [firstPass] },
+      { type: "int32", data: [kPow2] }
+    ];
+    const prevIndices2 = indices;
+    indices = backend2.runWebGPUProgram(mergeProgram, inputs2, "int32", uniformDataMerge);
+    disposeIntermediateTensorInfoOrNull(backend2, prevIndices2);
+    const len = kPow2 / 2;
+    const dir = len * 2;
+    for (let inc = len; inc >= 1; inc /= 2) {
+      runSwap(dir, inc, indices.shape);
+    }
+  }
+  let prevIndices = indices;
+  indices = slice3({ inputs: { x: indices }, backend: backend2, attrs: { begin: 0, size: [batch, k] } });
+  disposeIntermediateTensorInfoOrNull(backend2, prevIndices);
+  let values = gatherV2({ inputs: { x: x2D, indices }, backend: backend2, attrs: { axis: 1, batchDims: 1 } });
+  disposeIntermediateTensorInfoOrNull(backend2, x2D);
+  const newShape = xShape.slice(0, -1);
+  newShape.push(k);
+  prevIndices = indices;
+  indices = reshape2({ inputs: { x: indices }, attrs: { shape: newShape }, backend: backend2 });
+  disposeIntermediateTensorInfoOrNull(backend2, prevIndices);
+  const prevValues = values;
+  values = reshape2({ inputs: { x: values }, attrs: { shape: newShape }, backend: backend2 });
+  disposeIntermediateTensorInfoOrNull(backend2, prevValues);
+  return [values, indices];
+}
+var topKConfig = {
+  kernelName: TopK,
+  backendName: "webgpu",
+  kernelFunc: topK
+};
+
 // src/tfjs-backend-webgpu/src/kernels/transform_webgpu.ts
 var TransformProgram = class {
   constructor(outShape) {
@@ -21244,6 +21509,7 @@ var kernelConfigs = [
   sumConfig,
   tanhConfig,
   tileConfig,
+  topKConfig,
   transformConfig,
   transposeConfig2,
   unpackConfig,
@@ -22114,13 +22380,13 @@ var _WebGPUBackend = class extends KernelBackend {
     this.disposed = true;
   }
 };
-var WebGPUBackend71 = _WebGPUBackend;
-WebGPUBackend71.nextDataId = 0;
+var WebGPUBackend72 = _WebGPUBackend;
+WebGPUBackend72.nextDataId = 0;
 
 // src/tfjs-backend-webgpu/src/webgpu.ts
 var webgpu_exports = {};
 __export(webgpu_exports, {
-  WebGPUBackend: () => WebGPUBackend71,
+  WebGPUBackend: () => WebGPUBackend72,
   webgpu_util: () => webgpu_util_exports
 });
 
@@ -22140,7 +22406,7 @@ if (device_util_exports.isBrowser() && isWebGPUSupported()) {
       console.warn(`This device doesn't support timestamp-query extension. Start Chrome browser with flag --disable-dawn-features=disallow_unsafe_apis then try again. Or zero will shown for the kernel time when profiling mode isenabled. Using performance.now is not workable for webgpu sinceit doesn't support synchronously to read data from GPU.`);
     }
     const device = await adapter.requestDevice(deviceDescriptor);
-    return new WebGPUBackend71(device, supportTimeQuery);
+    return new WebGPUBackend72(device, supportTimeQuery);
   }, 3);
 }
 export {

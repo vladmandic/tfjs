@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 if [ ! -d src ]; then
   echo "No sources found"

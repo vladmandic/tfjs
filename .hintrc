@@ -1,0 +1,16 @@
+{
+  "extends": [
+    "web-recommended"
+  ],
+  "browserslist": [
+    "chrome >= 90",
+    "edge >= 90",
+    "firefox >= 90",
+    "android >= 90",
+    "safari >= 15"
+  ],
+  "hints": {
+    "no-inline-styles": "off",
+    "meta-charset-utf-8": "off"
+  }
+}

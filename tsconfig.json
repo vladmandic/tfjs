@@ -36,6 +36,7 @@
     "removeComments": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "strict": true,
     "sourceMap": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
@@ -46,6 +47,6 @@
     "useUnknownInCatchVariables": true
   },
   "formatCodeOptions": { "indentSize": 2, "tabSize": 2 },
-  "exclude": ["node_modules/", "dist/"],
+  "exclude": ["node_modules/", "dist/", "src/**/*_test.ts"],
   "include": ["scripts", "test"]
 }

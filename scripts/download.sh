@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # either update tfjs or download it
 if [ -d src ] && [ -f src/package.json ]; then
@@ -12,6 +13,6 @@ else
   echo "Fetching latest version of TFJS"
   git clone --depth 1 https://github.com/tensorflow/tfjs src
   cd src
-  rm tfjs.code-workspace 2>/dev/null
+  if [ -f tfjs.code-workspace]; then rm tfjs.code-workspace; fi
   cd ..
 fi
