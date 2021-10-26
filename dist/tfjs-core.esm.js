@@ -3091,7 +3091,6 @@ var TensorBuffer = class {
 var trackerFn = null;
 var opHandler = null;
 var deprecationWarningFn = null;
-[deprecationWarningFn];
 function setTensorTracker(fn) {
   trackerFn = fn;
 }
@@ -3101,7 +3100,7 @@ function setOpHandler(handler) {
 function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
-var Tensor4 = class {
+var Tensor = class {
   constructor(shape, dtype, dataId, id) {
     this.kept = false;
     this.isDisposedInternal = false;
@@ -3199,18 +3198,18 @@ var Tensor4 = class {
     return trackerFn().makeVariable(this, trainable, name, dtype);
   }
 };
-Object.defineProperty(Tensor4, Symbol.hasInstance, {
+Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance) => {
     return !!instance && instance.data != null && instance.dataSync != null && instance.throwIfDisposed != null;
   }
 });
 function getGlobalTensorClass() {
   return getGlobal("Tensor", () => {
-    return Tensor4;
+    return Tensor;
   });
 }
 getGlobalTensorClass();
-var Variable = class extends Tensor4 {
+var Variable = class extends Tensor {
   constructor(initialValue, trainable, name, tensorId) {
     super(initialValue.shape, initialValue.dtype, initialValue.dataId, tensorId);
     this.trainable = trainable;
@@ -3234,7 +3233,7 @@ var Variable = class extends Tensor4 {
 };
 Object.defineProperty(Variable, Symbol.hasInstance, {
   value: (instance) => {
-    return instance instanceof Tensor4 && instance.assign != null && instance.assign instanceof Function;
+    return instance instanceof Tensor && instance.assign != null && instance.assign instanceof Function;
   }
 });
 
@@ -3248,16 +3247,16 @@ __export(tensor_util_exports, {
 });
 
 // src/tfjs-core/src/types.ts
-var Rank2;
-(function(Rank22) {
-  Rank22["R0"] = "R0";
-  Rank22["R1"] = "R1";
-  Rank22["R2"] = "R2";
-  Rank22["R3"] = "R3";
-  Rank22["R4"] = "R4";
-  Rank22["R5"] = "R5";
-  Rank22["R6"] = "R6";
-})(Rank2 || (Rank2 = {}));
+var Rank;
+(function(Rank2) {
+  Rank2["R0"] = "R0";
+  Rank2["R1"] = "R1";
+  Rank2["R2"] = "R2";
+  Rank2["R3"] = "R3";
+  Rank2["R4"] = "R4";
+  Rank2["R5"] = "R5";
+  Rank2["R6"] = "R6";
+})(Rank || (Rank = {}));
 var UpcastInt32AndMap;
 (function(UpcastInt32AndMap2) {
   UpcastInt32AndMap2["float32"] = "float32";
@@ -3329,7 +3328,7 @@ function walkTensorContainer(container, list, seen) {
   if (container == null) {
     return;
   }
-  if (container instanceof Tensor4) {
+  if (container instanceof Tensor) {
     list.push(container);
     return;
   }
@@ -3782,7 +3781,7 @@ var _Engine = class {
       backendVals = values.map((d) => encodeString(d));
     }
     const dataId = backend2.write(backendVals, shape, dtype);
-    const t = new Tensor4(shape, dtype, dataId, this.nextTensorId());
+    const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend2);
     if (dtype === "string") {
       const info = this.state.tensorInfo.get(dataId);
@@ -3794,7 +3793,7 @@ var _Engine = class {
   }
   makeTensorFromDataId(dataId, shape, dtype, backend2) {
     dtype = dtype || "float32";
-    const t = new Tensor4(shape, dtype, dataId, this.nextTensorId());
+    const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend2);
     return t;
   }
@@ -3976,7 +3975,7 @@ var _Engine = class {
       throw new Error(`dy must have 'float32' dtype, but has '${dy.dtype}'`);
     }
     const y = this.scopedRun(() => this.startTape(), () => this.endTape(), () => this.tidy("forward", f));
-    assert(y instanceof Tensor4, () => "The result y returned by f() must be a tensor.");
+    assert(y instanceof Tensor, () => "The result y returned by f() must be a tensor.");
     const filteredTape = getFilteredNodesXToY(this.state.activeTape, xs, y);
     if (!allowNoGradients && filteredTape.length === 0 && xs.length > 0) {
       throw new Error("Cannot compute gradient of y=f(x) with respect to x. Make sure that the f you passed encloses all operations that lead from x to y.");
@@ -4000,7 +3999,7 @@ var _Engine = class {
   customGrad(f) {
     assert(isFunction(f), () => "The f passed in customGrad(f) must be a function.");
     return (...inputs) => {
-      assert(inputs.every((t) => t instanceof Tensor4), () => "The args passed in customGrad(f)(x1, x2,...) must all be tensors");
+      assert(inputs.every((t) => t instanceof Tensor), () => "The args passed in customGrad(f)(x1, x2,...) must all be tensors");
       let res;
       const inputMap = {};
       inputs.forEach((input, i) => {
@@ -4008,7 +4007,7 @@ var _Engine = class {
       });
       const forwardFunc = (_, save) => {
         res = f(...[...inputs, save]);
-        assert(res.value instanceof Tensor4, () => "The function f passed in customGrad(f) must return an object where `obj.value` is a tensor");
+        assert(res.value instanceof Tensor, () => "The function f passed in customGrad(f) must return an object where `obj.value` is a tensor");
         assert(isFunction(res.gradFunc), () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function.");
         return res.value;
       };
@@ -4016,7 +4015,7 @@ var _Engine = class {
         const gradRes = res.gradFunc(dy, saved);
         const grads2 = Array.isArray(gradRes) ? gradRes : [gradRes];
         assert(grads2.length === inputs.length, () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function that returns the same number of tensors as inputs passed to f(...).");
-        assert(grads2.every((t) => t instanceof Tensor4), () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function that returns a list of only tensors.");
+        assert(grads2.every((t) => t instanceof Tensor), () => "The function f passed in customGrad(f) must return an object where `obj.gradFunc` is a function that returns a list of only tensors.");
         const gradMap = {};
         grads2.forEach((grad2, i) => {
           gradMap[i] = () => grad2;
@@ -4191,7 +4190,7 @@ function assertDtype(expectedDtype, actualDType, argName, functionName) {
   }
 }
 function convertToTensor(x, argName, functionName, parseAsDtype = "numeric") {
-  if (x instanceof Tensor4) {
+  if (x instanceof Tensor) {
     assertDtype(parseAsDtype, x.dtype, argName, functionName);
     return x;
   }
@@ -4688,14 +4687,6 @@ var DATABASE_NAME = "tensorflowjs";
 var DATABASE_VERSION = 1;
 var MODEL_STORE_NAME = "models_store";
 var INFO_STORE_NAME = "model_info_store";
-async function deleteDatabase() {
-  const idbFactory = getIndexedDBFactory();
-  return new Promise((resolve, reject) => {
-    const deleteRequest = idbFactory.deleteDatabase(DATABASE_NAME);
-    deleteRequest.onsuccess = () => resolve();
-    deleteRequest.onerror = (error) => reject(error);
-  });
-}
 function getIndexedDBFactory() {
   if (!env().getBool("IS_BROWSER")) {
     throw new Error("Failed to obtain IndexedDB factory because the current environmentis not a web browser.");
@@ -4903,25 +4894,6 @@ var MODEL_TOPOLOGY_SUFFIX = "model_topology";
 var WEIGHT_SPECS_SUFFIX = "weight_specs";
 var WEIGHT_DATA_SUFFIX = "weight_data";
 var MODEL_METADATA_SUFFIX = "model_metadata";
-function purgeLocalStorageArtifacts() {
-  if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
-    throw new Error("purgeLocalStorageModels() cannot proceed because local storage is unavailable in the current environment.");
-  }
-  const LS = window.localStorage;
-  const purgedModelPaths = [];
-  for (let i = 0; i < LS.length; ++i) {
-    const key = LS.key(i);
-    const prefix = PATH_PREFIX + PATH_SEPARATOR;
-    if (key.startsWith(prefix) && key.length > prefix.length) {
-      LS.removeItem(key);
-      const modelName = getModelPathFromKey(key);
-      if (purgedModelPaths.indexOf(modelName) === -1) {
-        purgedModelPaths.push(modelName);
-      }
-    }
-  }
-  return purgedModelPaths;
-}
 function getModelKeys(path) {
   return {
     info: [PATH_PREFIX, path, INFO_SUFFIX].join(PATH_SEPARATOR),
@@ -5210,15 +5182,6 @@ var getNodeFetch = {
   importFetch: () => require_node_fetch()
 };
 var systemFetch;
-function resetSystemFetch() {
-  systemFetch = null;
-}
-function setSystemFetch(fetchFn) {
-  systemFetch = fetchFn;
-}
-function getSystemFetch() {
-  return systemFetch;
-}
 var PlatformNode = class {
   constructor() {
     this.util = require_util();
@@ -5932,7 +5895,15 @@ function fromPixels_(pixels, numChannels = 3) {
     vals = pixels.data;
   } else if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement("canvas").getContext("2d");
+      if (typeof document === "undefined") {
+        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
+          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
+        } else {
+          throw new Error("Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.");
+        }
+      } else {
+        fromPixels2DContext = document.createElement("canvas").getContext("2d");
+      }
     }
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
@@ -5987,7 +5958,7 @@ async function fromPixelsAsync(pixels, numChannels = 3) {
 }
 async function toPixels(img, canvas) {
   let $img = convertToTensor(img, "img", "toPixels");
-  if (!(img instanceof Tensor4)) {
+  if (!(img instanceof Tensor)) {
     const originalImgTensor = $img;
     $img = cast(originalImgTensor, "int32");
     originalImgTensor.dispose();
@@ -6178,6 +6149,8 @@ __export(slice_util_exports, {
   stridesForAxis: () => stridesForAxis,
   stridesWithElidedDims: () => stridesWithElidedDims
 });
+var NEW_AXIS = -2;
+var SHRINK_AXIS = -1;
 function assertParamsValid(input, begin, size) {
   const inputRank = input.shape.length;
   assert(inputRank === begin.length, () => `Error in slice${inputRank}D: Length of begin ${begin} must match the rank of the array (${inputRank}).`);
@@ -6397,47 +6370,209 @@ function parseSliceParams(x, begin, size) {
   return [begin_, size_];
 }
 function sliceInfo(xShape, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask) {
-  let $begin = begin.slice();
-  let $end = end.slice();
-  let $strides = strides;
+  let stridesNonNull;
   if (strides == null) {
-    $strides = new Array($begin.length);
+    stridesNonNull = new Array(begin.length);
+    stridesNonNull.fill(1);
+  } else {
+    stridesNonNull = strides;
   }
-  const ellipsisAxes = maskToAxes(ellipsisMask);
-  if (ellipsisAxes.length > 1) {
+  if (ellipsisMask != null && (ellipsisMask & ellipsisMask - 1) !== 0) {
     throw new Error("Multiple ellipses in slice is not allowed.");
   }
-  if (ellipsisMask !== 0 && newAxisMask !== 0) {
-    throw new Error("Using both ellipsisMask and newAxisMask is not yet supported.");
+  let ellipsisSeen = false;
+  const sparseSpec = {
+    dims: stridesNonNull.length,
+    numAddAxisAfterEllipsis: 0,
+    begin: begin.slice(),
+    end: end.slice(),
+    strides: stridesNonNull.slice(),
+    beginMask,
+    endMask,
+    ellipsisMask,
+    newAxisMask,
+    shrinkAxisMask
+  };
+  for (let i = 0; i < sparseSpec.dims; i++) {
+    if (ellipsisSeen && (1 << i & newAxisMask) !== 0) {
+      sparseSpec.numAddAxisAfterEllipsis++;
+    }
+    if (1 << i & ellipsisMask) {
+      ellipsisSeen = true;
+    }
   }
-  if (ellipsisMask !== 0 && shrinkAxisMask !== 0) {
-    throw new Error("Using both ellipsisMask and shrinkAxisMask is not yet supported.");
+  if (!ellipsisSeen) {
+    sparseSpec.ellipsisMask |= 1 << sparseSpec.dims;
+    sparseSpec.dims++;
   }
-  const numInterpolatedAxes = xShape.length - $begin.length;
-  const expandAxes = maskToAxes(newAxisMask);
-  const newShape = xShape.slice();
-  expandAxes.forEach((axis) => {
-    $begin[axis] = 0;
-    $end[axis] = 1;
-    newShape.splice(axis, 0, 1);
-  });
-  const {
-    begin: normalizedBegin,
-    end: normalizedEnd,
-    strides: normalizedStrides
-  } = getNormalizedAxes(newShape, ellipsisAxes, numInterpolatedAxes, $begin, $end, $strides, beginMask, endMask, ellipsisMask);
-  $begin = normalizedBegin;
-  $end = normalizedEnd;
-  $strides = normalizedStrides;
-  const shrinkAxes = maskToAxes(shrinkAxisMask);
-  shrinkAxes.forEach((axis) => {
-    $end[axis] = $begin[axis] + 1;
-    $strides[axis] = 1;
-  });
-  const size = computeOutShape($begin, $end, $strides);
-  const outShape = size.filter((_, axis) => shrinkAxes.indexOf(axis) === -1);
-  const nonStrided = $strides.every((v) => v === 1);
-  return { nonStrided, $begin, $end, $strides, size, newShape, outShape };
+  const denseSpec = {
+    dims: xShape.length,
+    beginMask: 0,
+    endMask: 0,
+    beginValid: false,
+    endValid: false
+  };
+  buildDenseSpec(sparseSpec, denseSpec);
+  let isIdentity = true;
+  let sliceDim0 = true;
+  let isSimpleSlice = true;
+  const processingShape = [];
+  const finalShape = [];
+  for (let i = 0; i < xShape.length; ++i) {
+    if (denseSpec.strides[i] === 0) {
+      throw Error(`strides[${i}] must be non-zero`);
+    }
+    const shrinkI = !!(denseSpec.shrinkAxisMask & 1 << i);
+    const dimI = xShape[i];
+    if (dimI === -1) {
+      processingShape.push(shrinkI ? 1 : -1);
+      continue;
+    }
+    const masks = [denseSpec.beginMask & 1 << i, denseSpec.endMask & 1 << i];
+    const validRange = [
+      denseSpec.strides[i] > 0 ? 0 : -1,
+      denseSpec.strides[i] > 0 ? dimI : dimI - 1
+    ];
+    if (shrinkI && denseSpec.strides[i] <= 0) {
+      throw Error("only stride 1 allowed on non-range indexing.");
+    }
+    isSimpleSlice = isSimpleSlice && denseSpec.strides[i] === 1;
+    const beginAndEndMasked = !!(denseSpec.beginMask & 1 << i && denseSpec.endMask & 1 << i);
+    if (denseSpec.beginValid && denseSpec.endValid) {
+      if (shrinkI) {
+        const xFwd = denseSpec.begin[i] < 0 ? dimI + denseSpec.begin[i] : denseSpec.begin[i];
+        denseSpec.begin[i] = xFwd;
+        denseSpec.end[i] = denseSpec.begin[i] + 1;
+        if (xFwd < 0 || xFwd >= dimI) {
+          throw Error(`slice index ${denseSpec.begin[i]} of dimension ${i} out of bounds.`);
+        }
+      } else {
+        denseSpec.begin[i] = canonical(denseSpec.begin[i], 0, denseSpec.strides[i], dimI, masks, validRange);
+        denseSpec.end[i] = canonical(denseSpec.end[i], 1, denseSpec.strides[i], dimI, masks, validRange);
+      }
+      const takeAllInDimension = denseSpec.strides[i] === 1 && denseSpec.begin[i] === 0 && denseSpec.end[i] === dimI;
+      isIdentity = isIdentity && takeAllInDimension;
+      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || takeAllInDimension);
+    } else {
+      isIdentity = isIdentity && (denseSpec.strides[i] === 1 && beginAndEndMasked);
+      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || beginAndEndMasked);
+    }
+    let intervalLength;
+    let knownInterval = false;
+    if (denseSpec.beginValid && denseSpec.endValid) {
+      intervalLength = denseSpec.end[i] - denseSpec.begin[i];
+      knownInterval = true;
+    } else if (shrinkI) {
+      intervalLength = 1;
+      knownInterval = true;
+    } else if (beginAndEndMasked) {
+      if (dimI >= 0) {
+        if (denseSpec.strides[i] < 0) {
+          intervalLength = -dimI;
+        } else {
+          intervalLength = dimI;
+        }
+        knownInterval = true;
+      }
+    }
+    if (knownInterval) {
+      let sizeI;
+      if (intervalLength === 0 || intervalLength < 0 !== denseSpec.strides[i] < 0) {
+        sizeI = 0;
+      } else {
+        sizeI = Math.trunc(intervalLength / denseSpec.strides[i]) + (intervalLength % denseSpec.strides[i] !== 0 ? 1 : 0);
+      }
+      processingShape.push(sizeI);
+    } else {
+      processingShape.push(-1);
+    }
+  }
+  for (let denseDim = 0; denseDim < denseSpec.finalShapeGatherIndices.length; ++denseDim) {
+    const gatherIndex = denseSpec.finalShapeGatherIndices[denseDim];
+    if (gatherIndex >= 0) {
+      finalShape.push(processingShape[gatherIndex]);
+    } else if (gatherIndex === NEW_AXIS) {
+      finalShape.push(1);
+    }
+  }
+  const finalShapeSparse = finalShape.filter((dim, i) => denseSpec.finalShapeGatherIndices[i] !== NEW_AXIS);
+  return {
+    finalShapeSparse,
+    finalShape,
+    isIdentity,
+    sliceDim0,
+    isSimpleSlice,
+    begin: denseSpec.begin,
+    end: denseSpec.end,
+    strides: denseSpec.strides
+  };
+}
+function buildDenseSpec(sparse2, dense) {
+  dense.beginMask = 0;
+  dense.endMask = 0;
+  dense.shrinkAxisMask = 0;
+  let fullIndex = 0;
+  dense.beginValid = sparse2.begin != null;
+  dense.endValid = sparse2.end != null;
+  dense.begin = new Array(dense.dims);
+  dense.end = new Array(dense.dims);
+  dense.strides = new Array(dense.dims);
+  dense.finalShapeGatherIndices = [];
+  dense.finalShapeGatherIndicesSparse = [];
+  dense.inputShapeGatherIndicesSparse = new Array(dense.dims);
+  for (let i = 0; i < sparse2.dims; i++) {
+    if (1 << i & sparse2.ellipsisMask) {
+      const nextIndex = Math.min(dense.dims - (sparse2.dims - i) + 1 + sparse2.numAddAxisAfterEllipsis, dense.dims);
+      for (; fullIndex < nextIndex; fullIndex++) {
+        dense.begin[fullIndex] = 0;
+        dense.end[fullIndex] = 0;
+        dense.strides[fullIndex] = 1;
+        dense.beginMask |= 1 << fullIndex;
+        dense.endMask |= 1 << fullIndex;
+        dense.finalShapeGatherIndices.push(fullIndex);
+        dense.finalShapeGatherIndicesSparse.push(-1);
+        dense.inputShapeGatherIndicesSparse[fullIndex] = i;
+      }
+    } else if (1 << i & sparse2.newAxisMask) {
+      dense.finalShapeGatherIndices.push(NEW_AXIS);
+      dense.finalShapeGatherIndicesSparse.push(-1);
+    } else {
+      if (fullIndex === dense.begin.length) {
+        throw Error(`Index out of range using input dim ${fullIndex}; input has only ${dense.dims} dims, ${dense.begin.length}.`);
+      }
+      if (sparse2.begin != null) {
+        dense.begin[fullIndex] = sparse2.begin[i];
+      }
+      if (sparse2.end != null) {
+        dense.end[fullIndex] = sparse2.end[i];
+      }
+      dense.strides[fullIndex] = sparse2.strides[i];
+      if (sparse2.beginMask & 1 << i) {
+        dense.beginMask |= 1 << fullIndex;
+      }
+      if (sparse2.endMask & 1 << i) {
+        dense.endMask |= 1 << fullIndex;
+      }
+      if (sparse2.shrinkAxisMask & 1 << i) {
+        dense.finalShapeGatherIndices.push(SHRINK_AXIS);
+        dense.finalShapeGatherIndicesSparse.push(-1);
+        dense.shrinkAxisMask |= 1 << fullIndex;
+      } else {
+        dense.finalShapeGatherIndices.push(fullIndex);
+        dense.finalShapeGatherIndicesSparse.push(i);
+      }
+      dense.inputShapeGatherIndicesSparse[fullIndex] = i;
+      fullIndex++;
+    }
+  }
+}
+function canonical(x, c, strideI, dimI, masks, validRange) {
+  if (masks[c]) {
+    return strideI > 0 ? validRange[c] : validRange[c + 1 & 1];
+  } else {
+    const xFwd = x < 0 ? dimI + x : x;
+    return xFwd < validRange[0] ? validRange[0] : xFwd > validRange[1] ? validRange[1] : xFwd;
+  }
 }
 
 // src/tfjs-core/src/serialization.ts
@@ -7292,12 +7427,12 @@ function xAs4D(x) {
 }
 
 // src/tfjs-core/src/ops/batchnorm.ts
-function batchNorm_(x, mean3, variance, offset, scale, varianceEpsilon) {
+function batchNorm_(x, mean2, variance, offset, scale, varianceEpsilon) {
   if (varianceEpsilon == null) {
     varianceEpsilon = 1e-3;
   }
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean3, "mean", "batchNorm");
+  const $mean = convertToTensor(mean2, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -7325,9 +7460,9 @@ function batchNorm_(x, mean3, variance, offset, scale, varianceEpsilon) {
 var batchNorm = op({ batchNorm_ });
 
 // src/tfjs-core/src/ops/batchnorm2d.ts
-function batchNorm2d_(x, mean3, variance, offset, scale, varianceEpsilon) {
+function batchNorm2d_(x, mean2, variance, offset, scale, varianceEpsilon) {
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean3, "mean", "batchNorm");
+  const $mean = convertToTensor(mean2, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -7351,9 +7486,9 @@ function batchNorm2d_(x, mean3, variance, offset, scale, varianceEpsilon) {
 var batchNorm2d = op({ batchNorm2d_ });
 
 // src/tfjs-core/src/ops/batchnorm3d.ts
-function batchNorm3d_(x, mean3, variance, offset, scale, varianceEpsilon) {
+function batchNorm3d_(x, mean2, variance, offset, scale, varianceEpsilon) {
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean3, "mean", "batchNorm");
+  const $mean = convertToTensor(mean2, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -7377,9 +7512,9 @@ function batchNorm3d_(x, mean3, variance, offset, scale, varianceEpsilon) {
 var batchNorm3d = op({ batchNorm3d_ });
 
 // src/tfjs-core/src/ops/batchnorm4d.ts
-function batchNorm4d_(x, mean3, variance, offset, scale, varianceEpsilon) {
+function batchNorm4d_(x, mean2, variance, offset, scale, varianceEpsilon) {
   const $x = convertToTensor(x, "x", "batchNorm");
-  const $mean = convertToTensor(mean3, "mean", "batchNorm");
+  const $mean = convertToTensor(mean2, "mean", "batchNorm");
   const $variance = convertToTensor(variance, "variance", "batchNorm");
   let $scale;
   if (scale != null) {
@@ -8203,8 +8338,8 @@ function grads(f) {
 function valueAndGrad(f) {
   assert(isFunction(f), () => "The f passed in valueAndGrad(f) must be a function");
   return (x, dy) => {
-    assert(x instanceof Tensor4, () => "The x passed in valueAndGrad(f)(x) must be a tensor");
-    assert(dy == null || dy instanceof Tensor4, () => "The dy passed in valueAndGrad(f)(x, dy) must be a tensor");
+    assert(x instanceof Tensor, () => "The x passed in valueAndGrad(f)(x) must be a tensor");
+    assert(dy == null || dy instanceof Tensor, () => "The dy passed in valueAndGrad(f)(x, dy) must be a tensor");
     const { grads: grads2, value } = ENGINE.gradients(() => f(x), [x], dy);
     checkGrads(grads2);
     return { grad: grads2[0], value };
@@ -8213,8 +8348,8 @@ function valueAndGrad(f) {
 function valueAndGrads(f) {
   assert(isFunction(f), () => "The f passed in valueAndGrads(f) must be a function");
   return (args, dy) => {
-    assert(Array.isArray(args) && args.every((arg) => arg instanceof Tensor4), () => "The args passed in valueAndGrads(f)(args) must be array of tensors");
-    assert(dy == null || dy instanceof Tensor4, () => "The dy passed in valueAndGrads(f)(args, dy) must be a tensor");
+    assert(Array.isArray(args) && args.every((arg) => arg instanceof Tensor), () => "The args passed in valueAndGrads(f)(args) must be array of tensors");
+    assert(dy == null || dy instanceof Tensor, () => "The dy passed in valueAndGrads(f)(args, dy) must be a tensor");
     const res = ENGINE.gradients(() => f(...args), args, dy);
     if (dy != null) {
       assertShapesMatch(res.value.shape, dy.shape, "The shape of dy passed in valueAndGrads(f)([x1,...], dy) must match the shape returned by f([x1,...])");
@@ -8585,11 +8720,11 @@ function meshgrid(x, y, { indexing = "xy" } = {}) {
   if (x === void 0) {
     return [];
   }
-  let $x = convertToTensor(x, "x", "meshgrid", x instanceof Tensor4 ? x.dtype : "float32");
+  let $x = convertToTensor(x, "x", "meshgrid", x instanceof Tensor ? x.dtype : "float32");
   if (y === void 0) {
     return [$x];
   }
-  let $y = convertToTensor(y, "y", "meshgrid", y instanceof Tensor4 ? y.dtype : "float32");
+  let $y = convertToTensor(y, "y", "meshgrid", y instanceof Tensor ? y.dtype : "float32");
   const w = sizeFromShape($x.shape);
   const h = sizeFromShape($y.shape);
   if (indexing === "xy") {
@@ -8930,8 +9065,8 @@ var rand = op({ rand_ });
 // src/tfjs-core/src/ops/rand_util.ts
 var seedrandom = __toModule(require_seedrandom2());
 var MPRandGauss = class {
-  constructor(mean3, stdDeviation, dtype, truncated, seed) {
-    this.mean = mean3;
+  constructor(mean2, stdDeviation, dtype, truncated, seed) {
+    this.mean = mean2;
     this.stdDev = stdDeviation;
     this.dtype = dtype;
     this.nextVal = NaN;
@@ -9051,63 +9186,6 @@ var UniformRandom = class {
     return this.convertValue(this.min + this.range * this.random());
   }
 };
-function jarqueBeraNormalityTest(values) {
-  const n = values.length;
-  const s = skewness(values);
-  const k = kurtosis(values);
-  const jb = n / 6 * (Math.pow(s, 2) + 0.25 * Math.pow(k - 3, 2));
-  const CHI_SQUARE_2DEG = 5.991;
-  if (jb > CHI_SQUARE_2DEG) {
-    throw new Error(`Invalid p-value for JB: ${jb}`);
-  }
-}
-function expectArrayInMeanStdRange(actual, expectedMean, expectedStdDev, epsilon) {
-  if (epsilon == null) {
-    epsilon = testEpsilon();
-  }
-  const actualMean = mean2(actual);
-  expectNumbersClose(actualMean, expectedMean, epsilon);
-  expectNumbersClose(standardDeviation(actual, actualMean), expectedStdDev, epsilon);
-}
-function mean2(values) {
-  let sum3 = 0;
-  for (let i = 0; i < values.length; i++) {
-    sum3 += values[i];
-  }
-  return sum3 / values.length;
-}
-function standardDeviation(values, mean3) {
-  let squareDiffSum = 0;
-  for (let i = 0; i < values.length; i++) {
-    const diff = values[i] - mean3;
-    squareDiffSum += diff * diff;
-  }
-  return Math.sqrt(squareDiffSum / values.length);
-}
-function kurtosis(values) {
-  const valuesMean = mean2(values);
-  const n = values.length;
-  let sum22 = 0;
-  let sum4 = 0;
-  for (let i = 0; i < n; i++) {
-    const v = values[i] - valuesMean;
-    sum22 += Math.pow(v, 2);
-    sum4 += Math.pow(v, 4);
-  }
-  return 1 / n * sum4 / Math.pow(1 / n * sum22, 2);
-}
-function skewness(values) {
-  const valuesMean = mean2(values);
-  const n = values.length;
-  let sum22 = 0;
-  let sum3 = 0;
-  for (let i = 0; i < n; i++) {
-    const v = values[i] - valuesMean;
-    sum22 += Math.pow(v, 2);
-    sum3 += Math.pow(v, 3);
-  }
-  return 1 / n * sum3 / Math.pow(1 / (n - 1) * sum22, 3 / 2);
-}
 
 // src/tfjs-core/src/ops/random_gamma.ts
 function randomGamma_(shape, alpha, beta = 1, dtype = "float32", seed) {
@@ -9130,11 +9208,11 @@ function randomGamma_(shape, alpha, beta = 1, dtype = "float32", seed) {
 var randomGamma = op({ randomGamma_ });
 
 // src/tfjs-core/src/ops/random_normal.ts
-function randomNormal_(shape, mean3 = 0, stdDev = 1, dtype, seed) {
+function randomNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type ${dtype}`);
   }
-  const randGauss = new MPRandGauss(mean3, stdDev, dtype, false, seed);
+  const randGauss = new MPRandGauss(mean2, stdDev, dtype, false, seed);
   const res = buffer(shape, dtype);
   for (let i = 0; i < res.values.length; i++) {
     res.values[i] = randGauss.nextValue();
@@ -9666,11 +9744,11 @@ function topk_(x, k = 1, sorted = true) {
 var topk = op({ topk_ });
 
 // src/tfjs-core/src/ops/truncated_normal.ts
-function truncatedNormal_(shape, mean3 = 0, stdDev = 1, dtype, seed) {
+function truncatedNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type $ { dtype }`);
   }
-  const randGauss = new MPRandGauss(mean3, stdDev, dtype, true, seed);
+  const randGauss = new MPRandGauss(mean2, stdDev, dtype, true, seed);
   const res = buffer(shape, dtype);
   for (let i = 0; i < res.values.length; i++) {
     res.values[i] = randGauss.nextValue();
@@ -9936,7 +10014,7 @@ function dropout_(x, rate, noiseShape, seed) {
   assert($x.dtype === "float32", () => `x has to be a floating point tensor since it's going to be scaled, but got a ${$x.dtype} tensor instead.`);
   assert(rate >= 0 && rate < 1, () => `rate must be a float in the range [0, 1), but got ${rate}.`);
   if (rate === 0) {
-    return x instanceof Tensor4 ? $x.clone() : $x;
+    return x instanceof Tensor ? $x.clone() : $x;
   }
   const $noiseShape = getNoiseShape($x, noiseShape);
   const keepProb = 1 - rate;
@@ -12153,15 +12231,6 @@ var OptimizerConstructors = class {
 };
 
 // src/tfjs-core/src/train.ts
-[
-  MomentumOptimizer,
-  SGDOptimizer,
-  AdadeltaOptimizer,
-  AdagradOptimizer,
-  RMSPropOptimizer,
-  AdamaxOptimizer,
-  AdamOptimizer
-];
 var train = {
   sgd: OptimizerConstructors.sgd,
   momentum: OptimizerConstructors.momentum,
@@ -12824,6 +12893,7 @@ export {
   OneHot,
   OnesLike,
   Optimizer,
+  OptimizerConstructors,
   Pack,
   PadV2,
   Pool,
@@ -12832,7 +12902,7 @@ export {
   Prod,
   RMSPropOptimizer,
   Range,
-  Rank2 as Rank,
+  Rank,
   Real,
   RealDiv,
   Reciprocal,
@@ -12878,7 +12948,7 @@ export {
   Sum,
   Tan,
   Tanh,
-  Tensor4 as Tensor,
+  Tensor,
   TensorBuffer,
   Tile,
   TopK,

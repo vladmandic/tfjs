@@ -16,7 +16,7 @@ const buildResolve = { // plugin for esbuild
 const buildOptions = {
   global: {
     logLevel: 'error',
-    treeShaking: false,
+    treeShaking: true,
     ignoreAnnotations: true,
     plugins: [buildResolve],
     sourcemap: true,
