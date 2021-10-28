@@ -32,9 +32,9 @@ var __toModule = (module) => {
   return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
 };
 
-// node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
+// src/node_modules/long/src/long.js
 var require_long = __commonJS({
-  "node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js"(exports, module) {
+  "src/node_modules/long/src/long.js"(exports, module) {
     module.exports = Long2;
     var wasm = null;
     try {
@@ -857,9 +857,9 @@ var require_long = __commonJS({
   }
 });
 
-// (disabled):node-fetch
-var require_node_fetch = __commonJS({
-  "(disabled):node-fetch"() {
+// (disabled):src/node_modules/node-fetch/browser.js
+var require_browser = __commonJS({
+  "(disabled):src/node_modules/node-fetch/browser.js"() {
   }
 });
 
@@ -869,9 +869,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js
+// src/node_modules/seedrandom/lib/alea.js
 var require_alea = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/alea.js"(exports, module) {
     (function(global2, module2, define2) {
       function Alea(seed) {
         var me = this, mash = Mash();
@@ -955,9 +955,9 @@ var require_alea = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js
+// src/node_modules/seedrandom/lib/xor128.js
 var require_xor128 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xor128.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1023,9 +1023,9 @@ var require_xor128 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js
+// src/node_modules/seedrandom/lib/xorwow.js
 var require_xorwow = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1098,9 +1098,9 @@ var require_xorwow = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js
+// src/node_modules/seedrandom/lib/xorshift7.js
 var require_xorshift7 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1189,9 +1189,9 @@ var require_xorshift7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js
+// src/node_modules/seedrandom/lib/xor4096.js
 var require_xor4096 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1295,9 +1295,9 @@ var require_xor4096 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js
+// src/node_modules/seedrandom/lib/tychei.js
 var require_tychei = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/tychei.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1375,9 +1375,9 @@ var require_crypto = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js
+// src/node_modules/seedrandom/seedrandom.js
 var require_seedrandom = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js"(exports, module) {
+  "src/node_modules/seedrandom/seedrandom.js"(exports, module) {
     (function(global2, pool3, math) {
       var width = 256, chunks = 6, digits = 52, rngname = "random", startdenom = math.pow(width, chunks), significance = math.pow(2, digits), overflow = significance * 2, mask = width - 1, nodecrypto;
       function seedrandom5(seed, options, callback) {
@@ -1508,9 +1508,9 @@ var require_seedrandom = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js
+// src/node_modules/seedrandom/index.js
 var require_seedrandom2 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js"(exports, module) {
+  "src/node_modules/seedrandom/index.js"(exports, module) {
     var alea5 = require_alea();
     var xor128 = require_xor128();
     var xorwow = require_xorwow();
@@ -5342,18 +5342,6 @@ function isPromise(object) {
   return object && object.then && typeof object.then === "function";
 }
 
-// src/tfjs-core/src/log.ts
-function warn(...msg) {
-  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
-    console.warn(...msg);
-  }
-}
-function log(...msg) {
-  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
-    console.log(...msg);
-  }
-}
-
 // src/tfjs-core/src/environment.ts
 var TENSORFLOWJS_FLAGS_PREFIX = "tfjsflags";
 var Environment = class {
@@ -5367,7 +5355,9 @@ var Environment = class {
   }
   setPlatform(platformName, platform) {
     if (this.platform != null) {
-      warn(`Platform ${this.platformName} has already been set. Overwriting the platform with ${platform}.`);
+      if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+        console.warn(`Platform ${this.platformName} has already been set. Overwriting the platform with ${platform}.`);
+      }
     }
     this.platformName = platformName;
     this.platform = platform;
@@ -5376,7 +5366,9 @@ var Environment = class {
     this.flagRegistry[flagName] = { evaluationFn, setHook };
     if (this.urlFlags[flagName] != null) {
       const flagValue = this.urlFlags[flagName];
-      warn(`Setting feature override from URL ${flagName}: ${flagValue}.`);
+      if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+        console.warn(`Setting feature override from URL ${flagName}: ${flagValue}.`);
+      }
       this.set(flagName, flagValue);
     }
   }
@@ -5681,6 +5673,18 @@ var RotateWithOffset = "RotateWithOffset";
 var _FusedMatMul = "_FusedMatMul";
 var FusedConv2D = "FusedConv2D";
 var FusedDepthwiseConv2D = "FusedDepthwiseConv2D";
+
+// src/tfjs-core/src/log.ts
+function warn(...msg) {
+  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+    console.warn(...msg);
+  }
+}
+function log(...msg) {
+  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+    console.log(...msg);
+  }
+}
 
 // src/tfjs-core/src/kernel_registry.ts
 var kernelRegistry = getGlobal("kernelRegistry", () => new Map());
@@ -8477,7 +8481,7 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
-  importFetch: () => require_node_fetch()
+  importFetch: () => require_browser()
 };
 var systemFetch;
 var PlatformNode = class {
@@ -11591,7 +11595,7 @@ function log_(x) {
   const inputs = { x: $x };
   return ENGINE.runKernel(Log, inputs);
 }
-var log5 = op({ log_ });
+var log4 = op({ log_ });
 
 // src/tfjs-core/src/ops/log1p.ts
 function log1p_(x) {
@@ -11771,7 +11775,7 @@ function logSoftmax_(logits, axis = -1) {
     const keepDims = true;
     const xMax = max(logits2, axis, true);
     const shifted = sub(logits2, xMax);
-    const value = sub(cast(shifted, "float32"), log5(sum2(exp(shifted), axis, keepDims)));
+    const value = sub(cast(shifted, "float32"), log4(sum2(exp(shifted), axis, keepDims)));
     save([value]);
     const gradFunc = (dy, saved) => {
       const [value2] = saved;
@@ -11858,7 +11862,7 @@ function logSumExp_(x, axis = null, keepDims = false) {
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
-  const d = log5(c);
+  const d = log4(c);
   const res = add2(reshape(xMax, d.shape), d);
   if (keepDims) {
     const newShape = expandShapeToKeepDim(res.shape, axes);
@@ -14537,8 +14541,8 @@ function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction2 = Re
   assertShapesMatch($labels.shape, $predictions.shape, "Error in logLoss: ");
   const one = scalar(1);
   const epsilonScalar = scalar(epsilon3);
-  const l13 = neg(mul($labels, log5(add2($predictions, epsilonScalar))));
-  const l23 = mul(sub(one, $labels), log5(add2(sub(one, $predictions), epsilonScalar)));
+  const l13 = neg(mul($labels, log4(add2($predictions, epsilonScalar))));
+  const l23 = mul(sub(one, $labels), log4(add2(sub(one, $predictions), epsilonScalar)));
   const losses4 = sub(l13, l23);
   return computeWeightedLoss(losses4, $weights, reduction2);
 }
@@ -17228,7 +17232,7 @@ var powGradConfig = {
     };
     const derExp = () => {
       const condition = greater(base2, 0);
-      const logBase = where(condition, log5(base2), zerosLike(base2));
+      const logBase = where(condition, log4(base2), zerosLike(base2));
       let res = mul(dy, mul(y, logBase));
       const reduceAxes = getReductionAxes(exp5.shape, outShape);
       if (reduceAxes.length > 0) {
@@ -20223,8 +20227,8 @@ var BaseLogger = class extends BaseCallback {
           logs[key] = this.totals[key] / this.seen;
         } else {
           tidy(() => {
-            const log9 = mul(div(1, this.seen), this.totals[key]);
-            logs[key] = log9;
+            const log8 = mul(div(1, this.seen), this.totals[key]);
+            logs[key] = log8;
             this.totals[key].dispose();
             keep(logs[key]);
           });
@@ -20464,9 +20468,9 @@ function meanAbsolutePercentageError(yTrue, yPred) {
 function meanSquaredLogarithmicError(yTrue, yPred) {
   return tidy(() => {
     const clippedPred = clipByValue(yPred, epsilon(), Number.MAX_VALUE);
-    const firstLog = log5(add2(1, clippedPred));
+    const firstLog = log4(add2(1, clippedPred));
     const clippedTrue = clipByValue(yTrue, epsilon(), Number.MAX_VALUE);
-    const secondLog = log5(add2(1, clippedTrue));
+    const secondLog = log4(add2(1, clippedTrue));
     return mean(square2(sub(firstLog, secondLog)), -1);
   });
 }
@@ -20506,7 +20510,7 @@ function categoricalCrossentropy(target, output, fromLogits = false) {
       output = div(output, outputSum);
     }
     output = clipByValue(output, epsilon(), 1 - epsilon());
-    return neg(sum2(mul(cast(target, "float32"), log5(output)), output.shape.length - 1));
+    return neg(sum2(mul(cast(target, "float32"), log4(output)), output.shape.length - 1));
   });
 }
 function sparseCategoricalCrossentropy(target, output, fromLogits = false) {
@@ -20532,7 +20536,7 @@ function binaryCrossentropy(yTrue, yPred) {
   return tidy(() => {
     let y;
     y = clipByValue(yPred, epsilon(), 1 - epsilon());
-    y = log5(div(y, sub(1, y)));
+    y = log4(div(y, sub(1, y)));
     return mean(sigmoidCrossEntropyWithLogits(yTrue, y), -1);
   });
 }
@@ -20540,12 +20544,12 @@ function kullbackLeiblerDivergence(yTrue, yPred) {
   return tidy(() => {
     const clippedTrue = clipByValue(yTrue, epsilon(), 1);
     const clippedPred = clipByValue(yPred, epsilon(), 1);
-    return sum2(mul(yTrue, log5(div(clippedTrue, clippedPred))), -1);
+    return sum2(mul(yTrue, log4(div(clippedTrue, clippedPred))), -1);
   });
 }
 function poisson(yTrue, yPred) {
   return tidy(() => {
-    const logPred = log5(add2(epsilon(), yPred));
+    const logPred = log4(add2(epsilon(), yPred));
     return mean(sub(yPred, mul(yTrue, logPred)), -1);
   });
 }
@@ -35622,7 +35626,7 @@ var executeOp2 = (node, tensorMap, context) => {
     case "Floor":
       return [floor(getParamValue("x", node, tensorMap, context))];
     case "Log":
-      return [log5(getParamValue("x", node, tensorMap, context))];
+      return [log4(getParamValue("x", node, tensorMap, context))];
     case "Log1p": {
       return [log1p(getParamValue("x", node, tensorMap, context))];
     }
@@ -40600,11 +40604,11 @@ function linSpaceImpl(start, stop, num) {
 
 // src/tfjs-backend-cpu/src/kernels/Log.ts
 var logImpl = createSimpleUnaryImpl((xi) => Math.log(xi));
-var log6 = unaryKernelFuncFromImpl(Log, logImpl);
+var log5 = unaryKernelFuncFromImpl(Log, logImpl);
 var logConfig = {
   kernelName: Log,
   backendName: "cpu",
-  kernelFunc: log6
+  kernelFunc: log5
 };
 
 // src/tfjs-backend-cpu/src/kernels/Max_impl.ts
@@ -57060,11 +57064,11 @@ var LOG_PACKED = `
 
   return result;
 `;
-var log7 = unaryKernelFunc2({ opSnippet: LOG, packedOpSnippet: LOG_PACKED, cpuKernelImpl: logImplCPU });
+var log6 = unaryKernelFunc2({ opSnippet: LOG, packedOpSnippet: LOG_PACKED, cpuKernelImpl: logImplCPU });
 var logConfig2 = {
   kernelName: Log,
   backendName: "webgl",
-  kernelFunc: log7
+  kernelFunc: log6
 };
 
 // src/tfjs-backend-webgl/src/kernels/Log1p.ts
@@ -62376,6 +62380,122 @@ var MatMulPackedProgram2 = class {
   }
 };
 
+// src/tfjs-backend-webgpu/src/kernels/matmul_reduce.ts
+function makeMatMulReduceSource() {
+  return `
+    var<workgroup> sumValues : array<f32, workGroupSizeX>;
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
+      let coords = getOutputCoords(globalId, index);
+      let batch = coords[0];
+      let row = coords[1];
+      let col = coords[2];
+      var sum = 0.0;
+      let Length = uniforms.dimInner;
+      for (var k = i32(localId.x); k < Length; k = k + i32(workGroupSizeX)) {
+        let dataA = mm_readA(batch, row, k);
+        let dataB = mm_readB(batch, k, col);
+        sum = sum + dataA * dataB;
+      }
+      sumValues[localId.x] = sum;
+      workgroupBarrier();
+
+      for(var currentSize = workGroupSizeX / 2u; currentSize > 1u;
+          currentSize = currentSize / 2u) {
+        if (localId.x < currentSize)
+        {
+          sumValues[localId.x] = sumValues[localId.x] + sumValues[localId.x + currentSize];
+        }
+        workgroupBarrier();
+      }
+
+      if (localId.x == 0u) {
+        sum = sumValues[0] + sumValues[1];
+        mm_write(batch, row, col, sum);
+      }
+    }
+  `;
+}
+var MatMulReduceProgram = class {
+  constructor(outputShape, transposeA = false, transposeB = false, bias = null, activation2 = null, preluActivationWeights = null) {
+    this.variableNames = ["A", "B"];
+    this.uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+    this.workGroupSize = [256, 1, 1];
+    this.outputShape = outputShape;
+    this.dispatchLayout = { x: [], y: [1, 2], z: [0] };
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    const addBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    if (addBias) {
+      this.variableNames.push("bias");
+    }
+    if (hasPreluActivationWeights) {
+      this.variableNames.push("preluActivationWeights");
+    }
+    this.transposeA = transposeA;
+    this.transposeB = transposeB;
+    this.addBias = addBias;
+    this.activation = activation2;
+    this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.shaderKey = `matMulReduce_${this.activation}_${transposeA}_${transposeB}`;
+  }
+  getUserCode() {
+    let sampleA;
+    if (this.transposeA === false) {
+      sampleA = `return A.numbers[batch * batchASize + row * uniforms.dimInner + col];`;
+    } else {
+      sampleA = `return A.numbers[batch * batchASize + col * uniforms.dimAOuter + row];`;
+    }
+    let sampleB;
+    if (this.transposeB === false) {
+      sampleB = `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];`;
+    } else {
+      sampleB = `return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];`;
+    }
+    let activationSnippet = "", applyActivationSnippet = "";
+    if (this.activation) {
+      const activationOp = mapActivationToShaderProgram2(this.activation, false);
+      if (this.hasPreluActivationWeights) {
+        activationSnippet = `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
+               let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+               ${activationOp}
+            }`;
+      } else {
+        activationSnippet = `
+              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
+                ${activationOp}
+              }
+            `;
+      }
+      applyActivationSnippet = "value = activation(value, outCoord);";
+    }
+    const addBiasSnippet = this.addBias ? "value = value + getBiasAtOutCoordsByCoords(outCoord);" : "";
+    const userCode = `
+      ${activationSnippet}
+
+      fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
+        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+        ${sampleA}
+      }
+
+      fn mm_readB(batch: i32, row : i32, col : i32) -> f32 {
+        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+        ${sampleB}
+      }
+
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
+        var value = valueIn;
+        let outCoord = vec3<i32>(batch, row, col);
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
+        setOutput(batch, row, col, value);
+      }
+      ${makeMatMulReduceSource()}
+    `;
+    return userCode;
+  }
+};
+
 // src/tfjs-backend-webgpu/src/kernels/matmul_small_output_size_webgpu.ts
 function makeMatMulSmallOutputSizeSource(workGroupSize) {
   const tileAOuter = workGroupSize[1] / 2;
@@ -62603,7 +62723,9 @@ function batchMatMulImpl2({
   const batchDim = Math.max(batchDimA, batchDimB);
   const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 && !transposeA && !transposeB && outerShapeB >= 32;
   let program;
-  if (!transposeA && !transposeB && (outerShapeA <= 16 && (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB) || outerShapeB <= 16 && (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
+  if (outerShapeA * outerShapeB <= 32) {
+    program = new MatMulReduceProgram([batchDim, outerShapeA, outerShapeB], transposeA, transposeB, bias, activation2, preluActivationWeights);
+  } else if (!transposeA && !transposeB && (outerShapeA <= 16 && (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB) || outerShapeB <= 16 && (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
     program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias, activation2, preluActivationWeights);
   } else if (useVec4) {
     program = new MatMulPackedVec4Program(a3dShape, [batchDim, outerShapeA, outerShapeB], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), bias, activation2, preluActivationWeights);
@@ -63258,7 +63380,7 @@ var ArgMinMaxProgram2 = class {
         let coordInfo = getInputCoordInfo(globalId, index);
 
         var bestIndex = 0;
-        var bestValue = x.numbers[getInputIndex(coordInfo, bestIndex)];
+        var bestValue = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
 
         let Length = ${indexInputShape("uniforms.axis")};
         let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
@@ -63266,7 +63388,7 @@ var ArgMinMaxProgram2 = class {
         for (var w = 0; w < WorkPerThread; w = w + 1) {
           let i = i32(globalId.x) * WorkPerThread + w;
           if (i < Length) {
-            let candidate = x.numbers[getInputIndex(coordInfo, i)];
+            let candidate = f32(x.numbers[getInputIndex(coordInfo, i)]);
             if (candidate ${this.op} bestValue && !isNanCustom(f32(candidate))) {
               bestValue = candidate;
               bestIndex = i;
@@ -66250,11 +66372,11 @@ var lessEqualConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Log.ts
-var log8 = unaryKernelFunc3({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU2 });
+var log7 = unaryKernelFunc3({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU2 });
 var logConfig3 = {
   kernelName: Log,
   backendName: "webgpu",
-  kernelFunc: log8
+  kernelFunc: log7
 };
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalAnd.ts
@@ -72432,7 +72554,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.10.0-20211026";
+var externalVersion = "3.11.0-20211028";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -72771,7 +72893,7 @@ export {
   loadGraphModel,
   loadLayersModel,
   localResponseNormalization,
-  log5 as log,
+  log4 as log,
   log1p,
   logSigmoid,
   logSoftmax,

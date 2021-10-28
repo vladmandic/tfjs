@@ -25,9 +25,9 @@ var __toModule = (module) => {
   return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
 };
 
-// node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
+// src/node_modules/long/src/long.js
 var require_long = __commonJS({
-  "node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js"(exports, module) {
+  "src/node_modules/long/src/long.js"(exports, module) {
     module.exports = Long2;
     var wasm = null;
     try {
@@ -850,9 +850,9 @@ var require_long = __commonJS({
   }
 });
 
-// (disabled):node-fetch
-var require_node_fetch = __commonJS({
-  "(disabled):node-fetch"() {
+// (disabled):src/node_modules/node-fetch/browser.js
+var require_browser = __commonJS({
+  "(disabled):src/node_modules/node-fetch/browser.js"() {
   }
 });
 
@@ -862,9 +862,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js
+// src/node_modules/seedrandom/lib/alea.js
 var require_alea = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/alea.js"(exports, module) {
     (function(global2, module2, define2) {
       function Alea(seed) {
         var me = this, mash = Mash();
@@ -948,9 +948,9 @@ var require_alea = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js
+// src/node_modules/seedrandom/lib/xor128.js
 var require_xor128 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xor128.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1016,9 +1016,9 @@ var require_xor128 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js
+// src/node_modules/seedrandom/lib/xorwow.js
 var require_xorwow = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1091,9 +1091,9 @@ var require_xorwow = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js
+// src/node_modules/seedrandom/lib/xorshift7.js
 var require_xorshift7 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1182,9 +1182,9 @@ var require_xorshift7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js
+// src/node_modules/seedrandom/lib/xor4096.js
 var require_xor4096 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1288,9 +1288,9 @@ var require_xor4096 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js
+// src/node_modules/seedrandom/lib/tychei.js
 var require_tychei = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/tychei.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1368,9 +1368,9 @@ var require_crypto = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js
+// src/node_modules/seedrandom/seedrandom.js
 var require_seedrandom = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js"(exports, module) {
+  "src/node_modules/seedrandom/seedrandom.js"(exports, module) {
     (function(global2, pool3, math) {
       var width = 256, chunks = 6, digits = 52, rngname = "random", startdenom = math.pow(width, chunks), significance = math.pow(2, digits), overflow = significance * 2, mask = width - 1, nodecrypto;
       function seedrandom3(seed, options, callback) {
@@ -1501,9 +1501,9 @@ var require_seedrandom = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js
+// src/node_modules/seedrandom/index.js
 var require_seedrandom2 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js"(exports, module) {
+  "src/node_modules/seedrandom/index.js"(exports, module) {
     var alea3 = require_alea();
     var xor128 = require_xor128();
     var xorwow = require_xorwow();
@@ -2044,18 +2044,6 @@ function isPromise(object) {
   return object && object.then && typeof object.then === "function";
 }
 
-// src/tfjs-core/src/log.ts
-function warn(...msg) {
-  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
-    console.warn(...msg);
-  }
-}
-function log(...msg) {
-  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
-    console.log(...msg);
-  }
-}
-
 // src/tfjs-core/src/environment.ts
 var TENSORFLOWJS_FLAGS_PREFIX = "tfjsflags";
 var Environment = class {
@@ -2069,7 +2057,9 @@ var Environment = class {
   }
   setPlatform(platformName, platform) {
     if (this.platform != null) {
-      warn(`Platform ${this.platformName} has already been set. Overwriting the platform with ${platform}.`);
+      if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+        console.warn(`Platform ${this.platformName} has already been set. Overwriting the platform with ${platform}.`);
+      }
     }
     this.platformName = platformName;
     this.platform = platform;
@@ -2078,7 +2068,9 @@ var Environment = class {
     this.flagRegistry[flagName] = { evaluationFn, setHook };
     if (this.urlFlags[flagName] != null) {
       const flagValue = this.urlFlags[flagName];
-      warn(`Setting feature override from URL ${flagName}: ${flagValue}.`);
+      if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+        console.warn(`Setting feature override from URL ${flagName}: ${flagValue}.`);
+      }
       this.set(flagName, flagValue);
     }
   }
@@ -2380,6 +2372,18 @@ var RotateWithOffset = "RotateWithOffset";
 var _FusedMatMul = "_FusedMatMul";
 var FusedConv2D = "FusedConv2D";
 var FusedDepthwiseConv2D = "FusedDepthwiseConv2D";
+
+// src/tfjs-core/src/log.ts
+function warn(...msg) {
+  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+    console.warn(...msg);
+  }
+}
+function log(...msg) {
+  if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
+    console.log(...msg);
+  }
+}
 
 // src/tfjs-core/src/kernel_registry.ts
 var kernelRegistry = getGlobal("kernelRegistry", () => new Map());
@@ -4801,7 +4805,7 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
-  importFetch: () => require_node_fetch()
+  importFetch: () => require_browser()
 };
 var systemFetch;
 var PlatformNode = class {
@@ -7383,7 +7387,7 @@ function log_(x) {
   const inputs = { x: $x };
   return ENGINE.runKernel(Log, inputs);
 }
-var log5 = op({ log_ });
+var log4 = op({ log_ });
 
 // src/tfjs-core/src/ops/log1p.ts
 function log1p_(x) {
@@ -7502,7 +7506,7 @@ function logSoftmax_(logits, axis = -1) {
     const keepDims = true;
     const xMax = max(logits2, axis, true);
     const shifted = sub(logits2, xMax);
-    const value = sub(cast(shifted, "float32"), log5(sum2(exp(shifted), axis, keepDims)));
+    const value = sub(cast(shifted, "float32"), log4(sum2(exp(shifted), axis, keepDims)));
     save([value]);
     const gradFunc = (dy, saved) => {
       const [value2] = saved;
@@ -7589,7 +7593,7 @@ function logSumExp_(x, axis = null, keepDims = false) {
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
-  const d = log5(c);
+  const d = log4(c);
   const res = add2(reshape(xMax, d.shape), d);
   if (keepDims) {
     const newShape = expandShapeToKeepDim(res.shape, axes);
@@ -9991,8 +9995,8 @@ function logLoss_(labels, predictions, weights, epsilon2 = 1e-7, reduction = Red
   assertShapesMatch($labels.shape, $predictions.shape, "Error in logLoss: ");
   const one = scalar(1);
   const epsilonScalar = scalar(epsilon2);
-  const l1 = neg(mul($labels, log5(add2($predictions, epsilonScalar))));
-  const l2 = mul(sub(one, $labels), log5(add2(sub(one, $predictions), epsilonScalar)));
+  const l1 = neg(mul($labels, log4(add2($predictions, epsilonScalar))));
+  const l2 = mul(sub(one, $labels), log4(add2(sub(one, $predictions), epsilonScalar)));
   const losses = sub(l1, l2);
   return computeWeightedLoss(losses, $weights, reduction);
 }
@@ -12171,11 +12175,11 @@ function linSpaceImpl(start, stop, num) {
 
 // src/tfjs-backend-cpu/src/kernels/Log.ts
 var logImpl = createSimpleUnaryImpl((xi) => Math.log(xi));
-var log6 = unaryKernelFuncFromImpl(Log, logImpl);
+var log5 = unaryKernelFuncFromImpl(Log, logImpl);
 var logConfig = {
   kernelName: Log,
   backendName: "cpu",
-  kernelFunc: log6
+  kernelFunc: log5
 };
 
 // src/tfjs-backend-cpu/src/kernels/Max_impl.ts
