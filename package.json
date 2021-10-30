@@ -1,10 +1,12 @@
 {
   "name": "@vladmandic/tfjs",
-  "version": "3.11.0-20211028",
+  "version": "3.11.0-20211030",
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
   "sideEffects": false,
+  "main": "dist/tfjs.esm.js",
   "module": "dist/tfjs.esm.js",
   "browser": "dist/tfjs.esm.js",
+  "types": "types/index.d.ts",
   "scripts": {
     "download": "scripts/download.sh",
     "patch": "scripts/prepare.sh",
@@ -13,7 +15,8 @@
     "clean": "rimraf .tfjs*",
     "build": "npm run download && npm run patch && npm run build-wasm && npm run build-tfjs",
     "fast": "npm run build-tfjs",
-    "serve": "build --profile serve"
+    "serve": "build --profile serve",
+    "types": "tsc --target esnext --declaration --allowJs --emitDeclarationOnly --outDir types --lib esnext,dom src/tfjs-core/src/index.ts"
   },
   "engines": {
     "node": ">=14.0.0"

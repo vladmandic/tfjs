@@ -5822,6 +5822,64 @@ function confusionMatrix_(labels, predictions, numClasses) {
 }
 var confusionMatrix = op({ confusionMatrix_ });
 
+// src/tfjs-core/src/ops/broadcast_util.ts
+var broadcast_util_exports = {};
+__export(broadcast_util_exports, {
+  assertAndGetBroadcastShape: () => assertAndGetBroadcastShape,
+  getBroadcastDims: () => getBroadcastDims,
+  getReductionAxes: () => getReductionAxes
+});
+function getBroadcastDims(inShape, outShape) {
+  const inRank = inShape.length;
+  const dims = [];
+  for (let i = 0; i < inRank; i++) {
+    const dim = inRank - 1 - i;
+    const a = inShape[dim] || 1;
+    const b = outShape[outShape.length - 1 - i] || 1;
+    if (b > 1 && a === 1) {
+      dims.unshift(dim);
+    }
+  }
+  return dims;
+}
+function getReductionAxes(inShape, outShape) {
+  const result = [];
+  for (let i = 0; i < outShape.length; i++) {
+    const inDim = inShape[inShape.length - i - 1];
+    const outAxis = outShape.length - i - 1;
+    const outDim = outShape[outAxis];
+    if (inDim == null || inDim === 1 && outDim > 1) {
+      result.unshift(outAxis);
+    }
+  }
+  return result;
+}
+function assertAndGetBroadcastShape(shapeA, shapeB) {
+  const result = [];
+  const l = Math.max(shapeA.length, shapeB.length);
+  for (let i = 0; i < l; i++) {
+    let a = shapeA[shapeA.length - i - 1];
+    if (a == null) {
+      a = 1;
+    }
+    let b = shapeB[shapeB.length - i - 1];
+    if (b == null) {
+      b = 1;
+    }
+    if (a === 1) {
+      result.unshift(b);
+    } else if (b === 1) {
+      result.unshift(a);
+    } else if (a !== b) {
+      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
+      throw Error(errMsg);
+    } else {
+      result.unshift(a);
+    }
+  }
+  return result;
+}
+
 // src/tfjs-core/src/ops/browser.ts
 var browser_exports = {};
 __export(browser_exports, {
@@ -7921,58 +7979,6 @@ function dilation2d_(x, filter, strides, pad2, dilations = [1, 1], dataFormat = 
   return res;
 }
 var dilation2d = op({ dilation2d_ });
-
-// src/tfjs-core/src/ops/broadcast_util.ts
-function getBroadcastDims(inShape, outShape) {
-  const inRank = inShape.length;
-  const dims = [];
-  for (let i = 0; i < inRank; i++) {
-    const dim = inRank - 1 - i;
-    const a = inShape[dim] || 1;
-    const b = outShape[outShape.length - 1 - i] || 1;
-    if (b > 1 && a === 1) {
-      dims.unshift(dim);
-    }
-  }
-  return dims;
-}
-function getReductionAxes(inShape, outShape) {
-  const result = [];
-  for (let i = 0; i < outShape.length; i++) {
-    const inDim = inShape[inShape.length - i - 1];
-    const outAxis = outShape.length - i - 1;
-    const outDim = outShape[outAxis];
-    if (inDim == null || inDim === 1 && outDim > 1) {
-      result.unshift(outAxis);
-    }
-  }
-  return result;
-}
-function assertAndGetBroadcastShape(shapeA, shapeB) {
-  const result = [];
-  const l = Math.max(shapeA.length, shapeB.length);
-  for (let i = 0; i < l; i++) {
-    let a = shapeA[shapeA.length - i - 1];
-    if (a == null) {
-      a = 1;
-    }
-    let b = shapeB[shapeB.length - i - 1];
-    if (b == null) {
-      b = 1;
-    }
-    if (a === 1) {
-      result.unshift(b);
-    } else if (b === 1) {
-      result.unshift(a);
-    } else if (a !== b) {
-      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
-      throw Error(errMsg);
-    } else {
-      result.unshift(a);
-    }
-  }
-  return result;
-}
 
 // src/tfjs-core/src/ops/equal.ts
 function equal_(a, b) {
@@ -10420,10 +10426,9 @@ function fusedMatMul_({
   const outerDimsB = $b.shape.slice(0, -2);
   const batchDimA = sizeFromShape(outerDimsA);
   const batchDimB = sizeFromShape(outerDimsB);
-  assert($a.rank >= 2 && $b.rank >= 2 && $a.rank === $b.rank, () => `Error in fused matMul: inputs must have the same rank of at least 2, got ranks ${$a.rank} and ${$b.rank}.`);
-  assert(arraysEqual(outerDimsA, outerDimsB), () => `Error in fused matMul: outer dimensions (${outerDimsA}) and (${outerDimsB}) of Tensors with shapes ${$a.shape} and ${$b.shape} must match.`);
   assert(innerShapeA === innerShapeB, () => `Error in fused matMul: inner shapes (${innerShapeA}) and (${innerShapeB}) of Tensors with shapes ${$a.shape} and ${$b.shape} and transposeA=${transposeA} and transposeB=${transposeB} must match.`);
-  const outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+  const outShapeOuterDims = assertAndGetBroadcastShape($a.shape.slice(0, -2), $b.shape.slice(0, -2));
+  const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
   const a3D = transposeA ? reshape($a, [batchDimA, innerShapeA, outerShapeA]) : reshape($a, [batchDimA, outerShapeA, innerShapeA]);
   const b3D = transposeB ? reshape($b, [batchDimB, outerShapeB, innerShapeB]) : reshape($b, [batchDimB, innerShapeB, outerShapeB]);
   let $bias;
@@ -12992,6 +12997,7 @@ export {
   booleanMaskAsync,
   broadcastArgs,
   broadcastTo,
+  broadcast_util_exports as broadcast_util,
   browser_exports as browser,
   buffer,
   cast,
