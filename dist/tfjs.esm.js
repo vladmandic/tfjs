@@ -49021,7 +49021,8 @@ function compileProgram(gpgpu, program, inputs, output) {
     flatOffset: null
   };
   const source = makeShader(inputInfos, outShapeInfo, program);
-  const webGLProgram = gpgpu.createProgram(source);
+  const fragmentShader = createFragmentShader(gpgpu.gl, source);
+  const webGLProgram = gpgpu.createProgram(fragmentShader);
   let infLoc = null;
   const nanLoc = gpgpu.getUniformLocation(webGLProgram, "NAN", false);
   if (env().getNumber("WEBGL_VERSION") === 1) {
@@ -49056,6 +49057,7 @@ function compileProgram(gpgpu, program, inputs, output) {
   }
   return {
     program,
+    fragmentShader,
     source,
     webGLProgram,
     uniformLocations,
@@ -49804,10 +49806,9 @@ var GPGPUContext = class {
   downloadMatrixFromPackedTexture(texture, physicalRows, physicalCols) {
     return this.downloadMatrixDriver(texture, () => downloadMatrixFromPackedOutputTexture(this.gl, physicalRows, physicalCols));
   }
-  createProgram(fragmentShaderSource) {
+  createProgram(fragmentShader) {
     this.throwIfDisposed();
     const gl = this.gl;
-    const fragmentShader = createFragmentShader(gl, fragmentShaderSource);
     if (this.vertexShader == null) {
       this.vertexShader = createVertexShader2(gl);
     }
@@ -67139,13 +67140,14 @@ var ScatterOptimizedProgram = class {
     }
     const updatesSnippet = `getUpdates(${updatesString})`;
     const atomicAddSnippet = this.type === "int32" ? `ignore(atomicAdd(&(result.numbers[flatIndex]), i32(updateValue)));` : `
-     var oldI32 = atomicLoad(&(result.numbers[flatIndex]));
-     var assumed = oldI32 - 1;
-     for (; assumed != oldI32;) {
-       assumed = oldI32;
+     var assumed = atomicLoad(&(result.numbers[flatIndex]));
+     var success = 0;
+     for (; success == 0;) {
        let new = bitcast<f32>(assumed) + updateValue;
        let newI32 = bitcast<i32>(new);
-       oldI32 = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32)[0];
+       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32);
+       assumed = resValue[0];
+       success = resValue[1];
      }
      `;
     const userCode = `
@@ -67590,7 +67592,7 @@ function stridedSlice4(args) {
     const size = slice_util_exports.computeOutShape($begin, $end, $strides);
     const sliced = slice4({ inputs: { x }, backend: backend2, attrs: { begin: $begin, size } });
     result = reshape5({ inputs: { x: sliced }, backend: backend2, attrs: { shape: finalShape } });
-    backend2.disposeData(sliced);
+    backend2.disposeData(sliced.dataId);
   } else {
     const shouldExecuteOnCPU = backend2.shouldExecuteOnCPU([x]);
     if (shouldExecuteOnCPU) {
@@ -67601,7 +67603,9 @@ function stridedSlice4(args) {
     } else {
       const program = new StridedSliceProgram2(finalShapeSparse);
       const uniformData = [{ type: "int32", data: $begin }, { type: "int32", data: $strides }];
-      result = backend2.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      const resultValues = backend2.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      result = reshape5({ inputs: { x: resultValues }, backend: backend2, attrs: { shape: finalShape } });
+      backend2.disposeData(resultValues.dataId);
     }
   }
   return result;
@@ -72553,7 +72557,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.11.0-20211031";
+var externalVersion = "3.11.0-20211102";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

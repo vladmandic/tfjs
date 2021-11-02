@@ -14028,7 +14028,8 @@ function compileProgram(gpgpu, program, inputs, output) {
     flatOffset: null
   };
   const source = makeShader(inputInfos, outShapeInfo, program);
-  const webGLProgram = gpgpu.createProgram(source);
+  const fragmentShader = createFragmentShader(gpgpu.gl, source);
+  const webGLProgram = gpgpu.createProgram(fragmentShader);
   let infLoc = null;
   const nanLoc = gpgpu.getUniformLocation(webGLProgram, "NAN", false);
   if (env().getNumber("WEBGL_VERSION") === 1) {
@@ -14063,6 +14064,7 @@ function compileProgram(gpgpu, program, inputs, output) {
   }
   return {
     program,
+    fragmentShader,
     source,
     webGLProgram,
     uniformLocations,
@@ -14811,10 +14813,9 @@ var GPGPUContext = class {
   downloadMatrixFromPackedTexture(texture, physicalRows, physicalCols) {
     return this.downloadMatrixDriver(texture, () => downloadMatrixFromPackedOutputTexture(this.gl, physicalRows, physicalCols));
   }
-  createProgram(fragmentShaderSource) {
+  createProgram(fragmentShader) {
     this.throwIfDisposed();
     const gl = this.gl;
-    const fragmentShader = createFragmentShader(gl, fragmentShaderSource);
     if (this.vertexShader == null) {
       this.vertexShader = createVertexShader2(gl);
     }

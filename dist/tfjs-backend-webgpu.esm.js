@@ -19043,13 +19043,14 @@ var ScatterOptimizedProgram = class {
     }
     const updatesSnippet = `getUpdates(${updatesString})`;
     const atomicAddSnippet = this.type === "int32" ? `ignore(atomicAdd(&(result.numbers[flatIndex]), i32(updateValue)));` : `
-     var oldI32 = atomicLoad(&(result.numbers[flatIndex]));
-     var assumed = oldI32 - 1;
-     for (; assumed != oldI32;) {
-       assumed = oldI32;
+     var assumed = atomicLoad(&(result.numbers[flatIndex]));
+     var success = 0;
+     for (; success == 0;) {
        let new = bitcast<f32>(assumed) + updateValue;
        let newI32 = bitcast<i32>(new);
-       oldI32 = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32)[0];
+       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32);
+       assumed = resValue[0];
+       success = resValue[1];
      }
      `;
     const userCode = `
@@ -19494,7 +19495,7 @@ function stridedSlice2(args) {
     const size = slice_util_exports.computeOutShape($begin, $end, $strides);
     const sliced = slice2({ inputs: { x }, backend, attrs: { begin: $begin, size } });
     result = reshape2({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
-    backend.disposeData(sliced);
+    backend.disposeData(sliced.dataId);
   } else {
     const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([x]);
     if (shouldExecuteOnCPU) {
@@ -19505,7 +19506,9 @@ function stridedSlice2(args) {
     } else {
       const program = new StridedSliceProgram(finalShapeSparse);
       const uniformData = [{ type: "int32", data: $begin }, { type: "int32", data: $strides }];
-      result = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      const resultValues = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      result = reshape2({ inputs: { x: resultValues }, backend, attrs: { shape: finalShape } });
+      backend.disposeData(resultValues.dataId);
     }
   }
   return result;
