@@ -26,7 +26,11 @@ Node packages (`tfjs-node` and `tfjs-node-gpu`) are not covered
 
 ## Install
 
-Just `npm install`
+1. Internal dependencies: `npm install`
+2. External dependencies: `git` and `bazel`  
+   **Git**: assumed to be already installed if you're here :)  
+   **Bazel**: <https://docs.bazel.build/versions/4.2.1/install-ubuntu.html>
+
 ## Steps
 
 Run `npm run build` which performs following steps:
@@ -40,12 +44,13 @@ Run `npm run build` which performs following steps:
 3. `scripts/build-wasm.sh`  
    build wasm binaries and wasm `.js` exports using `bazel`  
 4. `node scripts/build-tfjs.js`  
-   build targets in `/dist` using `esbuild` with custom plugins  
+   build targets in `/dist` using `esbuild` with custom resolver plugins and TypeScript compiler settings  
 
-## Dependencies
-
-Bazel:
-  > <https://docs.bazel.build/versions/4.2.1/install-ubuntu.html>
+### Notes
+- `/dist`: all **JS** modules, **MAP** files and **WASM** binaries  
+- `/dist/tfjs.esm.js` is default **TFJS bundle** that includes all available backends
+- `/types/index.d.ts` re-exports TypeScript **type definitions** from `@tensorflor/tfjs` as a single bundle
+- `npm run fast` can be used after completed initial build as it executes last build step only
 
 <br><hr><br>
 
