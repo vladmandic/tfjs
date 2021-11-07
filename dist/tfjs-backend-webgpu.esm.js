@@ -11551,15 +11551,30 @@ function mapToWgslTypes(type, isVec4) {
   }
   return type;
 }
-function getGlobalIndexString() {
-  return `
-  let index = getGlobalIndex(globalId, localId);
-`;
-}
-function getMainHeaderString() {
+function getWorkGroupSizeString() {
   return `
   [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>, [[builtin(global_invocation_id)]] globalId : vec3<u32>)
+`;
+}
+function getFlatDispatchLayoutMainHeaderString() {
+  return `
+  ${getWorkGroupSizeString()}
+  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
+          [[builtin(global_invocation_id)]] globalId : vec3<u32>,
+          [[builtin(num_workgroups)]] numWorkgroups: vec3<u32>)
+`;
+}
+function getNonFlatDispatchLayoutMainHeaderString() {
+  return `
+  ${getWorkGroupSizeString()}
+  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
+          [[builtin(global_invocation_id)]] globalId : vec3<u32>)
+`;
+}
+function getMainHeaderAndGlobalIndexString() {
+  return `
+    ${getFlatDispatchLayoutMainHeaderString()} {
+      let index = getGlobalIndex(globalId, localId, numWorkgroups);
 `;
 }
 function makeShader(inputInfo, outputData, program, isFromPixel = false) {
@@ -11601,10 +11616,9 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
   const stridesLength = outputData.shape.length - 1;
   uniformDeclaration += `
        outShapeStrides: ${getCoordsDataType(stridesLength)}; `;
-  if (program.size != null) {
+  if (program.size) {
     uniformDeclaration += "size : i32; ";
   }
-  uniformDeclaration += "dispatchSize : vec3<u32>; ";
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
   }
@@ -11732,16 +11746,18 @@ var SAMPLING_SNIPPETS = `
   }
 
   // Only used when the y/z dimension of workgroup size is 1.
-  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>) -> i32 {
-    if (uniforms.dispatchSize.y == 1u && uniforms.dispatchSize.z == 1u) {
+  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> i32 {
+    if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
       return i32(globalId.x);
     }
+
     let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-      localId.y * workGroupSizeX + localId.x;
+        localId.y * workGroupSizeX + localId.x;
     let workGroupID = (globalId - localId)/vec3<u32>(
-      workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-    return i32((workGroupID.z * uniforms.dispatchSize.x * uniforms.dispatchSize.y +
-      workGroupID.y * uniforms.dispatchSize.x + workGroupID.x) *
+        workGroupSizeX, workGroupSizeY, workGroupSizeZ);
+
+    return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
+      workGroupID.y * numWorkgroups.x + workGroupID.x) *
       (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
       localInvocationIndex);
   }
@@ -11892,7 +11908,7 @@ function getSamplerAtOutputCoords(inInfo, outShape, isVec4, isFlatDispatchLayout
   if (util_exports.arraysEqual(inInfo.shape, outShape) && isFlatDispatchLayout) {
     if (isVec4) {
       return `
-        fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
+        fn ${funcName}ByGlobalIndex(globalIndex : i32) -> vec4<f32> {
           return vec4<f32>(${texName}.numbers[globalIndex]);
         }
 
@@ -11902,7 +11918,7 @@ function getSamplerAtOutputCoords(inInfo, outShape, isVec4, isFlatDispatchLayout
         `;
     } else {
       return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32 {
+      fn ${funcName}ByGlobalIndex(globalIndex : i32) -> f32 {
         return f32(${texName}.numbers[globalIndex]);
       }
 
@@ -11918,7 +11934,7 @@ function getSamplerAtOutputCoords(inInfo, outShape, isVec4, isFlatDispatchLayout
   if (inRank === 0) {
     if (isVec4) {
       return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
+      fn ${funcName}ByGlobalIndex(globalIndex : i32) -> vec4<f32> {
         return get${texFuncSnippet}();
       }
 
@@ -11928,7 +11944,7 @@ function getSamplerAtOutputCoords(inInfo, outShape, isVec4, isFlatDispatchLayout
     `;
     }
     return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32{
+      fn ${funcName}ByGlobalIndex(globalIndex : i32) -> f32{
         return get${texFuncSnippet}();
       }
 
@@ -11959,8 +11975,8 @@ function getSamplerAtOutputCoords(inInfo, outShape, isVec4, isFlatDispatchLayout
   const rankStr = `${inRank}D`;
   if (isVec4) {
     return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
-        var coords = getOutputCoords(globalId, globalIndex);
+      fn ${funcName}ByGlobalIndex(globalIndex : i32) -> vec4<f32> {
+        var coords = getCoordsFromFlatIndex(globalIndex);
         ${coordsSnippet}
         return ${texName}.numbers[getFlatIndex${rankStr}(${unpackedCoordsSnippet}, ${shapeStr}) / 4];
       }
@@ -11973,8 +11989,8 @@ function getSamplerAtOutputCoords(inInfo, outShape, isVec4, isFlatDispatchLayout
     `;
   }
   return `
-    fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32 {
-      var coords = getOutputCoords(globalId, globalIndex);
+    fn ${funcName}ByGlobalIndex(globalIndex : i32) -> f32 {
+      var coords = getCoordsFromFlatIndex(globalIndex);
       ${coordsSnippet}
       return f32(${texName}.numbers[getFlatIndex${rankStr}(${unpackedCoordsSnippet}, ${shapeStr})]);
     }
@@ -11991,8 +12007,9 @@ function generateGetOutputCoords(outShape, dispatchLayout) {
   const outRank = outShape.length;
   if (x.length === outRank) {
     const dtype2 = getCoordsDataType(outRank);
-    const snippet2 = `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${dtype2}{
-      return getCoordsFromFlatIndex(i32(globalIndex));
+    const snippet2 = `fn getOutputCoordsWithFlatDispatchLayout(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> ${dtype2}{
+      let globalIndex = getGlobalIndex(globalId, localId, numWorkgroups);
+      return getCoordsFromFlatIndex(globalIndex);
     }
     `;
     return [snippet2, outRank];
@@ -12026,7 +12043,7 @@ function generateGetOutputCoords(outShape, dispatchLayout) {
     dimensions.push(`d${i}`);
   }
   const dtype = getCoordsDataType(rank);
-  let snippet = `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${dtype} {
+  let snippet = `fn getOutputCoordsWithNonFlatDispatchLayout(globalId : vec3<u32>) -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {
@@ -12557,7 +12574,7 @@ function makeMatMulPackedVec4Source(workPerThread, workGroupSize) {
   let TileBOuter = ${tileInfo.TileBOuter};
   let TileInner = ${tileInfo.TileInner};
 
-  ${getMainHeaderString()} {
+  ${getNonFlatDispatchLayoutMainHeaderString()} {
 
     let tileRow = i32(localId.y) * RowPerThread;
     let tileCol = i32(localId.x);
@@ -12622,7 +12639,7 @@ function makeMatMulVectorVec4Source(workGroupSize) {
   return `
   var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
   let tileSize = ${workGroupSize[0] * 4};
-  ${getMainHeaderString()} {
+  ${getNonFlatDispatchLayoutMainHeaderString()} {
     let tileCol = i32(localId.x);
     let globalCol = i32(globalId.x);
     let globalRow = i32(globalId.y);
@@ -12774,7 +12791,7 @@ function makeMatMulPackedSource(workPerThread, workGroupSize) {
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    ${getMainHeaderString()} {
+    ${getNonFlatDispatchLayoutMainHeaderString()} {
       let tileRow = i32(localId.y) * ${workPerThread[1]};
       let tileCol = i32(localId.x) * ${workPerThread[0]};
 
@@ -12862,7 +12879,7 @@ function makeMatMulVectorSource(workGroupSize) {
     let TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
-    ${getMainHeaderString()} {
+    ${getNonFlatDispatchLayoutMainHeaderString()} {
       let tileCol = i32(localId.x);
       let globalCol = i32(globalId.x);
       let globalRow = i32(globalId.y);
@@ -13031,9 +13048,8 @@ var MatMulPackedProgram = class {
 function makeMatMulReduceSource() {
   return `
     var<workgroup> sumValues : array<f32, workGroupSizeX>;
-    ${getMainHeaderString()} {
-      ${getGlobalIndexString()}
-      let coords = getOutputCoords(globalId, index);
+    ${getNonFlatDispatchLayoutMainHeaderString()} {
+      let coords = getOutputCoordsWithNonFlatDispatchLayout(globalId);
       let batch = coords[0];
       let row = coords[1];
       let col = coords[2];
@@ -13160,7 +13176,7 @@ function makeMatMulSmallOutputSizeSource(workGroupSize) {
   // arithmetic operations and others handle IO operations between barrier api,
   // makes ALUs and load/store units work simultaneously, could improves
   // the performance.
-  ${getMainHeaderString()} {
+  ${getNonFlatDispatchLayoutMainHeaderString()} {
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);
@@ -13426,12 +13442,12 @@ var BinaryOpComplexProgram = class {
   constructor(op2, aShape, bShape) {
     this.variableNames = ["AReal", "AImag", "BReal", "BImag"];
     this.workGroupSize = [128, 1, 1];
+    this.size = true;
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `binaryOpComplex_${op2}`;
     this.op = op2;
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const opStr = getBinaryOpString(this.op, false);
@@ -13441,13 +13457,12 @@ var BinaryOpComplexProgram = class {
         ${opStr}
       }
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let areal = getARealAtOutCoordsByGlobalId(globalId, index);
-          let aimag = getAImagAtOutCoordsByGlobalId(globalId, index);
-          let breal = getBRealAtOutCoordsByGlobalId(globalId, index);
-          let bimag = getBImagAtOutCoordsByGlobalId(globalId, index);
+          let areal = getARealAtOutCoordsByGlobalIndex(index);
+          let aimag = getAImagAtOutCoordsByGlobalIndex(index);
+          let breal = getBRealAtOutCoordsByGlobalIndex(index);
+          let bimag = getBImagAtOutCoordsByGlobalIndex(index);
           setOutputFlat(index, binaryOpComplex(areal, aimag, breal, bimag));
         }
       }
@@ -13460,6 +13475,7 @@ var BinaryOpComplexProgram = class {
 var BinaryOpSharedProgram = class {
   constructor(op2, aShape, bShape, useSharedMemoryWithB) {
     this.variableNames = ["A", "B"];
+    this.size = true;
     const workGroupSizeX = 256;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
@@ -13475,32 +13491,20 @@ var BinaryOpSharedProgram = class {
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op2;
-    this.size = util_exports.sizeFromShape(this.outputShape);
-    this.sizeFit = this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
-    this.shaderKey = `binaryShared_${op2}_${this.lastDimensionSize}_${this.useSharedMemoryWithB}_${this.sizeFit}`;
+    this.shaderKey = `binaryShared_${op2}_${this.lastDimensionSize}_${this.useSharedMemoryWithB}`;
   }
   getUserCode() {
     const sharedIndexSnippet = this.lastDimensionSize > 1 ? `coords[${this.outputShape.length - 1}]` : "0";
     const accessDataSnippet = this.useSharedMemoryWithB ? `let a = getAAtOutCoordsByCoords(coords);
          let b = sharedBuf[${sharedIndexSnippet}];` : `let a = sharedBuf[${sharedIndexSnippet}];
          let b = getBAtOutCoordsByCoords(coords);`;
-    const writeDataSnippet = this.sizeFit ? `let coords = getCoordsFromFlatIndex(flatIndex);
-
-         ${accessDataSnippet}
-         setOutputFlat(flatIndex, binaryOperation(a, b));` : `if(flatIndex < uniforms.size) {
-            let coords = getCoordsFromFlatIndex(flatIndex);
-
-            ${accessDataSnippet}
-            setOutputFlat(flatIndex, binaryOperation(a, b));
-          }`;
     const opStr = getBinaryOpString(this.op, false);
     const userCode = `
         fn binaryOperation(a : f32, b : f32) -> f32 {
           ${opStr}
         }
         var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
 
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
@@ -13512,8 +13516,12 @@ var BinaryOpSharedProgram = class {
 
           for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
             let flatIndex = index * ${this.workPerThread} + i;
+            if(flatIndex < uniforms.size) {
+              let coords = getCoordsFromFlatIndex(flatIndex);
 
-            ${writeDataSnippet}
+              ${accessDataSnippet}
+              setOutputFlat(flatIndex, binaryOperation(a, b));
+            }
           }
         }
         `;
@@ -13527,45 +13535,29 @@ var BinaryOpVec4Program = class {
     this.variableNames = ["A", "B"];
     this.workPerThread = 4;
     this.isVec4 = true;
+    this.size = true;
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     this.op = op2;
-    this.fitShape = this.size % this.workGroupSize[0] === 0;
-    this.shaderKey = `binaryVec4_${op2}_${this.fitShape}`;
-    this.size = util_exports.sizeFromShape(this.outputShape) / this.workPerThread;
+    this.shaderKey = `binaryVec4_${op2}`;
   }
   getUserCode() {
-    let userCode;
     const opStr = getBinaryOpString(this.op, this.isVec4);
-    const miscStr = `fn binaryOperation(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
-          ${opStr}
-        }`;
-    if (this.fitShape) {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let a = vec4<f32>(A.numbers[index]);
-        let b = vec4<f32>(B.numbers[index]);
-        setOutputFlat(index, binaryOperation(a, b));
+    const userCode = `
+      fn binaryOperation(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+        ${opStr}
       }
-    `;
-    } else {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let a = vec4<f32>(A.numbers[index]);
-          let b = vec4<f32>(B.numbers[index]);
+          let a = getAAtOutCoordsByGlobalIndex(index);
+          let b = getBAtOutCoordsByGlobalIndex(index);
           setOutputFlat(index, binaryOperation(a, b));
         }
       }
     `;
-    }
     return userCode;
   }
 };
@@ -13574,67 +13566,29 @@ var BinaryOpVec4Program = class {
 var BinaryOpProgram = class {
   constructor(op2, aShape, bShape) {
     this.variableNames = ["A", "B"];
+    this.size = true;
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.size = util_exports.sizeFromShape(this.outputShape);
-    this.sizeFit = this.size % workGroupSizeX === 0;
-    this.shapesFit = util_exports.arraysEqual(aShape, bShape) && this.sizeFit;
-    this.workPerThread = this.sizeFit || this.shapesFit ? 1 : 2;
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
-    this.shaderKey = `binary_${op2}_${this.sizeFit}_${this.shapesFit}`;
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.shaderKey = `binary_${op2}`;
     this.op = op2;
   }
   getUserCode() {
-    let userCode;
     const opStr = getBinaryOpString(this.op, false);
-    const miscStr = `          fn binaryOperation(a : f32, b : f32) -> f32 {
-      ${opStr}
-    }`;
-    if (this.shapesFit) {
-      userCode = `
-          ${miscStr}
-          ${getMainHeaderString()} {
-            ${getGlobalIndexString()}
-
-            let a = f32(A[index]);
-            let b = f32(B[index]);
-            setOutputFlat(index, binaryOperation(a, b));
-          }
-        `;
-    } else if (this.sizeFit) {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-
-        let coords = getCoordsFromFlatIndex(index);
-
-        let a = getAAtOutCoordsByCoords(coords);
-        let b = getBAtOutCoordsByCoords(coords);
-        setOutputFlat(index, binaryOperation(a, b));
+    const userCode = `
+      fn binaryOperation(a : f32, b : f32) -> f32 {
+        ${opStr}
       }
-      `;
-    } else {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        for (var i = 0; i < ${this.workPerThread}; i = i + 1 ) {
-          let flatIndex = index * ${this.workPerThread} + i;
-
-          if(flatIndex < uniforms.size) {
-            let coords = getCoordsFromFlatIndex(flatIndex);
-
-            let a = getAAtOutCoordsByCoords(coords);
-            let b = getBAtOutCoordsByCoords(coords);
-            setOutputFlat(flatIndex, binaryOperation(a, b));
-          }
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+          let a = getAAtOutCoordsByGlobalIndex(index);
+          let b = getBAtOutCoordsByGlobalIndex(index);
+          setOutputFlat(index, binaryOperation(a, b));
         }
       }
       `;
-    }
     return userCode;
   }
 };
@@ -13688,10 +13642,10 @@ var complexConfig = {
 var UnaryOpProgram = class {
   constructor(outputShape, op2) {
     this.variableNames = ["A"];
+    this.size = true;
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
-    this.size = util_exports.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.op = op2;
@@ -13702,10 +13656,9 @@ var UnaryOpProgram = class {
       fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false)}
       }
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let a = getAAtOutCoordsByGlobalId(globalId, index);
+          let a = getAAtOutCoordsByGlobalIndex(index);
           setOutputFlat(index, unaryOperation(a));
         }
       }
@@ -15123,12 +15076,12 @@ var AddNPackedProgram = class {
   constructor(shapes) {
     this.workPerThread = 4;
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shapes[0];
     this.variableNames = shapes.map((_, i) => `T${i}`);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     this.shaderKey = "addN";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const snippets = [];
@@ -15139,8 +15092,7 @@ var AddNPackedProgram = class {
       return `v${variable2}`;
     }).join(" + ");
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if (flatIndex < uniforms.size) {
@@ -15226,7 +15178,6 @@ var ArgMinMaxProgram = class {
         setOutputFlatI32(flatOutputIndex, i32(bestIndex));
       }
     `;
-    const outputCoordsType = getCoordsDataType(this.outputShape.length);
     const indexOutputCoords = (outputCoords, index) => {
       if (this.outputShape.length === 1) {
         return outputCoords;
@@ -15254,8 +15205,8 @@ var ArgMinMaxProgram = class {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : i32) -> vec2<i32>{
-        let outputCoords : ${outputCoordsType} = getOutputCoords(globalId, globalIndex);
+      fn getInputCoordInfo(globalId : vec3<u32>) -> vec2<i32>{
+        let outputCoords = getOutputCoordsWithNonFlatDispatchLayout(globalId);
         var i = ${this.outputShape.length - 1};
 
         var stride = 1;
@@ -15280,9 +15231,8 @@ var ArgMinMaxProgram = class {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coordInfo = getInputCoordInfo(globalId, index);
+      ${getNonFlatDispatchLayoutMainHeaderString()} {
+        let coordInfo = getInputCoordInfo(globalId);
 
         var bestIndex = 0;
         var bestValue = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
@@ -15327,11 +15277,11 @@ var TransposeSharedProgram = class {
     const userCode = `
       let TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${this.workGroupSize[0]}>;
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let workGroupID = (globalId - localId)/vec3<u32>(${this.workGroupSize[0]}u, ${this.workGroupSize[1]}u, ${this.workGroupSize[2]}u);
-        var x = i32(workGroupID.x) * TILE_DIM + i32(localId.x);
-        var y = i32(workGroupID.y) * TILE_DIM + i32(localId.y);
+      ${getWorkGroupSizeString()}
+      fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
+              [[builtin(workgroup_id)]] workgroupId : vec3<u32>) {
+        var x = i32(workgroupId.x) * TILE_DIM + i32(localId.x);
+        var y = i32(workgroupId.y) * TILE_DIM + i32(localId.y);
         let width = uniforms.outShape[0];
         let height = uniforms.outShape[1];
         if (x < width && y < height) {
@@ -15340,8 +15290,8 @@ var TransposeSharedProgram = class {
         }
         workgroupBarrier();
 
-        x = i32(workGroupID.y) * TILE_DIM + i32(localId.x);
-        y = i32(workGroupID.x) * TILE_DIM + i32(localId.y);
+        x = i32(workgroupId.y) * TILE_DIM + i32(localId.x);
+        y = i32(workgroupId.x) * TILE_DIM + i32(localId.y);
         if (x < height && y < width) {
           setOutputFlat((y * height + x), tile[localId.x]
             [localId.y]);
@@ -15358,6 +15308,7 @@ var TransposeProgram = class {
     this.variableNames = ["A"];
     this.workPerThread = 4;
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];
@@ -15367,14 +15318,12 @@ var TransposeProgram = class {
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     this.newDim = newDim;
     this.shaderKey = `transpose_${newDim}`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const dtype = getCoordsDataType(this.outputShape.length);
     const switched = getSwitchedCoords(this.newDim);
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
 
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
@@ -15491,6 +15440,7 @@ var Pool2DProgram = class {
     this.variableNames = ["x"];
     this.uniforms = `stride : vec2<i32>; pad : vec2<i32>; dilation : vec2<i32>; convDims : vec2<i32>; filterDims : vec2<i32>;`;
     this.workGroupSize = [128, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -15507,10 +15457,9 @@ var Pool2DProgram = class {
       returnValue = `resultValue / count`;
     }
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        if (coordsInBounds4D(coords, uniforms.outShape)) {
+      ${getMainHeaderAndGlobalIndexString()}
+      if (index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
           let batch = coords[0];
           let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
           let xRCorner = xRCCorner.x;
@@ -15537,7 +15486,7 @@ var Pool2DProgram = class {
             }
           }
 
-          setOutput(batch, coords[1], coords[2], coords[3], ${returnValue});
+          setOutputFlat(index, ${returnValue});
         }
       }
     `;
@@ -15551,6 +15500,7 @@ var PoolWithFilterSizeEqualsOneProgram = class {
     this.variableNames = ["x"];
     this.uniforms = `stride : vec2<i32>;`;
     this.workGroupSize = [256, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -15558,19 +15508,18 @@ var PoolWithFilterSizeEqualsOneProgram = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        let batch = coords[0];
-        let d = coords[3];
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+          let coords = getCoordsFromFlatIndex(index);
+          let batch = coords[0];
+          let d = coords[3];
 
-        if (all(coords < uniforms.outShape)) {
           let xRCCorner = coords.yz * uniforms.stride;
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 
           let value = getX(batch, xRCorner, xCCorner, d);
-          setOutput(batch, coords[1], coords[2], d, value);
+          setOutputFlat(index, value);
         }
       }
     `;
@@ -15629,6 +15578,7 @@ var SliceProgram = class {
     this.variableNames = ["source"];
     this.workPerThread = 1;
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = destSize;
     this.rank = destSize.length;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -15636,7 +15586,6 @@ var SliceProgram = class {
     this.start = start;
     this.uniforms = `start : ${getCoordsDataType(start.length)}; `;
     this.shaderKey = "slice";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const dtype = getCoordsDataType(this.rank);
@@ -15652,11 +15601,10 @@ var SliceProgram = class {
       });
     }
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
           var sourceLoc : ${dtype};
-          let coords = getOutputCoords(globalId, index);
+          let coords = getCoordsFromFlatIndex(index);
           ${coordSum.join("\n")}
           setOutputFlat(index, getSource(${sourceCoords}));
         }
@@ -15830,18 +15778,17 @@ var ClipVec4Program = class {
     this.workPerThread = 4;
     this.workGroupSize = [64, 1, 1];
     this.isVec4 = true;
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     this.shaderKey = "clipVec4";
-    this.size = util_exports.sizeFromShape(this.outputShape) / 4;
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalId(globalId, index);
+          let value = getAAtOutCoordsByGlobalIndex(index);
           var clampedValue : vec4<f32>;
           for (var i = 0; i < 4; i = i + 1) {
             if (isNanCustom(value[i])) {
@@ -15865,18 +15812,17 @@ var ClipProgram = class {
     this.variableNames = ["A"];
     this.uniforms = "minVal : f32; maxVal : f32;";
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = "clip";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalId(globalId, index);
+          let value = getAAtOutCoordsByGlobalIndex(index);
           if (isNanCustom(value)) {
             setOutputFlat(index, value);
             return;
@@ -15917,13 +15863,13 @@ var ConcatProgram = class {
   constructor(shapes) {
     this.workPerThread = 4;
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = backend_util_exports.computeOutShape(shapes, 1);
     this.variableNames = shapes.map((_, i) => `T${i}`);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     this.shapes = shapes;
     this.shaderKey = `concat${shapes}`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const offsets = new Array(this.shapes.length - 1);
@@ -15945,8 +15891,7 @@ var ConcatProgram = class {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
@@ -16066,19 +16011,18 @@ var Im2ColProgram = class {
       inChannels : i32;`;
     this.workPerThread = 4;
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     this.isChannelsLast = isChannelsLast;
     this.shaderKey = `im2col_${this.isChannelsLast}`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const rowDim = this.isChannelsLast ? 0 : 1;
     const colDim = this.isChannelsLast ? 1 : 2;
     const userCode = `
-    ${getMainHeaderString()} {
-      ${getGlobalIndexString()}
+    ${getMainHeaderAndGlobalIndexString()}
 
       for(var i = 0; i<${this.workPerThread}; i = i + 1) {
         let flatIndex = index * ${this.workPerThread} + i;
@@ -16580,9 +16524,8 @@ var Conv2DNaiveProgram = class {
         }
       }
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
+      ${getFlatDispatchLayoutMainHeaderString()} {
+        let coords = getOutputCoordsWithFlatDispatchLayout(globalId, localId, numWorkgroups);
         let batch = coords[0];
         let outChannel = coords[3];
 
@@ -16732,6 +16675,7 @@ var Conv2DDerInputProgram = class {
     this.variableNames = ["dy", "W"];
     this.uniforms = "filterDims : vec2<i32>; pads : vec2<i32>; stride : vec2<i32>; outBackprop : vec4<i32>;";
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -16743,10 +16687,9 @@ var Conv2DDerInputProgram = class {
     const colDim = this.isChannelsLast ? 2 : 3;
     const channelDim = this.isChannelsLast ? 3 : 1;
     return `
-    ${getMainHeaderString()} {
-      ${getGlobalIndexString()}
-      let coords = getOutputCoords(globalId, index);
-      if (coordsInBounds4D(coords, uniforms.outShape)) {
+    ${getMainHeaderAndGlobalIndexString()} {
+      if(index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
         let batch = coords[0];
         let d1 = coords[${channelDim}];
 
@@ -16789,7 +16732,7 @@ var Conv2DDerInputProgram = class {
             }
           }
         }
-        setOutput(coords[0], coords[1], coords[2], coords[3], dotProd);
+        setOutputFlat(index, dotProd);
       }
     }
   `;
@@ -16863,6 +16806,7 @@ var CropAndResizeProgram = class {
     this.variableNames = ["Image", "Boxes", "BoxInd"];
     this.uniforms = "extrapolationValue : f32;";
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     const [numBoxes] = boxShape;
     this.outputShape = [numBoxes, cropSize[0], cropSize[1], channnel];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -16893,16 +16837,11 @@ var CropAndResizeProgram = class {
       `0.5 * (x1+x2) * ${inputWidthFloat}`
     ];
     const userCode = `
-      fn writeResult(coords : vec4<i32>, value : f32) {
-        if (coordsInBounds4D(coords, uniforms.outShape)) {
-          setOutput(coords[0], coords[1], coords[2], coords[3], value);
-        }
-      }
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
+      if (index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
-        let coords = getOutputCoords(globalId, index);
         let b = coords[0];
         let y = coords[1];
         let x = coords[2];
@@ -16921,12 +16860,12 @@ var CropAndResizeProgram = class {
         let width_scale = ${widthScale};
         let in_y = ${inY};
         if( in_y < 0.0 || in_y > ${inputHeightFloat} ) {
-          writeResult(coords, uniforms.extrapolationValue);
+          setOutputFlat(index, uniforms.extrapolationValue);
           return;
         }
         let in_x = ${inX};
         if( in_x < 0.0 || in_x > ${inputWidthFloat} ) {
-          writeResult(coords, uniforms.extrapolationValue);
+          setOutputFlat(index, uniforms.extrapolationValue);
           return;
         }
         let sourceFracIndexCR = vec2<f32>(in_x,in_y);
@@ -16942,16 +16881,17 @@ var CropAndResizeProgram = class {
           let top = topLeft + (topRight - topLeft) * fracCR.x;
           let bottom = bottomLeft + (bottomRight - bottomLeft) * fracCR.x;
           let newValue = top + (bottom - top) * fracCR.y;
-          writeResult(coords, newValue);
+          setOutputFlat(index, newValue);
         } else {
           // Compute the coordinators of nearest neighbor point.
           let sourceNearestCR = vec2<i32>(floor(
             sourceFracIndexCR + vec2<f32>(0.5,0.5)));
           let newValue = getImage(
             bInd, sourceNearestCR.y, sourceNearestCR.x, d);
-          writeResult(coords,newValue);
+          setOutputFlat(index, newValue);
         }
       }
+    }
     `;
     return userCode;
   }
@@ -16977,20 +16917,19 @@ var DepthToSpaceProgram = class {
   constructor(outputShape, dataFormat) {
     this.variableNames = ["x"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.uniforms = "blockSize : i32;";
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `depthToSpace_${dataFormat}`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
     this.dataFormat = dataFormat;
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getOutputCoords(globalId, index);
+          let coords = getCoordsFromFlatIndex(index);
           let b = coords[0];
           let h = ${this.getHeightCoordString()};
           let w = ${this.getWidthCoordString()};
@@ -17100,25 +17039,25 @@ var DepthwiseConv2D3x3Program = class {
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation, this.isVec4);
       if (this.hasPreluActivation) {
-        activationSnippet = `fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
-          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, globalIndex);
+        activationSnippet = `fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
+          let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-        fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
+        fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
             ${activationOp}
           }
         `;
       }
-      applyActivationSnippet = `dotProd[i] = activation(dotProd[i], globalId, index);`;
+      applyActivationSnippet = `dotProd[i] = activation(dotProd[i], coords);`;
     }
     const addBiasSnippet = this.addBias ? "dotProd[i] = dotProd[i] + getBiasAtOutCoordsByCoords(coords);" : "";
     const userCode = `
       ${activationSnippet}
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getWorkGroupSizeString()}
+      fn main([[builtin(global_invocation_id)]] globalId: vec3<u32>) {
         let batch = 0;
         let r = i32(globalId.x);
         let c = i32(globalId.y) * 4;
@@ -17212,20 +17151,20 @@ var DepthwiseConv2DProgram = class {
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation, false);
       if (this.hasPreluActivation) {
-        activationSnippet = `fn activation(a : f32, globalId : vec3<u32>, index : i32) -> f32 {
-          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, index);
+        activationSnippet = `fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
+          let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-          fn activation(a : f32, globalId : vec3<u32>, index : i32) -> f32 {
+          fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
             ${activationOp}
           }
         `;
       }
-      applyActivationSnippet = `dotProd = activation(dotProd, globalId, index);`;
+      applyActivationSnippet = `dotProd = activation(dotProd, coords);`;
     }
-    const addBiasSnippet = this.addBias ? "dotProd = dotProd + getBiasAtOutCoordsByGlobalId(globalId, index);" : "";
+    const addBiasSnippet = this.addBias ? "dotProd = dotProd + getBiasAtOutCoordsByCoords(coords);" : "";
     const userCode = `
       ${activationSnippet}
 
@@ -17236,9 +17175,8 @@ var DepthwiseConv2DProgram = class {
         }
       }
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
+      ${getFlatDispatchLayoutMainHeaderString()} {
+        let coords = getOutputCoordsWithFlatDispatchLayout(globalId, localId, numWorkgroups);
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
         let d2 = coords[3];
@@ -17410,14 +17348,13 @@ var ReduceProgram = class {
        }
        let WorkGroupSize = ${this.workGroupSize[0]};
        ${reduceInSharedMemory ? sharedMemorySnippet : ""}
-       fn getOffset(globalId : vec3<u32>, index : i32) -> i32 {
-         let outputCoords = getOutputCoords(globalId, index);
+       fn getOffset(globalId : vec3<u32>) -> i32 {
+         let outputCoords = getOutputCoordsWithNonFlatDispatchLayout(globalId);
          let offset = ${this.outputShape.length === 1 ? "outputCoords" : "outputCoords[0]"} * uniforms.reduceSize;
          return offset;
        }
-       ${getMainHeaderString()} {
-         ${getGlobalIndexString()}
-         let offset= getOffset(globalId, index);
+       ${getNonFlatDispatchLayoutMainHeaderString()} {
+         let offset = getOffset(globalId);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
          let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
@@ -17631,16 +17568,15 @@ var FillProgram = class {
     this.outputShape = [];
     this.uniforms = "value : f32;";
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = "fill";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const userCode = `
-    ${getMainHeaderString()} {
-      ${getGlobalIndexString()}
+    ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
         setOutputFlat(index, uniforms.value);
       }
@@ -17678,19 +17614,17 @@ var FlipLeftRightProgram = class {
     this.outputShape = [];
     this.variableNames = ["x"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = imageShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = "flipLeftRight";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getOutputCoords(globalId, index);
+          let coords = getCoordsFromFlatIndex(index);
           let coordX = uniforms.xShape[2] - coords[2] - 1;
           let outputValue = getX(coords[0], coords[1], coordX, coords[3]);
           setOutputFlat(index, outputValue);
@@ -17749,7 +17683,7 @@ var compileProgram = (device, program, pipelineLayout, inputsData, output, isFro
   return pipeline;
 };
 function makeShaderKey(program, shapes, types, broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
-  const key = (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape + program.shaderKey;
+  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape;
   return key;
 }
 
@@ -17869,6 +17803,7 @@ var BatchNormProgram = class {
   constructor(xShape, meanShape, varianceShape, offsetShape, scaleShape) {
     this.uniforms = "varianceEpsilon : f32;";
     this.workGroupSize = [128, 1, 1];
+    this.size = true;
     this.variableNames = ["x", "mean", "variance"];
     backend_util_exports.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util_exports.assertAndGetBroadcastShape(xShape, varianceShape);
@@ -17890,37 +17825,24 @@ var BatchNormProgram = class {
   getUserCode() {
     let offsetSnippet = "0.0";
     if (this.offsetShape != null) {
-      offsetSnippet = "getOffsetAtOutCoordsByGlobalId(globalId, index)";
+      offsetSnippet = "getOffsetAtOutCoordsByGlobalIndex(index)";
     }
     let scaleSnippet = "1.0";
     if (this.scaleShape != null) {
-      scaleSnippet = "getScaleAtOutCoordsByGlobalId(globalId, index)";
-    }
-    const dim = this.outputShape.length;
-    const coordsDataType = getCoordsDataType(dim);
-    let setOutput = "setOutput(coords[0], coords[1], coords[2], coords[3], value);";
-    if (dim === 2) {
-      setOutput = "setOutput(coords[0], coords[1], value);";
-    }
-    if (dim === 3) {
-      setOutput = "setOutput(coords[0], coords[1], coords[2], value);";
+      scaleSnippet = "getScaleAtOutCoordsByGlobalIndex(index)";
     }
     const userCode = `
-      fn writeResult(coords : ${coordsDataType}, value : f32) {
-        if (coordsInBounds${dim}D(coords, uniforms.outShape)) {
-          ${setOutput}
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size)
+        {
+          let xValue = getXAtOutCoordsByGlobalIndex(index);
+          let meanValue = getMeanAtOutCoordsByGlobalIndex(index);
+          let varianValue = getVarianceAtOutCoordsByGlobalIndex(index);
+          let offsetValue = ${offsetSnippet};
+          let scaleValue = ${scaleSnippet};
+          let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));
+          setOutputFlat(index,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
         }
-      }
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        let xValue = getXAtOutCoordsByGlobalId(globalId, index);
-        let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);
-        let varianValue = getVarianceAtOutCoordsByGlobalId(globalId, index);
-        let offsetValue = ${offsetSnippet};
-        let scaleValue = ${scaleSnippet};
-        let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));
-        writeResult(coords,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
       }
   `;
     return userCode;
@@ -18065,11 +17987,11 @@ var GatherNDProgram = class {
   constructor(sliceDim, shape) {
     this.variableNames = ["A", "indices"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gathernd_${sliceDim}`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
     this.sliceDim = sliceDim;
     this.uniforms = `sliceDim : i32; strides : ${getCoordsDataType(sliceDim)};`;
   }
@@ -18081,19 +18003,19 @@ var GatherNDProgram = class {
       strideString = "uniforms.strides";
     }
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
-          let coords = getOutputCoords(globalId, index);
+        ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+          let coords = getCoordsFromFlatIndex(index);
           var flattenIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
             let indexTemp = i32(round(getIndices(coords[0], j)));
             let strideNum = ${strideString};
             flattenIndex = flattenIndex + indexTemp * strideNum;
           }
-          if (index < uniforms.size) {
-            setOutputFlat(index, getA(flattenIndex, coords[1]));
-          }
+
+          setOutputFlat(index, getA(flattenIndex, coords[1]));
         }
+      }
       `;
     return userCode;
   }
@@ -18139,21 +18061,20 @@ var GatherProgram = class {
   constructor(aShape, outputShape) {
     this.variableNames = ["A", "indices"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = aShape.slice();
     this.aShape = aShape;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gather`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const sourceCoords = getSourceCoords(this.aShape, "i32");
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let resRC = getOutputCoords(globalId, index);
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
+          let resRC = getCoordsFromFlatIndex(index);
           setOutputFlat(index, getA(${sourceCoords}));
         }
       }
@@ -18403,6 +18324,7 @@ var MirrorPadProgram = class {
     this.uniforms = "";
     this.variableNames = ["x"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = paddings.map((p, i) => p[0] + xShape[i] + p[1]);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -18412,7 +18334,6 @@ var MirrorPadProgram = class {
     });
     this.offset = mode === "reflect" ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const rank = this.xShape.length;
@@ -18424,12 +18345,11 @@ var MirrorPadProgram = class {
     const dtype = getCoordsDataType(rank);
     const unpackedCoords = rank > 1 ? ["coords[0]", "coords[1]", "coords[2]", "coords[3]"].slice(0, rank) : "coords";
     return `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let start = ${dtype}(${start});
-        let end = ${dtype}(${end});
-        var outC = getOutputCoords(globalId, index);
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
+          let start = ${dtype}(${start});
+          let end = ${dtype}(${end});
+          var outC = getCoordsFromFlatIndex(index);
           for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${this.offset};
@@ -18615,6 +18535,7 @@ var PadProgram = class {
     this.variableNames = ["x"];
     this.uniforms = "constantValue : f32;";
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = paddings.map((p, i) => p[0] + xShape[i] + p[1]);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -18623,7 +18544,6 @@ var PadProgram = class {
     });
     this.xShape = xShape;
     this.shaderKey = "pad";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const rank = this.xShape.length;
@@ -18636,12 +18556,11 @@ var PadProgram = class {
     const rightPadCondition = rank > 1 ? `any(outC >= end)` : `outC >= end`;
     const unpackedCoords = rank > 1 ? ["coords[0]", "coords[1]", "coords[2]", "coords[3]"].slice(0, rank) : "coords";
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let start = ${startValue};
-        let end = ${endValue};
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let outC = getOutputCoords(globalId, index);
+          let start = ${startValue};
+          let end = ${endValue};
+          let outC = getCoordsFromFlatIndex(index);
 
           if (${leftPadCondition} || ${rightPadCondition}) {
             setOutputFlat(index, uniforms.constantValue);
@@ -18760,6 +18679,7 @@ var ResizeBilinearProgram = class {
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
     this.variableNames = ["x"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -18771,10 +18691,9 @@ var ResizeBilinearProgram = class {
     const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        if (all(coords < uniforms.outShape)) {
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
           let b = coords[0];
           let d = coords[3];
           let rc = coords.yz;
@@ -18809,7 +18728,7 @@ var ResizeBilinearProgram = class {
           let bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
           let newValue = top + (bottom - top) * fracRC.x;
 
-          setOutput(b, coords[1], coords[2], d, newValue);
+          setOutputFlat(index, newValue);
         }
       }
     `;
@@ -18837,6 +18756,7 @@ var ResizeNearestNeighborProgram = class {
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
     this.variableNames = ["x"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -18855,10 +18775,9 @@ var ResizeNearestNeighborProgram = class {
     const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        if (all(coords < uniforms.outShape)) {
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+          let coords = getCoordsFromFlatIndex(index);
           let b = coords[0];
           let d = coords[3];
           let rc = coords.yz;
@@ -18883,7 +18802,7 @@ var ResizeNearestNeighborProgram = class {
             min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
-          setOutput(b, coords[1], coords[2], d, newValue);
+          setOutputFlat(index, newValue);
         }
       }
     `;
@@ -18912,13 +18831,13 @@ var RotateProgram = class {
     this.outputShape = [];
     this.variableNames = ["x"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = imageShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.uniforms = `centerX : f32; centerY : f32; sinRadians : f32;
           cosRadians : f32;`;
     this.shaderKey = "rotate";
-    this.size = util_exports.sizeFromShape(this.outputShape);
     this.outputShape = imageShape;
     if (typeof fillValue === "number") {
       this.uniforms += ` fillValue : f32;`;
@@ -18932,11 +18851,10 @@ var RotateProgram = class {
   }
   getUserCode() {
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
 
           if (index < uniforms.size) {
-            let coords = getOutputCoords(globalId, index);
+            let coords = getCoordsFromFlatIndex(index);
             let coordXFloat = (f32(coords[2]) - uniforms.centerX) *
                 uniforms.cosRadians - (f32(coords[1]) - uniforms.centerY) *
                 uniforms.sinRadians;
@@ -19004,9 +18922,8 @@ var ScatterOptimizedProgram = class {
     this.dispatch = computeDispatch(this.dispatchLayout, flattenXShape, this.workGroupSize);
     this.sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${this.sliceDimGreaterThanOne}_${outputDtype}`;
-    this.size = util_exports.sizeFromShape(flattenXShape);
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32; strides: ${stridesType};`;
+    this.uniforms = `sliceDim : i32; strides: ${stridesType}; size: i32;`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }
@@ -19056,8 +18973,7 @@ var ScatterOptimizedProgram = class {
     const userCode = `
     ${getUpdatesCoordsFromFlatIndex}
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
 
         if (index < uniforms.size) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
@@ -19090,7 +19006,12 @@ function scatterNd(args) {
   const flattenX = reshape2({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
   const type = flattenX.dtype;
   const output = fill2({ backend, attrs: { shape: flattenShape, value: 0, dtype: type } });
-  const uniformData = [{ type: "int32", data: [sliceRank] }, { type: "int32", data: strides }];
+  const size = util_exports.sizeFromShape(flattenX.shape);
+  const uniformData = [
+    { type: "int32", data: [sliceRank] },
+    { type: "int32", data: strides },
+    { type: "int32", data: [size] }
+  ];
   const program = new ScatterOptimizedProgram(flattenX.shape, sliceRank, flattenIndices.shape.length, flattenX.shape.length, strides, flattenShape, type);
   const res = backend.runWebGPUProgram(program, [flattenX, flattenIndices], type, uniformData, output);
   const reshaped = reshape2({ inputs: { x: res }, backend, attrs: { shape } });
@@ -19110,13 +19031,13 @@ var SelectProgram = class {
   constructor(cRank, shape, rank) {
     this.variableNames = ["c", "a", "b"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.cRank = cRank;
     this.rank = rank;
     this.shaderKey = "select";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     let cCoords;
@@ -19141,10 +19062,9 @@ var SelectProgram = class {
       abCoords = abCoordVars.join();
     }
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(globalId, index);
+          let resRC = getCoordsFromFlatIndex(index);
           let cVal = getC(${cCoords});
           if (cVal >= 1.0) {
             setOutputFlat(index, getA(${abCoords}));
@@ -19285,12 +19205,12 @@ var ScatterProgram = class {
     this.variableNames = ["updates", "indices", "defaultValue"];
     this.workGroupSize = [64, 1, 1];
     this.workPerThread = 4;
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     const sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${sliceDimGreaterThanOne}`;
-    this.size = util_exports.sizeFromShape(this.outputShape);
     const stridesType = getCoordsDataType(strides.length);
     this.uniforms = `updateSize : i32; sliceDim : i32; strides: ${stridesType};`;
     let indicesString = "";
@@ -19311,8 +19231,7 @@ var ScatterProgram = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
 
         let globalIndex = index * ${this.workPerThread};
         if (globalIndex < uniforms.size) {
@@ -19430,13 +19349,13 @@ var StridedSliceProgram = class {
     this.variableNames = ["x"];
     this.workPerThread = 1;
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = destSize;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
     const dtype = getCoordsDataType(this.outputShape.length);
     this.uniforms = `begin : ${dtype};  strides : ${dtype}; `;
     this.shaderKey = "stridedSlice";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const rank = this.outputShape.length;
@@ -19451,10 +19370,9 @@ var StridedSliceProgram = class {
       }).join(",");
     }
     const userCode = `
-       ${getMainHeaderString()} {
-         ${getGlobalIndexString()}
+       ${getMainHeaderAndGlobalIndexString()}
          if (index < uniforms.size) {
-           let coords = getOutputCoords(globalId, index);
+           let coords = getCoordsFromFlatIndex(index);
            setOutputFlat(index, getX(${newCoords}));
          }
        }
@@ -19558,6 +19476,7 @@ var TileProgram = class {
   constructor(aShape, reps) {
     this.variableNames = ["A"];
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[i] * reps[i];
@@ -19566,16 +19485,14 @@ var TileProgram = class {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.rank = this.outputShape.length;
-    this.size = util_exports.sizeFromShape(this.outputShape);
     this.shaderKey = "tile";
   }
   getUserCode() {
     const sourceCoords = getSourceCoords2(this.rank, "uniforms.");
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(globalId, index);
+          let resRC = getCoordsFromFlatIndex(index);
           setOutputFlat(index, getA(${sourceCoords}));
         }
       }
@@ -19625,20 +19542,19 @@ var SwapProgram = class {
   constructor(shape) {
     this.variableNames = ["x", "indices"];
     this.workGroupSize = [256, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.uniforms = `inputSize : i32; firstPass : i32; negativeInf : f32;
         dir : i32; inc : i32;`;
     this.shaderKey = "swap";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
           if (index < uniforms.size) {
-            let outC = getOutputCoords(globalId, index);
+            let outC = getCoordsFromFlatIndex(index);
             let batch = outC[0];
             let elemIdx = outC[1];
             // We compare elements pair-wise within a group of size 2 * inc.
@@ -19710,19 +19626,18 @@ var MergeProgram = class {
   constructor(shape) {
     this.variableNames = ["x", "indices"];
     this.workGroupSize = [256, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.uniforms = `inputSize : i32; firstPass : i32; k : i32;`;
     this.shaderKey = "merge";
-    this.size = util_exports.sizeFromShape(this.outputShape);
   }
   getUserCode() {
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
           if (index < uniforms.size) {
-            let outC = getOutputCoords(globalId, index);
+            let outC = getCoordsFromFlatIndex(index);
             let batch = outC[0];
             let elemIdx = outC[1];
             // The output size is half of the previous size.
@@ -19896,6 +19811,7 @@ var TransformProgram = class {
     this.variableNames = ["Image", "Transforms"];
     this.uniforms = "interpolationModeId : i32; fillModeId : i32; fillValue : f32;";
     this.workGroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -19966,10 +19882,9 @@ var TransformProgram = class {
             return outputValue;
           }
 
-          ${getMainHeaderString()} {
-            ${getGlobalIndexString()}
-            let coords = getOutputCoords(globalId, index);
-            if (coordsInBounds4D(coords, uniforms.outShape)) {
+          ${getMainHeaderAndGlobalIndexString()}
+            if (index < uniforms.size) {
+              let coords = getCoordsFromFlatIndex(index);
               var outputValue : f32;
               let batch = coords[0];
               let x = coords[2];
@@ -20016,7 +19931,7 @@ var TransformProgram = class {
                   (mapY - yFloor) * valueYCeil;
                 }
               }
-              setOutput(coords[0], coords[1], coords[2], coords[3], outputValue);
+              setOutputFlat(index, outputValue);
             }
           }
         `;
@@ -20334,14 +20249,13 @@ var FromPixelsProgram = class {
     return `
       [[binding(1), group(0)]] var src: ${textureType};
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         let flatIndexBase = index * uniforms.numChannels;
-        let coords = getCoordsFromFlatIndex(flatIndexBase);
-        let values = ${textureLoad};
         for (var i = 0; i < uniforms.numChannels; i = i + 1) {
           let flatIndex = flatIndexBase + i;
           if (flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndexBase);
+            let values = ${textureLoad};
             result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
           }
         }
@@ -20920,10 +20834,10 @@ var _WebGPUBackend = class extends KernelBackend {
     });
     const strides = util_exports.computeStrides(output.shape);
     uniformsWithType.push({ type: uniformsType, data: strides });
-    if (program.size != null) {
-      uniformsWithType.push({ type: uniformsType, data: [program.size] });
+    if (program.size) {
+      const size = util_exports.sizeFromShape(program.outputShape);
+      uniformsWithType.push({ type: uniformsType, data: [program.isVec4 ? size / 4 : size] });
     }
-    uniformsWithType.push({ type: "uint32", data: program.dispatch });
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }

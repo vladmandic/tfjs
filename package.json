@@ -1,6 +1,6 @@
 {
   "name": "@vladmandic/tfjs",
-  "version": "3.11.0-20211102",
+  "version": "3.11.0-20211107",
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
   "sideEffects": false,
   "main": "dist/tfjs.esm.js",
@@ -41,7 +41,7 @@
     "@vladmandic/build": "^0.6.3",
     "@vladmandic/pilogger": "^0.3.5",
     "esbuild": "^0.13.12",
-    "eslint": "8.1.0",
+    "eslint": "8.2.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "long": "4.0.0",
     "rimraf": "^3.0.2",

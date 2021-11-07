@@ -24,14 +24,19 @@ Node packages (`tfjs-node` and `tfjs-node-gpu`) are not covered
 
 <br><hr><br>
 
+## Install
+
+Just `npm install`
 ## Steps
 
 Run `npm run build` which performs following steps:
 
 1. `scripts/download.sh`  
-   clone or pull `tfjs` from git into `./src`
+   on first run it clones `@tensorflow/tfjs` from git into `./src`  
+   on subsequent runs it rolls forward cloned copy of `@tensorflow/tfjs`
 2. `scripts/prepare.sh`  
-   creates versioned `.tfjs-*.ts` from build templates and `.js` imports from `.json` files
+   creates versioned `.tfjs-*.ts` from build templates  
+   and `.js` imports from `.json` files
 3. `scripts/build-wasm.sh`  
    build wasm binaries and wasm `.js` exports using `bazel`  
 4. `node scripts/build-tfjs.js`  
