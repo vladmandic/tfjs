@@ -53,8 +53,3 @@ Run `npm run build` which performs following steps:
 - `npm run fast` can be used after completed initial build as it executes last build step only
 
 <br><hr><br>
-
-## Todo
-
-- Automated tests
-- TypeScript typings
