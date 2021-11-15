@@ -25,9 +25,9 @@ var __toModule = (module) => {
   return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
 };
 
-// node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
+// src/node_modules/long/src/long.js
 var require_long = __commonJS({
-  "node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js"(exports, module) {
+  "src/node_modules/long/src/long.js"(exports, module) {
     module.exports = Long2;
     var wasm = null;
     try {
@@ -850,9 +850,9 @@ var require_long = __commonJS({
   }
 });
 
-// (disabled):node-fetch
-var require_node_fetch = __commonJS({
-  "(disabled):node-fetch"() {
+// (disabled):src/node_modules/node-fetch/browser.js
+var require_browser = __commonJS({
+  "(disabled):src/node_modules/node-fetch/browser.js"() {
   }
 });
 
@@ -862,9 +862,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js
+// src/node_modules/seedrandom/lib/alea.js
 var require_alea = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/alea.js"(exports, module) {
     (function(global2, module2, define2) {
       function Alea(seed) {
         var me = this, mash = Mash();
@@ -948,9 +948,9 @@ var require_alea = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js
+// src/node_modules/seedrandom/lib/xor128.js
 var require_xor128 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xor128.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1016,9 +1016,9 @@ var require_xor128 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js
+// src/node_modules/seedrandom/lib/xorwow.js
 var require_xorwow = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1091,9 +1091,9 @@ var require_xorwow = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js
+// src/node_modules/seedrandom/lib/xorshift7.js
 var require_xorshift7 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1182,9 +1182,9 @@ var require_xorshift7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js
+// src/node_modules/seedrandom/lib/xor4096.js
 var require_xor4096 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -1288,9 +1288,9 @@ var require_xor4096 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js
+// src/node_modules/seedrandom/lib/tychei.js
 var require_tychei = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js"(exports, module) {
+  "src/node_modules/seedrandom/lib/tychei.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -1368,9 +1368,9 @@ var require_crypto = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js
+// src/node_modules/seedrandom/seedrandom.js
 var require_seedrandom = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js"(exports, module) {
+  "src/node_modules/seedrandom/seedrandom.js"(exports, module) {
     (function(global2, pool3, math) {
       var width = 256, chunks = 6, digits = 52, rngname = "random", startdenom = math.pow(width, chunks), significance = math.pow(2, digits), overflow = significance * 2, mask = width - 1, nodecrypto;
       function seedrandom3(seed, options, callback) {
@@ -1501,9 +1501,9 @@ var require_seedrandom = __commonJS({
   }
 });
 
-// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js
+// src/node_modules/seedrandom/index.js
 var require_seedrandom2 = __commonJS({
-  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js"(exports, module) {
+  "src/node_modules/seedrandom/index.js"(exports, module) {
     var alea3 = require_alea();
     var xor128 = require_xor128();
     var xorwow = require_xorwow();
@@ -4805,7 +4805,7 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
-  importFetch: () => require_node_fetch()
+  importFetch: () => require_browser()
 };
 var systemFetch;
 var PlatformNode = class {
