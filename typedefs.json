@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./types",
+    "lib": ["esnext", "dom"],
+    "moduleResolution": "node",
+    "strict": false
+  },
+  "files": [
+    "./src/tfjs-core/src/index.ts"
+  ],
+  "paths": {
+    "@tensorflow/tfjs-core": ["dist/tfjs-core.esm.js"]
+  }
+}
