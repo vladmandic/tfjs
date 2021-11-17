@@ -10,8 +10,8 @@ window['tf'] = tf;
 const log = (...msg) => console.log(...msg);
 
 const backends = ['cpu'];
-if (typeof tf.setWasmPaths !== 'undefined') backends.push('wasm');
 if (typeof tf.MathBackendWebGL !== 'undefined') backends.push('webgl');
+if (typeof tf.setWasmPaths !== 'undefined') backends.push('wasm');
 if (typeof navigator['gpu'] !== 'undefined') backends.push('webgpu');
 log('backends:', backends);
 

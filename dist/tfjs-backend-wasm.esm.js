@@ -1531,12 +1531,12 @@ var require_seedrandom2 = __commonJS({
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.js
 var require_tfjs_backend_wasm_threaded_simd = __commonJS({
   "src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.js"(exports, module) {
-    var WasmBackendModuleThreadedSimd = function() {
+    var WasmBackendModuleThreadedSimd2 = function() {
       var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : void 0;
       if (typeof __filename !== "undefined")
         _scriptDir = _scriptDir || __filename;
-      return function(WasmBackendModuleThreadedSimd2) {
-        WasmBackendModuleThreadedSimd2 = WasmBackendModuleThreadedSimd2 || {};
+      return function(WasmBackendModuleThreadedSimd3) {
+        WasmBackendModuleThreadedSimd3 = WasmBackendModuleThreadedSimd3 || {};
         function GROWABLE_HEAP_I8() {
           if (wasmMemory.buffer != buffer2) {
             updateGlobalBufferAndViews(wasmMemory.buffer);
@@ -1567,12 +1567,16 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
           return HEAPF64;
         }
-        var Module = typeof WasmBackendModuleThreadedSimd2 !== "undefined" ? WasmBackendModuleThreadedSimd2 : {};
+        var Module = typeof WasmBackendModuleThreadedSimd3 !== "undefined" ? WasmBackendModuleThreadedSimd3 : {};
         var readyPromiseResolve, readyPromiseReject;
         Module["ready"] = new Promise(function(resolve, reject) {
           readyPromiseResolve = resolve;
           readyPromiseReject = reject;
         });
+        var beforeListeners;
+        if (process && process.listeners) {
+          beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
+        }
         var moduleOverrides = {};
         var key;
         for (key in Module) {
@@ -3814,35 +3818,60 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           PThread.initWorker();
         }
         run();
-        return WasmBackendModuleThreadedSimd2.ready;
+        var listenersAdded;
+        if (beforeListeners) {
+          listenersAdded = { uncaughtException: process.listeners("uncaughtException").filter(function(listener) {
+            return !beforeListeners.uncaughtException.indexOf(listener) > -1;
+          }), unhandledRejection: process.listeners("unhandledRejection").filter(function(listener) {
+            return !beforeListeners.unhandledRejection.indexOf(listener) > -1;
+          }) };
+        }
+        var actualModule = WasmBackendModule || WasmBackendModuleThreadedSimd3;
+        var tmpDispose = actualModule["_dispose"];
+        actualModule["_dispose"] = function() {
+          tmpDispose();
+          if (listenersAdded) {
+            listenersAdded.uncaughtException.forEach(function(listener) {
+              process.removeListener("uncaughtException", listener);
+            });
+            listenersAdded.unhandledRejection.forEach(function(listener) {
+              process.removeListener("unhandledRejection", listener);
+            });
+          }
+        };
+        return WasmBackendModuleThreadedSimd3.ready;
       };
     }();
     if (typeof exports === "object" && typeof module === "object")
-      module.exports = WasmBackendModuleThreadedSimd;
+      module.exports = WasmBackendModuleThreadedSimd2;
     else if (typeof define === "function" && define["amd"])
       define([], function() {
-        return WasmBackendModuleThreadedSimd;
+        return WasmBackendModuleThreadedSimd2;
       });
     else if (typeof exports === "object")
-      exports["WasmBackendModuleThreadedSimd"] = WasmBackendModuleThreadedSimd;
+      exports["WasmBackendModuleThreadedSimd"] = WasmBackendModuleThreadedSimd2;
   }
 });
 
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.js
 var require_tfjs_backend_wasm = __commonJS({
   "src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.js"(exports, module) {
-    var WasmBackendModule = function() {
+    var WasmBackendModule2 = function() {
       var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : void 0;
       if (typeof __filename !== "undefined")
         _scriptDir = _scriptDir || __filename;
-      return function(WasmBackendModule2) {
-        WasmBackendModule2 = WasmBackendModule2 || {};
-        var Module = typeof WasmBackendModule2 !== "undefined" ? WasmBackendModule2 : {};
+      return function(WasmBackendModule3) {
+        WasmBackendModule3 = WasmBackendModule3 || {};
+        var Module = typeof WasmBackendModule3 !== "undefined" ? WasmBackendModule3 : {};
         var readyPromiseResolve, readyPromiseReject;
         Module["ready"] = new Promise(function(resolve, reject) {
           readyPromiseResolve = resolve;
           readyPromiseReject = reject;
         });
+        var beforeListeners;
+        if (process && process.listeners) {
+          beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
+        }
         var moduleOverrides = {};
         var key;
         for (key in Module) {
@@ -4799,17 +4828,38 @@ var require_tfjs_backend_wasm = __commonJS({
           }
         }
         run();
-        return WasmBackendModule2.ready;
+        var listenersAdded;
+        if (beforeListeners) {
+          listenersAdded = { uncaughtException: process.listeners("uncaughtException").filter(function(listener) {
+            return !beforeListeners.uncaughtException.indexOf(listener) > -1;
+          }), unhandledRejection: process.listeners("unhandledRejection").filter(function(listener) {
+            return !beforeListeners.unhandledRejection.indexOf(listener) > -1;
+          }) };
+        }
+        var actualModule = WasmBackendModule3 || WasmBackendModuleThreadedSimd;
+        var tmpDispose = actualModule["_dispose"];
+        actualModule["_dispose"] = function() {
+          tmpDispose();
+          if (listenersAdded) {
+            listenersAdded.uncaughtException.forEach(function(listener) {
+              process.removeListener("uncaughtException", listener);
+            });
+            listenersAdded.unhandledRejection.forEach(function(listener) {
+              process.removeListener("unhandledRejection", listener);
+            });
+          }
+        };
+        return WasmBackendModule3.ready;
       };
     }();
     if (typeof exports === "object" && typeof module === "object")
-      module.exports = WasmBackendModule;
+      module.exports = WasmBackendModule2;
     else if (typeof define === "function" && define["amd"])
       define([], function() {
-        return WasmBackendModule;
+        return WasmBackendModule2;
       });
     else if (typeof exports === "object")
-      exports["WasmBackendModule"] = WasmBackendModule;
+      exports["WasmBackendModule"] = WasmBackendModule2;
   }
 });
 
