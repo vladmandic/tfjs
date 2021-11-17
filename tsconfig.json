@@ -19,13 +19,12 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
-    "importsNotUsedAsValues": "error",
     "noEmitHelpers": true,
     "noEmitOnError": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
-    "noImplicitOverride": true,
-    "noImplicitReturns": true,
+    "noImplicitOverride": false,
+    "noImplicitReturns": false,
     "noImplicitThis": true,
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false,
@@ -47,6 +46,6 @@
     "useUnknownInCatchVariables": true
   },
   "formatCodeOptions": { "indentSize": 2, "tabSize": 2 },
-  "exclude": ["node_modules/", "dist/", "src/**/*_test.ts"],
-  "include": ["scripts", "test"]
+  "exclude": ["node_modules/", "dist/", "src/e2e/", "*_test.ts", "test_*.ts"],
+  "include": ["scripts", "test"],
 }
