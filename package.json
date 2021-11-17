@@ -16,7 +16,7 @@
     "build": "npm run download && npm run patch && npm run build-wasm && npm run build-tfjs",
     "fast": "npm run build-tfjs",
     "serve": "build --profile serve",
-    "commit": "git status --short && git commit --all --file .tfjs-version && git log --max-count=1",
+    "commit": "git status --short && git commit --all --file .tfjs-version && git push && git log --max-count=1",
     "types": "tsc --target esnext --declaration --allowJs --emitDeclarationOnly --outDir types --lib esnext,dom src/tfjs-core/src/index.ts"
   },
   "engines": {
