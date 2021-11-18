@@ -16,5 +16,5 @@ export declare const version: {
   'tfjs-data': string;
   'tfjs-layers': string;
   'tfjs-converter': string;
-  tfjs: string;
+  'tfjs': string;
 };
