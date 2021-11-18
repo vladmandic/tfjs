@@ -3,15 +3,19 @@
     "target": "esnext",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "./types",
+    "outDir": "./types/lib",
     "lib": ["esnext", "dom"],
     "moduleResolution": "node",
     "strict": false
   },
   "files": [
-    "./src/tfjs-core/src/index.ts"
-  ],
-  "paths": {
-    "@tensorflow/tfjs-core": ["dist/tfjs-core.esm.js"]
-  }
+    "./src/tfjs-core/src/index.ts",
+    "./src/tfjs-data/src/index.ts",
+    "./src/tfjs-layers/src/index.ts",
+    "./src/tfjs-converter/src/index.ts",
+    "./src/tfjs-backend-cpu/src/index.ts",
+    "./src/tfjs-backend-wasm/src/index.ts",
+    "./src/tfjs-backend-webgl/src/index.ts",
+    "./src/tfjs-backend-webgpu/src/index.ts",
+  ]
 }

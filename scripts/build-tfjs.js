@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const esbuild = require('esbuild');
 const log = require('@vladmandic/pilogger');
+const apiextractor = require('@microsoft/api-extractor');
 const package = require('../package.json');
 
 const buildResolve = { // plugin for esbuild
@@ -60,6 +61,21 @@ async function stats(json) {
   return data;
 }
 
+async function api() {
+  const extractorConfig = apiextractor.ExtractorConfig.loadFileAndPrepare('api-extractor.json');
+  const extractorResult = apiextractor.Extractor.invoke(extractorConfig, {
+    localBuild: true,
+    showVerboseMessages: false,
+    messageCallback: (msg) => {
+      msg.handled = true;
+      if (msg.logLevel === 'none' || msg.logLevel === 'verbose' || msg.logLevel === 'info') return;
+      if (msg.sourceFilePath?.includes('/node_modules/')) return;
+      log.data('API', { level: msg.logLevel, category: msg.category, id: msg.messageId, file: msg.sourceFilePath, line: msg.sourceFileLine, text: msg.text });
+    },
+  });
+  log.state('API-Extractor:', { succeeeded: extractorResult.succeeded, errors: extractorResult.errorCount, warnings: extractorResult.warningCount });
+}
+
 async function build() {
   log.header();
   if (!fs.existsSync('.tfjs-version')) {
@@ -97,6 +113,9 @@ async function build() {
     meta = await esbuild.build({ ...buildOptions.global, ...buildOptions.browser, ...buildOptions.minify, entryPoints: ['.tfjs-browser.ts'], outfile: 'dist/tfjs.min.esm.js' });
     data = await stats(meta);
     log.state('Build Bundle:', { version, output: data.outputFiles, files: data.imports, inputBytes: data.importBytes, outputBytes: data.outputBytes });
+
+    // build typedef rollup
+    // await api();
 
     // patch package.json
     log.info('Pached package.json:', version);

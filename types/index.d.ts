@@ -26,6 +26,4 @@ import '@tensorflow/tfjs-backend-webgpu';
 import * as data from '@tensorflow/tfjs-data';
 export { data };
 export * from '@tensorflow/tfjs-core';
-export * from '@tensorflow/tfjs-converter';
-export * from '@tensorflow/tfjs-layers';
 */

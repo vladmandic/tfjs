@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "mainEntryPointFilePath": "types/proto.d.ts",
+  "bundledPackages": [
+    "@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-data",
+    "@tensorflow/tfjs-layers",
+    "@tensorflow/tfjs-converter",
+    "@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-wasm",
+    "@tensorflow/tfjs-backend-webgl",
+    "@tensorflow/tfjs-backend-webgpu",
+    "long",
+    "@types/offscreencanvas"
+  ],
+  "compiler": {
+    "skipLibCheck": false
+  },
+  "newlineKind": "lf",
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "types/index.d.ts"
+  },
+  "docModel": { "enabled": false },
+  "tsdocMetadata": {
+    "enabled": false
+  },
+  "apiReport": { "enabled": false },
+  "messages": {
+    "compilerMessageReporting": {
+      "default": {
+        "logLevel": "warning"
+      }
+    },
+    "extractorMessageReporting": {
+      "default": {
+        "logLevel": "warning"
+      },
+      "ae-missing-release-tag": {
+        "logLevel": "none"
+      }
+    },
+    "tsdocMessageReporting": {
+      "default": {
+        "logLevel": "warning"
+      }
+    }
+  }
+}
