@@ -18,3 +18,5 @@ export declare const version: {
   'tfjs-converter': string;
   'tfjs': string;
 };
+
+export { Long } from 'long';
