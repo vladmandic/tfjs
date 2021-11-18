@@ -16,12 +16,12 @@ const buildResolve = { // plugin for esbuild
 
 const buildOptions = {
   global: {
-    logLevel: 'error',
+    logLevel: 'warning',
     treeShaking: true,
     ignoreAnnotations: true,
     plugins: [buildResolve],
     sourcemap: true,
-    target: 'esnext',
+    target: 'es2021',
   },
   minify: {
     minifyWhitespace: true,
@@ -30,10 +30,10 @@ const buildOptions = {
   },
   browser: {
     bundle: true,
-    external: ['fs', 'path', 'os', 'perf_hooks', 'worker_threads'],
     metafile: true,
     platform: 'browser',
     format: 'esm',
+    // external: ['fs', 'path', 'os', 'perf_hooks', 'worker_threads'],
   },
 };
 

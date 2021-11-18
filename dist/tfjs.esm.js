@@ -5,14 +5,7 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined")
-    return require.apply(this, arguments);
-  throw new Error('Dynamic require of "' + x + '" is not supported');
-});
-var __commonJS = (cb, mod4) => function __require2() {
+var __commonJS = (cb, mod4) => function __require() {
   return mod4 || (0, cb[Object.keys(cb)[0]])((mod4 = { exports: {} }).exports, mod4), mod4.exports;
 };
 var __export = (target, all5) => {
@@ -1534,6 +1527,36 @@ var require_string_decoder = __commonJS({
   }
 });
 
+// (disabled):fs
+var require_fs = __commonJS({
+  "(disabled):fs"() {
+  }
+});
+
+// (disabled):path
+var require_path = __commonJS({
+  "(disabled):path"() {
+  }
+});
+
+// (disabled):worker_threads
+var require_worker_threads = __commonJS({
+  "(disabled):worker_threads"() {
+  }
+});
+
+// (disabled):perf_hooks
+var require_perf_hooks = __commonJS({
+  "(disabled):perf_hooks"() {
+  }
+});
+
+// (disabled):os
+var require_os = __commonJS({
+  "(disabled):os"() {
+  }
+});
+
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.js
 var require_tfjs_backend_wasm_threaded_simd = __commonJS({
   "src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.js"(exports, module) {
@@ -1619,15 +1642,15 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var nodePath;
         if (ENVIRONMENT_IS_NODE) {
           if (ENVIRONMENT_IS_WORKER) {
-            scriptDirectory = __require("path").dirname(scriptDirectory) + "/";
+            scriptDirectory = require_path().dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
           read_ = function shell_read(filename, binary) {
             if (!nodeFS)
-              nodeFS = __require("fs");
+              nodeFS = require_fs();
             if (!nodePath)
-              nodePath = __require("path");
+              nodePath = require_path();
             filename = nodePath["normalize"](filename);
             return nodeFS["readFileSync"](filename, binary ? null : "utf8");
           };
@@ -1657,7 +1680,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           };
           var nodeWorkerThreads;
           try {
-            nodeWorkerThreads = __require("worker_threads");
+            nodeWorkerThreads = require_worker_threads();
           } catch (e) {
             console.error('The "worker_threads" module is not supported in this node.js build - perhaps a newer version is needed?');
             throw e;
@@ -1711,9 +1734,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           if (ENVIRONMENT_IS_NODE) {
             read_ = function shell_read(filename, binary) {
               if (!nodeFS)
-                nodeFS = __require("fs");
+                nodeFS = require_fs();
               if (!nodePath)
-                nodePath = __require("path");
+                nodePath = require_path();
               filename = nodePath["normalize"](filename);
               return nodeFS["readFileSync"](filename, binary ? null : "utf8");
             };
@@ -1763,7 +1786,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         if (ENVIRONMENT_IS_NODE) {
           if (typeof performance === "undefined") {
-            global.performance = __require("perf_hooks").performance;
+            global.performance = require_perf_hooks().performance;
           }
         }
         var out = Module["print"] || console.log.bind(console);
@@ -2604,7 +2627,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         function _emscripten_num_logical_cores() {
           if (ENVIRONMENT_IS_NODE)
-            return __require("os").cpus().length;
+            return require_os().cpus().length;
           return navigator["hardwareConcurrency"];
         }
         function _emscripten_proxy_to_main_thread_js(index, sync) {
@@ -3910,15 +3933,15 @@ var require_tfjs_backend_wasm = __commonJS({
         var nodePath;
         if (ENVIRONMENT_IS_NODE) {
           if (ENVIRONMENT_IS_WORKER) {
-            scriptDirectory = __require("path").dirname(scriptDirectory) + "/";
+            scriptDirectory = require_path().dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
           read_ = function shell_read(filename, binary) {
             if (!nodeFS)
-              nodeFS = __require("fs");
+              nodeFS = require_fs();
             if (!nodePath)
-              nodePath = __require("path");
+              nodePath = require_path();
             filename = nodePath["normalize"](filename);
             return nodeFS["readFileSync"](filename, binary ? null : "utf8");
           };
@@ -39983,7 +40006,7 @@ var FileDataSource = class extends DataSource {
   }
   async iterator() {
     if (isLocalPath(this.input) && env().get("IS_NODE")) {
-      const fs = __require("fs");
+      const fs = require_fs();
       this.input = fs.readFileSync(this.input.substr(7));
     }
     return new FileChunkIterator(this.input, this.options);
