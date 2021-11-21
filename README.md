@@ -35,6 +35,7 @@ Node packages (`tfjs-node` and `tfjs-node-gpu`) are not covered
 ## Steps
 
 ### Full Build
+Downloads sources and performs full build of all **TFJS** modules
 > `npm run build` executes steps:
 
 1. `scripts/download.sh`  
@@ -62,6 +63,10 @@ Buildinging typedefs from sources is an experimental feature
 1. compile all modules using `TSC` to `types/lib`
 2. build rollup using `API-Extractor` to `types/tfjs-core.d.ts` and `types/tfjs.d.ts`
 3. patch rollup
+
+### Clean
+Remove currently downloaded version of **TFJS** and reset all cached info
+> `npm run clean`
 
 ### Notes
 - `/dist`: all **JS** modules, **MAP** files and **WASM** binaries  

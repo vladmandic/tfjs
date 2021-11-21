@@ -12,7 +12,7 @@
     "patch": "scripts/prepare.sh",
     "build-wasm": "scripts/build-wasm.sh",
     "build-tfjs": "node scripts/build-tfjs.js",
-    "clean": "rimraf .tfjs*",
+    "clean": "rimraf .tfjs* src/",
     "build": "npm run download && npm run patch && npm run build-wasm && npm run build-tfjs",
     "fast": "npm run build-tfjs",
     "serve": "build --profile serve",
