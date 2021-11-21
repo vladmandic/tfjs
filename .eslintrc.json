@@ -55,6 +55,7 @@
     "indent":"off",
     "lines-between-class-members":"off",
     "max-classes-per-file":"off",
+    "max-len": [1, 275, 3],
     "no-await-in-loop":"off",
     "no-confusing-arrow":"off",
     "no-console":"off",

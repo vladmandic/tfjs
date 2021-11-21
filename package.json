@@ -1,6 +1,6 @@
 {
   "name": "@vladmandic/tfjs",
-  "version": "3.11.0-20211118",
+  "version": "3.11.0-20211121",
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
   "sideEffects": false,
   "main": "dist/tfjs.esm.js",
@@ -17,7 +17,7 @@
     "fast": "npm run build-tfjs",
     "serve": "build --profile serve",
     "commit": "git status --short && git commit --all --file .tfjs-version && git push && git log --max-count=1",
-    "types": "tsc --project ./typedefs.json && api-extractor run --local --verbose"
+    "types": "scripts/build-types.sh"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -46,18 +46,18 @@
     "@tensorflow/tfjs-core": "^3.11.0",
     "@tensorflow/tfjs-data": "^3.11.0",
     "@tensorflow/tfjs-layers": "^3.11.0",
-    "@typescript-eslint/eslint-plugin": "^5.3.1",
-    "@typescript-eslint/parser": "^5.3.1",
-    "@vladmandic/build": "^0.6.3",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "@vladmandic/build": "^0.6.4",
     "@vladmandic/pilogger": "^0.3.5",
-    "esbuild": "^0.13.13",
+    "esbuild": "^0.13.15",
+    "eslint": "8.3.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint": "8.2.0",
     "long": "4.0.0",
-    "npm": "^8.1.3",
+    "npm": "^8.1.4",
     "rimraf": "^3.0.2",
     "seedrandom": "^3.0.5",
     "tslib": "^2.3.1",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.2"
   }
 }

@@ -11684,6 +11684,7 @@ function getTextureConfig(gl, textureHalfFloatExtension) {
     defaultNumChannels = 1;
     textureTypeHalfFloat = glany.HALF_FLOAT;
     textureTypeFloat = glany.FLOAT;
+    downloadTextureFormat = glany.RGBA8;
   } else {
     internalFormatFloat = gl.RGBA;
     internalFormatHalfFloat = gl.RGBA;
@@ -11694,8 +11695,8 @@ function getTextureConfig(gl, textureHalfFloatExtension) {
     defaultNumChannels = 4;
     textureTypeHalfFloat = textureHalfFloatExtension != null ? textureHalfFloatExtension.HALF_FLOAT_OES : null;
     textureTypeFloat = gl.FLOAT;
+    downloadTextureFormat = gl.RGBA;
   }
-  downloadTextureFormat = gl.RGBA;
   return {
     internalFormatFloat,
     internalFormatHalfFloat,
@@ -14553,7 +14554,11 @@ function createAndConfigureTexture(gl, width, height, internalFormat, textureFor
   callAndCheck(gl, () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE));
   callAndCheck(gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST));
   callAndCheck(gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST));
-  callAndCheck(gl, () => gl.texImage2D(tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType, null));
+  if (env().getNumber("WEBGL_VERSION") === 1) {
+    callAndCheck(gl, () => gl.texImage2D(tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType, null));
+  } else {
+    callAndCheck(gl, () => gl.texStorage2D(tex2d, 1, internalFormat, width, height));
+  }
   callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
   return texture;
 }
@@ -14613,15 +14618,29 @@ function uploadDenseMatrixToTexture(gl, texture, width, height, data, textureCon
     internalFormat = textureConfig.internalFormatPackedFloat;
   }
   dataForUpload.set(data);
-  callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA, texelDataType, dataForUpload));
+  if (env().getNumber("WEBGL_VERSION") === 2) {
+    callAndCheck(gl, () => gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGBA, texelDataType, dataForUpload));
+  } else {
+    callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA, texelDataType, dataForUpload));
+  }
   callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 function uploadPixelDataToTexture(gl, texture, pixels) {
   callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
   if (pixels.data instanceof Uint8Array) {
-    callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels.data));
+    if (env().getNumber("WEBGL_VERSION") === 2) {
+      callAndCheck(gl, () => gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, pixels.width, pixels.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.data));
+      gl.flush();
+    } else {
+      callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels.data));
+    }
   } else {
-    callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels));
+    if (env().getNumber("WEBGL_VERSION") === 2) {
+      callAndCheck(gl, () => gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels));
+      gl.flush();
+    } else {
+      callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels));
+    }
   }
   callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
@@ -16675,6 +16694,8 @@ function numBytesForInternalFormat(gl, internalFormat) {
     return 16;
   } else if (internalFormat === glany.RGBA16F) {
     return 8;
+  } else if (internalFormat === glany.RGBA8) {
+    return 4;
   }
   throw new Error(`Unknown internal format ${internalFormat}`);
 }
@@ -17350,7 +17371,9 @@ var _MathBackendWebGL = class extends KernelBackend {
           texData.isPacked = true;
           texData.shape = input.shape;
         }
-      } else if (!!texData.isPacked !== !!program.packedInputs) {
+      }
+      this.uploadToGPU(input.dataId);
+      if (!!texData.isPacked !== !!program.packedInputs) {
         input = texData.isPacked ? this.unpackTensor(input) : this.packTensor(input);
         dataToDispose.push(input);
         texData = this.texData.get(input.dataId);
@@ -17363,7 +17386,6 @@ var _MathBackendWebGL = class extends KernelBackend {
         texData = this.texData.get(input.dataId);
         savedInput.shape = targetShape;
       }
-      this.uploadToGPU(input.dataId);
       return { shape: input.shape, texData, isUniform: false };
     });
     this.uploadToGPU(output.dataId);
@@ -17476,18 +17498,23 @@ var _MathBackendWebGL = class extends KernelBackend {
       let program;
       let width = texShape[1], height = texShape[0];
       const isByteArray = values instanceof Uint8Array || values instanceof Uint8ClampedArray;
-      if (isPacked) {
+      if (isPacked || !isByteArray) {
         [width, height] = getPackedMatrixTextureShapeWidthHeight(texShape[0], texShape[1]);
+      }
+      if (isPacked) {
         program = new EncodeMatrixPackedProgram(shapeAs3D, isByteArray);
       } else {
         program = new EncodeMatrixProgram(shapeAs3D, isByteArray);
       }
-      const tempDenseInputHandle = this.makeTensorInfo([height, width], dtype);
+      const tempDenseInputTexShape = isByteArray ? [height, width] : texShape;
+      const tempDenseInputHandle = this.makeTensorInfo(tempDenseInputTexShape, dtype);
+      const tempDenseInputTexData = this.texData.get(tempDenseInputHandle.dataId);
       if (isByteArray) {
-        this.texData.get(tempDenseInputHandle.dataId).usage = TextureUsage.PIXELS;
+        tempDenseInputTexData.usage = TextureUsage.PIXELS;
       } else {
-        this.texData.get(tempDenseInputHandle.dataId).usage = TextureUsage.UPLOAD;
+        tempDenseInputTexData.usage = TextureUsage.UPLOAD;
       }
+      tempDenseInputTexData.texShape = tempDenseInputTexShape;
       this.gpgpu.uploadDenseMatrixToTexture(this.getTexture(tempDenseInputHandle.dataId), width, height, values);
       const customValues = [[height, width]];
       const preventEagerUnpacking = true;

@@ -27,13 +27,15 @@ Node packages (`tfjs-node` and `tfjs-node-gpu`) are not covered
 ## Install
 
 1. Internal dependencies: `npm install`
-2. External dependencies: `git` and `bazel`  
+2. External dependencies: `git`, `bazel`, `python`
    **Git**: assumed to be already installed if you're here :)  
-   **Bazel**: <https://docs.bazel.build/versions/4.2.1/install-ubuntu.html>
+   **Bazel**: requires `bazel 4.x` <https://docs.bazel.build/versions/4.2.1/install-ubuntu.html>  
+   **Python**: requires `python 3.x`, not compatible with `python 2.x`  
 
 ## Steps
 
-Run `npm run build` which performs following steps:
+### Full Build
+> `npm run build` executes steps:
 
 1. `scripts/download.sh`  
    on first run it clones `@tensorflow/tfjs` from git into `./src`  
@@ -45,6 +47,21 @@ Run `npm run build` which performs following steps:
    build wasm binaries and wasm `.js` exports using `bazel`  
 4. `node scripts/build-tfjs.js`  
    build targets in `/dist` using `esbuild` with custom resolver plugins and TypeScript compiler settings  
+
+### Fast Build
+
+Available once full build has been completed
+> `npm run build` executes steps:
+1. `node scripts/build-tfjs.js`  
+   build targets in `/dist` using `esbuild` with custom resolver plugins and TypeScript compiler settings  
+
+### TypeDefs
+Default typedefs in `types/index.d.ts` are re-exports of official `@tensorflow/*` modules
+Buildinging typedefs from sources is an experimental feature
+> `npm run types` executes steps:
+1. compile all modules using `TSC` to `types/lib`
+2. build rollup using `API-Extractor` to `types/tfjs-core.d.ts` and `types/tfjs.d.ts`
+3. patch rollup
 
 ### Notes
 - `/dist`: all **JS** modules, **MAP** files and **WASM** binaries  

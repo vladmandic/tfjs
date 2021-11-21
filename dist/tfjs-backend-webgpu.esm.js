@@ -17273,31 +17273,27 @@ var multiplyConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/reduce_webgpu.ts
 var ReduceProgram = class {
-  constructor(reduceInfo, reduceType, outputDtype) {
+  constructor(reduceInfo, reduceType) {
+    this.workGroupSize = [64, 1, 1];
     this.variableNames = ["x"];
     this.uniforms = "reduceSize : i32;";
+    this.size = true;
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape] = backend_util_exports.computeOutAndReduceShapes(this.inputShape, [1]);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
-    this.reductionFactor = 2;
-    const xMaxThreads = 256;
-    const xThreads = Math.min(Math.ceil(reduceInfo.inSize / this.reductionFactor), xMaxThreads);
-    this.workGroupSize = [xThreads, 1, 1];
-    this.dispatchLayout = { x: [], y: this.outputShape.map((d, i) => i) };
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
     this.reduceType = reduceType;
-    this.shaderKey = `reduce_${reduceType}_${outputDtype}`;
+    this.shaderKey = `reduce_${reduceType}`;
   }
   getUserCode() {
-    const reduceInSharedMemory = this.workGroupSize[0] > 1;
     let reduceOp = ``;
     let initValue = "0.0";
     if (this.reduceType === "min" || this.reduceType === "max") {
       reduceOp = `
          if (isNanCustom(candidate)) {
           bestValue = uniforms.NAN;
-         } elseif (candidate ${this.reduceType === "min" ? "<" : ">"}
-           bestValue)
+         } elseif (!isNanCustom(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
            {  bestValue = candidate; }`;
       initValue = "f32(x.numbers[offset])";
     } else if (this.reduceType === "sum" || this.reduceType === "mean") {
@@ -17306,57 +17302,51 @@ var ReduceProgram = class {
       reduceOp = " bestValue = bestValue * candidate; ";
       initValue = "1.0";
     }
-    const outputSnippet = this.reduceType === "mean" ? `setOutputFlat(flatOutputIndex, bestValue / f32(uniforms.reduceSize));` : `setOutputFlat(flatOutputIndex, bestValue);`;
+    const outputSnippet = this.reduceType === "mean" ? `setOutputFlat(outputIndex, bestValue / f32(uniforms.reduceSize));` : `setOutputFlat(outputIndex, bestValue);`;
     const sharedMemorySnippet = `
          var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
        `;
-    const sharedMemoryReduceSnippet = `
-       xBestValues[localId.x] = bestValue;
-       ${this.reduceType === "sum" || this.reduceType === "mean" || this.reduceType === "prod" ? `bestValue = ${initValue};` : " "}
-       var currentSize = WorkGroupSize;
-       for(; currentSize > 1;) {
-         workgroupBarrier();
-         for (var w = 0; w < ${this.reductionFactor}; w = w + 1) {
-           let i = i32(localId.x) * ${this.reductionFactor} + w;
-           if (i < currentSize) {
-             let candidate = xBestValues[i];
-             ${reduceOp}
-           }
-         }
-         workgroupBarrier();
-         xBestValues[localId.x] = bestValue;
-         currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
-         ${this.reduceType === "sum" || this.reduceType === "mean" || this.reduceType === "prod" ? `if(currentSize > 1) { bestValue = ${initValue}; }` : ""}
-       }
-       if (localId.x == 0u) {
-         ${outputSnippet}
-       }
-     `;
     const userCode = `
-       fn DIV_CEIL(a : i32, b : i32) -> i32 {
-        return ((a - 1) / b + 1);
+       fn DIV_CEIL(a : u32, b : u32) -> u32 {
+        return ((a - 1u) / b + 1u);
        }
-       let WorkGroupSize = ${this.workGroupSize[0]};
-       ${reduceInSharedMemory ? sharedMemorySnippet : ""}
-       fn getOffset(globalId : vec3<u32>) -> i32 {
-         let outputCoords = getOutputCoordsWithNonFlatDispatchLayout(globalId);
+
+       ${sharedMemorySnippet}
+       fn getOffset(outputIndex : i32) -> i32 {
+         let outputCoords = getCoordsFromFlatIndex(outputIndex);
          let offset = ${this.outputShape.length === 1 ? "outputCoords" : "outputCoords[0]"} * uniforms.reduceSize;
-         return offset;
+          return offset;
        }
-       ${getNonFlatDispatchLayoutMainHeaderString()} {
-         let offset = getOffset(globalId);
+       ${getMainHeaderAndGlobalIndexString()}
+         let outputIndex = index / i32(workGroupSizeX);
+         let offset = getOffset(outputIndex);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
-         for (var w = 0; w < WorkPerThread; w = w + 1) {
-           let i = i32(globalId.x) * WorkPerThread + w;
-           if (i < Length) {
-             let candidate = f32(x.numbers[offset + i]);
-             ${reduceOp}
-           }
+         let WorkPerThread = DIV_CEIL(u32(Length), workGroupSizeX);
+         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
+             k = k + i32(workGroupSizeX)) {
+           let candidate = f32(x.numbers[offset + k]);
+           ${reduceOp}
          }
-         let flatOutputIndex = i32(globalId.y);
-         ${reduceInSharedMemory ? sharedMemoryReduceSnippet : outputSnippet}
+         xBestValues[localId.x] = bestValue;
+         workgroupBarrier();
+
+         var reduceSize = min(u32(Length), workGroupSizeX);
+         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
+             currentSize = reduceSize / 2u) {
+           let interval = DIV_CEIL(reduceSize, 2u);
+           if (localId.x < currentSize) {
+            let candidate = xBestValues[localId.x + interval];
+            ${reduceOp}
+            xBestValues[localId.x] = bestValue;
+           }
+           reduceSize = interval;
+           workgroupBarrier();
+         }
+
+         if (localId.x == 0u && outputIndex < uniforms.size) {
+          ${outputSnippet}
+        }
        }
      `;
     return userCode;
@@ -17406,7 +17396,7 @@ function reduce(x, axis, keepDims, reduceType, backend) {
     const uniformData = [
       { type: "int32", data: [inSize] }
     ];
-    const program = new ReduceProgram(reduceInfo, reduceType, dtype);
+    const program = new ReduceProgram(reduceInfo, reduceType);
     const reduced = backend.runWebGPUProgram(program, [input], dtype, uniformData);
     toDispose.push(reduced);
     res = reshape2({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend });
@@ -18949,7 +18939,7 @@ var ScatterOptimizedProgram = class {
       `;
     }
     const updatesSnippet = `getUpdates(${updatesString})`;
-    const atomicAddSnippet = this.type === "int32" ? `ignore(atomicAdd(&(result.numbers[flatIndex]), i32(updateValue)));` : `
+    const atomicAddSnippet = this.type === "int32" ? `atomicAdd(&(result.numbers[flatIndex]), i32(updateValue));` : `
      var assumed = atomicLoad(&(result.numbers[flatIndex]));
      var success = 0;
      for (; success == 0;) {
