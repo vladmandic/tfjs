@@ -15851,6 +15851,7 @@ var clipByValueConfig = {
 // src/tfjs-backend-webgpu/src/kernels/concat_webgpu.ts
 var ConcatProgram = class {
   constructor(shapes) {
+    this.uniforms = "";
     this.workPerThread = 4;
     this.workGroupSize = [64, 1, 1];
     this.size = true;
@@ -15858,25 +15859,22 @@ var ConcatProgram = class {
     this.variableNames = shapes.map((_, i) => `T${i}`);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
-    this.shapes = shapes;
-    this.shaderKey = `concat${shapes}`;
+    this.offsetLength = shapes.length - 1;
+    for (let i = 0; i < this.offsetLength; i++) {
+      this.uniforms += `offset${i} : i32;`;
+    }
+    this.shaderKey = "concat";
   }
   getUserCode() {
-    const offsets = new Array(this.shapes.length - 1);
     const snippets = [];
-    if (offsets.length > 0) {
-      offsets[0] = this.shapes[0][1];
-      for (let i = 1; i < offsets.length; i++) {
-        offsets[i] = offsets[i - 1] + this.shapes[i][1];
+    if (this.offsetLength > 0) {
+      snippets.push(`if (yC < uniforms.offset0){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
+      for (let i = 1; i < this.offsetLength; i++) {
+        snippets.push(`elseif (yC < uniforms.offset${[i]}){ setOutput(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${i - 1})); }`);
       }
-      snippets.push(`if (yC < ${offsets[0]}){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
-      for (let i = 1; i < offsets.length; i++) {
-        const shift = offsets[i - 1];
-        snippets.push(`elseif (yC < ${offsets[i]}){ setOutput(coords.x, coords.y, getT${i}(yR, yC - ${shift})); }`);
-      }
-      const lastIndex = offsets.length;
-      const lastShift = offsets[offsets.length - 1];
-      snippets.push(`else { setOutput(coords.x, coords.y, getT${lastIndex}(yR, yC - ${lastShift})); }`);
+      const lastIndex = this.offsetLength;
+      const lastShiftIndex = this.offsetLength - 1;
+      snippets.push(`else { setOutput(coords.x, coords.y, getT${lastIndex}(yR, yC - uniforms.offset${lastShiftIndex})); }`);
     } else {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
@@ -15948,8 +15946,19 @@ function concatImpl2(inputs, axis, backend) {
     return outInfo;
   }
   const { tensors2D, outShape } = computeTensors2D(inputs, axis, backend);
-  const program = new ConcatProgram(tensors2D.map((t) => t.shape));
-  const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
+  const shapes = tensors2D.map((t) => t.shape);
+  const program = new ConcatProgram(shapes);
+  const uniformData = [];
+  const offsets = new Array(shapes.length - 1);
+  if (offsets.length > 0) {
+    offsets[0] = shapes[0][1];
+    uniformData.push({ type: "int32", data: [offsets[0]] });
+    for (let i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + shapes[i][1];
+      uniformData.push({ type: "int32", data: [offsets[i]] });
+    }
+  }
+  const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype, uniformData);
   tensors2D.forEach((r) => backend.disposeData(r.dataId));
   const reshapedResult = reshape2({ inputs: { x: res }, backend, attrs: { shape: outShape } });
   backend.disposeData(res.dataId);
@@ -18656,20 +18665,17 @@ var relu6Config = {
 
 // src/tfjs-backend-webgpu/src/kernels/resize_bilinear_webgpu.ts
 var ResizeBilinearProgram = class {
-  constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+  constructor(inputShape, newHeight, newWidth) {
     this.variableNames = ["x"];
+    this.uniforms = "adjustHeightWidth : vec2<f32>; halfPixelCenters : f32;";
     this.workGroupSize = [64, 1, 1];
     this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.alignCorners = alignCorners;
-    this.halfPixelCenters = halfPixelCenters;
-    this.shaderKey = `resizeBilinear_${alignCorners}_${halfPixelCenters}_${this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
+    this.shaderKey = `resizeBilinear`;
   }
   getUserCode() {
-    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
-    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
@@ -18679,18 +18685,20 @@ var ResizeBilinearProgram = class {
           let rc = coords.yz;
 
           let effectiveInSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.xShape.y) - 1.0` : `f32(uniforms.xShape.y)`},
-            ${adjustWidth ? `f32(uniforms.xShape.z) - 1.0` : `f32(uniforms.xShape.z)`});
+            f32(uniforms.xShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.xShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveOutSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.outShape.y) - 1.0` : `f32(uniforms.outShape.y)`},
-            ${adjustWidth ? `f32(uniforms.outShape.z) - 1.0` : `f32(uniforms.outShape.z)`});
+            f32(uniforms.outShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.outShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
 
           // Fractional source index
-          let sourceFracIndexRC = ${this.halfPixelCenters ? "(vec2<f32>(rc) + vec2<f32>(0.5)) * effectiveInputOverOutputRatioRC - vec2<f32>(0.5)" : "vec2<f32>(rc) * effectiveInputOverOutputRatioRC"};
+          let sourceFracIndexRC =
+            (vec2<f32>(rc) + vec2<f32>(uniforms.halfPixelCenters)) *
+            effectiveInputOverOutputRatioRC - vec2<f32>(uniforms.halfPixelCenters);
 
           // Compute the four integer indices.
           let sourceFloorRC = vec2<i32>(sourceFracIndexRC);
@@ -18722,8 +18730,15 @@ function resizeBilinear2(args) {
   const { images } = inputs;
   const { alignCorners, size, halfPixelCenters } = attrs;
   const [newHeight, newWidth] = size;
-  const program = new ResizeBilinearProgram(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
-  return backend.runWebGPUProgram(program, [images], "float32");
+  const adjustHeight = alignCorners && newHeight > 1 ? 1 : 0;
+  const adjustWidth = alignCorners && newWidth > 1 ? 1 : 0;
+  const halfPixelCentersValue = halfPixelCenters ? 0.5 : 0;
+  const uniformData = [
+    { type: "float32", data: [adjustHeight, adjustWidth] },
+    { type: "float32", data: [halfPixelCentersValue] }
+  ];
+  const program = new ResizeBilinearProgram(images.shape, newHeight, newWidth);
+  return backend.runWebGPUProgram(program, [images], "float32", uniformData);
 }
 var resizeBilinearConfig = {
   kernelName: ResizeBilinear,
@@ -18733,27 +18748,24 @@ var resizeBilinearConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/resize_nearest_neighbor_webgpu.ts
 var ResizeNearestNeighborProgram = class {
-  constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+  constructor(inputShape, newHeight, newWidth, halfPixelCenters) {
     this.variableNames = ["x"];
+    this.uniforms = "adjustHeightWidth : vec2<f32>; roundBase : f32;";
     this.workGroupSize = [64, 1, 1];
     this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.alignCorners = alignCorners;
     this.halfPixelCenters = halfPixelCenters;
-    this.shaderKey = `resizeNearest_${alignCorners}_${this.outputShape[1] > 1}_${this.outputShape[2] > 1}_${halfPixelCenters}`;
+    this.shaderKey = `resizeNearest_${halfPixelCenters}`;
   }
   getUserCode() {
-    const roundBase = this.alignCorners ? "0.5" : "0.0";
     let sourceFracIndexRC;
     if (this.halfPixelCenters) {
       sourceFracIndexRC = `max((vec2<f32>(rc) + vec2<f32>(0.5)) * effectiveInputOverOutputRatioRC, vec2<f32>(0.0))`;
     } else {
       sourceFracIndexRC = `vec2<f32>(rc) * effectiveInputOverOutputRatioRC`;
     }
-    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
-    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
@@ -18763,12 +18775,12 @@ var ResizeNearestNeighborProgram = class {
           let rc = coords.yz;
 
           let effectiveInSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.xShape.y) - 1.0` : `f32(uniforms.xShape.y)`},
-            ${adjustWidth ? `f32(uniforms.xShape.z) - 1.0` : `f32(uniforms.xShape.z)`});
+            f32(uniforms.xShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.xShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveOutSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.outShape.y) - 1.0` : `f32(uniforms.outShape.y)`},
-            ${adjustWidth ? `f32(uniforms.outShape.z) - 1.0` : `f32(uniforms.outShape.z)`});
+            f32(uniforms.outShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.outShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
@@ -18779,7 +18791,7 @@ var ResizeNearestNeighborProgram = class {
           // Compute the coordinators of nearest neighbor point.
           let inputShapeRC = vec2<f32>(f32(uniforms.xShape.y), f32(uniforms.xShape.z));
           let sourceNearestRC = vec2<i32>(
-            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
+            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + uniforms.roundBase)));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
           setOutputFlat(index, newValue);
@@ -18796,8 +18808,15 @@ function resizeNearestNeighbor2(args) {
   const { images } = inputs;
   const { alignCorners, halfPixelCenters, size } = attrs;
   const [newHeight, newWidth] = size;
-  const program = new ResizeNearestNeighborProgram(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
-  return backend.runWebGPUProgram(program, [images], images.dtype);
+  const adjustHeight = alignCorners && newHeight > 1 ? 1 : 0;
+  const adjustWidth = alignCorners && newWidth > 1 ? 1 : 0;
+  const roundBase = alignCorners ? 0.5 : 0;
+  const uniformData = [
+    { type: "float32", data: [adjustHeight, adjustWidth] },
+    { type: "float32", data: [roundBase] }
+  ];
+  const program = new ResizeNearestNeighborProgram(images.shape, newHeight, newWidth, halfPixelCenters);
+  return backend.runWebGPUProgram(program, [images], images.dtype, uniformData);
 }
 var resizeNearestNeighborConfig = {
   kernelName: ResizeNearestNeighbor,

@@ -1597,7 +1597,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           readyPromiseReject = reject;
         });
         var beforeListeners;
-        if (process && process.listeners) {
+        if (typeof process !== "undefined" && process.listeners) {
           beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
         }
         var moduleOverrides = {};
@@ -2233,9 +2233,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           instantiateAsync().catch(readyPromiseReject);
           return {};
         }
-        var ASM_CONSTS = { 10072: function() {
+        var ASM_CONSTS = { 10128: function() {
           throw "Canceled!";
-        }, 10090: function($0, $1) {
+        }, 10146: function($0, $1) {
           setTimeout(function() {
             __emscripten_do_dispatch_to_thread($0, $1);
           }, 0);
@@ -3746,8 +3746,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _memalign = Module["_memalign"] = function() {
           return (_memalign = Module["_memalign"] = Module["asm"]["Cb"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 10064;
-        var __emscripten_main_thread_futex = Module["__emscripten_main_thread_futex"] = 10268;
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 10120;
+        var __emscripten_main_thread_futex = Module["__emscripten_main_thread_futex"] = 10332;
         Module["cwrap"] = cwrap;
         Module["PThread"] = PThread;
         Module["PThread"] = PThread;
@@ -3849,19 +3849,26 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return !beforeListeners.unhandledRejection.indexOf(listener) > -1;
           }) };
         }
-        var actualModule = WasmBackendModule || WasmBackendModuleThreadedSimd3;
-        var tmpDispose = actualModule["_dispose"];
-        actualModule["_dispose"] = function() {
-          tmpDispose();
-          if (listenersAdded) {
+        var actualModule;
+        if (typeof WasmBackendModule !== "undefined") {
+          actualModule = WasmBackendModule;
+        } else if (typeof WasmBackendModuleThreadedSimd3 !== "undefined") {
+          actualModule = WasmBackendModuleThreadedSimd3;
+        } else {
+          throw new Error("Could not find wasm module in post.js");
+        }
+        if (listenersAdded) {
+          var tmpDispose = actualModule["_dispose"];
+          actualModule["_dispose"] = function() {
+            tmpDispose();
             listenersAdded.uncaughtException.forEach(function(listener) {
               process.removeListener("uncaughtException", listener);
             });
             listenersAdded.unhandledRejection.forEach(function(listener) {
               process.removeListener("unhandledRejection", listener);
             });
-          }
-        };
+          };
+        }
         return WasmBackendModuleThreadedSimd3.ready;
       };
     }();
@@ -3892,7 +3899,7 @@ var require_tfjs_backend_wasm = __commonJS({
           readyPromiseReject = reject;
         });
         var beforeListeners;
-        if (process && process.listeners) {
+        if (typeof process !== "undefined" && process.listeners) {
           beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
         }
         var moduleOverrides = {};
@@ -4859,19 +4866,26 @@ var require_tfjs_backend_wasm = __commonJS({
             return !beforeListeners.unhandledRejection.indexOf(listener) > -1;
           }) };
         }
-        var actualModule = WasmBackendModule3 || WasmBackendModuleThreadedSimd;
-        var tmpDispose = actualModule["_dispose"];
-        actualModule["_dispose"] = function() {
-          tmpDispose();
-          if (listenersAdded) {
+        var actualModule;
+        if (typeof WasmBackendModule3 !== "undefined") {
+          actualModule = WasmBackendModule3;
+        } else if (typeof WasmBackendModuleThreadedSimd !== "undefined") {
+          actualModule = WasmBackendModuleThreadedSimd;
+        } else {
+          throw new Error("Could not find wasm module in post.js");
+        }
+        if (listenersAdded) {
+          var tmpDispose = actualModule["_dispose"];
+          actualModule["_dispose"] = function() {
+            tmpDispose();
             listenersAdded.uncaughtException.forEach(function(listener) {
               process.removeListener("uncaughtException", listener);
             });
             listenersAdded.unhandledRejection.forEach(function(listener) {
               process.removeListener("unhandledRejection", listener);
             });
-          }
-        };
+          };
+        }
         return WasmBackendModule3.ready;
       };
     }();
@@ -14821,20 +14835,8 @@ function createBinaryKernelConfig(kernelName, supportsFullBroadcast17, dtype) {
     const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
     const outId = backend.dataIdMap.get(out.dataId).id;
     const kernelFunc4 = () => wasmFunc9(aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length, CppDType[a.dtype], outId);
-    if (supportsFullBroadcast17 && a.dtype === "float32") {
-      kernelFunc4();
-      return out;
-    }
-    const aBroadcastDims = backend_util_exports.getBroadcastDims(a.shape, newShape);
-    const bBroadcastDims = backend_util_exports.getBroadcastDims(b.shape, newShape);
-    const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
-    const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
-    if (loopsOverAllOfA && loopsOverAllOfB) {
-      kernelFunc4();
-      return out;
-    } else {
-      throw new Error(`Broadcasting along outer dims is not yet supported for ${a.dtype} ${kernelName}.`);
-    }
+    kernelFunc4();
+    return out;
   }
   return { kernelName, backendName: "wasm", setupFunc: setupFunc3, kernelFunc: kernelFunc3 };
 }

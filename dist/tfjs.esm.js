@@ -1603,7 +1603,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           readyPromiseReject = reject;
         });
         var beforeListeners;
-        if (process && process.listeners) {
+        if (typeof process !== "undefined" && process.listeners) {
           beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
         }
         var moduleOverrides = {};
@@ -2239,9 +2239,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           instantiateAsync().catch(readyPromiseReject);
           return {};
         }
-        var ASM_CONSTS = { 10072: function() {
+        var ASM_CONSTS = { 10128: function() {
           throw "Canceled!";
-        }, 10090: function($0, $1) {
+        }, 10146: function($0, $1) {
           setTimeout(function() {
             __emscripten_do_dispatch_to_thread($0, $1);
           }, 0);
@@ -3752,8 +3752,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _memalign = Module["_memalign"] = function() {
           return (_memalign = Module["_memalign"] = Module["asm"]["Cb"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 10064;
-        var __emscripten_main_thread_futex = Module["__emscripten_main_thread_futex"] = 10268;
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 10120;
+        var __emscripten_main_thread_futex = Module["__emscripten_main_thread_futex"] = 10332;
         Module["cwrap"] = cwrap;
         Module["PThread"] = PThread;
         Module["PThread"] = PThread;
@@ -3855,19 +3855,26 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return !beforeListeners.unhandledRejection.indexOf(listener) > -1;
           }) };
         }
-        var actualModule = WasmBackendModule || WasmBackendModuleThreadedSimd3;
-        var tmpDispose = actualModule["_dispose"];
-        actualModule["_dispose"] = function() {
-          tmpDispose();
-          if (listenersAdded) {
+        var actualModule;
+        if (typeof WasmBackendModule !== "undefined") {
+          actualModule = WasmBackendModule;
+        } else if (typeof WasmBackendModuleThreadedSimd3 !== "undefined") {
+          actualModule = WasmBackendModuleThreadedSimd3;
+        } else {
+          throw new Error("Could not find wasm module in post.js");
+        }
+        if (listenersAdded) {
+          var tmpDispose = actualModule["_dispose"];
+          actualModule["_dispose"] = function() {
+            tmpDispose();
             listenersAdded.uncaughtException.forEach(function(listener) {
               process.removeListener("uncaughtException", listener);
             });
             listenersAdded.unhandledRejection.forEach(function(listener) {
               process.removeListener("unhandledRejection", listener);
             });
-          }
-        };
+          };
+        }
         return WasmBackendModuleThreadedSimd3.ready;
       };
     }();
@@ -3898,7 +3905,7 @@ var require_tfjs_backend_wasm = __commonJS({
           readyPromiseReject = reject;
         });
         var beforeListeners;
-        if (process && process.listeners) {
+        if (typeof process !== "undefined" && process.listeners) {
           beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
         }
         var moduleOverrides = {};
@@ -4865,19 +4872,26 @@ var require_tfjs_backend_wasm = __commonJS({
             return !beforeListeners.unhandledRejection.indexOf(listener) > -1;
           }) };
         }
-        var actualModule = WasmBackendModule3 || WasmBackendModuleThreadedSimd;
-        var tmpDispose = actualModule["_dispose"];
-        actualModule["_dispose"] = function() {
-          tmpDispose();
-          if (listenersAdded) {
+        var actualModule;
+        if (typeof WasmBackendModule3 !== "undefined") {
+          actualModule = WasmBackendModule3;
+        } else if (typeof WasmBackendModuleThreadedSimd !== "undefined") {
+          actualModule = WasmBackendModuleThreadedSimd;
+        } else {
+          throw new Error("Could not find wasm module in post.js");
+        }
+        if (listenersAdded) {
+          var tmpDispose = actualModule["_dispose"];
+          actualModule["_dispose"] = function() {
+            tmpDispose();
             listenersAdded.uncaughtException.forEach(function(listener) {
               process.removeListener("uncaughtException", listener);
             });
             listenersAdded.unhandledRejection.forEach(function(listener) {
               process.removeListener("unhandledRejection", listener);
             });
-          }
-        };
+          };
+        }
         return WasmBackendModule3.ready;
       };
     }();
@@ -64124,6 +64138,7 @@ var clipByValueConfig2 = {
 // src/tfjs-backend-webgpu/src/kernels/concat_webgpu.ts
 var ConcatProgram2 = class {
   constructor(shapes) {
+    this.uniforms = "";
     this.workPerThread = 4;
     this.workGroupSize = [64, 1, 1];
     this.size = true;
@@ -64131,25 +64146,22 @@ var ConcatProgram2 = class {
     this.variableNames = shapes.map((_, i) => `T${i}`);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
-    this.shapes = shapes;
-    this.shaderKey = `concat${shapes}`;
+    this.offsetLength = shapes.length - 1;
+    for (let i = 0; i < this.offsetLength; i++) {
+      this.uniforms += `offset${i} : i32;`;
+    }
+    this.shaderKey = "concat";
   }
   getUserCode() {
-    const offsets = new Array(this.shapes.length - 1);
     const snippets = [];
-    if (offsets.length > 0) {
-      offsets[0] = this.shapes[0][1];
-      for (let i = 1; i < offsets.length; i++) {
-        offsets[i] = offsets[i - 1] + this.shapes[i][1];
+    if (this.offsetLength > 0) {
+      snippets.push(`if (yC < uniforms.offset0){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
+      for (let i = 1; i < this.offsetLength; i++) {
+        snippets.push(`elseif (yC < uniforms.offset${[i]}){ setOutput(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${i - 1})); }`);
       }
-      snippets.push(`if (yC < ${offsets[0]}){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
-      for (let i = 1; i < offsets.length; i++) {
-        const shift = offsets[i - 1];
-        snippets.push(`elseif (yC < ${offsets[i]}){ setOutput(coords.x, coords.y, getT${i}(yR, yC - ${shift})); }`);
-      }
-      const lastIndex = offsets.length;
-      const lastShift = offsets[offsets.length - 1];
-      snippets.push(`else { setOutput(coords.x, coords.y, getT${lastIndex}(yR, yC - ${lastShift})); }`);
+      const lastIndex = this.offsetLength;
+      const lastShiftIndex = this.offsetLength - 1;
+      snippets.push(`else { setOutput(coords.x, coords.y, getT${lastIndex}(yR, yC - uniforms.offset${lastShiftIndex})); }`);
     } else {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
@@ -64221,8 +64233,19 @@ function concatImpl3(inputs, axis, backend2) {
     return outInfo;
   }
   const { tensors2D, outShape } = computeTensors2D2(inputs, axis, backend2);
-  const program = new ConcatProgram2(tensors2D.map((t) => t.shape));
-  const res = backend2.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
+  const shapes = tensors2D.map((t) => t.shape);
+  const program = new ConcatProgram2(shapes);
+  const uniformData = [];
+  const offsets = new Array(shapes.length - 1);
+  if (offsets.length > 0) {
+    offsets[0] = shapes[0][1];
+    uniformData.push({ type: "int32", data: [offsets[0]] });
+    for (let i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + shapes[i][1];
+      uniformData.push({ type: "int32", data: [offsets[i]] });
+    }
+  }
+  const res = backend2.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype, uniformData);
   tensors2D.forEach((r) => backend2.disposeData(r.dataId));
   const reshapedResult = reshape5({ inputs: { x: res }, backend: backend2, attrs: { shape: outShape } });
   backend2.disposeData(res.dataId);
@@ -66929,20 +66952,17 @@ var relu6Config3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/resize_bilinear_webgpu.ts
 var ResizeBilinearProgram2 = class {
-  constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+  constructor(inputShape, newHeight, newWidth) {
     this.variableNames = ["x"];
+    this.uniforms = "adjustHeightWidth : vec2<f32>; halfPixelCenters : f32;";
     this.workGroupSize = [64, 1, 1];
     this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.alignCorners = alignCorners;
-    this.halfPixelCenters = halfPixelCenters;
-    this.shaderKey = `resizeBilinear_${alignCorners}_${halfPixelCenters}_${this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
+    this.shaderKey = `resizeBilinear`;
   }
   getUserCode() {
-    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
-    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
@@ -66952,18 +66972,20 @@ var ResizeBilinearProgram2 = class {
           let rc = coords.yz;
 
           let effectiveInSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.xShape.y) - 1.0` : `f32(uniforms.xShape.y)`},
-            ${adjustWidth ? `f32(uniforms.xShape.z) - 1.0` : `f32(uniforms.xShape.z)`});
+            f32(uniforms.xShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.xShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveOutSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.outShape.y) - 1.0` : `f32(uniforms.outShape.y)`},
-            ${adjustWidth ? `f32(uniforms.outShape.z) - 1.0` : `f32(uniforms.outShape.z)`});
+            f32(uniforms.outShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.outShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
 
           // Fractional source index
-          let sourceFracIndexRC = ${this.halfPixelCenters ? "(vec2<f32>(rc) + vec2<f32>(0.5)) * effectiveInputOverOutputRatioRC - vec2<f32>(0.5)" : "vec2<f32>(rc) * effectiveInputOverOutputRatioRC"};
+          let sourceFracIndexRC =
+            (vec2<f32>(rc) + vec2<f32>(uniforms.halfPixelCenters)) *
+            effectiveInputOverOutputRatioRC - vec2<f32>(uniforms.halfPixelCenters);
 
           // Compute the four integer indices.
           let sourceFloorRC = vec2<i32>(sourceFracIndexRC);
@@ -66995,8 +67017,15 @@ function resizeBilinear4(args) {
   const { images } = inputs;
   const { alignCorners, size, halfPixelCenters } = attrs;
   const [newHeight, newWidth] = size;
-  const program = new ResizeBilinearProgram2(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
-  return backend2.runWebGPUProgram(program, [images], "float32");
+  const adjustHeight = alignCorners && newHeight > 1 ? 1 : 0;
+  const adjustWidth = alignCorners && newWidth > 1 ? 1 : 0;
+  const halfPixelCentersValue = halfPixelCenters ? 0.5 : 0;
+  const uniformData = [
+    { type: "float32", data: [adjustHeight, adjustWidth] },
+    { type: "float32", data: [halfPixelCentersValue] }
+  ];
+  const program = new ResizeBilinearProgram2(images.shape, newHeight, newWidth);
+  return backend2.runWebGPUProgram(program, [images], "float32", uniformData);
 }
 var resizeBilinearConfig3 = {
   kernelName: ResizeBilinear,
@@ -67006,27 +67035,24 @@ var resizeBilinearConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/resize_nearest_neighbor_webgpu.ts
 var ResizeNearestNeighborProgram2 = class {
-  constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+  constructor(inputShape, newHeight, newWidth, halfPixelCenters) {
     this.variableNames = ["x"];
+    this.uniforms = "adjustHeightWidth : vec2<f32>; roundBase : f32;";
     this.workGroupSize = [64, 1, 1];
     this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.alignCorners = alignCorners;
     this.halfPixelCenters = halfPixelCenters;
-    this.shaderKey = `resizeNearest_${alignCorners}_${this.outputShape[1] > 1}_${this.outputShape[2] > 1}_${halfPixelCenters}`;
+    this.shaderKey = `resizeNearest_${halfPixelCenters}`;
   }
   getUserCode() {
-    const roundBase = this.alignCorners ? "0.5" : "0.0";
     let sourceFracIndexRC;
     if (this.halfPixelCenters) {
       sourceFracIndexRC = `max((vec2<f32>(rc) + vec2<f32>(0.5)) * effectiveInputOverOutputRatioRC, vec2<f32>(0.0))`;
     } else {
       sourceFracIndexRC = `vec2<f32>(rc) * effectiveInputOverOutputRatioRC`;
     }
-    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
-    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
@@ -67036,12 +67062,12 @@ var ResizeNearestNeighborProgram2 = class {
           let rc = coords.yz;
 
           let effectiveInSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.xShape.y) - 1.0` : `f32(uniforms.xShape.y)`},
-            ${adjustWidth ? `f32(uniforms.xShape.z) - 1.0` : `f32(uniforms.xShape.z)`});
+            f32(uniforms.xShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.xShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveOutSize = vec2<f32>(
-            ${adjustHeight ? `f32(uniforms.outShape.y) - 1.0` : `f32(uniforms.outShape.y)`},
-            ${adjustWidth ? `f32(uniforms.outShape.z) - 1.0` : `f32(uniforms.outShape.z)`});
+            f32(uniforms.outShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.outShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
@@ -67052,7 +67078,7 @@ var ResizeNearestNeighborProgram2 = class {
           // Compute the coordinators of nearest neighbor point.
           let inputShapeRC = vec2<f32>(f32(uniforms.xShape.y), f32(uniforms.xShape.z));
           let sourceNearestRC = vec2<i32>(
-            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
+            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + uniforms.roundBase)));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
           setOutputFlat(index, newValue);
@@ -67069,8 +67095,15 @@ function resizeNearestNeighbor4(args) {
   const { images } = inputs;
   const { alignCorners, halfPixelCenters, size } = attrs;
   const [newHeight, newWidth] = size;
-  const program = new ResizeNearestNeighborProgram2(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
-  return backend2.runWebGPUProgram(program, [images], images.dtype);
+  const adjustHeight = alignCorners && newHeight > 1 ? 1 : 0;
+  const adjustWidth = alignCorners && newWidth > 1 ? 1 : 0;
+  const roundBase = alignCorners ? 0.5 : 0;
+  const uniformData = [
+    { type: "float32", data: [adjustHeight, adjustWidth] },
+    { type: "float32", data: [roundBase] }
+  ];
+  const program = new ResizeNearestNeighborProgram2(images.shape, newHeight, newWidth, halfPixelCenters);
+  return backend2.runWebGPUProgram(program, [images], images.dtype, uniformData);
 }
 var resizeNearestNeighborConfig3 = {
   kernelName: ResizeNearestNeighbor,
@@ -69407,20 +69440,8 @@ function createBinaryKernelConfig(kernelName, supportsFullBroadcast17, dtype) {
     const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
     const outId = backend2.dataIdMap.get(out.dataId).id;
     const kernelFunc4 = () => wasmFunc9(aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length, CppDType[a.dtype], outId);
-    if (supportsFullBroadcast17 && a.dtype === "float32") {
-      kernelFunc4();
-      return out;
-    }
-    const aBroadcastDims = backend_util_exports.getBroadcastDims(a.shape, newShape);
-    const bBroadcastDims = backend_util_exports.getBroadcastDims(b.shape, newShape);
-    const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
-    const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
-    if (loopsOverAllOfA && loopsOverAllOfB) {
-      kernelFunc4();
-      return out;
-    } else {
-      throw new Error(`Broadcasting along outer dims is not yet supported for ${a.dtype} ${kernelName}.`);
-    }
+    kernelFunc4();
+    return out;
   }
   return { kernelName, backendName: "wasm", setupFunc: setupFunc3, kernelFunc: kernelFunc3 };
 }
@@ -72627,7 +72648,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.11.0-20211121";
+var externalVersion = "3.11.0-20211123";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
