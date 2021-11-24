@@ -50312,19 +50312,20 @@ var PackProgram = class {
     this.packedInputs = false;
     this.packedOutput = true;
     this.outputShape = outputShape;
-    const rank = outputShape.length;
-    if (rank === 0) {
+    this.rank = outputShape.length;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    if (this.rank === 0) {
       this.userCode = `
         void main() {
           setOutput(vec4(getA(), 0., 0., 0.));
         }
       `;
     } else {
-      const channels = getChannels("rc", rank);
-      const dtype = getCoordsDataType(rank);
-      const outOfBoundsCondition = getOutOfBoundsCondition(rank, outputShape, channels);
-      const setup46 = getSetup(rank, outputShape[outputShape.length - 1], outputShape[outputShape.length - 2], channels);
-      const output = getOutput(outputShape, channels);
+      const channels = getChannels("rc", this.rank);
+      const dtype = getCoordsDataType(this.rank);
+      const outOfBoundsCondition = this.getOutOfBoundsCondition(channels);
+      const setup46 = this.getSetup(channels);
+      const output = this.getOutput(channels);
       this.userCode = `
         void main() {
           ${dtype} rc = getOutputCoords();
@@ -50340,61 +50341,62 @@ var PackProgram = class {
       `;
     }
   }
-};
-function getSourceCoordsArr(rank, dims) {
-  const coords3 = [];
-  for (let row = 0; row <= 1; row++) {
-    for (let col = 0; col <= 1; col++) {
-      let coord = `${row === 0 ? "r" : "rp1"}, ${col === 0 ? "c" : "cp1"}`;
-      for (let d = 2; d < rank; d++) {
-        coord = `${dims[dims.length - 1 - d]},` + coord;
+  getSourceCoordsArr(dims) {
+    const coords3 = [];
+    for (let row = 0; row <= 1; row++) {
+      for (let col = 0; col <= 1; col++) {
+        let coord = `${row === 0 ? "r" : "rp1"}, ${col === 0 ? "c" : "cp1"}`;
+        for (let d = 2; d < this.rank; d++) {
+          coord = `${dims[dims.length - 1 - d]},` + coord;
+        }
+        coords3.push(coord);
       }
-      coords3.push(coord);
     }
+    return coords3;
   }
-  return coords3;
-}
-function getOutOfBoundsCondition(rank, shape, dims) {
-  if (rank === 1) {
-    return `rc > ${shape[0]}`;
-  }
-  let cond = "";
-  for (let i = rank - 2; i < rank; i++) {
-    cond += `${dims[i]} >= ${shape[i]}`;
-    if (i < rank - 1) {
-      cond += "||";
+  getOutOfBoundsCondition(dims) {
+    if (this.rank === 1) {
+      return `rc > ${this.enableShapeUniforms ? "outShape" : this.outputShape[0]}`;
     }
+    let cond = "";
+    for (let i = this.rank - 2; i < this.rank; i++) {
+      cond += `${dims[i]} >= ${this.enableShapeUniforms ? `outShape[${i}]` : this.outputShape[i]}`;
+      if (i < this.rank - 1) {
+        cond += "||";
+      }
+    }
+    return cond;
   }
-  return cond;
-}
-function getSetup(rank, cols, rows, dims) {
-  if (rank === 1) {
-    return "";
-  }
-  const innerDims = dims.slice(-2);
-  return `
-    int r = ${innerDims[0]};
-    int c = ${innerDims[1]};
-    int rp1 = r + 1;
-    int cp1 = c + 1;
+  getSetup(dims) {
+    if (this.rank === 1) {
+      return "";
+    }
+    const innerDims = dims.slice(-2);
+    const col = this.enableShapeUniforms ? `outShape[${this.rank} - 1]` : this.outputShape[this.rank - 1];
+    const row = this.enableShapeUniforms ? `outShape[${this.rank} - 2]` : this.outputShape[this.rank - 2];
+    return `
+      int r = ${innerDims[0]};
+      int c = ${innerDims[1]};
+      int rp1 = r + 1;
+      int cp1 = c + 1;
 
-    bool cEdge = cp1 >= ${cols};
-    bool rEdge = rp1 >= ${rows};
-  `;
-}
-function getOutput(shape, dims) {
-  const rank = shape.length;
-  const sourceCoords = getSourceCoordsArr(rank, dims);
-  if (rank === 1) {
-    return `getA(rc),
-            rc + 1 >= ${shape[0]} ? 0. : getA(rc + 1),
-            0, 0`;
+      bool cEdge = cp1 >= ${col};
+      bool rEdge = rp1 >= ${row};
+    `;
   }
-  return `getA(${sourceCoords[0]}),
-          cEdge ? 0. : getA(${sourceCoords[1]}),
-          rEdge ? 0. : getA(${sourceCoords[2]}),
-          rEdge || cEdge ? 0. : getA(${sourceCoords[3]})`;
-}
+  getOutput(dims) {
+    const sourceCoords = this.getSourceCoordsArr(dims);
+    if (this.rank === 1) {
+      return `getA(rc),
+              rc + 1 >= ${this.enableShapeUniforms ? "outShape" : this.outputShape[0]} ? 0. : getA(rc + 1),
+              0, 0`;
+    }
+    return `getA(${sourceCoords[0]}),
+            cEdge ? 0. : getA(${sourceCoords[1]}),
+            rEdge ? 0. : getA(${sourceCoords[2]}),
+            rEdge || cEdge ? 0. : getA(${sourceCoords[3]})`;
+  }
+};
 
 // src/tfjs-backend-webgl/src/reshape_packed_gpu.ts
 var ReshapePackedProgram = class {
@@ -50747,6 +50749,7 @@ var UnpackProgram = class {
     this.packedInputs = true;
     this.packedOutput = false;
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = outputShape.length;
     const channels = getChannels("rc", rank);
     const dtype = getCoordsDataType(rank);
@@ -72648,7 +72651,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.11.0-20211123";
+var externalVersion = "3.11.0-20211124";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
