@@ -6425,6 +6425,23 @@ function convertConv2DDataFormat(dataFormat) {
     throw new Error(`Unknown dataFormat ${dataFormat}`);
   }
 }
+function checkPadOnDimRoundingMode(opDesc, pad2, dimRoundingMode) {
+  if (dimRoundingMode != null) {
+    if (typeof pad2 === "string") {
+      throw Error(`Error in ${opDesc}: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
+    } else if (typeof pad2 === "number") {
+      assert(isInt(pad2), () => `Error in ${opDesc}: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
+    } else if (typeof pad2 === "object") {
+      pad2.forEach((p2) => {
+        p2.forEach((v) => {
+          assert(isInt(v), () => `Error in ${opDesc}: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+        });
+      });
+    } else {
+      throw Error(`Error in ${opDesc}: Unknown padding parameter: ${pad2}`);
+    }
+  }
+}
 
 // src/tfjs-core/src/ops/reshape.ts
 function reshape_(x, shape) {
@@ -6447,9 +6464,7 @@ function avgPool_(x, filterSize, strides, pad2, dimRoundingMode) {
     x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
   assert(x4D.rank === 4, () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in avgPool: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("avgPool", pad2, dimRoundingMode);
   const inputs = { x: x4D };
   const attrs = { filterSize, strides, pad: pad2, dimRoundingMode };
   let res = ENGINE.runKernel(AvgPool, inputs, attrs);
@@ -6472,9 +6487,7 @@ function avgPool3d_(x, filterSize, strides, pad2, dimRoundingMode, dataFormat = 
   }
   assert(x5D.rank === 5, () => `Error in avgPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
   assert(dataFormat === "NDHWC", () => `Error in avgPool3d: Only NDHWC is currently supported, but got dataFormat of ${dataFormat}`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in avgPool3d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("avgPool3d", pad2, dimRoundingMode);
   const inputs = { x: x5D };
   const attrs = { filterSize, strides, pad: pad2, dimRoundingMode, dataFormat };
   let res = ENGINE.runKernel(AvgPool3D, inputs, attrs);
@@ -6816,9 +6829,7 @@ function conv2d_(x, filter, strides, pad2, dataFormat = "NHWC", dilations = [1, 
   }
   assert(x4D.rank === 4, () => `Error in conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in conv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in conv2d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("conv2d", pad2, dimRoundingMode);
   const inDepth = dataFormat === "NHWC" ? x4D.shape[3] : x4D.shape[1];
   assert(inDepth === $filter.shape[2], () => `Error in conv2d: depth of input (${inDepth}) must match input depth for filter ${$filter.shape[2]}.`);
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
@@ -6844,9 +6855,7 @@ function conv1d_(x, filter, stride, pad2, dataFormat = "NWC", dilation = 1, dimR
   }
   assert(x3D.rank === 3, () => `Error in conv1d: input must be rank 3, but got rank ${x3D.rank}.`);
   assert($filter.rank === 3, () => `Error in conv1d: filter must be rank 3, but got rank ${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in conv1d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("conv1d", pad2, dimRoundingMode);
   assert(x3D.shape[2] === $filter.shape[1], () => `Error in conv1d: depth of input (${x3D.shape[2]}) must match input depth for filter ${$filter.shape[1]}.`);
   assert(eitherStridesOrDilationsAreOne(stride, dilation), () => `Error in conv1D: Either stride or dilation must be 1. Got stride ${stride} and dilation '${dilation}'`);
   assert(dataFormat === "NWC", () => `Error in conv1d: got dataFormat of ${dataFormat} but only NWC is currently supported.`);
@@ -6881,9 +6890,7 @@ function conv2DBackpropInput_(xShape, dy, filter, strides, pad2, dataFormat = "N
   const outDepth = dataFormat === "NHWC" ? dy4D.shape[3] : dy4D.shape[1];
   assert(inDepth === filter.shape[2], () => `Error in conv2dDerInput: depth of input (${inDepth}) must match input depth for filter ${filter.shape[2]}.`);
   assert(outDepth === filter.shape[3], () => `Error in conv2dDerInput: depth of output (${outDepth}) must match output depth for filter ${filter.shape[3]}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in conv2dDerInput: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("conv2dDerInput", pad2, dimRoundingMode);
   const inputs = { dy: dy4D, filter };
   const attrs = { strides, pad: pad2, dataFormat, dimRoundingMode, inputShape: xShape4D };
   const res = ENGINE.runKernel(Conv2DBackpropInput, inputs, attrs);
@@ -7035,9 +7042,7 @@ function depthwiseConv2d_(x, filter, strides, pad2, dataFormat = "NHWC", dilatio
   assert(x4D.rank === 4, () => `Error in depthwiseConv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in depthwiseConv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
   assert(x4D.shape[3] === $filter.shape[2], () => `Error in depthwiseConv2d: number of input channels (${x4D.shape[3]}) must match the inChannels dimension in filter ${$filter.shape[2]}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in depthwiseConv2d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("depthwiseConv2d", pad2, dimRoundingMode);
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad2, dataFormat, dilations, dimRoundingMode };
   const res = ENGINE.runKernel(DepthwiseConv2dNative, inputs, attrs);
@@ -7658,9 +7663,7 @@ function maxPool_(x, filterSize, strides, pad2, dimRoundingMode) {
   }
   assert(x4D.rank === 4, () => `Error in maxPool: input must be rank 4 but got rank ${x4D.rank}.`);
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in maxPool: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in maxPool: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("maxPool", pad2, dimRoundingMode);
   const inputs = { x: x4D };
   const attrs = { filterSize, strides, pad: pad2, dimRoundingMode };
   const res = ENGINE.runKernel(MaxPool, inputs, attrs);
@@ -7682,9 +7685,7 @@ function maxPool3d_(x, filterSize = [1, 1, 1], strides, pad2, dimRoundingMode, d
   }
   assert(x5D.rank === 5, () => `Error in maxPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
   assert(dataFormat === "NDHWC", () => `Error in maxPool3d: Only NDHWC is currently supported, but got dataFormat of ${dataFormat}`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in maxPool3d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("maxPool3d", pad2, dimRoundingMode);
   const inputs = { x: x5D };
   const attrs = { filterSize, strides, pad: pad2, dimRoundingMode, dataFormat };
   const res = ENGINE.runKernel(MaxPool3D, inputs, attrs);
@@ -7958,7 +7959,7 @@ function spaceToBatchND_(x, blockShape, paddings) {
 var spaceToBatchND = op({ spaceToBatchND_ });
 
 // src/tfjs-core/src/ops/pool.ts
-function pool_(input, windowShape, poolingType, pad2, dilations, strides) {
+function pool_(input, windowShape, poolingType, pad2, dilations, strides, dimRoundingMode) {
   if (dilations == null) {
     dilations = [1, 1];
   }
@@ -7988,7 +7989,7 @@ function pool_(input, windowShape, poolingType, pad2, dilations, strides) {
   const [adjustedPadding, adjustedCrops] = requiredSpaceToBatchPaddings([convInfo.inHeight, convInfo.inWidth], dilation, basePadding);
   const convertedPad = isDilationOne ? pad2 : "valid";
   const convertedX = isDilationOne ? x4D : spaceToBatchND(x4D, dilation, adjustedPadding);
-  const forwardOp = poolingType === "avg" ? () => avgPool(convertedX, windowShape, strides, convertedPad) : () => maxPool(convertedX, windowShape, strides, convertedPad);
+  const forwardOp = poolingType === "avg" ? () => avgPool(convertedX, windowShape, strides, convertedPad, dimRoundingMode) : () => maxPool(convertedX, windowShape, strides, convertedPad, dimRoundingMode);
   const y = forwardOp();
   const res = isDilationOne ? y : batchToSpaceND(y, dilation, adjustedCrops);
   if (reshapedTo4D) {
@@ -8934,9 +8935,7 @@ function conv2DBackpropFilter_(x, dy, filterShape, strides, pad2, dataFormat = "
   const outDepth = dataFormat === "NHWC" ? dy4D.shape[3] : dy4D.shape[1];
   assert(inDepth === filterShape[2], () => `Error in conv2dDerFilter: depth of input ${inDepth}) must match input depth in filter (${filterShape[2]}.`);
   assert(outDepth === filterShape[3], () => `Error in conv2dDerFilter: depth of dy (${outDepth}) must match output depth for filter (${filterShape[3]}).`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in conv2dDerFilter: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("conv2dDerFilter", pad2, dimRoundingMode);
   const inputs = { x: x4D, dy: dy4D };
   const attrs = { strides, pad: pad2, dataFormat, dimRoundingMode, filterShape };
   return ENGINE.runKernel(Conv2DBackpropFilter, inputs, attrs);
@@ -9016,9 +9015,7 @@ function fusedConv2d_({
   }
   assert(x4D.rank === 4, () => `Error in fused conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in fused conv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in fused conv2d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("fused conv2d", pad2, dimRoundingMode);
   assert(x4D.shape[3] === $filter.shape[2], () => `Error in conv2d: depth of input (${x4D.shape[3]}) must match input depth for filter ${$filter.shape[2]}.`);
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
   assert(dataFormat === "NHWC", () => `Error in conv2d: got dataFormat of ${dataFormat} but only NHWC is currently supported.`);
@@ -9155,9 +9152,7 @@ function fusedDepthwiseConv2d_({
     dilations = [1, 1];
   }
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in fused depthwiseConv2d: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad2), () => `Error in fused depthwiseConv2d: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${pad2}.`);
-  }
+  checkPadOnDimRoundingMode("fused depthwiseConv2d", pad2, dimRoundingMode);
   const convInfo = computeConv2DInfo(x4D.shape, $filter.shape, strides, dilations, pad2, dimRoundingMode, true);
   let $bias;
   if (bias != null) {
@@ -10098,9 +10093,9 @@ var softmaxCrossEntropy = op({ softmaxCrossEntropy_ });
 
 // src/tfjs-core/src/ops/sparse/sparse_fill_empty_rows.ts
 function sparseFillEmptyRows_(indices, values, denseShape, defaultValue) {
-  const $indices = convertToTensor(indices, "indices", "sparseFillEmptyRows");
+  const $indices = convertToTensor(indices, "indices", "sparseFillEmptyRows", "int32");
   const $values = convertToTensor(values, "values", "sparseFillEmptyRows");
-  const $denseShape = convertToTensor(denseShape, "denseShape", "sparseFillEmptyRows");
+  const $denseShape = convertToTensor(denseShape, "denseShape", "sparseFillEmptyRows", "int32");
   const $defaultValue = convertToTensor(defaultValue, "defaultValue", "sparseFillEmptyRows", $values.dtype);
   if ($indices.rank !== 2) {
     throw new Error(`Indices should be Tensor2D but received shape
@@ -10133,9 +10128,9 @@ var sparseFillEmptyRows = op({ sparseFillEmptyRows_ });
 
 // src/tfjs-core/src/ops/sparse/sparse_reshape.ts
 function sparseReshape_(inputIndices, inputShape, newShape) {
-  const $inputIndices = convertToTensor(inputIndices, "inputIndices", "sparseReshape");
-  const $inputShape = convertToTensor(inputShape, "inputShape", "sparseReshape");
-  const $newShape = convertToTensor(newShape, "newShape", "sparseReshape");
+  const $inputIndices = convertToTensor(inputIndices, "inputIndices", "sparseReshape", "int32");
+  const $inputShape = convertToTensor(inputShape, "inputShape", "sparseReshape", "int32");
+  const $newShape = convertToTensor(newShape, "newShape", "sparseReshape", "int32");
   if ($inputIndices.rank !== 2) {
     throw new Error(`Input indices should be Tensor2D but received shape
         ${$inputIndices.shape}`);
@@ -10159,8 +10154,8 @@ var sparseReshape = op({ sparseReshape_ });
 // src/tfjs-core/src/ops/sparse/sparse_segment_mean.ts
 function sparseSegmentMean_(data, indices, segmentIds) {
   const $data = convertToTensor(data, "data", "sparseSegmentMean");
-  const $indices = convertToTensor(indices, "indices", "sparseSegmentMean");
-  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentMean");
+  const $indices = convertToTensor(indices, "indices", "sparseSegmentMean", "int32");
+  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentMean", "int32");
   if ($data.rank < 1) {
     throw new Error(`Data should be at least 1 dimensional but received scalar`);
   }
@@ -10184,8 +10179,8 @@ var sparseSegmentMean = op({ sparseSegmentMean_ });
 // src/tfjs-core/src/ops/sparse/sparse_segment_sum.ts
 function sparseSegmentSum_(data, indices, segmentIds) {
   const $data = convertToTensor(data, "data", "sparseSegmentSum");
-  const $indices = convertToTensor(indices, "indices", "sparseSegmentSum");
-  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentSum");
+  const $indices = convertToTensor(indices, "indices", "sparseSegmentSum", "int32");
+  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentSum", "int32");
   if ($data.rank < 1) {
     throw new Error(`Data should be at least 1 dimensional but received scalar`);
   }
@@ -10975,6 +10970,7 @@ __export(backend_util_exports, {
   axesAreInnerMostDims: () => axesAreInnerMostDims,
   calculateShapes: () => calculateShapes,
   checkEinsumDimSizes: () => checkEinsumDimSizes,
+  checkPadOnDimRoundingMode: () => checkPadOnDimRoundingMode,
   combineLocations: () => combineLocations,
   complexWithEvenIndex: () => complexWithEvenIndex,
   complexWithOddIndex: () => complexWithOddIndex,
@@ -11010,6 +11006,18 @@ __export(backend_util_exports, {
   getReshapedPermuted: () => getReshapedPermuted,
   getSliceBeginCoords: () => getSliceBeginCoords,
   getSliceSize: () => getSliceSize,
+  getSparseFillEmptyRowsIndicesDenseShapeMismatch: () => getSparseFillEmptyRowsIndicesDenseShapeMismatch,
+  getSparseFillEmptyRowsNegativeIndexErrorMessage: () => getSparseFillEmptyRowsNegativeIndexErrorMessage,
+  getSparseFillEmptyRowsOutOfRangeIndexErrorMessage: () => getSparseFillEmptyRowsOutOfRangeIndexErrorMessage,
+  getSparseReshapeEmptyTensorZeroOutputDimErrorMessage: () => getSparseReshapeEmptyTensorZeroOutputDimErrorMessage,
+  getSparseReshapeInputOutputMismatchErrorMessage: () => getSparseReshapeInputOutputMismatchErrorMessage,
+  getSparseReshapeInputOutputMultipleErrorMessage: () => getSparseReshapeInputOutputMultipleErrorMessage,
+  getSparseReshapeMultipleNegativeOneOutputDimErrorMessage: () => getSparseReshapeMultipleNegativeOneOutputDimErrorMessage,
+  getSparseReshapeNegativeOutputDimErrorMessage: () => getSparseReshapeNegativeOutputDimErrorMessage,
+  getSparseSegmentReductionIndicesOutOfRangeErrorMessage: () => getSparseSegmentReductionIndicesOutOfRangeErrorMessage,
+  getSparseSegmentReductionNegativeSegmentIdsErrorMessage: () => getSparseSegmentReductionNegativeSegmentIdsErrorMessage,
+  getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage: () => getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage,
+  getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage: () => getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage,
   getUndoAxesPermutation: () => getUndoAxesPermutation,
   isIdentityPermutation: () => isIdentityPermutation,
   log: () => log,
@@ -11369,6 +11377,54 @@ function prepareSplitSize(x, numOrSizeSplits, axis = 0) {
     splitSizes = numOrSizeSplits;
   }
   return splitSizes;
+}
+
+// src/tfjs-core/src/ops/sparse/sparse_fill_empty_rows_util.ts
+function getSparseFillEmptyRowsIndicesDenseShapeMismatch(indicesLength) {
+  return `Received SparseTensor with denseShape[0] = 0 but
+  indices.shape[0] = ${indicesLength}`;
+}
+function getSparseFillEmptyRowsNegativeIndexErrorMessage(index, value) {
+  return `indices(${index}, 0) is invalid: ${value} < 0`;
+}
+function getSparseFillEmptyRowsOutOfRangeIndexErrorMessage(index, value, limit) {
+  return `indices(${index}, 0) is invalid: ${value} >= ${limit}`;
+}
+
+// src/tfjs-core/src/ops/sparse/sparse_reshape_util.ts
+function getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(dim1, dim2) {
+  return `only one output dimension may be -1, not both ${dim1} and ${dim2}`;
+}
+function getSparseReshapeNegativeOutputDimErrorMessage(dim, value) {
+  return `size ${dim} must be non-negative, not ${value}`;
+}
+function getSparseReshapeEmptyTensorZeroOutputDimErrorMessage() {
+  return "reshape cannot infer the missing input size for an empty tensor unless all specified input sizes are non-zero";
+}
+function getSparseReshapeInputOutputMultipleErrorMessage(inputShape, outputShape) {
+  const inputSize = sizeFromShape(inputShape);
+  const outputSize = sizeFromShape(outputShape);
+  return `Input to reshape is a SparseTensor with ${inputSize}
+  dense values, but the requested shape requires a multiple of ${outputSize}. inputShape=${inputShape} outputShape= ${outputShape}`;
+}
+function getSparseReshapeInputOutputMismatchErrorMessage(inputShape, outputShape) {
+  const inputSize = sizeFromShape(inputShape);
+  const outputSize = sizeFromShape(outputShape);
+  return `Input to reshape is a tensor with ${inputSize} dense values, but the requested shape has ${outputSize}. inputShape=${inputShape} outputShape=${outputShape}`;
+}
+
+// src/tfjs-core/src/ops/sparse/sparse_segment_reduction_util.ts
+function getSparseSegmentReductionNegativeSegmentIdsErrorMessage() {
+  return `segment ids must be >= 0`;
+}
+function getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage() {
+  return `segment ids are not increasing`;
+}
+function getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage(segmentId, outputRows) {
+  return `Segment id ${segmentId} out of range [0, ${outputRows}), possibly because segmentIds input is not sorted.`;
+}
+function getSparseSegmentReductionIndicesOutOfRangeErrorMessage(index, indexValue, inputRows) {
+  return `Bad: indices[${index}] == ${indexValue} out of range [0, ${inputRows})`;
 }
 
 // src/tfjs-core/src/ops/segment_util.ts
@@ -12442,8 +12498,7 @@ function sparseFillEmptyRowsImpl(indices, indicesShape, indicesDType, values, va
   const rank = indicesShape[1];
   if (denseRows === 0) {
     if (indicesCount !== 0) {
-      throw new Error(`Received SparseTensor with denseShape[0] = 0 but
-         indices.shape[0] = ${indicesCount}`);
+      throw new Error(backend_util_exports.getSparseFillEmptyRowsIndicesDenseShapeMismatch(indicesCount));
     }
     const outputIndices = util_exports.getArrayFromDType(indicesDType, 0);
     const outputValues = util_exports.getArrayFromDType(valuesDType, 0);
@@ -12461,10 +12516,10 @@ function sparseFillEmptyRowsImpl(indices, indicesShape, indicesDType, values, va
   for (let i = 0; i < indicesCount; ++i) {
     const row = indices[i * rank];
     if (row < 0) {
-      throw new Error(`indices(${i}, 0) is invalid: ${row} < 0`);
+      throw new Error(backend_util_exports.getSparseFillEmptyRowsNegativeIndexErrorMessage(i, row));
     }
     if (row >= denseRows) {
-      throw new Error(`indices(${i}, 0) is invalid: ${row} >= ${denseRows}`);
+      throw new Error(backend_util_exports.getSparseFillEmptyRowsOutOfRangeIndexErrorMessage(i, row, denseRows));
     }
     ++csrOffset[row];
     rowsAreOrdered = rowsAreOrdered && row >= lastIndicesRow;
@@ -12542,13 +12597,13 @@ function sparseReshapeImpl(inputIndices, inputIndicesShape, inputDType, inputSha
     const size = targetShape[d];
     if (size === -1) {
       if (unknownIndex !== -1) {
-        throw new Error(`only one output dimension may be -1, not both ${unknownIndex} and ${d}`);
+        throw new Error(backend_util_exports.getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(unknownIndex, d));
       }
       unknownIndex = d;
       outputShape.push(1);
     } else {
       if (size < 0) {
-        throw new Error(`size ${d} must be non-negative, not ${size}`);
+        throw new Error(backend_util_exports.getSparseReshapeNegativeOutputDimErrorMessage(d, size));
       }
       product *= size;
       outputShape.push(size);
@@ -12556,18 +12611,17 @@ function sparseReshapeImpl(inputIndices, inputIndicesShape, inputDType, inputSha
   }
   if (unknownIndex !== -1) {
     if (product <= 0) {
-      throw new Error("reshape cannot infer the missing input size for an empty tensor unless all specified input sizes are non-zero");
+      throw new Error(backend_util_exports.getSparseReshapeEmptyTensorZeroOutputDimErrorMessage());
     }
     const missing = Math.trunc(denseSize / product);
     if (product * missing !== denseSize) {
-      throw new Error(`Input to reshape is a SparseTensor with ${denseSize}
-          dense values, but the requested shape requires a multiple of ${product}. inputShape=${inputShape} outputShape= ${outputShape}`);
+      throw new Error(backend_util_exports.getSparseReshapeInputOutputMultipleErrorMessage(inputShape, outputShape));
     }
     outputShape[unknownIndex] = missing;
   }
   const outputSize = util_exports.sizeFromShape(outputShape);
   if (outputSize !== denseSize) {
-    throw new Error(`Input to reshape is a tensor with ${denseSize} dense values, but the requested shape has ${outputSize}. inputShape=${inputShape} outputShape=${outputShape}`);
+    throw new Error(backend_util_exports.getSparseReshapeInputOutputMismatchErrorMessage(inputShape, outputShape));
   }
   const inputRank = inputShape.length;
   const inputStrides = [];
@@ -12601,15 +12655,12 @@ function sparseReshapeImpl(inputIndices, inputIndicesShape, inputDType, inputSha
 // src/tfjs-backend-cpu/src/kernels/SparseSegmentReduction_impl.ts
 function sparseSegmentReductionImpl(input, inputShape, inputDType, indices, segmentIds, isMean = false, defaultValue = 0) {
   const numIndices = indices.length;
-  if (numIndices !== segmentIds.length) {
-    throw new Error(`segmentIds and indices should have same size.`);
-  }
   const inputFlat = [inputShape[0], input.length / inputShape[0]];
   const numCol = inputFlat[1];
   const lastSegmentIdPlusOne = numIndices > 0 ? segmentIds[numIndices - 1] + 1 : 0;
   const outputRows = lastSegmentIdPlusOne;
   if (outputRows < 0) {
-    throw new Error(`segment ids must be >= 0`);
+    throw new Error(backend_util_exports.getSparseSegmentReductionNegativeSegmentIdsErrorMessage());
   }
   const outputShape = inputShape.slice();
   outputShape[0] = outputRows;
@@ -12622,7 +12673,7 @@ function sparseSegmentReductionImpl(input, inputShape, inputDType, indices, segm
     return [output, outputShape];
   }
   if (outputRows <= 0) {
-    throw new Error(`segment ids must be >= 0`);
+    throw new Error(backend_util_exports.getSparseSegmentReductionNegativeSegmentIdsErrorMessage());
   }
   let start = 0, end = 1;
   let uninitializedIndex = 0;
@@ -12636,11 +12687,11 @@ function sparseSegmentReductionImpl(input, inputShape, inputDType, indices, segm
         continue;
       }
       if (outIndex >= nextIndex) {
-        throw new Error(`segment ids are not increasing`);
+        throw new Error(backend_util_exports.getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage());
       }
     }
     if (outIndex < 0 || outIndex >= outputRows) {
-      throw new Error(`Segment id ${outIndex} out of range [0, ${outputRows}), possibly because segmentIds input is not sorted.`);
+      throw new Error(backend_util_exports.getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage(outIndex, outputRows));
     }
     if (outIndex > uninitializedIndex) {
       output.fill(defaultValue, uninitializedIndex * numCol, outIndex * numCol);
@@ -12648,7 +12699,7 @@ function sparseSegmentReductionImpl(input, inputShape, inputDType, indices, segm
     for (let i = start; i < end; ++i) {
       const index = indices[i];
       if (index < 0 || index >= inputFlat[0]) {
-        throw new Error(`Bad: indices[${i}] == ${indices[i]} out of range [0, ${inputFlat[0]})`);
+        throw new Error(backend_util_exports.getSparseSegmentReductionIndicesOutOfRangeErrorMessage(i, indices[i], inputFlat[0]));
       }
       for (let j = 0; j < numCol; j++) {
         output[outIndex * numCol + j] += input[index * numCol + j];
@@ -17378,6 +17429,9 @@ function sparseSegmentMean2(args) {
     throw new Error(`Segment ids should be a vector but received shape
           ${segmentIds.shape}`);
   }
+  if (indices.shape[0] !== segmentIds.shape[0]) {
+    throw new Error(`segmentIds and indices should have same size.`);
+  }
   const $data = backend.data.get(data.dataId).values;
   const $indices = backend.data.get(indices.dataId).values;
   const $segmentIds = backend.data.get(segmentIds.dataId).values;
@@ -17404,6 +17458,9 @@ function sparseSegmentSum2(args) {
   if (segmentIds.shape.length !== 1) {
     throw new Error(`Segment ids should be a vector but received shape
          ${segmentIds.shape}`);
+  }
+  if (indices.shape[0] !== segmentIds.shape[0]) {
+    throw new Error(`segmentIds and indices should have same size.`);
   }
   const $data = backend.data.get(data.dataId).values;
   const $indices = backend.data.get(indices.dataId).values;

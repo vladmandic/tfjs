@@ -2181,7 +2181,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           function receiveInstance(instance, module2) {
             var exports3 = instance.exports;
             Module["asm"] = exports3;
-            wasmTable = Module["asm"]["kb"];
+            wasmTable = Module["asm"]["nb"];
             wasmModule = module2;
             if (!ENVIRONMENT_IS_PTHREAD) {
               var numWorkersToLoad = PThread.unusedWorkers.length;
@@ -2233,9 +2233,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           instantiateAsync().catch(readyPromiseReject);
           return {};
         }
-        var ASM_CONSTS = { 10128: function() {
+        var ASM_CONSTS = { 10216: function() {
           throw "Canceled!";
-        }, 10146: function($0, $1) {
+        }, 10234: function($0, $1) {
           setTimeout(function() {
             __emscripten_do_dispatch_to_thread($0, $1);
           }, 0);
@@ -3641,113 +3641,122 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Ua"]).apply(null, arguments);
         };
+        var _SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = function() {
+          return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["Va"]).apply(null, arguments);
+        };
+        var _SparseReshape = Module["_SparseReshape"] = function() {
+          return (_SparseReshape = Module["_SparseReshape"] = Module["asm"]["Wa"]).apply(null, arguments);
+        };
+        var _SparseSegmentReduction = Module["_SparseSegmentReduction"] = function() {
+          return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["Xa"]).apply(null, arguments);
+        };
         var _Sqrt = Module["_Sqrt"] = function() {
-          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Va"]).apply(null, arguments);
+          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Ya"]).apply(null, arguments);
         };
         var _Square = Module["_Square"] = function() {
-          return (_Square = Module["_Square"] = Module["asm"]["Wa"]).apply(null, arguments);
+          return (_Square = Module["_Square"] = Module["asm"]["Za"]).apply(null, arguments);
         };
         var _SquaredDifference = Module["_SquaredDifference"] = function() {
-          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["Xa"]).apply(null, arguments);
+          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["_a"]).apply(null, arguments);
         };
         var _Step = Module["_Step"] = function() {
-          return (_Step = Module["_Step"] = Module["asm"]["Ya"]).apply(null, arguments);
+          return (_Step = Module["_Step"] = Module["asm"]["$a"]).apply(null, arguments);
         };
         var _StridedSlice = Module["_StridedSlice"] = function() {
-          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["Za"]).apply(null, arguments);
+          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["ab"]).apply(null, arguments);
         };
         var _Sub = Module["_Sub"] = function() {
-          return (_Sub = Module["_Sub"] = Module["asm"]["_a"]).apply(null, arguments);
+          return (_Sub = Module["_Sub"] = Module["asm"]["bb"]).apply(null, arguments);
         };
         var _Sum = Module["_Sum"] = function() {
-          return (_Sum = Module["_Sum"] = Module["asm"]["$a"]).apply(null, arguments);
+          return (_Sum = Module["_Sum"] = Module["asm"]["cb"]).apply(null, arguments);
         };
         var _Tan = Module["_Tan"] = function() {
-          return (_Tan = Module["_Tan"] = Module["asm"]["ab"]).apply(null, arguments);
+          return (_Tan = Module["_Tan"] = Module["asm"]["db"]).apply(null, arguments);
         };
         var _Tanh = Module["_Tanh"] = function() {
-          return (_Tanh = Module["_Tanh"] = Module["asm"]["bb"]).apply(null, arguments);
+          return (_Tanh = Module["_Tanh"] = Module["asm"]["eb"]).apply(null, arguments);
         };
         var _Tile = Module["_Tile"] = function() {
-          return (_Tile = Module["_Tile"] = Module["asm"]["cb"]).apply(null, arguments);
+          return (_Tile = Module["_Tile"] = Module["asm"]["fb"]).apply(null, arguments);
         };
         var _TopK = Module["_TopK"] = function() {
-          return (_TopK = Module["_TopK"] = Module["asm"]["db"]).apply(null, arguments);
+          return (_TopK = Module["_TopK"] = Module["asm"]["gb"]).apply(null, arguments);
         };
         var _Transform = Module["_Transform"] = function() {
-          return (_Transform = Module["_Transform"] = Module["asm"]["eb"]).apply(null, arguments);
+          return (_Transform = Module["_Transform"] = Module["asm"]["hb"]).apply(null, arguments);
         };
         var _Transpose = Module["_Transpose"] = function() {
-          return (_Transpose = Module["_Transpose"] = Module["asm"]["fb"]).apply(null, arguments);
+          return (_Transpose = Module["_Transpose"] = Module["asm"]["ib"]).apply(null, arguments);
         };
         var __FusedMatMul = Module["__FusedMatMul"] = function() {
-          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["gb"]).apply(null, arguments);
+          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["jb"]).apply(null, arguments);
         };
         var _malloc = Module["_malloc"] = function() {
-          return (_malloc = Module["_malloc"] = Module["asm"]["hb"]).apply(null, arguments);
+          return (_malloc = Module["_malloc"] = Module["asm"]["kb"]).apply(null, arguments);
         };
         var _free = Module["_free"] = function() {
-          return (_free = Module["_free"] = Module["asm"]["ib"]).apply(null, arguments);
+          return (_free = Module["_free"] = Module["asm"]["lb"]).apply(null, arguments);
         };
         var ___errno_location = Module["___errno_location"] = function() {
-          return (___errno_location = Module["___errno_location"] = Module["asm"]["jb"]).apply(null, arguments);
+          return (___errno_location = Module["___errno_location"] = Module["asm"]["mb"]).apply(null, arguments);
         };
         var _emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = function() {
-          return (_emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = Module["asm"]["lb"]).apply(null, arguments);
+          return (_emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = Module["asm"]["ob"]).apply(null, arguments);
         };
         var _pthread_self = Module["_pthread_self"] = function() {
-          return (_pthread_self = Module["_pthread_self"] = Module["asm"]["mb"]).apply(null, arguments);
+          return (_pthread_self = Module["_pthread_self"] = Module["asm"]["pb"]).apply(null, arguments);
         };
         var ___pthread_tsd_run_dtors = Module["___pthread_tsd_run_dtors"] = function() {
-          return (___pthread_tsd_run_dtors = Module["___pthread_tsd_run_dtors"] = Module["asm"]["nb"]).apply(null, arguments);
+          return (___pthread_tsd_run_dtors = Module["___pthread_tsd_run_dtors"] = Module["asm"]["qb"]).apply(null, arguments);
         };
         var _emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = function() {
-          return (_emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = Module["asm"]["ob"]).apply(null, arguments);
+          return (_emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = Module["asm"]["rb"]).apply(null, arguments);
         };
         var _emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = function() {
-          return (_emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = Module["asm"]["pb"]).apply(null, arguments);
+          return (_emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = Module["asm"]["sb"]).apply(null, arguments);
         };
         var _emscripten_register_main_browser_thread_id = Module["_emscripten_register_main_browser_thread_id"] = function() {
-          return (_emscripten_register_main_browser_thread_id = Module["_emscripten_register_main_browser_thread_id"] = Module["asm"]["qb"]).apply(null, arguments);
+          return (_emscripten_register_main_browser_thread_id = Module["_emscripten_register_main_browser_thread_id"] = Module["asm"]["tb"]).apply(null, arguments);
         };
         var _emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = function() {
-          return (_emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = Module["asm"]["rb"]).apply(null, arguments);
+          return (_emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = Module["asm"]["ub"]).apply(null, arguments);
         };
         var __emscripten_do_dispatch_to_thread = Module["__emscripten_do_dispatch_to_thread"] = function() {
-          return (__emscripten_do_dispatch_to_thread = Module["__emscripten_do_dispatch_to_thread"] = Module["asm"]["sb"]).apply(null, arguments);
+          return (__emscripten_do_dispatch_to_thread = Module["__emscripten_do_dispatch_to_thread"] = Module["asm"]["vb"]).apply(null, arguments);
         };
         var _emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = function() {
-          return (_emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = Module["asm"]["tb"]).apply(null, arguments);
+          return (_emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = Module["asm"]["wb"]).apply(null, arguments);
         };
         var _emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = function() {
-          return (_emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = Module["asm"]["ub"]).apply(null, arguments);
+          return (_emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = Module["asm"]["xb"]).apply(null, arguments);
         };
         var __emscripten_call_on_thread = Module["__emscripten_call_on_thread"] = function() {
-          return (__emscripten_call_on_thread = Module["__emscripten_call_on_thread"] = Module["asm"]["vb"]).apply(null, arguments);
+          return (__emscripten_call_on_thread = Module["__emscripten_call_on_thread"] = Module["asm"]["yb"]).apply(null, arguments);
         };
         var _emscripten_tls_init = Module["_emscripten_tls_init"] = function() {
-          return (_emscripten_tls_init = Module["_emscripten_tls_init"] = Module["asm"]["wb"]).apply(null, arguments);
+          return (_emscripten_tls_init = Module["_emscripten_tls_init"] = Module["asm"]["zb"]).apply(null, arguments);
         };
         var __emscripten_thread_init = Module["__emscripten_thread_init"] = function() {
-          return (__emscripten_thread_init = Module["__emscripten_thread_init"] = Module["asm"]["xb"]).apply(null, arguments);
+          return (__emscripten_thread_init = Module["__emscripten_thread_init"] = Module["asm"]["Ab"]).apply(null, arguments);
         };
         var stackSave = Module["stackSave"] = function() {
-          return (stackSave = Module["stackSave"] = Module["asm"]["yb"]).apply(null, arguments);
+          return (stackSave = Module["stackSave"] = Module["asm"]["Bb"]).apply(null, arguments);
         };
         var stackRestore = Module["stackRestore"] = function() {
-          return (stackRestore = Module["stackRestore"] = Module["asm"]["zb"]).apply(null, arguments);
+          return (stackRestore = Module["stackRestore"] = Module["asm"]["Cb"]).apply(null, arguments);
         };
         var stackAlloc = Module["stackAlloc"] = function() {
-          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["Ab"]).apply(null, arguments);
+          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["Db"]).apply(null, arguments);
         };
         var _emscripten_stack_set_limits = Module["_emscripten_stack_set_limits"] = function() {
-          return (_emscripten_stack_set_limits = Module["_emscripten_stack_set_limits"] = Module["asm"]["Bb"]).apply(null, arguments);
+          return (_emscripten_stack_set_limits = Module["_emscripten_stack_set_limits"] = Module["asm"]["Eb"]).apply(null, arguments);
         };
         var _memalign = Module["_memalign"] = function() {
-          return (_memalign = Module["_memalign"] = Module["asm"]["Cb"]).apply(null, arguments);
+          return (_memalign = Module["_memalign"] = Module["asm"]["Fb"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 10120;
-        var __emscripten_main_thread_futex = Module["__emscripten_main_thread_futex"] = 10332;
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 10208;
+        var __emscripten_main_thread_futex = Module["__emscripten_main_thread_futex"] = 10412;
         Module["cwrap"] = cwrap;
         Module["PThread"] = PThread;
         Module["PThread"] = PThread;
@@ -4387,7 +4396,7 @@ var require_tfjs_backend_wasm = __commonJS({
             Module["asm"] = exports3;
             wasmMemory = Module["asm"]["h"];
             updateGlobalBufferAndViews(wasmMemory.buffer);
-            wasmTable = Module["asm"]["Sa"];
+            wasmTable = Module["asm"]["Va"];
             removeRunDependency("wasm-instantiate");
           }
           addRunDependency("wasm-instantiate");
@@ -4744,62 +4753,71 @@ var require_tfjs_backend_wasm = __commonJS({
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Ba"]).apply(null, arguments);
         };
+        var _SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = function() {
+          return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["Ca"]).apply(null, arguments);
+        };
+        var _SparseReshape = Module["_SparseReshape"] = function() {
+          return (_SparseReshape = Module["_SparseReshape"] = Module["asm"]["Da"]).apply(null, arguments);
+        };
+        var _SparseSegmentReduction = Module["_SparseSegmentReduction"] = function() {
+          return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["Ea"]).apply(null, arguments);
+        };
         var _Sqrt = Module["_Sqrt"] = function() {
-          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Ca"]).apply(null, arguments);
+          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Fa"]).apply(null, arguments);
         };
         var _Square = Module["_Square"] = function() {
-          return (_Square = Module["_Square"] = Module["asm"]["Da"]).apply(null, arguments);
+          return (_Square = Module["_Square"] = Module["asm"]["Ga"]).apply(null, arguments);
         };
         var _SquaredDifference = Module["_SquaredDifference"] = function() {
-          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["Ea"]).apply(null, arguments);
+          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["Ha"]).apply(null, arguments);
         };
         var _Step = Module["_Step"] = function() {
-          return (_Step = Module["_Step"] = Module["asm"]["Fa"]).apply(null, arguments);
+          return (_Step = Module["_Step"] = Module["asm"]["Ia"]).apply(null, arguments);
         };
         var _StridedSlice = Module["_StridedSlice"] = function() {
-          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["Ga"]).apply(null, arguments);
+          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["Ja"]).apply(null, arguments);
         };
         var _Sub = Module["_Sub"] = function() {
-          return (_Sub = Module["_Sub"] = Module["asm"]["Ha"]).apply(null, arguments);
+          return (_Sub = Module["_Sub"] = Module["asm"]["Ka"]).apply(null, arguments);
         };
         var _Sum = Module["_Sum"] = function() {
-          return (_Sum = Module["_Sum"] = Module["asm"]["Ia"]).apply(null, arguments);
+          return (_Sum = Module["_Sum"] = Module["asm"]["La"]).apply(null, arguments);
         };
         var _Tan = Module["_Tan"] = function() {
-          return (_Tan = Module["_Tan"] = Module["asm"]["Ja"]).apply(null, arguments);
+          return (_Tan = Module["_Tan"] = Module["asm"]["Ma"]).apply(null, arguments);
         };
         var _Tanh = Module["_Tanh"] = function() {
-          return (_Tanh = Module["_Tanh"] = Module["asm"]["Ka"]).apply(null, arguments);
+          return (_Tanh = Module["_Tanh"] = Module["asm"]["Na"]).apply(null, arguments);
         };
         var _Tile = Module["_Tile"] = function() {
-          return (_Tile = Module["_Tile"] = Module["asm"]["La"]).apply(null, arguments);
+          return (_Tile = Module["_Tile"] = Module["asm"]["Oa"]).apply(null, arguments);
         };
         var _TopK = Module["_TopK"] = function() {
-          return (_TopK = Module["_TopK"] = Module["asm"]["Ma"]).apply(null, arguments);
+          return (_TopK = Module["_TopK"] = Module["asm"]["Pa"]).apply(null, arguments);
         };
         var _Transform = Module["_Transform"] = function() {
-          return (_Transform = Module["_Transform"] = Module["asm"]["Na"]).apply(null, arguments);
+          return (_Transform = Module["_Transform"] = Module["asm"]["Qa"]).apply(null, arguments);
         };
         var _Transpose = Module["_Transpose"] = function() {
-          return (_Transpose = Module["_Transpose"] = Module["asm"]["Oa"]).apply(null, arguments);
+          return (_Transpose = Module["_Transpose"] = Module["asm"]["Ra"]).apply(null, arguments);
         };
         var __FusedMatMul = Module["__FusedMatMul"] = function() {
-          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["Pa"]).apply(null, arguments);
+          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["Sa"]).apply(null, arguments);
         };
         var _malloc = Module["_malloc"] = function() {
-          return (_malloc = Module["_malloc"] = Module["asm"]["Qa"]).apply(null, arguments);
+          return (_malloc = Module["_malloc"] = Module["asm"]["Ta"]).apply(null, arguments);
         };
         var _free = Module["_free"] = function() {
-          return (_free = Module["_free"] = Module["asm"]["Ra"]).apply(null, arguments);
+          return (_free = Module["_free"] = Module["asm"]["Ua"]).apply(null, arguments);
         };
         var stackSave = Module["stackSave"] = function() {
-          return (stackSave = Module["stackSave"] = Module["asm"]["Ta"]).apply(null, arguments);
+          return (stackSave = Module["stackSave"] = Module["asm"]["Wa"]).apply(null, arguments);
         };
         var stackRestore = Module["stackRestore"] = function() {
-          return (stackRestore = Module["stackRestore"] = Module["asm"]["Ua"]).apply(null, arguments);
+          return (stackRestore = Module["stackRestore"] = Module["asm"]["Xa"]).apply(null, arguments);
         };
         var stackAlloc = Module["stackAlloc"] = function() {
-          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["Va"]).apply(null, arguments);
+          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["Ya"]).apply(null, arguments);
         };
         Module["cwrap"] = cwrap;
         var calledRun;
@@ -9802,6 +9820,23 @@ function convertConv2DDataFormat(dataFormat) {
     throw new Error(`Unknown dataFormat ${dataFormat}`);
   }
 }
+function checkPadOnDimRoundingMode(opDesc, pad3, dimRoundingMode) {
+  if (dimRoundingMode != null) {
+    if (typeof pad3 === "string") {
+      throw Error(`Error in ${opDesc}: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
+    } else if (typeof pad3 === "number") {
+      assert(isInt(pad3), () => `Error in ${opDesc}: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
+    } else if (typeof pad3 === "object") {
+      pad3.forEach((p) => {
+        p.forEach((v) => {
+          assert(isInt(v), () => `Error in ${opDesc}: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+        });
+      });
+    } else {
+      throw Error(`Error in ${opDesc}: Unknown padding parameter: ${pad3}`);
+    }
+  }
+}
 
 // src/tfjs-core/src/ops/reshape.ts
 function reshape_(x, shape) {
@@ -9824,9 +9859,7 @@ function avgPool_(x, filterSize, strides, pad3, dimRoundingMode) {
     x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
   assert(x4D.rank === 4, () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in avgPool: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("avgPool", pad3, dimRoundingMode);
   const inputs = { x: x4D };
   const attrs = { filterSize, strides, pad: pad3, dimRoundingMode };
   let res = ENGINE.runKernel(AvgPool, inputs, attrs);
@@ -9849,9 +9882,7 @@ function avgPool3d_(x, filterSize, strides, pad3, dimRoundingMode, dataFormat = 
   }
   assert(x5D.rank === 5, () => `Error in avgPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
   assert(dataFormat === "NDHWC", () => `Error in avgPool3d: Only NDHWC is currently supported, but got dataFormat of ${dataFormat}`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in avgPool3d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("avgPool3d", pad3, dimRoundingMode);
   const inputs = { x: x5D };
   const attrs = { filterSize, strides, pad: pad3, dimRoundingMode, dataFormat };
   let res = ENGINE.runKernel(AvgPool3D, inputs, attrs);
@@ -10193,9 +10224,7 @@ function conv2d_(x, filter, strides, pad3, dataFormat = "NHWC", dilations = [1, 
   }
   assert(x4D.rank === 4, () => `Error in conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in conv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in conv2d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("conv2d", pad3, dimRoundingMode);
   const inDepth = dataFormat === "NHWC" ? x4D.shape[3] : x4D.shape[1];
   assert(inDepth === $filter.shape[2], () => `Error in conv2d: depth of input (${inDepth}) must match input depth for filter ${$filter.shape[2]}.`);
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
@@ -10221,9 +10250,7 @@ function conv1d_(x, filter, stride, pad3, dataFormat = "NWC", dilation = 1, dimR
   }
   assert(x3D.rank === 3, () => `Error in conv1d: input must be rank 3, but got rank ${x3D.rank}.`);
   assert($filter.rank === 3, () => `Error in conv1d: filter must be rank 3, but got rank ${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in conv1d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("conv1d", pad3, dimRoundingMode);
   assert(x3D.shape[2] === $filter.shape[1], () => `Error in conv1d: depth of input (${x3D.shape[2]}) must match input depth for filter ${$filter.shape[1]}.`);
   assert(eitherStridesOrDilationsAreOne(stride, dilation), () => `Error in conv1D: Either stride or dilation must be 1. Got stride ${stride} and dilation '${dilation}'`);
   assert(dataFormat === "NWC", () => `Error in conv1d: got dataFormat of ${dataFormat} but only NWC is currently supported.`);
@@ -10258,9 +10285,7 @@ function conv2DBackpropInput_(xShape, dy, filter, strides, pad3, dataFormat = "N
   const outDepth = dataFormat === "NHWC" ? dy4D.shape[3] : dy4D.shape[1];
   assert(inDepth === filter.shape[2], () => `Error in conv2dDerInput: depth of input (${inDepth}) must match input depth for filter ${filter.shape[2]}.`);
   assert(outDepth === filter.shape[3], () => `Error in conv2dDerInput: depth of output (${outDepth}) must match output depth for filter ${filter.shape[3]}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in conv2dDerInput: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("conv2dDerInput", pad3, dimRoundingMode);
   const inputs = { dy: dy4D, filter };
   const attrs = { strides, pad: pad3, dataFormat, dimRoundingMode, inputShape: xShape4D };
   const res = ENGINE.runKernel(Conv2DBackpropInput, inputs, attrs);
@@ -10412,9 +10437,7 @@ function depthwiseConv2d_(x, filter, strides, pad3, dataFormat = "NHWC", dilatio
   assert(x4D.rank === 4, () => `Error in depthwiseConv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in depthwiseConv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
   assert(x4D.shape[3] === $filter.shape[2], () => `Error in depthwiseConv2d: number of input channels (${x4D.shape[3]}) must match the inChannels dimension in filter ${$filter.shape[2]}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in depthwiseConv2d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("depthwiseConv2d", pad3, dimRoundingMode);
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad3, dataFormat, dilations, dimRoundingMode };
   const res = ENGINE.runKernel(DepthwiseConv2dNative, inputs, attrs);
@@ -11035,9 +11058,7 @@ function maxPool_(x, filterSize, strides, pad3, dimRoundingMode) {
   }
   assert(x4D.rank === 4, () => `Error in maxPool: input must be rank 4 but got rank ${x4D.rank}.`);
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in maxPool: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in maxPool: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("maxPool", pad3, dimRoundingMode);
   const inputs = { x: x4D };
   const attrs = { filterSize, strides, pad: pad3, dimRoundingMode };
   const res = ENGINE.runKernel(MaxPool, inputs, attrs);
@@ -11059,9 +11080,7 @@ function maxPool3d_(x, filterSize = [1, 1, 1], strides, pad3, dimRoundingMode, d
   }
   assert(x5D.rank === 5, () => `Error in maxPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
   assert(dataFormat === "NDHWC", () => `Error in maxPool3d: Only NDHWC is currently supported, but got dataFormat of ${dataFormat}`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in maxPool3d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("maxPool3d", pad3, dimRoundingMode);
   const inputs = { x: x5D };
   const attrs = { filterSize, strides, pad: pad3, dimRoundingMode, dataFormat };
   const res = ENGINE.runKernel(MaxPool3D, inputs, attrs);
@@ -11335,7 +11354,7 @@ function spaceToBatchND_(x, blockShape, paddings) {
 var spaceToBatchND = op({ spaceToBatchND_ });
 
 // src/tfjs-core/src/ops/pool.ts
-function pool_(input, windowShape, poolingType, pad3, dilations, strides) {
+function pool_(input, windowShape, poolingType, pad3, dilations, strides, dimRoundingMode) {
   if (dilations == null) {
     dilations = [1, 1];
   }
@@ -11365,7 +11384,7 @@ function pool_(input, windowShape, poolingType, pad3, dilations, strides) {
   const [adjustedPadding, adjustedCrops] = requiredSpaceToBatchPaddings([convInfo.inHeight, convInfo.inWidth], dilation, basePadding);
   const convertedPad = isDilationOne ? pad3 : "valid";
   const convertedX = isDilationOne ? x4D : spaceToBatchND(x4D, dilation, adjustedPadding);
-  const forwardOp = poolingType === "avg" ? () => avgPool(convertedX, windowShape, strides, convertedPad) : () => maxPool(convertedX, windowShape, strides, convertedPad);
+  const forwardOp = poolingType === "avg" ? () => avgPool(convertedX, windowShape, strides, convertedPad, dimRoundingMode) : () => maxPool(convertedX, windowShape, strides, convertedPad, dimRoundingMode);
   const y = forwardOp();
   const res = isDilationOne ? y : batchToSpaceND(y, dilation, adjustedCrops);
   if (reshapedTo4D) {
@@ -12293,9 +12312,7 @@ function conv2DBackpropFilter_(x, dy, filterShape, strides, pad3, dataFormat = "
   const outDepth = dataFormat === "NHWC" ? dy4D.shape[3] : dy4D.shape[1];
   assert(inDepth === filterShape[2], () => `Error in conv2dDerFilter: depth of input ${inDepth}) must match input depth in filter (${filterShape[2]}.`);
   assert(outDepth === filterShape[3], () => `Error in conv2dDerFilter: depth of dy (${outDepth}) must match output depth for filter (${filterShape[3]}).`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in conv2dDerFilter: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("conv2dDerFilter", pad3, dimRoundingMode);
   const inputs = { x: x4D, dy: dy4D };
   const attrs = { strides, pad: pad3, dataFormat, dimRoundingMode, filterShape };
   return ENGINE.runKernel(Conv2DBackpropFilter, inputs, attrs);
@@ -12375,9 +12392,7 @@ function fusedConv2d_({
   }
   assert(x4D.rank === 4, () => `Error in fused conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in fused conv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in fused conv2d: pad must be an integer when using, dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("fused conv2d", pad3, dimRoundingMode);
   assert(x4D.shape[3] === $filter.shape[2], () => `Error in conv2d: depth of input (${x4D.shape[3]}) must match input depth for filter ${$filter.shape[2]}.`);
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
   assert(dataFormat === "NHWC", () => `Error in conv2d: got dataFormat of ${dataFormat} but only NHWC is currently supported.`);
@@ -12514,9 +12529,7 @@ function fusedDepthwiseConv2d_({
     dilations = [1, 1];
   }
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in fused depthwiseConv2d: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
-  if (dimRoundingMode != null) {
-    assert(isInt(pad3), () => `Error in fused depthwiseConv2d: pad must be an integer when using dimRoundingMode ${dimRoundingMode} but got pad ${pad3}.`);
-  }
+  checkPadOnDimRoundingMode("fused depthwiseConv2d", pad3, dimRoundingMode);
   const convInfo = computeConv2DInfo(x4D.shape, $filter.shape, strides, dilations, pad3, dimRoundingMode, true);
   let $bias;
   if (bias != null) {
@@ -13332,9 +13345,9 @@ var softmaxCrossEntropy = op({ softmaxCrossEntropy_ });
 
 // src/tfjs-core/src/ops/sparse/sparse_fill_empty_rows.ts
 function sparseFillEmptyRows_(indices, values, denseShape, defaultValue) {
-  const $indices = convertToTensor(indices, "indices", "sparseFillEmptyRows");
+  const $indices = convertToTensor(indices, "indices", "sparseFillEmptyRows", "int32");
   const $values = convertToTensor(values, "values", "sparseFillEmptyRows");
-  const $denseShape = convertToTensor(denseShape, "denseShape", "sparseFillEmptyRows");
+  const $denseShape = convertToTensor(denseShape, "denseShape", "sparseFillEmptyRows", "int32");
   const $defaultValue = convertToTensor(defaultValue, "defaultValue", "sparseFillEmptyRows", $values.dtype);
   if ($indices.rank !== 2) {
     throw new Error(`Indices should be Tensor2D but received shape
@@ -13367,9 +13380,9 @@ var sparseFillEmptyRows = op({ sparseFillEmptyRows_ });
 
 // src/tfjs-core/src/ops/sparse/sparse_reshape.ts
 function sparseReshape_(inputIndices, inputShape, newShape) {
-  const $inputIndices = convertToTensor(inputIndices, "inputIndices", "sparseReshape");
-  const $inputShape = convertToTensor(inputShape, "inputShape", "sparseReshape");
-  const $newShape = convertToTensor(newShape, "newShape", "sparseReshape");
+  const $inputIndices = convertToTensor(inputIndices, "inputIndices", "sparseReshape", "int32");
+  const $inputShape = convertToTensor(inputShape, "inputShape", "sparseReshape", "int32");
+  const $newShape = convertToTensor(newShape, "newShape", "sparseReshape", "int32");
   if ($inputIndices.rank !== 2) {
     throw new Error(`Input indices should be Tensor2D but received shape
         ${$inputIndices.shape}`);
@@ -13393,8 +13406,8 @@ var sparseReshape = op({ sparseReshape_ });
 // src/tfjs-core/src/ops/sparse/sparse_segment_mean.ts
 function sparseSegmentMean_(data, indices, segmentIds) {
   const $data = convertToTensor(data, "data", "sparseSegmentMean");
-  const $indices = convertToTensor(indices, "indices", "sparseSegmentMean");
-  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentMean");
+  const $indices = convertToTensor(indices, "indices", "sparseSegmentMean", "int32");
+  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentMean", "int32");
   if ($data.rank < 1) {
     throw new Error(`Data should be at least 1 dimensional but received scalar`);
   }
@@ -13418,8 +13431,8 @@ var sparseSegmentMean = op({ sparseSegmentMean_ });
 // src/tfjs-core/src/ops/sparse/sparse_segment_sum.ts
 function sparseSegmentSum_(data, indices, segmentIds) {
   const $data = convertToTensor(data, "data", "sparseSegmentSum");
-  const $indices = convertToTensor(indices, "indices", "sparseSegmentSum");
-  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentSum");
+  const $indices = convertToTensor(indices, "indices", "sparseSegmentSum", "int32");
+  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentSum", "int32");
   if ($data.rank < 1) {
     throw new Error(`Data should be at least 1 dimensional but received scalar`);
   }
@@ -14209,6 +14222,7 @@ __export(backend_util_exports, {
   axesAreInnerMostDims: () => axesAreInnerMostDims,
   calculateShapes: () => calculateShapes,
   checkEinsumDimSizes: () => checkEinsumDimSizes,
+  checkPadOnDimRoundingMode: () => checkPadOnDimRoundingMode,
   combineLocations: () => combineLocations,
   complexWithEvenIndex: () => complexWithEvenIndex,
   complexWithOddIndex: () => complexWithOddIndex,
@@ -14244,6 +14258,18 @@ __export(backend_util_exports, {
   getReshapedPermuted: () => getReshapedPermuted,
   getSliceBeginCoords: () => getSliceBeginCoords,
   getSliceSize: () => getSliceSize,
+  getSparseFillEmptyRowsIndicesDenseShapeMismatch: () => getSparseFillEmptyRowsIndicesDenseShapeMismatch,
+  getSparseFillEmptyRowsNegativeIndexErrorMessage: () => getSparseFillEmptyRowsNegativeIndexErrorMessage,
+  getSparseFillEmptyRowsOutOfRangeIndexErrorMessage: () => getSparseFillEmptyRowsOutOfRangeIndexErrorMessage,
+  getSparseReshapeEmptyTensorZeroOutputDimErrorMessage: () => getSparseReshapeEmptyTensorZeroOutputDimErrorMessage,
+  getSparseReshapeInputOutputMismatchErrorMessage: () => getSparseReshapeInputOutputMismatchErrorMessage,
+  getSparseReshapeInputOutputMultipleErrorMessage: () => getSparseReshapeInputOutputMultipleErrorMessage,
+  getSparseReshapeMultipleNegativeOneOutputDimErrorMessage: () => getSparseReshapeMultipleNegativeOneOutputDimErrorMessage,
+  getSparseReshapeNegativeOutputDimErrorMessage: () => getSparseReshapeNegativeOutputDimErrorMessage,
+  getSparseSegmentReductionIndicesOutOfRangeErrorMessage: () => getSparseSegmentReductionIndicesOutOfRangeErrorMessage,
+  getSparseSegmentReductionNegativeSegmentIdsErrorMessage: () => getSparseSegmentReductionNegativeSegmentIdsErrorMessage,
+  getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage: () => getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage,
+  getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage: () => getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage,
   getUndoAxesPermutation: () => getUndoAxesPermutation,
   isIdentityPermutation: () => isIdentityPermutation,
   log: () => log,
@@ -14603,6 +14629,54 @@ function prepareSplitSize(x, numOrSizeSplits, axis = 0) {
     splitSizes = numOrSizeSplits;
   }
   return splitSizes;
+}
+
+// src/tfjs-core/src/ops/sparse/sparse_fill_empty_rows_util.ts
+function getSparseFillEmptyRowsIndicesDenseShapeMismatch(indicesLength) {
+  return `Received SparseTensor with denseShape[0] = 0 but
+  indices.shape[0] = ${indicesLength}`;
+}
+function getSparseFillEmptyRowsNegativeIndexErrorMessage(index, value) {
+  return `indices(${index}, 0) is invalid: ${value} < 0`;
+}
+function getSparseFillEmptyRowsOutOfRangeIndexErrorMessage(index, value, limit) {
+  return `indices(${index}, 0) is invalid: ${value} >= ${limit}`;
+}
+
+// src/tfjs-core/src/ops/sparse/sparse_reshape_util.ts
+function getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(dim1, dim2) {
+  return `only one output dimension may be -1, not both ${dim1} and ${dim2}`;
+}
+function getSparseReshapeNegativeOutputDimErrorMessage(dim, value) {
+  return `size ${dim} must be non-negative, not ${value}`;
+}
+function getSparseReshapeEmptyTensorZeroOutputDimErrorMessage() {
+  return "reshape cannot infer the missing input size for an empty tensor unless all specified input sizes are non-zero";
+}
+function getSparseReshapeInputOutputMultipleErrorMessage(inputShape, outputShape) {
+  const inputSize = sizeFromShape(inputShape);
+  const outputSize = sizeFromShape(outputShape);
+  return `Input to reshape is a SparseTensor with ${inputSize}
+  dense values, but the requested shape requires a multiple of ${outputSize}. inputShape=${inputShape} outputShape= ${outputShape}`;
+}
+function getSparseReshapeInputOutputMismatchErrorMessage(inputShape, outputShape) {
+  const inputSize = sizeFromShape(inputShape);
+  const outputSize = sizeFromShape(outputShape);
+  return `Input to reshape is a tensor with ${inputSize} dense values, but the requested shape has ${outputSize}. inputShape=${inputShape} outputShape=${outputShape}`;
+}
+
+// src/tfjs-core/src/ops/sparse/sparse_segment_reduction_util.ts
+function getSparseSegmentReductionNegativeSegmentIdsErrorMessage() {
+  return `segment ids must be >= 0`;
+}
+function getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage() {
+  return `segment ids are not increasing`;
+}
+function getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage(segmentId, outputRows) {
+  return `Segment id ${segmentId} out of range [0, ${outputRows}), possibly because segmentIds input is not sorted.`;
+}
+function getSparseSegmentReductionIndicesOutOfRangeErrorMessage(index, indexValue, inputRows) {
+  return `Bad: indices[${index}] == ${indexValue} out of range [0, ${inputRows})`;
 }
 
 // src/tfjs-core/src/ops/segment_util.ts
@@ -17624,6 +17698,261 @@ var spaceToBatchNDConfig = {
   kernelFunc: spaceToBatchND2
 };
 
+// src/tfjs-backend-wasm/src/kernels/SparseFillEmptyRows.ts
+var wasmSparseFillEmptyRows;
+function setup40(backend) {
+  wasmSparseFillEmptyRows = backend.wasm.cwrap("SparseFillEmptyRows", "number", [
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number"
+  ]);
+}
+function sparseFillEmptyRows2(args) {
+  const { backend, inputs } = args;
+  const { indices, values, denseShape, defaultValue } = inputs;
+  const indicesCount = indices.shape[0];
+  const rank = indices.shape[1];
+  const denseRows = backend.readSync(denseShape.dataId)[0];
+  const maxOutputIndicesShape = [indicesCount + denseRows, rank];
+  const indicesId = backend.dataIdMap.get(indices.dataId).id;
+  const valuesId = backend.dataIdMap.get(values.dataId).id;
+  const defaultValueId = backend.dataIdMap.get(defaultValue.dataId).id;
+  const outputIndices = backend.makeOutput(maxOutputIndicesShape, indices.dtype);
+  const outputIndicesId = backend.dataIdMap.get(outputIndices.dataId).id;
+  const outputValues = backend.makeOutput(maxOutputIndicesShape.slice(0, 1), values.dtype);
+  const outputValuesId = backend.dataIdMap.get(outputValues.dataId).id;
+  const emptyRowIndicator = backend.makeOutput([denseRows], "bool");
+  const emptyRowIndicatorId = backend.dataIdMap.get(emptyRowIndicator.dataId).id;
+  const reverseIndexMap = backend.makeOutput([indicesCount], indices.dtype);
+  const reverseIndexMapId = backend.dataIdMap.get(reverseIndexMap.dataId).id;
+  const exceptionValues = backend.makeOutput([4], "int32");
+  const exceptionValuesId = backend.dataIdMap.get(exceptionValues.dataId).id;
+  const outputRows = wasmSparseFillEmptyRows(indicesId, valuesId, CppDType[values.dtype], indicesCount, denseRows, rank, defaultValueId, outputIndicesId, outputValuesId, emptyRowIndicatorId, reverseIndexMapId, exceptionValuesId);
+  const exceptionValuesArray = backend.readSync(exceptionValues.dataId);
+  let exceptionMessage;
+  switch (exceptionValuesArray[0]) {
+    case 1: {
+      exceptionMessage = backend_util_exports.getSparseFillEmptyRowsIndicesDenseShapeMismatch(exceptionValuesArray[1]);
+      break;
+    }
+    case 2: {
+      exceptionMessage = backend_util_exports.getSparseFillEmptyRowsNegativeIndexErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+      break;
+    }
+    case 3:
+      exceptionMessage = backend_util_exports.getSparseFillEmptyRowsOutOfRangeIndexErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2], exceptionValuesArray[3]);
+      break;
+    default:
+      exceptionMessage = "";
+  }
+  backend.disposeData(exceptionValues.dataId);
+  if (exceptionMessage) {
+    backend.disposeData(outputIndices.dataId);
+    backend.disposeData(outputValues.dataId);
+    backend.disposeData(emptyRowIndicator.dataId);
+    backend.disposeData(reverseIndexMap.dataId);
+    throw new Error(exceptionMessage);
+  }
+  let resizedIndices = outputIndices;
+  let resizedValues = outputValues;
+  if (outputRows !== maxOutputIndicesShape[0]) {
+    resizedIndices = slice2({
+      inputs: { x: outputIndices },
+      attrs: { begin: 0, size: [outputRows, rank] },
+      backend
+    });
+    resizedValues = slice2({
+      inputs: { x: outputValues },
+      attrs: { begin: 0, size: outputRows },
+      backend
+    });
+    backend.disposeData(outputIndices.dataId);
+    backend.disposeData(outputValues.dataId);
+  }
+  return [resizedIndices, resizedValues, emptyRowIndicator, reverseIndexMap];
+}
+var sparseFillEmptyRowsConfig = {
+  kernelName: SparseFillEmptyRows,
+  backendName: "wasm",
+  setupFunc: setup40,
+  kernelFunc: sparseFillEmptyRows2
+};
+
+// src/tfjs-backend-wasm/src/kernels/SparseReshape.ts
+var wasmSparseReshape;
+function setup41(backend) {
+  wasmSparseReshape = backend.wasm.cwrap(SparseReshape, null, [
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number"
+  ]);
+}
+function sparseReshape2(args) {
+  const { backend, inputs } = args;
+  const { inputIndices, inputShape, newShape } = inputs;
+  if (inputIndices.shape.length !== 2) {
+    throw new Error(`Input indices should be a matrix but received shape
+        ${inputIndices.shape}`);
+  }
+  if (inputShape.shape.length !== 1) {
+    throw new Error(`Input shape should be a vector but received shape
+        ${inputShape.shape}`);
+  }
+  if (newShape.shape.length !== 1) {
+    throw new Error(`Target shape should be a vector but received shape ${newShape.shape}`);
+  }
+  const inputIndicesId = backend.dataIdMap.get(inputIndices.dataId).id;
+  const inputShapeId = backend.dataIdMap.get(inputShape.dataId).id;
+  const newShapeId = backend.dataIdMap.get(newShape.dataId).id;
+  const nnz = inputIndices.shape[0];
+  const outputRank = util_exports.sizeFromShape(newShape.shape);
+  const newIndices = backend.makeOutput([nnz, outputRank], inputIndices.dtype);
+  const newIndicesId = backend.dataIdMap.get(newIndices.dataId).id;
+  const outputShape = backend.makeOutput([outputRank], newShape.dtype);
+  const outputShapeId = backend.dataIdMap.get(outputShape.dataId).id;
+  const exceptionValues = backend.makeOutput([3], "int32");
+  const exceptionValuesId = backend.dataIdMap.get(exceptionValues.dataId).id;
+  wasmSparseReshape(inputIndicesId, inputShapeId, newShapeId, nnz, newIndicesId, outputShapeId, exceptionValuesId);
+  const exceptionValuesArray = backend.readSync(exceptionValues.dataId);
+  let exceptionMessage;
+  switch (exceptionValuesArray[0]) {
+    case 0: {
+      exceptionMessage = backend_util_exports.getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+      break;
+    }
+    case 1: {
+      exceptionMessage = backend_util_exports.getSparseReshapeNegativeOutputDimErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+      break;
+    }
+    case 2:
+      exceptionMessage = backend_util_exports.getSparseReshapeEmptyTensorZeroOutputDimErrorMessage();
+      break;
+    case 3: {
+      const inputShapeValues = Array.from(backend.readSync(inputShape.dataId)), outputShapeValues = Array.from(backend.readSync(outputShape.dataId));
+      exceptionMessage = backend_util_exports.getSparseReshapeInputOutputMultipleErrorMessage(inputShapeValues, outputShapeValues);
+      break;
+    }
+    case 4: {
+      const inputShapeValues = Array.from(backend.readSync(inputShape.dataId)), outputShapeValues = Array.from(backend.readSync(outputShape.dataId));
+      exceptionMessage = backend_util_exports.getSparseReshapeInputOutputMismatchErrorMessage(inputShapeValues, outputShapeValues);
+      break;
+    }
+    default:
+      exceptionMessage = "";
+  }
+  backend.disposeData(exceptionValues.dataId);
+  if (exceptionMessage) {
+    backend.disposeData(newIndices.dataId);
+    backend.disposeData(outputShape.dataId);
+    throw new Error(exceptionMessage);
+  }
+  return [newIndices, outputShape];
+}
+var sparseReshapeConfig = {
+  kernelName: SparseReshape,
+  backendName: "wasm",
+  setupFunc: setup41,
+  kernelFunc: sparseReshape2
+};
+
+// src/tfjs-backend-wasm/src/kernels/SparseSegmentReduction.ts
+var wasmSparseSegmentReduction;
+function setup42(backend) {
+  wasmSparseSegmentReduction = backend.wasm.cwrap("SparseSegmentReduction", null, [
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number"
+  ]);
+}
+function sparseSegmentReduction(args, isMean) {
+  const { backend, inputs } = args;
+  const { data, indices, segmentIds } = inputs;
+  const numIndices = indices.shape[0];
+  const segmentIdsBack = backend.readSync(segmentIds.dataId, numIndices - 1, numIndices)[0];
+  const lastSegmentIdPlusOne = numIndices > 0 ? segmentIdsBack + 1 : 0;
+  const outputRows = lastSegmentIdPlusOne;
+  if (outputRows < 0) {
+    throw new Error(backend_util_exports.getSparseSegmentReductionNegativeSegmentIdsErrorMessage());
+  }
+  const outputShape = data.shape.slice();
+  outputShape[0] = outputRows;
+  const dataId = backend.dataIdMap.get(data.dataId).id;
+  const indicesId = backend.dataIdMap.get(indices.dataId).id;
+  const segmentIdsId = backend.dataIdMap.get(segmentIds.dataId).id;
+  const output = backend.makeOutput(outputShape, data.dtype);
+  const outputId = backend.dataIdMap.get(output.dataId).id;
+  const exceptionValues = backend.makeOutput([4], "int32");
+  const exceptionValuesId = backend.dataIdMap.get(exceptionValues.dataId).id;
+  wasmSparseSegmentReduction(dataId, CppDType[data.dtype], data.shape[0], indicesId, segmentIdsId, outputId, exceptionValuesId, isMean, 0);
+  const exceptionValuesArray = backend.readSync(exceptionValues.dataId);
+  let exceptionMessage;
+  switch (exceptionValuesArray[0]) {
+    case 0: {
+      exceptionMessage = backend_util_exports.getSparseSegmentReductionNegativeSegmentIdsErrorMessage();
+      break;
+    }
+    case 1: {
+      exceptionMessage = backend_util_exports.getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage();
+      break;
+    }
+    case 2:
+      exceptionMessage = backend_util_exports.getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+      break;
+    case 3:
+      exceptionMessage = backend_util_exports.getSparseSegmentReductionIndicesOutOfRangeErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2], exceptionValuesArray[3]);
+      break;
+    default:
+      exceptionMessage = "";
+  }
+  backend.disposeData(exceptionValues.dataId);
+  if (exceptionMessage) {
+    backend.disposeData(output.dataId);
+    throw new Error(exceptionMessage);
+  }
+  return output;
+}
+
+// src/tfjs-backend-wasm/src/kernels/SparseSegmentMean.ts
+function sparseSegmentMean2(args) {
+  return sparseSegmentReduction(args, true);
+}
+var sparseSegmentMeanConfig = {
+  kernelName: SparseSegmentMean,
+  backendName: "wasm",
+  setupFunc: setup42,
+  kernelFunc: sparseSegmentMean2
+};
+
+// src/tfjs-backend-wasm/src/kernels/SparseSegmentSum.ts
+function sparseSegmentSum2(args) {
+  return sparseSegmentReduction(args, false);
+}
+var sparseSegmentSumConfig = {
+  kernelName: SparseSegmentSum,
+  backendName: "wasm",
+  setupFunc: setup42,
+  kernelFunc: sparseSegmentSum2
+};
+
 // src/tfjs-backend-wasm/src/kernels/SplitV.ts
 function splitV(args) {
   const { inputs, attrs, backend } = args;
@@ -17659,7 +17988,7 @@ var squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference, suppor
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
-function setup40(backend) {
+function setup43(backend) {
   wasmStep = backend.wasm.cwrap(Step, null, [
     "number",
     "number",
@@ -17680,13 +18009,13 @@ function step2(args) {
 var stepConfig = {
   kernelName: Step,
   backendName: "wasm",
-  setupFunc: setup40,
+  setupFunc: setup43,
   kernelFunc: step2
 };
 
 // src/tfjs-backend-wasm/src/kernels/StridedSlice.ts
 var wasmStridedSlice;
-function setup41(backend) {
+function setup44(backend) {
   wasmStridedSlice = backend.wasm.cwrap(StridedSlice, null, [
     "number",
     "array",
@@ -17751,7 +18080,7 @@ function stridedSlice2(args) {
 var stridedSliceConfig = {
   kernelName: StridedSlice,
   backendName: "wasm",
-  setupFunc: setup41,
+  setupFunc: setup44,
   kernelFunc: stridedSlice2
 };
 
@@ -17761,7 +18090,7 @@ var subConfig = createBinaryKernelConfig(Sub, supportsFullBroadcast16);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
-function setup42(backend) {
+function setup45(backend) {
   wasmSum = backend.wasm.cwrap(Sum, null, [
     "number",
     "number",
@@ -17806,7 +18135,7 @@ function sum3(args) {
 var sumConfig = {
   kernelName: Sum,
   backendName: "wasm",
-  setupFunc: setup42,
+  setupFunc: setup45,
   kernelFunc: sum3
 };
 
@@ -17818,7 +18147,7 @@ var tanhConfig = createUnaryKernelConfig(Tanh);
 
 // src/tfjs-backend-wasm/src/kernels/Tile.ts
 var wasmTile;
-function setup43(backend) {
+function setup46(backend) {
   wasmTile = backend.wasm.cwrap(Tile, null, [
     "number",
     "array",
@@ -17847,13 +18176,13 @@ function tile2(args) {
 var tileConfig = {
   kernelName: Tile,
   backendName: "wasm",
-  setupFunc: setup43,
+  setupFunc: setup46,
   kernelFunc: tile2
 };
 
 // src/tfjs-backend-wasm/src/kernels/TopK.ts
 var wasmTopK;
-function setup44(backend) {
+function setup47(backend) {
   wasmTopK = backend.wasm.cwrap(TopK, null, [
     "number",
     "array",
@@ -17882,13 +18211,13 @@ var topk2 = ({ inputs, backend, attrs }) => {
 var topKConfig = {
   kernelName: TopK,
   backendName: "wasm",
-  setupFunc: setup44,
+  setupFunc: setup47,
   kernelFunc: topk2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Transform.ts
 var wasmTransform;
-function setup45(backend) {
+function setup48(backend) {
   wasmTransform = backend.wasm.cwrap(Transform, null, [
     "number",
     "number",
@@ -17951,7 +18280,7 @@ function transform2(args) {
 var transformConfig = {
   kernelName: Transform,
   backendName: "wasm",
-  setupFunc: setup45,
+  setupFunc: setup48,
   kernelFunc: transform2
 };
 
@@ -18084,6 +18413,10 @@ var kernelConfigs = [
   sliceConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
+  sparseFillEmptyRowsConfig,
+  sparseReshapeConfig,
+  sparseSegmentMeanConfig,
+  sparseSegmentSumConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,
@@ -18238,12 +18571,18 @@ var BackendWasm = class extends KernelBackend {
   async read(dataId) {
     return this.readSync(dataId);
   }
-  readSync(dataId) {
+  readSync(dataId, start, end) {
     const { memoryOffset, dtype, shape, stringBytes } = this.dataIdMap.get(dataId);
     if (dtype === "string") {
-      return stringBytes;
+      if ((start == null || start === 0) && (end == null || end >= stringBytes.length)) {
+        return stringBytes;
+      }
+      return stringBytes.slice(start, end);
     }
-    const bytes = this.wasm.HEAPU8.slice(memoryOffset, memoryOffset + util_exports.sizeFromShape(shape) * util_exports.bytesPerElement(dtype));
+    start = start || 0;
+    end = end || util_exports.sizeFromShape(shape);
+    const bytesPerElement2 = util_exports.bytesPerElement(dtype);
+    const bytes = this.wasm.HEAPU8.slice(memoryOffset + start * bytesPerElement2, memoryOffset + end * bytesPerElement2);
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
   disposeData(dataId, force = false) {
