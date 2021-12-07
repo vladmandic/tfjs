@@ -66031,8 +66031,12 @@ var makeBindGroup = (device, bindGroupLayout, inputs, output, uniforms) => {
 var compileProgram2 = (device, program, pipelineLayout, inputsData, output, isFromPixel = false) => {
   const outputData = { dtype: output.dtype, shape: output.shape };
   const source = makeShader2(inputsData, outputData, program, isFromPixel);
-  const module = device.createShaderModule({ code: source });
-  const pipeline = device.createComputePipeline({ layout: pipelineLayout, compute: { module, entryPoint: "main" } });
+  const module = device.createShaderModule({ code: source, label: program.constructor.name });
+  const pipeline = device.createComputePipeline({
+    layout: pipelineLayout,
+    compute: { module, entryPoint: "main" },
+    label: program.constructor.name
+  });
   return pipeline;
 };
 function makeShaderKey2(program, shapes, types, broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
@@ -72991,7 +72995,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.11.0-20211201";
+var externalVersion = "3.11.0-20211207";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

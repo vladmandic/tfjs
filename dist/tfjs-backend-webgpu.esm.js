@@ -17725,8 +17725,12 @@ var makeBindGroup = (device, bindGroupLayout, inputs, output, uniforms) => {
 var compileProgram = (device, program, pipelineLayout, inputsData, output, isFromPixel = false) => {
   const outputData = { dtype: output.dtype, shape: output.shape };
   const source = makeShader(inputsData, outputData, program, isFromPixel);
-  const module = device.createShaderModule({ code: source });
-  const pipeline = device.createComputePipeline({ layout: pipelineLayout, compute: { module, entryPoint: "main" } });
+  const module = device.createShaderModule({ code: source, label: program.constructor.name });
+  const pipeline = device.createComputePipeline({
+    layout: pipelineLayout,
+    compute: { module, entryPoint: "main" },
+    label: program.constructor.name
+  });
   return pipeline;
 };
 function makeShaderKey(program, shapes, types, broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
