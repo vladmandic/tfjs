@@ -2192,7 +2192,7 @@ function getGlobalNamespace() {
 function getGlobalMap() {
   const ns = getGlobalNamespace();
   if (ns._tfGlobals == null) {
-    ns._tfGlobals = new Map();
+    ns._tfGlobals = /* @__PURE__ */ new Map();
   }
   return ns._tfGlobals;
 }
@@ -2374,8 +2374,8 @@ function log(...msg) {
 }
 
 // src/tfjs-core/src/kernel_registry.ts
-var kernelRegistry = getGlobal("kernelRegistry", () => new Map());
-var gradRegistry = getGlobal("gradRegistry", () => new Map());
+var kernelRegistry = getGlobal("kernelRegistry", () => /* @__PURE__ */ new Map());
+var gradRegistry = getGlobal("gradRegistry", () => /* @__PURE__ */ new Map());
 function getKernel(kernelName, backendName) {
   const key = makeKey(kernelName, backendName);
   return kernelRegistry.get(key);
@@ -3198,44 +3198,34 @@ Object.defineProperty(Variable, Symbol.hasInstance, {
 });
 
 // src/tfjs-core/src/types.ts
-var Rank;
-(function(Rank11) {
-  Rank11["R0"] = "R0";
-  Rank11["R1"] = "R1";
-  Rank11["R2"] = "R2";
-  Rank11["R3"] = "R3";
-  Rank11["R4"] = "R4";
-  Rank11["R5"] = "R5";
-  Rank11["R6"] = "R6";
-})(Rank || (Rank = {}));
-var UpcastInt32AndMap;
-(function(UpcastInt32AndMap2) {
+var UpcastInt32AndMap = /* @__PURE__ */ ((UpcastInt32AndMap2) => {
   UpcastInt32AndMap2["float32"] = "float32";
   UpcastInt32AndMap2["int32"] = "int32";
   UpcastInt32AndMap2["bool"] = "int32";
   UpcastInt32AndMap2["complex64"] = "complex64";
-})(UpcastInt32AndMap || (UpcastInt32AndMap = {}));
-var UpcastBoolAndMap;
-(function(UpcastBoolAndMap2) {
+  return UpcastInt32AndMap2;
+})(UpcastInt32AndMap || {});
+var UpcastBoolAndMap = /* @__PURE__ */ ((UpcastBoolAndMap2) => {
   UpcastBoolAndMap2["float32"] = "float32";
   UpcastBoolAndMap2["int32"] = "int32";
   UpcastBoolAndMap2["bool"] = "bool";
   UpcastBoolAndMap2["complex64"] = "complex64";
-})(UpcastBoolAndMap || (UpcastBoolAndMap = {}));
-var UpcastFloat32AndMap;
-(function(UpcastFloat32AndMap2) {
+  return UpcastBoolAndMap2;
+})(UpcastBoolAndMap || {});
+var UpcastFloat32AndMap = /* @__PURE__ */ ((UpcastFloat32AndMap2) => {
   UpcastFloat32AndMap2["float32"] = "float32";
   UpcastFloat32AndMap2["int32"] = "float32";
   UpcastFloat32AndMap2["bool"] = "float32";
   UpcastFloat32AndMap2["complex64"] = "complex64";
-})(UpcastFloat32AndMap || (UpcastFloat32AndMap = {}));
-var UpcastComplex64AndMap;
-(function(UpcastComplex64AndMap2) {
+  return UpcastFloat32AndMap2;
+})(UpcastFloat32AndMap || {});
+var UpcastComplex64AndMap = /* @__PURE__ */ ((UpcastComplex64AndMap2) => {
   UpcastComplex64AndMap2["float32"] = "complex64";
   UpcastComplex64AndMap2["int32"] = "complex64";
   UpcastComplex64AndMap2["bool"] = "complex64";
   UpcastComplex64AndMap2["complex64"] = "complex64";
-})(UpcastComplex64AndMap || (UpcastComplex64AndMap = {}));
+  return UpcastComplex64AndMap2;
+})(UpcastComplex64AndMap || {});
 var upcastTypeMap = {
   "float32": UpcastFloat32AndMap,
   "int32": UpcastInt32AndMap,
@@ -3268,7 +3258,7 @@ function assertTypesMatch(a, b) {
 }
 function getTensorsInContainer(result) {
   const list = [];
-  const seen = new Set();
+  const seen = /* @__PURE__ */ new Set();
   walkTensorContainer(result, list, seen);
   return list;
 }
@@ -7422,7 +7412,7 @@ function log_(x) {
   const inputs = { x: $x };
   return ENGINE.runKernel(Log, inputs);
 }
-var log4 = op({ log_ });
+var log2 = op({ log_ });
 
 // src/tfjs-core/src/ops/log1p.ts
 function log1p_(x) {
@@ -7541,7 +7531,7 @@ function logSoftmax_(logits, axis = -1) {
     const keepDims = true;
     const xMax = max(logits2, axis, true);
     const shifted = sub(logits2, xMax);
-    const value = sub(cast(shifted, "float32"), log4(sum2(exp(shifted), axis, keepDims)));
+    const value = sub(cast(shifted, "float32"), log2(sum2(exp(shifted), axis, keepDims)));
     save([value]);
     const gradFunc = (dy, saved) => {
       const [value2] = saved;
@@ -7628,7 +7618,7 @@ function logSumExp_(x, axis = null, keepDims = false) {
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
-  const d = log4(c);
+  const d = log2(c);
   const res = add2(reshape(xMax, d.shape), d);
   if (keepDims) {
     const newShape = expandShapeToKeepDim(res.shape, axes);
@@ -8045,8 +8035,8 @@ function withSpaceToBatchBasePaddings(filterShape, dilation) {
 var pool = op({ pool_ });
 
 // src/tfjs-core/src/ops/pow.ts
-function pow_(base2, exp4) {
-  let $base = convertToTensor(base2, "base", "pow");
+function pow_(base, exp4) {
+  let $base = convertToTensor(base, "base", "pow");
   let $exp = convertToTensor(exp4, "exp", "pow");
   [$base, $exp] = makeTypesMatch($base, $exp);
   const inputs = { a: $base, b: $exp };
@@ -9901,13 +9891,13 @@ function qr2d(x, fullMatrices = false) {
 var qr = op({ qr_ });
 
 // src/tfjs-core/src/ops/loss_ops_utils.ts
-var Reduction;
-(function(Reduction2) {
+var Reduction = /* @__PURE__ */ ((Reduction2) => {
   Reduction2[Reduction2["NONE"] = 0] = "NONE";
   Reduction2[Reduction2["MEAN"] = 1] = "MEAN";
   Reduction2[Reduction2["SUM"] = 2] = "SUM";
   Reduction2[Reduction2["SUM_BY_NONZERO_WEIGHTS"] = 3] = "SUM_BY_NONZERO_WEIGHTS";
-})(Reduction || (Reduction = {}));
+  return Reduction2;
+})(Reduction || {});
 
 // src/tfjs-core/src/ops/losses/compute_weighted_loss.ts
 function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
@@ -10019,8 +10009,8 @@ function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = Redu
   assertShapesMatch($labels.shape, $predictions.shape, "Error in logLoss: ");
   const one = scalar(1);
   const epsilonScalar = scalar(epsilon);
-  const l1 = neg(mul($labels, log4(add2($predictions, epsilonScalar))));
-  const l2 = mul(sub(one, $labels), log4(add2(sub(one, $predictions), epsilonScalar)));
+  const l1 = neg(mul($labels, log2(add2($predictions, epsilonScalar))));
+  const l2 = mul(sub(one, $labels), log2(add2(sub(one, $predictions), epsilonScalar)));
   const losses = sub(l1, l2);
   return computeWeightedLoss(losses, $weights, reduction);
 }
@@ -11641,10 +11631,10 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
   if (isFromPixel === true) {
     const getCoords3 = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
-      [[block]] struct Matrix0 {
+      struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
       };
-      [[block]] struct Uniform {
+      struct Uniform {
         size            : i32;
         numChannels     : i32;
         outShapeStrides : vec2<i32>;
@@ -11664,7 +11654,7 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
     ].join("\n");
   }
   const prefixSnippets = [];
-  let uniformDeclaration = "[[block]] struct Uniforms { NAN : f32; ";
+  let uniformDeclaration = "struct Uniforms { NAN : f32; ";
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${getCoordsDataType(inputInfo[i].shape.length)}; `;
   });
@@ -11682,7 +11672,7 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
   prefixSnippets.push(uniformDeclaration);
   if (program.atomic) {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<atomic<i32>>;
     };
 
@@ -11690,7 +11680,7 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
   `);
   } else {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
@@ -11699,7 +11689,7 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
   }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
-    [[block]] struct Matrix${1 + i} {
+    struct Matrix${1 + i} {
       numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
@@ -11755,16 +11745,8 @@ var SHADER_PREFIX = `
     return true;
   }
 
-  fn isNanCustomVec4F32(val : vec4<f32>) -> vec4<f32> {
-    var res = vec4<f32> (0.0);
-    for (var i = 0u; i < 4u; i = i + 1u) {
-      if (isNanCustom(val[i])) {
-        res[i] = 1.0;
-      } else {
-        res[i] = 0.0;
-      }
-    }
-    return res;
+  fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
   }
 
   // Checks whether coordinates lie within the bounds of the shape.
@@ -12256,8 +12238,7 @@ function isWebGPUSupported() {
 }
 
 // src/tfjs-backend-webgpu/src/kernels/binary_op_util.ts
-var BinaryOpType;
-(function(BinaryOpType6) {
+var BinaryOpType = /* @__PURE__ */ ((BinaryOpType6) => {
   BinaryOpType6[BinaryOpType6["MUL"] = 0] = "MUL";
   BinaryOpType6[BinaryOpType6["ADD"] = 1] = "ADD";
   BinaryOpType6[BinaryOpType6["SUB"] = 2] = "SUB";
@@ -12277,7 +12258,8 @@ var BinaryOpType;
   BinaryOpType6[BinaryOpType6["MIN"] = 16] = "MIN";
   BinaryOpType6[BinaryOpType6["COMPLEX_MULTIPLY_REAL"] = 17] = "COMPLEX_MULTIPLY_REAL";
   BinaryOpType6[BinaryOpType6["COMPLEX_MULTIPLY_IMAG"] = 18] = "COMPLEX_MULTIPLY_IMAG";
-})(BinaryOpType || (BinaryOpType = {}));
+  return BinaryOpType6;
+})(BinaryOpType || {});
 var ADD = "return a + b;";
 var COMPLEX_MULTIPLY_REAL = "return areal * breal - aimag * bimag;";
 var COMPLEX_MULTIPLY_IMAG = "return areal * bimag + aimag * breal;";
@@ -12303,16 +12285,16 @@ var CHECK_NAN_SNIPPET = `
   if (isNanCustom(b)) { return b; }
   `;
 var CHECK_NAN_SNIPPET_VEC4 = `
-  if (isNaN.r > 0.) {
+  if (isNaN.r) {
     resultTemp.r = uniforms.NAN;
   }
-  if (isNaN.g > 0.) {
+  if (isNaN.g) {
     resultTemp.g = uniforms.NAN;
   }
-  if (isNaN.b > 0.) {
+  if (isNaN.b) {
     resultTemp.b = uniforms.NAN;
   }
-  if (isNaN.a > 0.) {
+  if (isNaN.a) {
     resultTemp.a = uniforms.NAN;
   }
   `;
@@ -12378,7 +12360,7 @@ var POW_VEC4 = `
   if (isExpZero.a) {
     resultTemp.a = 1.0;
   }
-  let isNaN = vec4<f32>(a < vec4<f32>(0.0)) * vec4<f32>(floor(b) < b);
+  let isNaN = a < vec4<f32>(0.0) & floor(b) < b;
   ${CHECK_NAN_SNIPPET_VEC4}
   return resultTemp;
   `;
@@ -12391,7 +12373,7 @@ function getMinMaxString(op2, useVec4) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op2}(a, b));
-    let isNaN = min(vec4<f32>(isNanCustomVec4F32(a)) + vec4<f32>(isNanCustomVec4F32(b)), vec4<f32>(1.0));
+    let isNaN = isNanCustomVec4(a) | isNanCustomVec4(b);
     ` + checkNanSnippet + `
     return resultTemp;
   ` : checkNanSnippet + `
@@ -12400,43 +12382,43 @@ function getMinMaxString(op2, useVec4) {
 }
 function getBinaryOpString(type, useVec4) {
   switch (type) {
-    case 0:
+    case 0 /* MUL */:
       return MUL;
-    case 1:
+    case 1 /* ADD */:
       return ADD;
-    case 2:
+    case 2 /* SUB */:
       return SUB;
-    case 3:
+    case 3 /* DIV */:
       return DIV;
-    case 4:
+    case 4 /* EQUAL */:
       return useVec4 ? EQUAL_VEC4 : EQUAL;
-    case 5:
+    case 5 /* GREATER */:
       return useVec4 ? GREATER_VEC4 : GREATER;
-    case 6:
+    case 6 /* GREATER_EQUAL */:
       return useVec4 ? GREATER_EQUAL_VEC4 : GREATER_EQUAL;
-    case 7:
+    case 7 /* LESS */:
       return useVec4 ? LESS_VEC4 : LESS;
-    case 8:
+    case 8 /* LESS_EQUAL */:
       return useVec4 ? LESS_EQUAL_VEC4 : LESS_EQUAL;
-    case 9:
+    case 9 /* LOGICAL_AND */:
       return useVec4 ? LOGICAL_AND_VEC4 : LOGICAL_AND;
-    case 10:
+    case 10 /* NOT_EQUAL */:
       return useVec4 ? NOT_EQUAL_VEC4 : NOT_EQUAL;
-    case 11:
+    case 11 /* SQUARED_DIFFERENCE */:
       return SQUARED_DIFFERENCE;
-    case 12:
+    case 12 /* INT_DIV */:
       return useVec4 ? INT_DIV_VEC4 : INT_DIV;
-    case 14:
+    case 14 /* PRELU */:
       return useVec4 ? PRELU_VEC4 : PRELU;
-    case 15:
+    case 15 /* MAX */:
       return getMinMaxString("max", useVec4);
-    case 16:
+    case 16 /* MIN */:
       return getMinMaxString("min", useVec4);
-    case 13:
+    case 13 /* POW */:
       return useVec4 ? POW_VEC4 : POW;
-    case 17:
+    case 17 /* COMPLEX_MULTIPLY_REAL */:
       return COMPLEX_MULTIPLY_REAL;
-    case 18:
+    case 18 /* COMPLEX_MULTIPLY_IMAG */:
       return COMPLEX_MULTIPLY_IMAG;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
@@ -12444,8 +12426,7 @@ function getBinaryOpString(type, useVec4) {
 }
 
 // src/tfjs-backend-webgpu/src/kernels/unary_op_util.ts
-var UnaryOpType;
-(function(UnaryOpType3) {
+var UnaryOpType = /* @__PURE__ */ ((UnaryOpType3) => {
   UnaryOpType3[UnaryOpType3["ABS"] = 0] = "ABS";
   UnaryOpType3[UnaryOpType3["CEIL"] = 1] = "CEIL";
   UnaryOpType3[UnaryOpType3["COS"] = 2] = "COS";
@@ -12461,15 +12442,17 @@ var UnaryOpType;
   UnaryOpType3[UnaryOpType3["PRELU"] = 12] = "PRELU";
   UnaryOpType3[UnaryOpType3["RELU"] = 13] = "RELU";
   UnaryOpType3[UnaryOpType3["RELU6"] = 14] = "RELU6";
-  UnaryOpType3[UnaryOpType3["RSQRT"] = 15] = "RSQRT";
-  UnaryOpType3[UnaryOpType3["SIN"] = 16] = "SIN";
-  UnaryOpType3[UnaryOpType3["SINH"] = 17] = "SINH";
-  UnaryOpType3[UnaryOpType3["SIGMOID"] = 18] = "SIGMOID";
-  UnaryOpType3[UnaryOpType3["SQRT"] = 19] = "SQRT";
-  UnaryOpType3[UnaryOpType3["SQUARE"] = 20] = "SQUARE";
-  UnaryOpType3[UnaryOpType3["TANH"] = 21] = "TANH";
-  UnaryOpType3[UnaryOpType3["TO_INT"] = 22] = "TO_INT";
-})(UnaryOpType || (UnaryOpType = {}));
+  UnaryOpType3[UnaryOpType3["LEAKYRELU"] = 15] = "LEAKYRELU";
+  UnaryOpType3[UnaryOpType3["RSQRT"] = 16] = "RSQRT";
+  UnaryOpType3[UnaryOpType3["SIN"] = 17] = "SIN";
+  UnaryOpType3[UnaryOpType3["SINH"] = 18] = "SINH";
+  UnaryOpType3[UnaryOpType3["SIGMOID"] = 19] = "SIGMOID";
+  UnaryOpType3[UnaryOpType3["SQRT"] = 20] = "SQRT";
+  UnaryOpType3[UnaryOpType3["SQUARE"] = 21] = "SQUARE";
+  UnaryOpType3[UnaryOpType3["TANH"] = 22] = "TANH";
+  UnaryOpType3[UnaryOpType3["TO_INT"] = 23] = "TO_INT";
+  return UnaryOpType3;
+})(UnaryOpType || {});
 var ABS = `return abs(a);`;
 var CEIL = `return ceil(a);`;
 var COS = `return cos(a);`;
@@ -12503,12 +12486,13 @@ var LOG = `if (a < 0.0) { return 1.0/0.0; }
 var LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 var NEG = `return -a;`;
 var PRELU2 = `return (a < 0.0) ? b * a : a;`;
+var LEAKYRELU = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
 var RELU = "return max(a, 0.0);";
 var RELU6 = "return clamp(a, 0.0, 6.0);";
 var RELU6_VEC4 = "return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));";
 var RELU_VEC4 = `
   var resFloat = a * vec4<f32>(a >= vec4<f32>(0.0));
-  let isNaN = isNan(a);
+  let isNaN = isNanCustomVec4(a);
 
   if (isNaN.r) {
     resFloat.r = a.r;
@@ -12540,51 +12524,53 @@ var TANH = `
 var TO_INT = `return f32(i32((a)));`;
 function getUnaryOpString(type, useVec4) {
   switch (type) {
-    case 0:
+    case 0 /* ABS */:
       return ABS;
-    case 2:
+    case 2 /* COS */:
       return COS;
-    case 3:
+    case 3 /* COSH */:
       return COSH;
-    case 1:
+    case 1 /* CEIL */:
       return CEIL;
-    case 4:
+    case 4 /* ELU */:
       return useVec4 ? ELU_VEC4 : ELU;
-    case 5:
+    case 5 /* EXP */:
       return EXP;
-    case 6:
+    case 6 /* EXPM1 */:
       return EXPM1;
-    case 7:
+    case 7 /* FLOOR */:
       return FLOOR;
-    case 8:
+    case 8 /* LINEAR */:
       return LINEAR;
-    case 9:
+    case 9 /* LOG */:
       return LOG;
-    case 10:
+    case 10 /* LOGICAL_NOT */:
       return LOGICAL_NOT;
-    case 11:
+    case 11 /* NEG */:
       return NEG;
-    case 12:
+    case 12 /* PRELU */:
       return PRELU2;
-    case 13:
+    case 15 /* LEAKYRELU */:
+      return LEAKYRELU;
+    case 13 /* RELU */:
       return useVec4 ? RELU_VEC4 : RELU;
-    case 14:
+    case 14 /* RELU6 */:
       return useVec4 ? RELU6_VEC4 : RELU6;
-    case 15:
+    case 16 /* RSQRT */:
       return RSQRT;
-    case 18:
+    case 19 /* SIGMOID */:
       return SIGMOID;
-    case 16:
+    case 17 /* SIN */:
       return SIN;
-    case 17:
+    case 18 /* SINH */:
       return SINH;
-    case 19:
+    case 20 /* SQRT */:
       return SQRT;
-    case 20:
+    case 21 /* SQUARE */:
       return SQUARE;
-    case 21:
+    case 22 /* TANH */:
       return TANH;
-    case 22:
+    case 23 /* TO_INT */:
       return TO_INT;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
@@ -14301,7 +14287,7 @@ function linSpaceImpl(start, stop, num) {
 
 // src/tfjs-backend-cpu/src/kernels/Log.ts
 var logImpl = createSimpleUnaryImpl((xi) => Math.log(xi));
-var log5 = unaryKernelFuncFromImpl(Log, logImpl);
+var log3 = unaryKernelFuncFromImpl(Log, logImpl);
 
 // src/tfjs-backend-cpu/src/kernels/Max_impl.ts
 function maxImpl(aVals, reduceSize, outShape, dtype) {
@@ -18250,11 +18236,11 @@ var lessEqualConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Log.ts
-var log6 = unaryKernelFunc({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU });
+var log4 = unaryKernelFunc({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU });
 var logConfig = {
   kernelName: Log,
   backendName: "webgpu",
-  kernelFunc: log6
+  kernelFunc: log4
 };
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalAnd.ts
@@ -18724,6 +18710,22 @@ var relu6Config = {
   kernelName: Relu6,
   backendName: "webgpu",
   kernelFunc: relu62
+};
+
+// src/tfjs-backend-webgpu/src/kernels/LeakyRelu.ts
+function leakyRelu2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { alpha } = attrs;
+  const uniformData = [{ type: "float32", data: [alpha] }];
+  const program = new UnaryOpProgram(x.shape, UnaryOpType.LEAKYRELU);
+  program.uniforms = "alpha : f32;";
+  return backend.runWebGPUProgram(program, [x], "float32", uniformData);
+}
+var leakyReluConfig = {
+  kernelName: LeakyRelu,
+  backendName: "webgpu",
+  kernelFunc: leakyRelu2
 };
 
 // src/tfjs-backend-webgpu/src/kernels/resize_bilinear_webgpu.ts
@@ -20157,6 +20159,7 @@ var kernelConfigs = [
   realDivConfig,
   reluConfig,
   relu6Config,
+  leakyReluConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
@@ -20197,8 +20200,8 @@ var BufferManager = class {
     this.device = device;
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
-    this.freeBuffers = new Map();
-    this.usedBuffers = new Map();
+    this.freeBuffers = /* @__PURE__ */ new Map();
+    this.usedBuffers = /* @__PURE__ */ new Map();
     this.numBytesUsed = 0;
     this.numBytesAllocated = 0;
   }
@@ -20249,8 +20252,8 @@ var BufferManager = class {
     return this.numFreeBuffers;
   }
   reset() {
-    this.freeBuffers = new Map();
-    this.usedBuffers = new Map();
+    this.freeBuffers = /* @__PURE__ */ new Map();
+    this.usedBuffers = /* @__PURE__ */ new Map();
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
     this.numBytesUsed = 0;

@@ -5589,7 +5589,7 @@ function getGlobalNamespace() {
 function getGlobalMap() {
   const ns = getGlobalNamespace();
   if (ns._tfGlobals == null) {
-    ns._tfGlobals = new Map();
+    ns._tfGlobals = /* @__PURE__ */ new Map();
   }
   return ns._tfGlobals;
 }
@@ -5771,8 +5771,8 @@ function log(...msg) {
 }
 
 // src/tfjs-core/src/kernel_registry.ts
-var kernelRegistry = getGlobal("kernelRegistry", () => new Map());
-var gradRegistry = getGlobal("gradRegistry", () => new Map());
+var kernelRegistry = getGlobal("kernelRegistry", () => /* @__PURE__ */ new Map());
+var gradRegistry = getGlobal("gradRegistry", () => /* @__PURE__ */ new Map());
 function getKernel(kernelName, backendName) {
   const key = makeKey(kernelName, backendName);
   return kernelRegistry.get(key);
@@ -6595,44 +6595,34 @@ Object.defineProperty(Variable, Symbol.hasInstance, {
 });
 
 // src/tfjs-core/src/types.ts
-var Rank;
-(function(Rank8) {
-  Rank8["R0"] = "R0";
-  Rank8["R1"] = "R1";
-  Rank8["R2"] = "R2";
-  Rank8["R3"] = "R3";
-  Rank8["R4"] = "R4";
-  Rank8["R5"] = "R5";
-  Rank8["R6"] = "R6";
-})(Rank || (Rank = {}));
-var UpcastInt32AndMap;
-(function(UpcastInt32AndMap2) {
+var UpcastInt32AndMap = /* @__PURE__ */ ((UpcastInt32AndMap2) => {
   UpcastInt32AndMap2["float32"] = "float32";
   UpcastInt32AndMap2["int32"] = "int32";
   UpcastInt32AndMap2["bool"] = "int32";
   UpcastInt32AndMap2["complex64"] = "complex64";
-})(UpcastInt32AndMap || (UpcastInt32AndMap = {}));
-var UpcastBoolAndMap;
-(function(UpcastBoolAndMap2) {
+  return UpcastInt32AndMap2;
+})(UpcastInt32AndMap || {});
+var UpcastBoolAndMap = /* @__PURE__ */ ((UpcastBoolAndMap2) => {
   UpcastBoolAndMap2["float32"] = "float32";
   UpcastBoolAndMap2["int32"] = "int32";
   UpcastBoolAndMap2["bool"] = "bool";
   UpcastBoolAndMap2["complex64"] = "complex64";
-})(UpcastBoolAndMap || (UpcastBoolAndMap = {}));
-var UpcastFloat32AndMap;
-(function(UpcastFloat32AndMap2) {
+  return UpcastBoolAndMap2;
+})(UpcastBoolAndMap || {});
+var UpcastFloat32AndMap = /* @__PURE__ */ ((UpcastFloat32AndMap2) => {
   UpcastFloat32AndMap2["float32"] = "float32";
   UpcastFloat32AndMap2["int32"] = "float32";
   UpcastFloat32AndMap2["bool"] = "float32";
   UpcastFloat32AndMap2["complex64"] = "complex64";
-})(UpcastFloat32AndMap || (UpcastFloat32AndMap = {}));
-var UpcastComplex64AndMap;
-(function(UpcastComplex64AndMap2) {
+  return UpcastFloat32AndMap2;
+})(UpcastFloat32AndMap || {});
+var UpcastComplex64AndMap = /* @__PURE__ */ ((UpcastComplex64AndMap2) => {
   UpcastComplex64AndMap2["float32"] = "complex64";
   UpcastComplex64AndMap2["int32"] = "complex64";
   UpcastComplex64AndMap2["bool"] = "complex64";
   UpcastComplex64AndMap2["complex64"] = "complex64";
-})(UpcastComplex64AndMap || (UpcastComplex64AndMap = {}));
+  return UpcastComplex64AndMap2;
+})(UpcastComplex64AndMap || {});
 var upcastTypeMap = {
   "float32": UpcastFloat32AndMap,
   "int32": UpcastInt32AndMap,
@@ -6662,7 +6652,7 @@ function assertTypesMatch(a, b) {
 }
 function getTensorsInContainer(result) {
   const list = [];
-  const seen = new Set();
+  const seen = /* @__PURE__ */ new Set();
   walkTensorContainer(result, list, seen);
   return list;
 }
@@ -10793,7 +10783,7 @@ function log_(x) {
   const inputs = { x: $x };
   return ENGINE.runKernel(Log, inputs);
 }
-var log4 = op({ log_ });
+var log2 = op({ log_ });
 
 // src/tfjs-core/src/ops/log1p.ts
 function log1p_(x) {
@@ -10912,7 +10902,7 @@ function logSoftmax_(logits, axis = -1) {
     const keepDims = true;
     const xMax = max(logits2, axis, true);
     const shifted = sub(logits2, xMax);
-    const value = sub(cast(shifted, "float32"), log4(sum2(exp(shifted), axis, keepDims)));
+    const value = sub(cast(shifted, "float32"), log2(sum2(exp(shifted), axis, keepDims)));
     save([value]);
     const gradFunc = (dy, saved) => {
       const [value2] = saved;
@@ -10999,7 +10989,7 @@ function logSumExp_(x, axis = null, keepDims = false) {
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
-  const d = log4(c);
+  const d = log2(c);
   const res = add2(reshape(xMax, d.shape), d);
   if (keepDims) {
     const newShape = expandShapeToKeepDim(res.shape, axes);
@@ -11416,8 +11406,8 @@ function withSpaceToBatchBasePaddings(filterShape, dilation) {
 var pool = op({ pool_ });
 
 // src/tfjs-core/src/ops/pow.ts
-function pow_(base2, exp3) {
-  let $base = convertToTensor(base2, "base", "pow");
+function pow_(base, exp3) {
+  let $base = convertToTensor(base, "base", "pow");
   let $exp = convertToTensor(exp3, "exp", "pow");
   [$base, $exp] = makeTypesMatch($base, $exp);
   const inputs = { a: $base, b: $exp };
@@ -13129,13 +13119,13 @@ function qr2d(x, fullMatrices = false) {
 var qr = op({ qr_ });
 
 // src/tfjs-core/src/ops/loss_ops_utils.ts
-var Reduction;
-(function(Reduction2) {
+var Reduction = /* @__PURE__ */ ((Reduction2) => {
   Reduction2[Reduction2["NONE"] = 0] = "NONE";
   Reduction2[Reduction2["MEAN"] = 1] = "MEAN";
   Reduction2[Reduction2["SUM"] = 2] = "SUM";
   Reduction2[Reduction2["SUM_BY_NONZERO_WEIGHTS"] = 3] = "SUM_BY_NONZERO_WEIGHTS";
-})(Reduction || (Reduction = {}));
+  return Reduction2;
+})(Reduction || {});
 
 // src/tfjs-core/src/ops/losses/compute_weighted_loss.ts
 function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
@@ -13247,8 +13237,8 @@ function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = Redu
   assertShapesMatch($labels.shape, $predictions.shape, "Error in logLoss: ");
   const one = scalar(1);
   const epsilonScalar = scalar(epsilon);
-  const l1 = neg(mul($labels, log4(add2($predictions, epsilonScalar))));
-  const l2 = mul(sub(one, $labels), log4(add2(sub(one, $predictions), epsilonScalar)));
+  const l1 = neg(mul($labels, log2(add2($predictions, epsilonScalar))));
+  const l2 = mul(sub(one, $labels), log2(add2(sub(one, $predictions), epsilonScalar)));
   const losses = sub(l1, l2);
   return computeWeightedLoss(losses, $weights, reduction);
 }
@@ -14775,16 +14765,15 @@ function fromStringArrayToUint8(strings) {
 }
 
 // src/tfjs-backend-wasm/src/kernels/types.ts
-var CppDType;
-(function(CppDType2) {
+var CppDType = /* @__PURE__ */ ((CppDType2) => {
   CppDType2[CppDType2["float32"] = 0] = "float32";
   CppDType2[CppDType2["int32"] = 1] = "int32";
   CppDType2[CppDType2["bool"] = 2] = "bool";
   CppDType2[CppDType2["string"] = 3] = "string";
   CppDType2[CppDType2["complex64"] = 4] = "complex64";
-})(CppDType || (CppDType = {}));
-var FusableActivation;
-(function(FusableActivation2) {
+  return CppDType2;
+})(CppDType || {});
+var FusableActivation = /* @__PURE__ */ ((FusableActivation2) => {
   FusableActivation2[FusableActivation2["linear"] = 0] = "linear";
   FusableActivation2[FusableActivation2["relu"] = 1] = "relu";
   FusableActivation2[FusableActivation2["relu6"] = 2] = "relu6";
@@ -14792,7 +14781,8 @@ var FusableActivation;
   FusableActivation2[FusableActivation2["leakyrelu"] = 4] = "leakyrelu";
   FusableActivation2[FusableActivation2["sigmoid"] = 5] = "sigmoid";
   FusableActivation2[FusableActivation2["elu"] = 6] = "elu";
-})(FusableActivation || (FusableActivation = {}));
+  return FusableActivation2;
+})(FusableActivation || {});
 
 // src/tfjs-backend-wasm/src/kernels/_FusedMatMul.ts
 var wasmFusedMatMul;
@@ -15664,7 +15654,7 @@ var lessEqual2 = binaryKernelFunc(LessEqual, lessEqualImpl, null, "bool");
 
 // src/tfjs-backend-cpu/src/kernels/Log.ts
 var logImpl = createSimpleUnaryImpl((xi) => Math.log(xi));
-var log5 = unaryKernelFuncFromImpl(Log, logImpl);
+var log3 = unaryKernelFuncFromImpl(Log, logImpl);
 
 // src/tfjs-backend-cpu/src/kernels/Maximum.ts
 var maximumImpl = createSimpleBinaryKernelImpl((aValue, bValue) => Math.max(aValue, bValue));
@@ -16134,11 +16124,11 @@ var cosConfig = createUnaryKernelConfig(Cos);
 var coshConfig = createUnaryKernelConfig(Cosh);
 
 // src/tfjs-backend-wasm/src/kernels/CropAndResize.ts
-var InterpolationMethod;
-(function(InterpolationMethod2) {
+var InterpolationMethod = /* @__PURE__ */ ((InterpolationMethod2) => {
   InterpolationMethod2[InterpolationMethod2["bilinear"] = 0] = "bilinear";
   InterpolationMethod2[InterpolationMethod2["nearest"] = 1] = "nearest";
-})(InterpolationMethod || (InterpolationMethod = {}));
+  return InterpolationMethod2;
+})(InterpolationMethod || {});
 var wasmCropAndResize;
 function setup11(backend) {
   wasmCropAndResize = backend.wasm.cwrap(CropAndResize, null, [
@@ -17013,11 +17003,11 @@ var supportsFullBroadcast10 = false;
 var minimumConfig = createBinaryKernelConfig(Minimum, supportsFullBroadcast10);
 
 // src/tfjs-backend-wasm/src/kernels/MirrorPad.ts
-var MirrorPaddingMode;
-(function(MirrorPaddingMode2) {
+var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
   MirrorPaddingMode2[MirrorPaddingMode2["reflect"] = 0] = "reflect";
   MirrorPaddingMode2[MirrorPaddingMode2["symmetric"] = 1] = "symmetric";
-})(MirrorPaddingMode || (MirrorPaddingMode = {}));
+  return MirrorPaddingMode2;
+})(MirrorPaddingMode || {});
 var wasmMirrorPad;
 function setup25(backend) {
   wasmMirrorPad = backend.wasm.cwrap(MirrorPad, null, [

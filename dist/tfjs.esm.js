@@ -2946,11 +2946,11 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             table[i] = null;
           }
           return ret;
-        }, getSource: function(shader, count2, string3, length) {
+        }, getSource: function(shader, count2, string2, length) {
           var source = "";
           for (var i = 0; i < count2; ++i) {
             var len = length ? GROWABLE_HEAP_I32()[length + i * 4 >> 2] : -1;
-            source += UTF8ToString(GROWABLE_HEAP_I32()[string3 + i * 4 >> 2], len < 0 ? void 0 : len);
+            source += UTF8ToString(GROWABLE_HEAP_I32()[string2 + i * 4 >> 2], len < 0 ? void 0 : len);
           }
           return source;
         }, createContext: function(canvas, webGLContextAttributes) {
@@ -5595,7 +5595,7 @@ function getGlobalNamespace() {
 function getGlobalMap() {
   const ns = getGlobalNamespace();
   if (ns._tfGlobals == null) {
-    ns._tfGlobals = new Map();
+    ns._tfGlobals = /* @__PURE__ */ new Map();
   }
   return ns._tfGlobals;
 }
@@ -5792,8 +5792,8 @@ function log(...msg) {
 }
 
 // src/tfjs-core/src/kernel_registry.ts
-var kernelRegistry = getGlobal("kernelRegistry", () => new Map());
-var gradRegistry = getGlobal("gradRegistry", () => new Map());
+var kernelRegistry = getGlobal("kernelRegistry", () => /* @__PURE__ */ new Map());
+var gradRegistry = getGlobal("gradRegistry", () => /* @__PURE__ */ new Map());
 function getKernel(kernelName, backendName) {
   const key = makeKey(kernelName, backendName);
   return kernelRegistry.get(key);
@@ -6654,8 +6654,7 @@ __export(tensor_util_exports, {
 });
 
 // src/tfjs-core/src/types.ts
-var Rank;
-(function(Rank18) {
+var Rank = /* @__PURE__ */ ((Rank18) => {
   Rank18["R0"] = "R0";
   Rank18["R1"] = "R1";
   Rank18["R2"] = "R2";
@@ -6663,35 +6662,36 @@ var Rank;
   Rank18["R4"] = "R4";
   Rank18["R5"] = "R5";
   Rank18["R6"] = "R6";
-})(Rank || (Rank = {}));
-var UpcastInt32AndMap;
-(function(UpcastInt32AndMap2) {
+  return Rank18;
+})(Rank || {});
+var UpcastInt32AndMap = /* @__PURE__ */ ((UpcastInt32AndMap2) => {
   UpcastInt32AndMap2["float32"] = "float32";
   UpcastInt32AndMap2["int32"] = "int32";
   UpcastInt32AndMap2["bool"] = "int32";
   UpcastInt32AndMap2["complex64"] = "complex64";
-})(UpcastInt32AndMap || (UpcastInt32AndMap = {}));
-var UpcastBoolAndMap;
-(function(UpcastBoolAndMap2) {
+  return UpcastInt32AndMap2;
+})(UpcastInt32AndMap || {});
+var UpcastBoolAndMap = /* @__PURE__ */ ((UpcastBoolAndMap2) => {
   UpcastBoolAndMap2["float32"] = "float32";
   UpcastBoolAndMap2["int32"] = "int32";
   UpcastBoolAndMap2["bool"] = "bool";
   UpcastBoolAndMap2["complex64"] = "complex64";
-})(UpcastBoolAndMap || (UpcastBoolAndMap = {}));
-var UpcastFloat32AndMap;
-(function(UpcastFloat32AndMap2) {
+  return UpcastBoolAndMap2;
+})(UpcastBoolAndMap || {});
+var UpcastFloat32AndMap = /* @__PURE__ */ ((UpcastFloat32AndMap2) => {
   UpcastFloat32AndMap2["float32"] = "float32";
   UpcastFloat32AndMap2["int32"] = "float32";
   UpcastFloat32AndMap2["bool"] = "float32";
   UpcastFloat32AndMap2["complex64"] = "complex64";
-})(UpcastFloat32AndMap || (UpcastFloat32AndMap = {}));
-var UpcastComplex64AndMap;
-(function(UpcastComplex64AndMap2) {
+  return UpcastFloat32AndMap2;
+})(UpcastFloat32AndMap || {});
+var UpcastComplex64AndMap = /* @__PURE__ */ ((UpcastComplex64AndMap2) => {
   UpcastComplex64AndMap2["float32"] = "complex64";
   UpcastComplex64AndMap2["int32"] = "complex64";
   UpcastComplex64AndMap2["bool"] = "complex64";
   UpcastComplex64AndMap2["complex64"] = "complex64";
-})(UpcastComplex64AndMap || (UpcastComplex64AndMap = {}));
+  return UpcastComplex64AndMap2;
+})(UpcastComplex64AndMap || {});
 var upcastTypeMap = {
   "float32": UpcastFloat32AndMap,
   "int32": UpcastInt32AndMap,
@@ -6727,7 +6727,7 @@ function isTensorInList(tensor2, tensorList) {
 }
 function getTensorsInContainer(result) {
   const list = [];
-  const seen = new Set();
+  const seen = /* @__PURE__ */ new Set();
   walkTensorContainer(result, list, seen);
   return list;
 }
@@ -7831,13 +7831,13 @@ function decodeWeights(buffer2, specs) {
       } else if (dtype === "complex64") {
         values = new Float32Array(byteBuffer);
         const real5 = new Float32Array(values.length / 2);
-        const image3 = new Float32Array(values.length / 2);
+        const image2 = new Float32Array(values.length / 2);
         for (let i = 0; i < real5.length; i++) {
           real5[i] = values[i * 2];
-          image3[i] = values[i * 2 + 1];
+          image2[i] = values[i * 2 + 1];
         }
         const realTensor = tensor(real5, shape, "float32");
-        const imageTensor = tensor(image3, shape, "float32");
+        const imageTensor = tensor(image2, shape, "float32");
         out[name] = complex(realTensor, imageTensor);
         realTensor.dispose();
         imageTensor.dispose();
@@ -9972,22 +9972,22 @@ function sliceInfo(xShape, begin, end, strides, beginMask, endMask, ellipsisMask
     strides: denseSpec.strides
   };
 }
-function buildDenseSpec(sparse3, dense2) {
+function buildDenseSpec(sparse2, dense2) {
   dense2.beginMask = 0;
   dense2.endMask = 0;
   dense2.shrinkAxisMask = 0;
   let fullIndex = 0;
-  dense2.beginValid = sparse3.begin != null;
-  dense2.endValid = sparse3.end != null;
+  dense2.beginValid = sparse2.begin != null;
+  dense2.endValid = sparse2.end != null;
   dense2.begin = new Array(dense2.dims);
   dense2.end = new Array(dense2.dims);
   dense2.strides = new Array(dense2.dims);
   dense2.finalShapeGatherIndices = [];
   dense2.finalShapeGatherIndicesSparse = [];
   dense2.inputShapeGatherIndicesSparse = new Array(dense2.dims);
-  for (let i = 0; i < sparse3.dims; i++) {
-    if (1 << i & sparse3.ellipsisMask) {
-      const nextIndex = Math.min(dense2.dims - (sparse3.dims - i) + 1 + sparse3.numAddAxisAfterEllipsis, dense2.dims);
+  for (let i = 0; i < sparse2.dims; i++) {
+    if (1 << i & sparse2.ellipsisMask) {
+      const nextIndex = Math.min(dense2.dims - (sparse2.dims - i) + 1 + sparse2.numAddAxisAfterEllipsis, dense2.dims);
       for (; fullIndex < nextIndex; fullIndex++) {
         dense2.begin[fullIndex] = 0;
         dense2.end[fullIndex] = 0;
@@ -9998,27 +9998,27 @@ function buildDenseSpec(sparse3, dense2) {
         dense2.finalShapeGatherIndicesSparse.push(-1);
         dense2.inputShapeGatherIndicesSparse[fullIndex] = i;
       }
-    } else if (1 << i & sparse3.newAxisMask) {
+    } else if (1 << i & sparse2.newAxisMask) {
       dense2.finalShapeGatherIndices.push(NEW_AXIS);
       dense2.finalShapeGatherIndicesSparse.push(-1);
     } else {
       if (fullIndex === dense2.begin.length) {
         throw Error(`Index out of range using input dim ${fullIndex}; input has only ${dense2.dims} dims, ${dense2.begin.length}.`);
       }
-      if (sparse3.begin != null) {
-        dense2.begin[fullIndex] = sparse3.begin[i];
+      if (sparse2.begin != null) {
+        dense2.begin[fullIndex] = sparse2.begin[i];
       }
-      if (sparse3.end != null) {
-        dense2.end[fullIndex] = sparse3.end[i];
+      if (sparse2.end != null) {
+        dense2.end[fullIndex] = sparse2.end[i];
       }
-      dense2.strides[fullIndex] = sparse3.strides[i];
-      if (sparse3.beginMask & 1 << i) {
+      dense2.strides[fullIndex] = sparse2.strides[i];
+      if (sparse2.beginMask & 1 << i) {
         dense2.beginMask |= 1 << fullIndex;
       }
-      if (sparse3.endMask & 1 << i) {
+      if (sparse2.endMask & 1 << i) {
         dense2.endMask |= 1 << fullIndex;
       }
-      if (sparse3.shrinkAxisMask & 1 << i) {
+      if (sparse2.shrinkAxisMask & 1 << i) {
         dense2.finalShapeGatherIndices.push(SHRINK_AXIS);
         dense2.finalShapeGatherIndicesSparse.push(-1);
         dense2.shrinkAxisMask |= 1 << fullIndex;
@@ -11711,7 +11711,7 @@ function log_(x) {
   const inputs = { x: $x };
   return ENGINE.runKernel(Log, inputs);
 }
-var log4 = op({ log_ });
+var log2 = op({ log_ });
 
 // src/tfjs-core/src/ops/log1p.ts
 function log1p_(x) {
@@ -11891,7 +11891,7 @@ function logSoftmax_(logits, axis = -1) {
     const keepDims = true;
     const xMax = max(logits2, axis, true);
     const shifted = sub(logits2, xMax);
-    const value = sub(cast(shifted, "float32"), log4(sum2(exp(shifted), axis, keepDims)));
+    const value = sub(cast(shifted, "float32"), log2(sum2(exp(shifted), axis, keepDims)));
     save([value]);
     const gradFunc = (dy, saved) => {
       const [value2] = saved;
@@ -11978,7 +11978,7 @@ function logSumExp_(x, axis = null, keepDims = false) {
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
-  const d = log4(c);
+  const d = log2(c);
   const res = add2(reshape(xMax, d.shape), d);
   if (keepDims) {
     const newShape = expandShapeToKeepDim(res.shape, axes);
@@ -12426,8 +12426,8 @@ function withSpaceToBatchBasePaddings(filterShape, dilation) {
 var pool = op({ pool_ });
 
 // src/tfjs-core/src/ops/pow.ts
-function pow_(base2, exp5) {
-  let $base = convertToTensor(base2, "base", "pow");
+function pow_(base, exp5) {
+  let $base = convertToTensor(base, "base", "pow");
   let $exp = convertToTensor(exp5, "exp", "pow");
   [$base, $exp] = makeTypesMatch($base, $exp);
   const inputs = { a: $base, b: $exp };
@@ -13939,8 +13939,8 @@ function stft_(signal2, frameLength, frameStep, fftLength, windowFn = hannWindow
 var stft = op({ stft_ });
 
 // src/tfjs-core/src/ops/image/crop_and_resize.ts
-function cropAndResize_(image3, boxes, boxInd, cropSize, method = "bilinear", extrapolationValue = 0) {
-  const $image = convertToTensor(image3, "image", "cropAndResize");
+function cropAndResize_(image2, boxes, boxInd, cropSize, method = "bilinear", extrapolationValue = 0) {
+  const $image = convertToTensor(image2, "image", "cropAndResize");
   const $boxes = convertToTensor(boxes, "boxes", "cropAndResize", "float32");
   const $boxInd = convertToTensor(boxInd, "boxInd", "cropAndResize", "int32");
   const numBoxes = $boxes.shape[0];
@@ -13958,8 +13958,8 @@ function cropAndResize_(image3, boxes, boxInd, cropSize, method = "bilinear", ex
 var cropAndResize = op({ cropAndResize_ });
 
 // src/tfjs-core/src/ops/image/flip_left_right.ts
-function flipLeftRight_(image3) {
-  const $image = convertToTensor(image3, "image", "flipLeftRight", "float32");
+function flipLeftRight_(image2) {
+  const $image = convertToTensor(image2, "image", "flipLeftRight", "float32");
   assert($image.rank === 4, () => `Error in flipLeftRight: image must be rank 4,but got rank ${$image.rank}.`);
   const inputs = { image: $image };
   const res = ENGINE.runKernel(FlipLeftRight, inputs, {});
@@ -13968,8 +13968,8 @@ function flipLeftRight_(image3) {
 var flipLeftRight = op({ flipLeftRight_ });
 
 // src/tfjs-core/src/ops/image/grayscale_to_rgb.ts
-function grayscaleToRGB_(image3) {
-  const $image = convertToTensor(image3, "image", "grayscaleToRGB");
+function grayscaleToRGB_(image2) {
+  const $image = convertToTensor(image2, "image", "grayscaleToRGB");
   const lastDimsIdx = $image.rank - 1;
   const lastDims = $image.shape[lastDimsIdx];
   assert($image.rank >= 2, () => `Error in grayscaleToRGB: images must be at least rank 2, but got rank ${$image.rank}.`);
@@ -13982,8 +13982,8 @@ function grayscaleToRGB_(image3) {
 var grayscaleToRGB = op({ grayscaleToRGB_ });
 
 // src/tfjs-core/src/ops/image/rotate_with_offset.ts
-function rotateWithOffset_(image3, radians, fillValue = 0, center = 0.5) {
-  const $image = convertToTensor(image3, "image", "rotateWithOffset", "float32");
+function rotateWithOffset_(image2, radians, fillValue = 0, center = 0.5) {
+  const $image = convertToTensor(image2, "image", "rotateWithOffset", "float32");
   assert($image.rank === 4, () => `Error in rotateWithOffset: image must be rank 4,but got rank ${$image.rank}.`);
   const inputs = { image: $image };
   const attrs = { radians, fillValue, center };
@@ -14307,8 +14307,8 @@ function resizeNearestNeighbor_(images, size, alignCorners = false, halfPixelCen
 var resizeNearestNeighbor = op({ resizeNearestNeighbor_ });
 
 // src/tfjs-core/src/ops/image/threshold.ts
-function threshold_(image3, method = "binary", inverted = false, threshValue = 0.5) {
-  const $image = convertToTensor(image3, "image", "threshold");
+function threshold_(image2, method = "binary", inverted = false, threshValue = 0.5) {
+  const $image = convertToTensor(image2, "image", "threshold");
   const RED_INTENCITY_COEF = 0.2989;
   const GREEN_INTENCITY_COEF = 0.587;
   const BLUE_INTENCITY_COEF = 0.114;
@@ -14326,7 +14326,7 @@ function threshold_(image3, method = "binary", inverted = false, threshValue = 0
     const $b = mul(b, BLUE_INTENCITY_COEF);
     grayscale = add2(add2($r, $g), $b);
   } else {
-    grayscale = image3;
+    grayscale = image2;
   }
   if (method === "otsu") {
     const $histogram = bincount(cast(round2(grayscale), "int32"), tensor([]), 256);
@@ -14365,8 +14365,8 @@ function otsu(histogram, total) {
 var threshold = op({ threshold_ });
 
 // src/tfjs-core/src/ops/image/transform.ts
-function transform_(image3, transforms, interpolation = "nearest", fillMode = "constant", fillValue = 0, outputShape) {
-  const $image = convertToTensor(image3, "image", "transform", "float32");
+function transform_(image2, transforms, interpolation = "nearest", fillMode = "constant", fillValue = 0, outputShape) {
+  const $image = convertToTensor(image2, "image", "transform", "float32");
   const $transforms = convertToTensor(transforms, "transforms", "transform", "float32");
   assert($image.rank === 4, () => `Error in transform: image must be rank 4,but got rank ${$image.rank}.`);
   assert($transforms.rank === 2 && ($transforms.shape[0] === $image.shape[0] || $transforms.shape[0] === 1) && $transforms.shape[1] === 8, () => `Error in transform: Input transform should be batch x 8 or 1 x 8`);
@@ -14528,29 +14528,29 @@ function qr2d(x, fullMatrices = false) {
 var qr = op({ qr_ });
 
 // src/tfjs-core/src/ops/loss_ops_utils.ts
-var Reduction;
-(function(Reduction2) {
+var Reduction = /* @__PURE__ */ ((Reduction2) => {
   Reduction2[Reduction2["NONE"] = 0] = "NONE";
   Reduction2[Reduction2["MEAN"] = 1] = "MEAN";
   Reduction2[Reduction2["SUM"] = 2] = "SUM";
   Reduction2[Reduction2["SUM_BY_NONZERO_WEIGHTS"] = 3] = "SUM_BY_NONZERO_WEIGHTS";
-})(Reduction || (Reduction = {}));
+  return Reduction2;
+})(Reduction || {});
 
 // src/tfjs-core/src/ops/losses/compute_weighted_loss.ts
-function computeWeightedLoss_(losses4, weights, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  const $losses = convertToTensor(losses4, "losses", "computeWeightedLoss");
+function computeWeightedLoss_(losses2, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+  const $losses = convertToTensor(losses2, "losses", "computeWeightedLoss");
   let $weights = null;
   if (weights != null) {
     $weights = convertToTensor(weights, "weights", "computeWeightedLoss");
   }
   const weightedLoss = $weights == null ? $losses : mul($losses, $weights);
-  if (reduction2 === Reduction.NONE) {
+  if (reduction === Reduction.NONE) {
     return weightedLoss;
   }
-  if (reduction2 === Reduction.SUM) {
+  if (reduction === Reduction.SUM) {
     return sum2(weightedLoss);
   }
-  if (reduction2 === Reduction.MEAN) {
+  if (reduction === Reduction.MEAN) {
     if ($weights == null) {
       return mean(weightedLoss);
     } else {
@@ -14559,7 +14559,7 @@ function computeWeightedLoss_(losses4, weights, reduction2 = Reduction.SUM_BY_NO
       return broadcastFactor > 1 ? div(result, scalar(broadcastFactor)) : result;
     }
   }
-  if (reduction2 === Reduction.SUM_BY_NONZERO_WEIGHTS) {
+  if (reduction === Reduction.SUM_BY_NONZERO_WEIGHTS) {
     if ($weights == null) {
       return div(sum2(weightedLoss), scalar($losses.size));
     } else {
@@ -14568,12 +14568,12 @@ function computeWeightedLoss_(losses4, weights, reduction2 = Reduction.SUM_BY_NO
       return div(sum2(weightedLoss), numNonZeros);
     }
   }
-  throw Error(`Unknown reduction: ${reduction2}`);
+  throw Error(`Unknown reduction: ${reduction}`);
 }
 var computeWeightedLoss = op({ computeWeightedLoss_ });
 
 // src/tfjs-core/src/ops/losses/absolute_difference.ts
-function absoluteDifference_(labels, predictions, weights, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function absoluteDifference_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   const $labels = convertToTensor(labels, "labels", "absoluteDifference");
   const $predictions = convertToTensor(predictions, "predictions", "absoluteDifference");
   let $weights = null;
@@ -14581,13 +14581,13 @@ function absoluteDifference_(labels, predictions, weights, reduction2 = Reductio
     $weights = convertToTensor(weights, "weights", "absoluteDifference");
   }
   assertShapesMatch($labels.shape, $predictions.shape, "Error in absoluteDifference: ");
-  const losses4 = abs(sub($labels, $predictions));
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const losses2 = abs(sub($labels, $predictions));
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var absoluteDifference = op({ absoluteDifference_ });
 
 // src/tfjs-core/src/ops/losses/cosine_distance.ts
-function cosineDistance_(labels, predictions, axis, weights, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function cosineDistance_(labels, predictions, axis, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   const $labels = convertToTensor(labels, "labels", "cosineDistance");
   const $predictions = convertToTensor(predictions, "predictions", "cosineDistance");
   let $weights = null;
@@ -14596,13 +14596,13 @@ function cosineDistance_(labels, predictions, axis, weights, reduction2 = Reduct
   }
   assertShapesMatch($labels.shape, $predictions.shape, "Error in cosineDistance: ");
   const one = scalar(1);
-  const losses4 = sub(one, sum2(mul($labels, $predictions), axis, true));
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const losses2 = sub(one, sum2(mul($labels, $predictions), axis, true));
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var cosineDistance = op({ cosineDistance_ });
 
 // src/tfjs-core/src/ops/losses/hinge_loss.ts
-function hingeLoss_(labels, predictions, weights, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   let $labels = convertToTensor(labels, "labels", "hingeLoss");
   const $predictions = convertToTensor(predictions, "predictions", "hingeLoss");
   let $weights = null;
@@ -14612,13 +14612,13 @@ function hingeLoss_(labels, predictions, weights, reduction2 = Reduction.SUM_BY_
   assertShapesMatch($labels.shape, $predictions.shape, "Error in hingeLoss: ");
   const one = scalar(1);
   $labels = sub(mul(scalar(2), $labels), one);
-  const losses4 = relu(sub(one, mul($labels, $predictions)));
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const losses2 = relu(sub(one, mul($labels, $predictions)));
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var hingeLoss = op({ hingeLoss_ });
 
 // src/tfjs-core/src/ops/losses/huber_loss.ts
-function huberLoss_(labels, predictions, weights, delta = 1, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   const $labels = convertToTensor(labels, "labels", "huberLoss");
   const $predictions = convertToTensor(predictions, "predictions", "huberLoss");
   let $weights = null;
@@ -14630,13 +14630,13 @@ function huberLoss_(labels, predictions, weights, delta = 1, reduction2 = Reduct
   const error = abs(sub($predictions, $labels));
   const quadratic = minimum(error, deltaScalar);
   const linear = sub(error, quadratic);
-  const losses4 = add2(mul(scalar(0.5), square(quadratic)), mul(deltaScalar, linear));
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const losses2 = add2(mul(scalar(0.5), square(quadratic)), mul(deltaScalar, linear));
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var huberLoss = op({ huberLoss_ });
 
 // src/tfjs-core/src/ops/losses/log_loss.ts
-function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   const $labels = convertToTensor(labels, "labels", "logLoss");
   const $predictions = convertToTensor(predictions, "predictions", "logLoss");
   let $weights = null;
@@ -14646,15 +14646,15 @@ function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction2 = Re
   assertShapesMatch($labels.shape, $predictions.shape, "Error in logLoss: ");
   const one = scalar(1);
   const epsilonScalar = scalar(epsilon3);
-  const l13 = neg(mul($labels, log4(add2($predictions, epsilonScalar))));
-  const l23 = mul(sub(one, $labels), log4(add2(sub(one, $predictions), epsilonScalar)));
-  const losses4 = sub(l13, l23);
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const l13 = neg(mul($labels, log2(add2($predictions, epsilonScalar))));
+  const l23 = mul(sub(one, $labels), log2(add2(sub(one, $predictions), epsilonScalar)));
+  const losses2 = sub(l13, l23);
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var logLoss = op({ logLoss_ });
 
 // src/tfjs-core/src/ops/losses/mean_squared_error.ts
-function meanSquaredError_(labels, predictions, weights, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function meanSquaredError_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   const $labels = convertToTensor(labels, "labels", "meanSquaredError");
   const $predictions = convertToTensor(predictions, "predictions", "meanSquaredError");
   let $weights = null;
@@ -14662,8 +14662,8 @@ function meanSquaredError_(labels, predictions, weights, reduction2 = Reduction.
     $weights = convertToTensor(weights, "weights", "meanSquaredError");
   }
   assertShapesMatch($labels.shape, $predictions.shape, "Error in meanSquaredError: ");
-  const losses4 = squaredDifference($labels, $predictions);
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const losses2 = squaredDifference($labels, $predictions);
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var meanSquaredError = op({ meanSquaredError_ });
 
@@ -14677,7 +14677,7 @@ function sigmoidCrossEntropyWithLogits_(labels, logits) {
   const sigmoidOutput = log1p(exp(neg(abs($logits))));
   return add2(sub(maxOutput, outputXTarget), sigmoidOutput);
 }
-function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   let $multiClassLabels = convertToTensor(multiClassLabels, "multiClassLabels", "sigmoidCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "sigmoidCrossEntropy");
   let $weights = null;
@@ -14691,8 +14691,8 @@ function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing 
     const half = scalar(0.5);
     $multiClassLabels = add2(mul($multiClassLabels, sub(one, labelSmoothingScalar)), mul(half, labelSmoothingScalar));
   }
-  const losses4 = sigmoidCrossEntropyWithLogits_($multiClassLabels, $logits);
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const losses2 = sigmoidCrossEntropyWithLogits_($multiClassLabels, $logits);
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var sigmoidCrossEntropy = op({ sigmoidCrossEntropy_ });
 
@@ -14723,7 +14723,7 @@ function softmaxCrossEntropyWithLogits_(labels, logits, dim = -1) {
   });
   return customOp(labels, logits);
 }
-function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction2 = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
   let $onehotLabels = convertToTensor(onehotLabels, "onehotLabels", "softmaxCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "softmaxCrossEntropy");
   let $weights = null;
@@ -14737,8 +14737,8 @@ function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0,
     const numClasses = scalar($onehotLabels.shape[1]);
     $onehotLabels = add2(mul($onehotLabels, sub(one, labelSmoothingScalar)), div(labelSmoothingScalar, numClasses));
   }
-  const losses4 = softmaxCrossEntropyWithLogits_($onehotLabels, $logits);
-  return computeWeightedLoss(losses4, $weights, reduction2);
+  const losses2 = softmaxCrossEntropyWithLogits_($onehotLabels, $logits);
+  return computeWeightedLoss(losses2, $weights, reduction);
 }
 var softmaxCrossEntropy = op({ softmaxCrossEntropy_ });
 
@@ -17376,21 +17376,21 @@ var powGradConfig = {
   outputsToSave: [true],
   gradFunc: (dy, saved) => {
     const [a, b, y] = saved;
-    const base2 = a;
+    const base = a;
     const exp5 = b;
-    const outShape = assertAndGetBroadcastShape(base2.shape, exp5.shape);
+    const outShape = assertAndGetBroadcastShape(base.shape, exp5.shape);
     const derBase = () => {
       const expFloat = cast(exp5, "float32");
-      let res = mul(dy, mul(expFloat, pow(base2, sub(expFloat, scalar(1)))));
-      const reduceAxes = getReductionAxes(base2.shape, outShape);
+      let res = mul(dy, mul(expFloat, pow(base, sub(expFloat, scalar(1)))));
+      const reduceAxes = getReductionAxes(base.shape, outShape);
       if (reduceAxes.length > 0) {
         res = sum2(res, reduceAxes);
       }
-      return reshape(res, base2.shape);
+      return reshape(res, base.shape);
     };
     const derExp = () => {
-      const condition = greater(base2, 0);
-      const logBase = where(condition, log4(base2), zerosLike(base2));
+      const condition = greater(base, 0);
+      const logBase = where(condition, log2(base), zerosLike(base));
       let res = mul(dy, mul(y, logBase));
       const reduceAxes = getReductionAxes(exp5.shape, outShape);
       if (reduceAxes.length > 0) {
@@ -18444,7 +18444,7 @@ var VALID_POOL_MODE_VALUES = ["max", "avg"];
 var VALID_BIDIRECTIONAL_MERGE_MODES = ["sum", "mul", "concat", "ave"];
 
 // src/tfjs-layers/src/common.ts
-var nameMap = new Map();
+var nameMap = /* @__PURE__ */ new Map();
 function checkDataFormat(value) {
   checkStringTypeUnionValue(VALID_DATA_FORMAT_VALUES, "DataFormat", value);
 }
@@ -19974,13 +19974,13 @@ var Layer = class extends serialization_exports.Serializable {
   setFastWeightInitDuringBuild(value) {
     this.fastWeightInitDuringBuild = value;
   }
-  addLoss(losses4) {
-    if (losses4 == null || Array.isArray(losses4) && losses4.length === 0) {
+  addLoss(losses2) {
+    if (losses2 == null || Array.isArray(losses2) && losses2.length === 0) {
       return;
     }
-    losses4 = toList(losses4);
+    losses2 = toList(losses2);
     if (this._losses !== void 0 && this._losses !== null) {
-      this.losses.push(...losses4);
+      this.losses.push(...losses2);
     }
   }
   computeOutputShape(inputShape) {
@@ -20241,11 +20241,6 @@ function disposeTensorsInLogs(logs) {
 }
 
 // src/tfjs-layers/src/base_callbacks.ts
-var ModelLoggingVerbosity;
-(function(ModelLoggingVerbosity4) {
-  ModelLoggingVerbosity4[ModelLoggingVerbosity4["SILENT"] = 0] = "SILENT";
-  ModelLoggingVerbosity4[ModelLoggingVerbosity4["VERBOSE"] = 1] = "VERBOSE";
-})(ModelLoggingVerbosity || (ModelLoggingVerbosity = {}));
 var DEFAULT_YIELD_EVERY_MS = 125;
 var BaseCallback = class {
   constructor() {
@@ -20385,8 +20380,8 @@ var BaseLogger = class extends BaseCallback {
           logs[key] = this.totals[key] / this.seen;
         } else {
           tidy(() => {
-            const log8 = mul(div(1, this.seen), this.totals[key]);
-            logs[key] = log8;
+            const log6 = mul(div(1, this.seen), this.totals[key]);
+            logs[key] = log6;
             this.totals[key].dispose();
             keep(logs[key]);
           });
@@ -20626,9 +20621,9 @@ function meanAbsolutePercentageError(yTrue, yPred) {
 function meanSquaredLogarithmicError(yTrue, yPred) {
   return tidy(() => {
     const clippedPred = clipByValue(yPred, epsilon(), Number.MAX_VALUE);
-    const firstLog = log4(add2(1, clippedPred));
+    const firstLog = log2(add2(1, clippedPred));
     const clippedTrue = clipByValue(yTrue, epsilon(), Number.MAX_VALUE);
-    const secondLog = log4(add2(1, clippedTrue));
+    const secondLog = log2(add2(1, clippedTrue));
     return mean(square2(sub(firstLog, secondLog)), -1);
   });
 }
@@ -20668,7 +20663,7 @@ function categoricalCrossentropy(target, output, fromLogits = false) {
       output = div(output, outputSum);
     }
     output = clipByValue(output, epsilon(), 1 - epsilon());
-    return neg(sum2(mul(cast(target, "float32"), log4(output)), output.shape.length - 1));
+    return neg(sum2(mul(cast(target, "float32"), log2(output)), output.shape.length - 1));
   });
 }
 function sparseCategoricalCrossentropy(target, output, fromLogits = false) {
@@ -20694,7 +20689,7 @@ function binaryCrossentropy(yTrue, yPred) {
   return tidy(() => {
     let y;
     y = clipByValue(yPred, epsilon(), 1 - epsilon());
-    y = log4(div(y, sub(1, y)));
+    y = log2(div(y, sub(1, y)));
     return mean(sigmoidCrossEntropyWithLogits(yTrue, y), -1);
   });
 }
@@ -20702,12 +20697,12 @@ function kullbackLeiblerDivergence(yTrue, yPred) {
   return tidy(() => {
     const clippedTrue = clipByValue(yTrue, epsilon(), 1);
     const clippedPred = clipByValue(yPred, epsilon(), 1);
-    return sum2(mul(yTrue, log4(div(clippedTrue, clippedPred))), -1);
+    return sum2(mul(yTrue, log2(div(clippedTrue, clippedPred))), -1);
   });
 }
 function poisson(yTrue, yPred) {
   return tidy(() => {
-    const logPred = log4(add2(epsilon(), yPred));
+    const logPred = log2(add2(epsilon(), yPred));
     return mean(sub(yPred, mul(yTrue, logPred)), -1);
   });
 }
@@ -21345,7 +21340,7 @@ function getTopologicalSortAndRecipientCounts(fetches, feedDict) {
     finalSorted = out.sorted;
     finalRecipientMap = out.recipientMap;
   } else {
-    const visited = new Set();
+    const visited = /* @__PURE__ */ new Set();
     for (const fetch4 of fetches) {
       const { sorted, recipientMap } = getTopologicalSortAndRecipientCountsForOneFetch(fetch4, feedDict);
       for (const symbolicTensor of sorted) {
@@ -21356,7 +21351,7 @@ function getTopologicalSortAndRecipientCounts(fetches, feedDict) {
       }
       for (const name in recipientMap) {
         if (finalRecipientMap[name] == null) {
-          finalRecipientMap[name] = new Set();
+          finalRecipientMap[name] = /* @__PURE__ */ new Set();
         }
         recipientMap[name].forEach((recipient) => finalRecipientMap[name].add(recipient));
       }
@@ -21375,7 +21370,7 @@ function recipientMap2Counts(recipientMap) {
   return recipientCounts;
 }
 function getTopologicalSortAndRecipientCountsForOneFetch(fetch4, feedDict) {
-  const visited = new Set();
+  const visited = /* @__PURE__ */ new Set();
   const sorted = [];
   const recipientMap = {};
   for (const key of feedDict.names()) {
@@ -21402,7 +21397,7 @@ function getTopologicalSortAndRecipientCountsForOneFetch(fetch4, feedDict) {
       marks.push(stack2.length - 1);
       for (const input2 of top.inputs) {
         if (recipientMap[input2.name] == null) {
-          recipientMap[input2.name] = new Set();
+          recipientMap[input2.name] = /* @__PURE__ */ new Set();
         }
         recipientMap[input2.name].add(top.name);
         if (visited.has(input2.name)) {
@@ -21437,7 +21432,7 @@ function getNodeOutputs(fetch4) {
 var Container = class extends Layer {
   constructor(args) {
     super({});
-    this.containerNodes = new Set();
+    this.containerNodes = /* @__PURE__ */ new Set();
     this.name = args.name;
     if (this.name == null) {
       const prefix = this.getClassName().toLowerCase();
@@ -21953,16 +21948,16 @@ var Container = class extends Layer {
   }
   calculateLosses() {
     return tidy(() => {
-      const losses4 = [];
+      const losses2 = [];
       for (const layer of this.layers) {
         for (let nodeIndex = 0; nodeIndex < layer.inboundNodes.length; ++nodeIndex) {
           const nodeKey = Container.nodeKey(layer, nodeIndex);
           if (this.containerNodes.has(nodeKey)) {
-            losses4.push(...layer.calculateLosses());
+            losses2.push(...layer.calculateLosses());
           }
         }
       }
-      return losses4;
+      return losses2;
     });
   }
   getConfig() {
@@ -22229,8 +22224,8 @@ async function standardizeWeights(y, sampleWeight, classWeight, sampleWeightMode
     return null;
   }
 }
-function computeWeightedLoss2(losses4, sampleWeights) {
-  return mul(losses4, sampleWeights);
+function computeWeightedLoss2(losses2, sampleWeights) {
+  return mul(losses2, sampleWeights);
 }
 
 // src/tfjs-layers/src/engine/training_dataset.ts
@@ -22898,17 +22893,17 @@ function checkInputData(data, names, shapes, checkBatchAxis = true, exceptionPre
     }
   }
 }
-function collectMetrics(metrics2, outputNames) {
-  if (metrics2 == null || Array.isArray(metrics2) && metrics2.length === 0) {
+function collectMetrics(metrics, outputNames) {
+  if (metrics == null || Array.isArray(metrics) && metrics.length === 0) {
     return outputNames.map((name) => []);
   }
   let wrappedMetrics;
-  if (typeof metrics2 === "string" || typeof metrics2 === "function") {
-    wrappedMetrics = [metrics2];
-  } else if (Array.isArray(metrics2) || typeof metrics2 === "object") {
-    wrappedMetrics = metrics2;
+  if (typeof metrics === "string" || typeof metrics === "function") {
+    wrappedMetrics = [metrics];
+  } else if (Array.isArray(metrics) || typeof metrics === "object") {
+    wrappedMetrics = metrics;
   } else {
-    throw new TypeError(`Type of metrics argument not understood. Expected an string,function, Array, or Object, found: ${metrics2}`);
+    throw new TypeError(`Type of metrics argument not understood. Expected an string,function, Array, or Object, found: ${metrics}`);
   }
   if (Array.isArray(wrappedMetrics)) {
     return outputNames.map((name) => wrappedMetrics);
@@ -23018,12 +23013,12 @@ var LayersModel = class extends Container {
           continue;
         }
         const outputMetrics = nestedMetrics[i];
-        const handleMetrics = (metrics2) => {
+        const handleMetrics = (metrics) => {
           const metricNamePrefix = "";
           let metricName;
           let accFn;
           let weightedMetricFn;
-          for (const metric of metrics2) {
+          for (const metric of metrics) {
             if (typeof metric === "string" && ["accuracy", "acc", "crossentropy", "ce"].indexOf(metric) !== -1) {
               const outputShape = this.internalOutputShapes[i];
               if (outputShape[outputShape.length - 1] === 1 || this.lossFunctions[i] === binaryCrossentropy) {
@@ -23408,13 +23403,13 @@ var LayersModel = class extends Container {
     const inputs = standardizeOut[0];
     const targets = standardizeOut[1];
     const trainFunction = this.makeTrainFunction();
-    const losses4 = trainFunction(inputs.concat(targets));
+    const losses2 = trainFunction(inputs.concat(targets));
     const lossValues = [];
-    for (const loss of losses4) {
+    for (const loss of losses2) {
       const v = await loss.data();
       lossValues.push(v[0]);
     }
-    dispose(losses4);
+    dispose(losses2);
     return singletonOrArray(lossValues);
   }
   getNamedWeights(config) {
@@ -23468,10 +23463,10 @@ var LayersModel = class extends Container {
     } else {
       const outputNames = Object.keys(this.loss);
       lossNames = {};
-      const losses4 = this.loss;
+      const losses2 = this.loss;
       for (const outputName of outputNames) {
-        if (typeof losses4[outputName] === "string") {
-          lossNames[outputName] = toSnakeCase(losses4[outputName]);
+        if (typeof losses2[outputName] === "string") {
+          lossNames[outputName] = toSnakeCase(losses2[outputName]);
         } else {
           throw new Error("Serialization of non-string loss is not supported.");
         }
@@ -23525,16 +23520,16 @@ var LayersModel = class extends Container {
         loss[key] = toCamelCase(trainingConfig.loss[key]);
       }
     }
-    let metrics2;
+    let metrics;
     if (Array.isArray(trainingConfig.metrics)) {
-      metrics2 = trainingConfig.metrics.map((metric) => toCamelCase(metric));
+      metrics = trainingConfig.metrics.map((metric) => toCamelCase(metric));
     } else if (trainingConfig.metrics != null) {
-      metrics2 = {};
+      metrics = {};
       for (const key in trainingConfig.metrics) {
-        metrics2[key] = toCamelCase(trainingConfig.metrics[key]);
+        metrics[key] = toCamelCase(trainingConfig.metrics[key]);
       }
     }
-    this.compile({ loss, metrics: metrics2, optimizer });
+    this.compile({ loss, metrics, optimizer });
   }
   async save(handlerOrURL, config) {
     if (typeof handlerOrURL === "string") {
@@ -29213,8 +29208,7 @@ ENV3.registerFlag("KEEP_INTERMEDIATE_TENSORS", () => false, (debugValue) => {
 });
 
 // src/tfjs-converter/src/data/compiled_api.ts
-var DataType8;
-(function(DataType48) {
+var DataType8 = /* @__PURE__ */ ((DataType48) => {
   DataType48[DataType48["DT_INVALID"] = 0] = "DT_INVALID";
   DataType48[DataType48["DT_FLOAT"] = 1] = "DT_FLOAT";
   DataType48[DataType48["DT_DOUBLE"] = 2] = "DT_DOUBLE";
@@ -29262,11 +29256,12 @@ var DataType8;
   DataType48[DataType48["DT_VARIANT_REF"] = 121] = "DT_VARIANT_REF";
   DataType48[DataType48["DT_UINT32_REF"] = 122] = "DT_UINT32_REF";
   DataType48[DataType48["DT_UINT64_REF"] = 123] = "DT_UINT64_REF";
-})(DataType8 || (DataType8 = {}));
+  return DataType48;
+})(DataType8 || {});
 var SaverDef;
-(function(SaverDef2) {
+((SaverDef2) => {
   let CheckpointFormatVersion;
-  (function(CheckpointFormatVersion2) {
+  ((CheckpointFormatVersion2) => {
     CheckpointFormatVersion2[CheckpointFormatVersion2["LEGACY"] = 0] = "LEGACY";
     CheckpointFormatVersion2[CheckpointFormatVersion2["V1"] = 1] = "V1";
     CheckpointFormatVersion2[CheckpointFormatVersion2["V2"] = 2] = "V2";
@@ -35261,8 +35256,8 @@ var OperationMapper = class {
       return map;
     }, {});
   }
-  transformGraph(graph2, signature = {}) {
-    const tfNodes = graph2.node;
+  transformGraph(graph, signature = {}) {
+    const tfNodes = graph.node;
     const placeholders = [];
     const weights = [];
     const initNodes = [];
@@ -35332,8 +35327,8 @@ var OperationMapper = class {
       inputs = placeholders;
     }
     let functions = {};
-    if (graph2.library != null && graph2.library.function != null) {
-      functions = graph2.library.function.reduce((functions2, func2) => {
+    if (graph.library != null && graph.library.function != null) {
+      functions = graph.library.function.reduce((functions2, func2) => {
         functions2[func2.signature.name] = this.mapFunction(func2);
         return functions2;
       }, {});
@@ -35811,7 +35806,7 @@ var executeOp2 = (node, tensorMap, context) => {
     case "Floor":
       return [floor(getParamValue("x", node, tensorMap, context))];
     case "Log":
-      return [log4(getParamValue("x", node, tensorMap, context))];
+      return [log2(getParamValue("x", node, tensorMap, context))];
     case "Log1p": {
       return [log1p(getParamValue("x", node, tensorMap, context))];
     }
@@ -36923,7 +36918,7 @@ var HashTable = class {
     this.keyDType = keyDType;
     this.valueDType = valueDType;
     this.handle = scalar(0);
-    this.tensorMap = new Map();
+    this.tensorMap = /* @__PURE__ */ new Map();
     keep(this.handle);
   }
   get id() {
@@ -36993,31 +36988,31 @@ var executeOp9 = async (node, tensorMap, context, resourceManager) => {
     case "HashTableV2": {
       const keyDType = getParamValue("keyDType", node, tensorMap, context);
       const valueDType = getParamValue("valueDType", node, tensorMap, context);
-      const hashTable2 = new HashTable(keyDType, valueDType);
-      resourceManager.addHashTable(node.name, hashTable2);
-      return [hashTable2.handle];
+      const hashTable = new HashTable(keyDType, valueDType);
+      resourceManager.addHashTable(node.name, hashTable);
+      return [hashTable.handle];
     }
     case "LookupTableImport":
     case "LookupTableImportV2": {
       const handle = getParamValue("tableHandle", node, tensorMap, context, resourceManager);
       const keys = getParamValue("keys", node, tensorMap, context);
       const values = getParamValue("values", node, tensorMap, context);
-      const hashTable2 = resourceManager.getHashTableById(handle.id);
-      return [await hashTable2.import(keys, values)];
+      const hashTable = resourceManager.getHashTableById(handle.id);
+      return [await hashTable.import(keys, values)];
     }
     case "LookupTableFind":
     case "LookupTableFindV2": {
       const handle = getParamValue("tableHandle", node, tensorMap, context, resourceManager);
       const keys = getParamValue("keys", node, tensorMap, context);
       const defaultValue = getParamValue("defaultValue", node, tensorMap, context);
-      const hashTable2 = resourceManager.getHashTableById(handle.id);
-      return [await hashTable2.find(keys, defaultValue)];
+      const hashTable = resourceManager.getHashTableById(handle.id);
+      return [await hashTable.find(keys, defaultValue)];
     }
     case "LookupTableSize":
     case "LookupTableSizeV2": {
       const handle = getParamValue("tableHandle", node, tensorMap, context, resourceManager);
-      const hashTable2 = resourceManager.getHashTableById(handle.id);
-      return [hashTable2.tensorSize()];
+      const hashTable = resourceManager.getHashTableById(handle.id);
+      return [hashTable.tensorSize()];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
@@ -37042,13 +37037,13 @@ var executeOp10 = (node, tensorMap, context) => {
       return [image.resizeNearestNeighbor(images, [size[0], size[1]], alignCorners, halfPixelCenters)];
     }
     case "CropAndResize": {
-      const image3 = getParamValue("image", node, tensorMap, context);
+      const image2 = getParamValue("image", node, tensorMap, context);
       const boxes = getParamValue("boxes", node, tensorMap, context);
       const boxInd = getParamValue("boxInd", node, tensorMap, context);
       const cropSize = getParamValue("cropSize", node, tensorMap, context);
       const method = getParamValue("method", node, tensorMap, context);
       const extrapolationValue = getParamValue("extrapolationValue", node, tensorMap, context);
-      return [image.cropAndResize(image3, boxes, boxInd, cropSize, method, extrapolationValue)];
+      return [image.cropAndResize(image2, boxes, boxInd, cropSize, method, extrapolationValue)];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
@@ -37624,11 +37619,11 @@ var ExecutionContext = class {
 
 // src/tfjs-converter/src/executor/model_analysis.ts
 function getExecutionSubgraph(inputs, outputs, weightMap, initNodes) {
-  const usedNodes = new Set();
+  const usedNodes = /* @__PURE__ */ new Set();
   const missingInputs = [];
   let dynamicNode = null;
   let syncInputs = null;
-  const seen = new Set();
+  const seen = /* @__PURE__ */ new Set();
   const inputNodeNames = Object.keys(inputs).map((name) => parseNodeName(name)[0]);
   let initNodeNames = [];
   if (initNodes != null) {
@@ -37667,17 +37662,17 @@ function getExecutionSubgraph(inputs, outputs, weightMap, initNodes) {
   }
   return { inputs, outputs, usedNodes, missingInputs, dynamicNode, syncInputs };
 }
-function getNodesInTopologicalOrder(graph2, weightMap, executionInfo) {
+function getNodesInTopologicalOrder(graph, weightMap, executionInfo) {
   const { usedNodes, inputs } = executionInfo;
   const frontier = [];
-  const inputNodes = Object.keys(inputs).map((name) => parseNodeName(name)[0]).map((name) => graph2.nodes[name]);
-  const initNodes = graph2.initNodes;
+  const inputNodes = Object.keys(inputs).map((name) => parseNodeName(name)[0]).map((name) => graph.nodes[name]);
+  const initNodes = graph.initNodes;
   inputNodes.forEach((input2) => {
     if (usedNodes.has(input2.name)) {
       frontier.push(input2);
     }
   });
-  graph2.weights.forEach((weight) => {
+  graph.weights.forEach((weight) => {
     if (usedNodes.has(weight.name)) {
       frontier.push(weight);
     }
@@ -37689,7 +37684,7 @@ function getNodesInTopologicalOrder(graph2, weightMap, executionInfo) {
       }
     });
   }
-  const seen = new Set();
+  const seen = /* @__PURE__ */ new Set();
   const orderedNodes = [];
   while (frontier.length > 0) {
     const node = frontier.pop();
@@ -37744,24 +37739,24 @@ function isHashTable(node) {
 
 // src/tfjs-converter/src/executor/graph_executor.ts
 var GraphExecutor = class {
-  constructor(graph2, parent) {
-    this.graph = graph2;
+  constructor(graph, parent) {
+    this.graph = graph;
     this.parent = parent;
-    this.compiledMap = new Map();
+    this.compiledMap = /* @__PURE__ */ new Map();
     this._weightMap = {};
     this.SEPERATOR = ",";
     this._functions = {};
     this._functionExecutorMap = {};
     this.intermediateTensors = {};
     this.keepTensorForDebug = false;
-    this._outputs = graph2.outputs;
-    this._inputs = graph2.inputs;
-    this._initNodes = graph2.initNodes;
-    this._signature = graph2.signature;
-    this._functions = graph2.functions;
-    if (graph2.functions != null) {
-      Object.keys(graph2.functions).forEach((name) => {
-        this._functionExecutorMap[name] = new GraphExecutor(graph2.functions[name], this);
+    this._outputs = graph.outputs;
+    this._inputs = graph.inputs;
+    this._initNodes = graph.initNodes;
+    this._signature = graph.signature;
+    this._functions = graph.functions;
+    if (graph.functions != null) {
+      Object.keys(graph.functions).forEach((name) => {
+        this._functionExecutorMap[name] = new GraphExecutor(graph.functions[name], this);
       });
     }
   }
@@ -37976,7 +37971,7 @@ var GraphExecutor = class {
     const results = outputs.map((name) => getTensor(name, this.tensorsMap, context));
     const outputIds = results.map((t) => t.id);
     const inputIds = Object.keys(inputs).map((name) => inputs[name].id);
-    this.keepIds = new Set([...outputIds, ...inputIds, ...this.weightIds]);
+    this.keepIds = /* @__PURE__ */ new Set([...outputIds, ...inputIds, ...this.weightIds]);
     if (!this.keepTensorForDebug) {
       this.disposeTensorsMap();
     }
@@ -38154,9 +38149,9 @@ var ResourceManager = class {
     this.hashTableNameToHandle = hashTableNameToHandle;
     this.hashTableMap = hashTableMap;
   }
-  addHashTable(name, hashTable2) {
-    this.hashTableNameToHandle[name] = hashTable2.handle;
-    this.hashTableMap[hashTable2.id] = hashTable2;
+  addHashTable(name, hashTable) {
+    this.hashTableNameToHandle[name] = hashTable.handle;
+    this.hashTableMap[hashTable.id] = hashTable;
   }
   getHashTableHandleByName(name) {
     return this.hashTableNameToHandle[name];
@@ -38239,7 +38234,7 @@ var GraphModel = class {
   }
   loadSync(artifacts) {
     this.artifacts = artifacts;
-    const graph2 = this.artifacts.modelTopology;
+    const graph = this.artifacts.modelTopology;
     let signature;
     if (this.artifacts.userDefinedMetadata != null && this.artifacts.userDefinedMetadata.signature != null) {
       signature = this.artifacts.userDefinedMetadata.signature;
@@ -38247,9 +38242,9 @@ var GraphModel = class {
       signature = this.artifacts.signature;
     }
     this.signature = signature;
-    this.version = `${graph2.versions.producer}.${graph2.versions.minConsumer}`;
+    this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
     const weightMap = io_exports.decodeWeights(this.artifacts.weightData, this.artifacts.weightSpecs);
-    this.executor = new GraphExecutor(OperationMapper.Instance.transformGraph(graph2, this.signature));
+    this.executor = new GraphExecutor(OperationMapper.Instance.transformGraph(graph, this.signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
     this.executor.resourceManager = this.resourceManager;
     if (artifacts.modelInitializer != null && artifacts.modelInitializer.node != null) {
@@ -38352,8 +38347,8 @@ async function loadGraphModel(modelUrl, options = {}) {
 var version3 = "0.0.0";
 
 // src/tfjs-data/src/index.ts
-var src_exports = {};
-__export(src_exports, {
+var src_exports2 = {};
+__export(src_exports2, {
   CSVDataset: () => CSVDataset,
   Dataset: () => Dataset,
   FileDataSource: () => FileDataSource,
@@ -38379,7 +38374,7 @@ var seedrandom2 = __toModule(require_seedrandom2());
 function deepMap(input2, mapFn) {
   return deepMapInternal(input2, mapFn);
 }
-function deepMapInternal(input2, mapFn, seen = new Map(), containedIn = new Set()) {
+function deepMapInternal(input2, mapFn, seen = /* @__PURE__ */ new Map(), containedIn = /* @__PURE__ */ new Set()) {
   if (input2 == null) {
     return null;
   }
@@ -38419,7 +38414,7 @@ function deepMapInternal(input2, mapFn, seen = new Map(), containedIn = new Set(
 function deepZip(inputs, zipFn = zipToList) {
   return deepZipInternal(inputs, zipFn);
 }
-function deepZipInternal(inputs, zipFn, containedIn = new Set()) {
+function deepZipInternal(inputs, zipFn, containedIn = /* @__PURE__ */ new Set()) {
   const input2 = inputs[0];
   if (containedIn.has(input2)) {
     throw new Error("Circular references are not supported.");
@@ -38455,7 +38450,7 @@ function zipToList(x) {
   }
 }
 async function deepMapAndAwaitAll(input2, mapFn) {
-  const seen = new Map();
+  const seen = /* @__PURE__ */ new Map();
   deepMapInternal(input2, mapFn, seen);
   for (const key of Array.from(seen.keys())) {
     const value = seen.get(key);
@@ -39039,14 +39034,14 @@ var ChainedIterator = class extends LazyIterator {
     return itemResult;
   }
 };
-var ZipMismatchMode;
-(function(ZipMismatchMode2) {
+var ZipMismatchMode = /* @__PURE__ */ ((ZipMismatchMode2) => {
   ZipMismatchMode2[ZipMismatchMode2["FAIL"] = 0] = "FAIL";
   ZipMismatchMode2[ZipMismatchMode2["SHORTEST"] = 1] = "SHORTEST";
   ZipMismatchMode2[ZipMismatchMode2["LONGEST"] = 2] = "LONGEST";
-})(ZipMismatchMode || (ZipMismatchMode = {}));
+  return ZipMismatchMode2;
+})(ZipMismatchMode || {});
 var ZipIterator = class extends LazyIterator {
-  constructor(iterators, mismatchMode = 0) {
+  constructor(iterators, mismatchMode = 0 /* FAIL */) {
     super();
     this.iterators = iterators;
     this.mismatchMode = mismatchMode;
@@ -39084,11 +39079,11 @@ var ZipIterator = class extends LazyIterator {
     }
     if (iteratorsDone > 0) {
       switch (this.mismatchMode) {
-        case 0:
+        case 0 /* FAIL */:
           throw new Error(`Zipped streams should have the same length. Mismatched at element ${this.count}.`);
-        case 1:
+        case 1 /* SHORTEST */:
           return { value: null, done: true };
-        case 2:
+        case 2 /* LONGEST */:
         default:
       }
     }
@@ -39164,7 +39159,7 @@ var Dataset = class {
     this.size = null;
   }
   batch(batchSize, smallLastBatch = true) {
-    const base2 = this;
+    const base = this;
     util_exports.assert(batchSize > 0, () => `batchSize needs to be positive, but it is
       ${batchSize}`);
     let size;
@@ -39176,11 +39171,11 @@ var Dataset = class {
       size = Math.floor(this.size / batchSize);
     }
     return datasetFromIteratorFn(async () => {
-      return (await base2.iterator()).columnMajorBatch(batchSize, smallLastBatch, deepBatchConcat);
+      return (await base.iterator()).columnMajorBatch(batchSize, smallLastBatch, deepBatchConcat);
     }, size);
   }
   concatenate(dataset) {
-    const base2 = this;
+    const base = this;
     let size;
     if (this.size === Infinity || dataset.size === Infinity) {
       size = Infinity;
@@ -39189,10 +39184,10 @@ var Dataset = class {
     } else {
       size = null;
     }
-    return datasetFromIteratorFn(async () => (await base2.iterator()).concatenate(await dataset.iterator()), size);
+    return datasetFromIteratorFn(async () => (await base.iterator()).concatenate(await dataset.iterator()), size);
   }
   filter(predicate) {
-    const base2 = this;
+    const base = this;
     let size;
     if (this.size === Infinity) {
       size = Infinity;
@@ -39200,33 +39195,33 @@ var Dataset = class {
       size = null;
     }
     return datasetFromIteratorFn(async () => {
-      return (await base2.iterator()).filter((x) => tidy(() => predicate(x)));
+      return (await base.iterator()).filter((x) => tidy(() => predicate(x)));
     }, size);
   }
   async forEachAsync(f) {
     return (await this.iterator()).forEachAsync(f);
   }
   map(transform6) {
-    const base2 = this;
+    const base = this;
     return datasetFromIteratorFn(async () => {
-      return (await base2.iterator()).map((x) => tidy(() => transform6(x)));
+      return (await base.iterator()).map((x) => tidy(() => transform6(x)));
     }, this.size);
   }
   mapAsync(transform6) {
-    const base2 = this;
+    const base = this;
     return datasetFromIteratorFn(async () => {
-      return (await base2.iterator()).mapAsync(transform6);
+      return (await base.iterator()).mapAsync(transform6);
     }, this.size);
   }
   prefetch(bufferSize) {
     if (bufferSize == null) {
       throw new RangeError("`Dataset.prefetch()` requires bufferSize to be specified.");
     }
-    const base2 = this;
-    return datasetFromIteratorFn(async () => (await base2.iterator()).prefetch(bufferSize), this.size);
+    const base = this;
+    return datasetFromIteratorFn(async () => (await base.iterator()).prefetch(bufferSize), this.size);
   }
   repeat(count2) {
-    const base2 = this;
+    const base = this;
     let size;
     if (this.size != null && count2 > 0) {
       size = this.size * count2;
@@ -39238,12 +39233,12 @@ var Dataset = class {
       size = null;
     }
     return datasetFromIteratorFn(async () => {
-      const iteratorIterator = iteratorFromFunction(async () => ({ value: await base2.iterator(), done: false }));
+      const iteratorIterator = iteratorFromFunction(async () => ({ value: await base.iterator(), done: false }));
       return iteratorFromConcatenated(iteratorIterator.take(count2));
     }, size);
   }
   skip(count2) {
-    const base2 = this;
+    const base = this;
     let size;
     if (this.size != null && count2 >= 0 && this.size >= count2) {
       size = this.size - count2;
@@ -39252,7 +39247,7 @@ var Dataset = class {
     } else {
       size = null;
     }
-    return datasetFromIteratorFn(async () => (await base2.iterator()).skip(count2), size);
+    return datasetFromIteratorFn(async () => (await base.iterator()).skip(count2), size);
   }
   shuffle(bufferSize, seed, reshuffleEachIteration = true) {
     if (bufferSize == null || bufferSize < 0) {
@@ -39262,18 +39257,18 @@ var Dataset = class {
         throw new RangeError(`\`Dataset.shuffle()\` requires bufferSize to be specified.  If your data fits in main memory (for regular JS objects), and/or GPU memory (for \`tf.Tensor\`s), consider setting bufferSize to the dataset size (${this.size} elements)`);
       }
     }
-    const base2 = this;
+    const base = this;
     const random = seedrandom3.alea(seed || util_exports.now().toString());
     return datasetFromIteratorFn(async () => {
       let seed2 = random.int32();
       if (reshuffleEachIteration) {
         seed2 += random.int32();
       }
-      return (await base2.iterator()).shuffle(bufferSize, seed2.toString());
+      return (await base.iterator()).shuffle(bufferSize, seed2.toString());
     }, this.size);
   }
   take(count2) {
-    const base2 = this;
+    const base = this;
     let size;
     if (this.size != null && this.size > count2) {
       size = count2;
@@ -39282,7 +39277,7 @@ var Dataset = class {
     } else {
       size = null;
     }
-    return datasetFromIteratorFn(async () => (await base2.iterator()).take(count2), size);
+    return datasetFromIteratorFn(async () => (await base.iterator()).take(count2), size);
   }
   async toArray() {
     if (this.size === Infinity) {
@@ -40838,11 +40833,11 @@ function linSpaceImpl(start, stop, num) {
 
 // src/tfjs-backend-cpu/src/kernels/Log.ts
 var logImpl = createSimpleUnaryImpl((xi) => Math.log(xi));
-var log5 = unaryKernelFuncFromImpl(Log, logImpl);
+var log3 = unaryKernelFuncFromImpl(Log, logImpl);
 var logConfig = {
   kernelName: Log,
   backendName: "cpu",
-  kernelFunc: log5
+  kernelFunc: log3
 };
 
 // src/tfjs-backend-cpu/src/kernels/Max_impl.ts
@@ -43299,16 +43294,16 @@ var coshConfig = {
 // src/tfjs-backend-cpu/src/kernels/CropAndResize.ts
 function cropAndResize2(args) {
   const { inputs, backend: backend2, attrs } = args;
-  const { image: image3, boxes, boxInd } = inputs;
+  const { image: image2, boxes, boxInd } = inputs;
   const { cropSize, method, extrapolationValue } = attrs;
-  const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+  const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
   const numBoxes = boxes.shape[0];
   const [cropHeight, cropWidth] = cropSize;
   const output = buffer([numBoxes, cropHeight, cropWidth, numChannels], "float32");
   const boxVals = backend2.data.get(boxes.dataId).values;
   const boxIndVals = backend2.data.get(boxInd.dataId).values;
-  const imageVals = backend2.data.get(image3.dataId).values;
-  const inStride = util_exports.computeStrides(image3.shape);
+  const imageVals = backend2.data.get(image2.dataId).values;
+  const inStride = util_exports.computeStrides(image2.shape);
   const outStride = util_exports.computeStrides(output.shape);
   for (let b = 0; b < numBoxes; b++) {
     const startInd = b * 4;
@@ -44336,11 +44331,11 @@ var flipLeftRightConfig = {
   kernelName: FlipLeftRight,
   backendName: "cpu",
   kernelFunc: ({ inputs, attrs, backend: backend2 }) => {
-    const { image: image3 } = inputs;
+    const { image: image2 } = inputs;
     const cpuBackend = backend2;
-    const output = util_exports.getTypedArrayFromDType(image3.dtype, util_exports.sizeFromShape(image3.shape));
-    const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
-    const imageVals = cpuBackend.data.get(image3.dataId).values;
+    const output = util_exports.getTypedArrayFromDType(image2.dtype, util_exports.sizeFromShape(image2.shape));
+    const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
+    const imageVals = cpuBackend.data.get(image2.dataId).values;
     for (let batchIdx = 0; batchIdx < batch; batchIdx++) {
       const batchOffset = batchIdx * imageWidth * imageHeight * numChannels;
       for (let row = 0; row < imageHeight; row++) {
@@ -44361,8 +44356,8 @@ var flipLeftRightConfig = {
         }
       }
     }
-    const dataId = cpuBackend.write(output, image3.shape, image3.dtype);
-    return { dataId, shape: image3.shape, dtype: image3.dtype };
+    const dataId = cpuBackend.write(output, image2.shape, image2.dtype);
+    return { dataId, shape: image2.shape, dtype: image2.dtype };
   }
 };
 
@@ -45681,16 +45676,16 @@ var rotateWithOffsetConfig = {
   kernelName: RotateWithOffset,
   backendName: "cpu",
   kernelFunc: ({ inputs, attrs, backend: backend2 }) => {
-    const { image: image3 } = inputs;
+    const { image: image2 } = inputs;
     const { radians, fillValue, center } = attrs;
     const cpuBackend = backend2;
-    const output = util_exports.getTypedArrayFromDType(image3.dtype, util_exports.sizeFromShape(image3.shape));
-    const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+    const output = util_exports.getTypedArrayFromDType(image2.dtype, util_exports.sizeFromShape(image2.shape));
+    const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
     const [centerX, centerY] = backend_util_exports.getImageCenter(center, imageHeight, imageWidth);
     const fullOpacityValue = 255;
     const sinFactor = Math.sin(radians);
     const cosFactor = Math.cos(radians);
-    const imageVals = cpuBackend.data.get(image3.dataId).values;
+    const imageVals = cpuBackend.data.get(image2.dataId).values;
     for (let batchIdx = 0; batchIdx < batch; batchIdx++) {
       const batchOffset = batchIdx * imageWidth * imageHeight * numChannels;
       for (let row = 0; row < imageHeight; row++) {
@@ -45725,23 +45720,23 @@ var rotateWithOffsetConfig = {
         }
       }
     }
-    const dataId = cpuBackend.write(output, image3.shape, image3.dtype);
-    return { dataId, shape: image3.shape, dtype: image3.dtype };
+    const dataId = cpuBackend.write(output, image2.shape, image2.dtype);
+    return { dataId, shape: image2.shape, dtype: image2.dtype };
   }
 };
 
 // src/tfjs-backend-cpu/src/kernels/Round.ts
 var round3 = unaryKernelFunc(Round, (xi) => {
-  const base2 = Math.floor(xi);
-  if (xi - base2 < 0.5) {
+  const base = Math.floor(xi);
+  if (xi - base < 0.5) {
     return Math.floor(xi);
-  } else if (xi - base2 > 0.5) {
+  } else if (xi - base > 0.5) {
     return Math.ceil(xi);
   } else {
-    if (base2 % 2 === 0) {
-      return base2;
+    if (base % 2 === 0) {
+      return base;
     } else {
-      return base2 + 1;
+      return base + 1;
     }
   }
 });
@@ -46329,18 +46324,18 @@ var topKConfig = {
 // src/tfjs-backend-cpu/src/kernels/Transform.ts
 function transform2(args) {
   const { inputs, attrs, backend: backend2 } = args;
-  const { image: image3, transforms } = inputs;
+  const { image: image2, transforms } = inputs;
   const { interpolation, fillMode, fillValue, outputShape } = attrs;
-  const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+  const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
   const [outHeight, outWidth] = outputShape != null ? outputShape : [imageHeight, imageWidth];
   const outShape = [batch, outHeight, outWidth, numChannels];
-  const strides = util_exports.computeStrides(image3.shape);
+  const strides = util_exports.computeStrides(image2.shape);
   const batchStride = strides[0];
   const rowStride = strides[1];
   const colStride = strides[2];
-  const outVals = util_exports.getTypedArrayFromDType(image3.dtype, util_exports.sizeFromShape(outShape));
+  const outVals = util_exports.getTypedArrayFromDType(image2.dtype, util_exports.sizeFromShape(outShape));
   outVals.fill(fillValue);
-  const imageVals = backend2.data.get(image3.dataId).values;
+  const imageVals = backend2.data.get(image2.dataId).values;
   const transformVals = backend2.data.get(transforms.dataId).values;
   for (let b = 0; b < batch; ++b) {
     const transform6 = transforms.shape[0] === 1 ? transformVals : transformVals.subarray(b * 8, b * 8 + 8);
@@ -46371,10 +46366,10 @@ function transform2(args) {
         }
       }
     }
-    return backend2.makeTensorInfo(outShape, image3.dtype, outVals);
+    return backend2.makeTensorInfo(outShape, image2.dtype, outVals);
   }
-  const dataId = backend2.write(outVals, outShape, image3.dtype);
-  return { dataId, shape: image3.shape, dtype: image3.dtype };
+  const dataId = backend2.write(outVals, outShape, image2.dtype);
+  return { dataId, shape: image2.shape, dtype: image2.dtype };
 }
 var transformConfig = {
   kernelName: Transform,
@@ -46844,26 +46839,26 @@ function getWebGLRenderingContext(webGLVersion) {
 }
 
 // src/tfjs-backend-webgl/src/tex_util.ts
-var PackingScheme;
-(function(PackingScheme2) {
+var PackingScheme = /* @__PURE__ */ ((PackingScheme2) => {
   PackingScheme2[PackingScheme2["DENSE"] = 0] = "DENSE";
   PackingScheme2[PackingScheme2["SHARED_BATCH"] = 1] = "SHARED_BATCH";
-})(PackingScheme || (PackingScheme = {}));
-var TextureUsage;
-(function(TextureUsage2) {
+  return PackingScheme2;
+})(PackingScheme || {});
+var TextureUsage = /* @__PURE__ */ ((TextureUsage2) => {
   TextureUsage2[TextureUsage2["RENDER"] = 0] = "RENDER";
   TextureUsage2[TextureUsage2["UPLOAD"] = 1] = "UPLOAD";
   TextureUsage2[TextureUsage2["PIXELS"] = 2] = "PIXELS";
   TextureUsage2[TextureUsage2["DOWNLOAD"] = 3] = "DOWNLOAD";
-})(TextureUsage || (TextureUsage = {}));
-var PhysicalTextureType;
-(function(PhysicalTextureType2) {
+  return TextureUsage2;
+})(TextureUsage || {});
+var PhysicalTextureType = /* @__PURE__ */ ((PhysicalTextureType2) => {
   PhysicalTextureType2[PhysicalTextureType2["UNPACKED_FLOAT16"] = 0] = "UNPACKED_FLOAT16";
   PhysicalTextureType2[PhysicalTextureType2["UNPACKED_FLOAT32"] = 1] = "UNPACKED_FLOAT32";
   PhysicalTextureType2[PhysicalTextureType2["PACKED_4X1_UNSIGNED_BYTE"] = 2] = "PACKED_4X1_UNSIGNED_BYTE";
   PhysicalTextureType2[PhysicalTextureType2["PACKED_2X2_FLOAT32"] = 3] = "PACKED_2X2_FLOAT32";
   PhysicalTextureType2[PhysicalTextureType2["PACKED_2X2_FLOAT16"] = 4] = "PACKED_2X2_FLOAT16";
-})(PhysicalTextureType || (PhysicalTextureType = {}));
+  return PhysicalTextureType2;
+})(PhysicalTextureType || {});
 function getUnpackedMatrixTextureShapeWidthHeight(rows, columns) {
   return [columns, rows];
 }
@@ -55495,10 +55490,10 @@ var CropAndResizeProgram = class {
 // src/tfjs-backend-webgl/src/kernels/CropAndResize.ts
 var cropAndResize3 = (args) => {
   const { inputs, backend: backend2, attrs } = args;
-  const { image: image3, boxes, boxInd } = inputs;
+  const { image: image2, boxes, boxInd } = inputs;
   const { cropSize, method, extrapolationValue } = attrs;
-  const program = new CropAndResizeProgram(image3.shape, boxes.shape, cropSize, method, extrapolationValue);
-  return backend2.runWebGLProgram(program, [image3, boxes, boxInd], "float32");
+  const program = new CropAndResizeProgram(image2.shape, boxes.shape, cropSize, method, extrapolationValue);
+  return backend2.runWebGLProgram(program, [image2, boxes, boxInd], "float32");
 };
 var cropAndResizeConfig2 = {
   kernelName: CropAndResize,
@@ -56751,10 +56746,10 @@ var flipLeftRightConfig2 = {
   kernelName: FlipLeftRight,
   backendName: "webgl",
   kernelFunc: ({ inputs, backend: backend2 }) => {
-    const { image: image3 } = inputs;
+    const { image: image2 } = inputs;
     const webglBackend = backend2;
-    const program = new FlipLeftRightProgram(image3.shape);
-    const output = webglBackend.runWebGLProgram(program, [image3], image3.dtype);
+    const program = new FlipLeftRightProgram(image2.shape);
+    const output = webglBackend.runWebGLProgram(program, [image2], image2.dtype);
     return output;
   }
 };
@@ -57328,11 +57323,11 @@ var LOG_PACKED = `
 
   return result;
 `;
-var log6 = unaryKernelFunc2({ opSnippet: LOG, packedOpSnippet: LOG_PACKED, cpuKernelImpl: logImplCPU });
+var log4 = unaryKernelFunc2({ opSnippet: LOG, packedOpSnippet: LOG_PACKED, cpuKernelImpl: logImplCPU });
 var logConfig2 = {
   kernelName: Log,
   backendName: "webgl",
-  kernelFunc: log6
+  kernelFunc: log4
 };
 
 // src/tfjs-backend-webgl/src/kernels/Log1p.ts
@@ -59568,13 +59563,13 @@ var rotateWithOffsetConfig2 = {
   kernelName: RotateWithOffset,
   backendName: "webgl",
   kernelFunc: ({ inputs, attrs, backend: backend2 }) => {
-    const { image: image3 } = inputs;
+    const { image: image2 } = inputs;
     const { radians, fillValue, center } = attrs;
     const webglBackend = backend2;
-    const program = new RotateProgram(image3.shape, fillValue);
-    const [centerX, centerY] = backend_util_exports.getImageCenter(center, image3.shape[1], image3.shape[2]);
+    const program = new RotateProgram(image2.shape, fillValue);
+    const [centerX, centerY] = backend_util_exports.getImageCenter(center, image2.shape[1], image2.shape[2]);
     const customValues = [[centerX, centerY, Math.sin(radians), Math.cos(radians)]];
-    const output = webglBackend.runWebGLProgram(program, [image3], image3.dtype, customValues);
+    const output = webglBackend.runWebGLProgram(program, [image2], image2.dtype, customValues);
     return output;
   }
 };
@@ -60674,9 +60669,9 @@ var TransformProgram = class {
 // src/tfjs-backend-webgl/src/kernels/Transform.ts
 function transform3(args) {
   const { inputs, backend: backend2, attrs } = args;
-  const { image: image3, transforms } = inputs;
+  const { image: image2, transforms } = inputs;
   const { interpolation, fillMode, fillValue, outputShape } = attrs;
-  const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+  const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
   const [outHeight, outWidth] = outputShape != null ? outputShape : [imageHeight, imageWidth];
   const outShape = [
     batch,
@@ -60685,7 +60680,7 @@ function transform3(args) {
     numChannels
   ];
   const program = new TransformProgram(imageHeight, imageWidth, interpolation, fillMode, fillValue, outShape);
-  return backend2.runWebGLProgram(program, [image3, transforms], "float32");
+  return backend2.runWebGLProgram(program, [image2, transforms], "float32");
 }
 var transformConfig2 = {
   kernelName: Transform,
@@ -61202,10 +61197,10 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   if (isFromPixel === true) {
     const getCoords5 = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
-      [[block]] struct Matrix0 {
+      struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
       };
-      [[block]] struct Uniform {
+      struct Uniform {
         size            : i32;
         numChannels     : i32;
         outShapeStrides : vec2<i32>;
@@ -61225,7 +61220,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
     ].join("\n");
   }
   const prefixSnippets = [];
-  let uniformDeclaration = "[[block]] struct Uniforms { NAN : f32; ";
+  let uniformDeclaration = "struct Uniforms { NAN : f32; ";
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${getCoordsDataType2(inputInfo[i].shape.length)}; `;
   });
@@ -61243,7 +61238,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   prefixSnippets.push(uniformDeclaration);
   if (program.atomic) {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<atomic<i32>>;
     };
 
@@ -61251,7 +61246,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   `);
   } else {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
@@ -61260,7 +61255,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
-    [[block]] struct Matrix${1 + i} {
+    struct Matrix${1 + i} {
       numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
@@ -61316,16 +61311,8 @@ var SHADER_PREFIX = `
     return true;
   }
 
-  fn isNanCustomVec4F32(val : vec4<f32>) -> vec4<f32> {
-    var res = vec4<f32> (0.0);
-    for (var i = 0u; i < 4u; i = i + 1u) {
-      if (isNanCustom(val[i])) {
-        res[i] = 1.0;
-      } else {
-        res[i] = 0.0;
-      }
-    }
-    return res;
+  fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
   }
 
   // Checks whether coordinates lie within the bounds of the shape.
@@ -61817,8 +61804,7 @@ function isWebGPUSupported() {
 }
 
 // src/tfjs-backend-webgpu/src/kernels/binary_op_util.ts
-var BinaryOpType;
-(function(BinaryOpType6) {
+var BinaryOpType = /* @__PURE__ */ ((BinaryOpType6) => {
   BinaryOpType6[BinaryOpType6["MUL"] = 0] = "MUL";
   BinaryOpType6[BinaryOpType6["ADD"] = 1] = "ADD";
   BinaryOpType6[BinaryOpType6["SUB"] = 2] = "SUB";
@@ -61838,7 +61824,8 @@ var BinaryOpType;
   BinaryOpType6[BinaryOpType6["MIN"] = 16] = "MIN";
   BinaryOpType6[BinaryOpType6["COMPLEX_MULTIPLY_REAL"] = 17] = "COMPLEX_MULTIPLY_REAL";
   BinaryOpType6[BinaryOpType6["COMPLEX_MULTIPLY_IMAG"] = 18] = "COMPLEX_MULTIPLY_IMAG";
-})(BinaryOpType || (BinaryOpType = {}));
+  return BinaryOpType6;
+})(BinaryOpType || {});
 var ADD2 = "return a + b;";
 var COMPLEX_MULTIPLY_REAL = "return areal * breal - aimag * bimag;";
 var COMPLEX_MULTIPLY_IMAG = "return areal * bimag + aimag * breal;";
@@ -61864,16 +61851,16 @@ var CHECK_NAN_SNIPPET4 = `
   if (isNanCustom(b)) { return b; }
   `;
 var CHECK_NAN_SNIPPET_VEC4 = `
-  if (isNaN.r > 0.) {
+  if (isNaN.r) {
     resultTemp.r = uniforms.NAN;
   }
-  if (isNaN.g > 0.) {
+  if (isNaN.g) {
     resultTemp.g = uniforms.NAN;
   }
-  if (isNaN.b > 0.) {
+  if (isNaN.b) {
     resultTemp.b = uniforms.NAN;
   }
-  if (isNaN.a > 0.) {
+  if (isNaN.a) {
     resultTemp.a = uniforms.NAN;
   }
   `;
@@ -61939,7 +61926,7 @@ var POW_VEC4 = `
   if (isExpZero.a) {
     resultTemp.a = 1.0;
   }
-  let isNaN = vec4<f32>(a < vec4<f32>(0.0)) * vec4<f32>(floor(b) < b);
+  let isNaN = a < vec4<f32>(0.0) & floor(b) < b;
   ${CHECK_NAN_SNIPPET_VEC4}
   return resultTemp;
   `;
@@ -61952,7 +61939,7 @@ function getMinMaxString(op2, useVec4) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET4;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op2}(a, b));
-    let isNaN = min(vec4<f32>(isNanCustomVec4F32(a)) + vec4<f32>(isNanCustomVec4F32(b)), vec4<f32>(1.0));
+    let isNaN = isNanCustomVec4(a) | isNanCustomVec4(b);
     ` + checkNanSnippet + `
     return resultTemp;
   ` : checkNanSnippet + `
@@ -61961,43 +61948,43 @@ function getMinMaxString(op2, useVec4) {
 }
 function getBinaryOpString(type, useVec4) {
   switch (type) {
-    case 0:
+    case 0 /* MUL */:
       return MUL2;
-    case 1:
+    case 1 /* ADD */:
       return ADD2;
-    case 2:
+    case 2 /* SUB */:
       return SUB2;
-    case 3:
+    case 3 /* DIV */:
       return DIV2;
-    case 4:
+    case 4 /* EQUAL */:
       return useVec4 ? EQUAL_VEC4 : EQUAL2;
-    case 5:
+    case 5 /* GREATER */:
       return useVec4 ? GREATER_VEC4 : GREATER2;
-    case 6:
+    case 6 /* GREATER_EQUAL */:
       return useVec4 ? GREATER_EQUAL_VEC4 : GREATER_EQUAL2;
-    case 7:
+    case 7 /* LESS */:
       return useVec4 ? LESS_VEC4 : LESS2;
-    case 8:
+    case 8 /* LESS_EQUAL */:
       return useVec4 ? LESS_EQUAL_VEC4 : LESS_EQUAL2;
-    case 9:
+    case 9 /* LOGICAL_AND */:
       return useVec4 ? LOGICAL_AND_VEC4 : LOGICAL_AND2;
-    case 10:
+    case 10 /* NOT_EQUAL */:
       return useVec4 ? NOT_EQUAL_VEC4 : NOT_EQUAL2;
-    case 11:
+    case 11 /* SQUARED_DIFFERENCE */:
       return SQUARED_DIFFERENCE2;
-    case 12:
+    case 12 /* INT_DIV */:
       return useVec4 ? INT_DIV_VEC4 : INT_DIV2;
-    case 14:
+    case 14 /* PRELU */:
       return useVec4 ? PRELU_VEC4 : PRELU2;
-    case 15:
+    case 15 /* MAX */:
       return getMinMaxString("max", useVec4);
-    case 16:
+    case 16 /* MIN */:
       return getMinMaxString("min", useVec4);
-    case 13:
+    case 13 /* POW */:
       return useVec4 ? POW_VEC4 : POW2;
-    case 17:
+    case 17 /* COMPLEX_MULTIPLY_REAL */:
       return COMPLEX_MULTIPLY_REAL;
-    case 18:
+    case 18 /* COMPLEX_MULTIPLY_IMAG */:
       return COMPLEX_MULTIPLY_IMAG;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
@@ -62005,8 +61992,7 @@ function getBinaryOpString(type, useVec4) {
 }
 
 // src/tfjs-backend-webgpu/src/kernels/unary_op_util.ts
-var UnaryOpType;
-(function(UnaryOpType3) {
+var UnaryOpType = /* @__PURE__ */ ((UnaryOpType3) => {
   UnaryOpType3[UnaryOpType3["ABS"] = 0] = "ABS";
   UnaryOpType3[UnaryOpType3["CEIL"] = 1] = "CEIL";
   UnaryOpType3[UnaryOpType3["COS"] = 2] = "COS";
@@ -62022,15 +62008,17 @@ var UnaryOpType;
   UnaryOpType3[UnaryOpType3["PRELU"] = 12] = "PRELU";
   UnaryOpType3[UnaryOpType3["RELU"] = 13] = "RELU";
   UnaryOpType3[UnaryOpType3["RELU6"] = 14] = "RELU6";
-  UnaryOpType3[UnaryOpType3["RSQRT"] = 15] = "RSQRT";
-  UnaryOpType3[UnaryOpType3["SIN"] = 16] = "SIN";
-  UnaryOpType3[UnaryOpType3["SINH"] = 17] = "SINH";
-  UnaryOpType3[UnaryOpType3["SIGMOID"] = 18] = "SIGMOID";
-  UnaryOpType3[UnaryOpType3["SQRT"] = 19] = "SQRT";
-  UnaryOpType3[UnaryOpType3["SQUARE"] = 20] = "SQUARE";
-  UnaryOpType3[UnaryOpType3["TANH"] = 21] = "TANH";
-  UnaryOpType3[UnaryOpType3["TO_INT"] = 22] = "TO_INT";
-})(UnaryOpType || (UnaryOpType = {}));
+  UnaryOpType3[UnaryOpType3["LEAKYRELU"] = 15] = "LEAKYRELU";
+  UnaryOpType3[UnaryOpType3["RSQRT"] = 16] = "RSQRT";
+  UnaryOpType3[UnaryOpType3["SIN"] = 17] = "SIN";
+  UnaryOpType3[UnaryOpType3["SINH"] = 18] = "SINH";
+  UnaryOpType3[UnaryOpType3["SIGMOID"] = 19] = "SIGMOID";
+  UnaryOpType3[UnaryOpType3["SQRT"] = 20] = "SQRT";
+  UnaryOpType3[UnaryOpType3["SQUARE"] = 21] = "SQUARE";
+  UnaryOpType3[UnaryOpType3["TANH"] = 22] = "TANH";
+  UnaryOpType3[UnaryOpType3["TO_INT"] = 23] = "TO_INT";
+  return UnaryOpType3;
+})(UnaryOpType || {});
 var ABS3 = `return abs(a);`;
 var CEIL2 = `return ceil(a);`;
 var COS2 = `return cos(a);`;
@@ -62064,12 +62052,13 @@ var LOG2 = `if (a < 0.0) { return 1.0/0.0; }
 var LOGICAL_NOT2 = `return f32(!(a >= 1.0));`;
 var NEG2 = `return -a;`;
 var PRELU3 = `return (a < 0.0) ? b * a : a;`;
+var LEAKYRELU2 = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
 var RELU4 = "return max(a, 0.0);";
 var RELU64 = "return clamp(a, 0.0, 6.0);";
 var RELU6_VEC4 = "return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));";
 var RELU_VEC4 = `
   var resFloat = a * vec4<f32>(a >= vec4<f32>(0.0));
-  let isNaN = isNan(a);
+  let isNaN = isNanCustomVec4(a);
 
   if (isNaN.r) {
     resFloat.r = a.r;
@@ -62101,51 +62090,53 @@ var TANH2 = `
 var TO_INT2 = `return f32(i32((a)));`;
 function getUnaryOpString(type, useVec4) {
   switch (type) {
-    case 0:
+    case 0 /* ABS */:
       return ABS3;
-    case 2:
+    case 2 /* COS */:
       return COS2;
-    case 3:
+    case 3 /* COSH */:
       return COSH2;
-    case 1:
+    case 1 /* CEIL */:
       return CEIL2;
-    case 4:
+    case 4 /* ELU */:
       return useVec4 ? ELU_VEC4 : ELU5;
-    case 5:
+    case 5 /* EXP */:
       return EXP2;
-    case 6:
+    case 6 /* EXPM1 */:
       return EXPM12;
-    case 7:
+    case 7 /* FLOOR */:
       return FLOOR2;
-    case 8:
+    case 8 /* LINEAR */:
       return LINEAR3;
-    case 9:
+    case 9 /* LOG */:
       return LOG2;
-    case 10:
+    case 10 /* LOGICAL_NOT */:
       return LOGICAL_NOT2;
-    case 11:
+    case 11 /* NEG */:
       return NEG2;
-    case 12:
+    case 12 /* PRELU */:
       return PRELU3;
-    case 13:
+    case 15 /* LEAKYRELU */:
+      return LEAKYRELU2;
+    case 13 /* RELU */:
       return useVec4 ? RELU_VEC4 : RELU4;
-    case 14:
+    case 14 /* RELU6 */:
       return useVec4 ? RELU6_VEC4 : RELU64;
-    case 15:
+    case 16 /* RSQRT */:
       return RSQRT2;
-    case 18:
+    case 19 /* SIGMOID */:
       return SIGMOID4;
-    case 16:
+    case 17 /* SIN */:
       return SIN2;
-    case 17:
+    case 18 /* SINH */:
       return SINH2;
-    case 19:
+    case 20 /* SQRT */:
       return SQRT2;
-    case 20:
+    case 21 /* SQUARE */:
       return SQUARE2;
-    case 21:
+    case 22 /* TANH */:
       return TANH2;
-    case 22:
+    case 23 /* TO_INT */:
       return TO_INT2;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
@@ -65256,11 +65247,11 @@ var CropAndResizeProgram2 = class {
 // src/tfjs-backend-webgpu/src/kernels/CropAndResize.ts
 var cropAndResize4 = (args) => {
   const { inputs, backend: backend2, attrs } = args;
-  const { image: image3, boxes, boxInd } = inputs;
+  const { image: image2, boxes, boxInd } = inputs;
   const { cropSize, method, extrapolationValue } = attrs;
-  const program = new CropAndResizeProgram2(image3.shape[3], boxes.shape, cropSize, method);
+  const program = new CropAndResizeProgram2(image2.shape[3], boxes.shape, cropSize, method);
   const uniformData = [{ type: "float32", data: [extrapolationValue] }];
-  return backend2.runWebGPUProgram(program, [image3, boxes, boxInd], "float32", uniformData);
+  return backend2.runWebGPUProgram(program, [image2, boxes, boxInd], "float32", uniformData);
 };
 var cropAndResizeConfig3 = {
   kernelName: CropAndResize,
@@ -65993,10 +65984,10 @@ var flipLeftRightConfig3 = {
   kernelName: FlipLeftRight,
   backendName: "webgpu",
   kernelFunc: ({ inputs, backend: backend2 }) => {
-    const { image: image3 } = inputs;
+    const { image: image2 } = inputs;
     const webgpuBackend = backend2;
-    const program = new FlipLeftRightProgram2(image3.shape);
-    const output = webgpuBackend.runWebGPUProgram(program, [image3], image3.dtype);
+    const program = new FlipLeftRightProgram2(image2.shape);
+    const output = webgpuBackend.runWebGPUProgram(program, [image2], image2.dtype);
     return output;
   }
 };
@@ -66556,11 +66547,11 @@ var lessEqualConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Log.ts
-var log7 = unaryKernelFunc3({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU2 });
+var log5 = unaryKernelFunc3({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU2 });
 var logConfig3 = {
   kernelName: Log,
   backendName: "webgpu",
-  kernelFunc: log7
+  kernelFunc: log5
 };
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalAnd.ts
@@ -67032,6 +67023,22 @@ var relu6Config3 = {
   kernelFunc: relu64
 };
 
+// src/tfjs-backend-webgpu/src/kernels/LeakyRelu.ts
+function leakyRelu4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { alpha } = attrs;
+  const uniformData = [{ type: "float32", data: [alpha] }];
+  const program = new UnaryOpProgram2(x.shape, UnaryOpType.LEAKYRELU);
+  program.uniforms = "alpha : f32;";
+  return backend2.runWebGPUProgram(program, [x], "float32", uniformData);
+}
+var leakyReluConfig3 = {
+  kernelName: LeakyRelu,
+  backendName: "webgpu",
+  kernelFunc: leakyRelu4
+};
+
 // src/tfjs-backend-webgpu/src/kernels/resize_bilinear_webgpu.ts
 var ResizeBilinearProgram2 = class {
   constructor(inputShape, newHeight, newWidth) {
@@ -67249,11 +67256,11 @@ var rotateWithOffsetConfig3 = {
   kernelName: RotateWithOffset,
   backendName: "webgpu",
   kernelFunc: ({ inputs, attrs, backend: backend2 }) => {
-    const { image: image3 } = inputs;
+    const { image: image2 } = inputs;
     const { radians, fillValue, center } = attrs;
     const webgpuBackend = backend2;
-    const program = new RotateProgram2(image3.shape, fillValue);
-    const [centerX, centerY] = backend_util_exports.getImageCenter(center, image3.shape[1], image3.shape[2]);
+    const program = new RotateProgram2(image2.shape, fillValue);
+    const [centerX, centerY] = backend_util_exports.getImageCenter(center, image2.shape[1], image2.shape[2]);
     const uniformData = [
       { type: "float32", data: [centerX] },
       { type: "float32", data: [centerY] },
@@ -67265,7 +67272,7 @@ var rotateWithOffsetConfig3 = {
     } else {
       uniformData.push({ type: "float32", data: fillValue });
     }
-    const output = webgpuBackend.runWebGPUProgram(program, [image3], image3.dtype, uniformData);
+    const output = webgpuBackend.runWebGPUProgram(program, [image2], image2.dtype, uniformData);
     return output;
   }
 };
@@ -68310,9 +68317,9 @@ var TransformProgram2 = class {
 // src/tfjs-backend-webgpu/src/kernels/Transform.ts
 function transform4(args) {
   const { inputs, backend: backend2, attrs } = args;
-  const { image: image3, transforms } = inputs;
+  const { image: image2, transforms } = inputs;
   const { interpolation, fillMode, fillValue, outputShape } = attrs;
-  const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+  const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
   const [outHeight, outWidth] = outputShape != null ? outputShape : [imageHeight, imageWidth];
   const outShape = [
     batch,
@@ -68345,7 +68352,7 @@ function transform4(args) {
     { type: "int32", data: [fillModeId] },
     { type: "float32", data: [fillValue] }
   ];
-  return backend2.runWebGPUProgram(program, [image3, transforms], "float32", uniformData);
+  return backend2.runWebGPUProgram(program, [image2, transforms], "float32", uniformData);
 }
 var transformConfig3 = {
   kernelName: Transform,
@@ -68463,6 +68470,7 @@ var kernelConfigs3 = [
   realDivConfig3,
   reluConfig3,
   relu6Config3,
+  leakyReluConfig3,
   reshapeConfig3,
   resizeBilinearConfig3,
   resizeNearestNeighborConfig3,
@@ -68503,8 +68511,8 @@ var BufferManager = class {
     this.device = device;
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
-    this.freeBuffers = new Map();
-    this.usedBuffers = new Map();
+    this.freeBuffers = /* @__PURE__ */ new Map();
+    this.usedBuffers = /* @__PURE__ */ new Map();
     this.numBytesUsed = 0;
     this.numBytesAllocated = 0;
   }
@@ -68555,8 +68563,8 @@ var BufferManager = class {
     return this.numFreeBuffers;
   }
   reset() {
-    this.freeBuffers = new Map();
-    this.usedBuffers = new Map();
+    this.freeBuffers = /* @__PURE__ */ new Map();
+    this.usedBuffers = /* @__PURE__ */ new Map();
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
     this.numBytesUsed = 0;
@@ -69388,16 +69396,15 @@ if (device_util_exports.isBrowser() && isWebGPUSupported()) {
 }
 
 // src/tfjs-backend-wasm/src/kernels/types.ts
-var CppDType;
-(function(CppDType2) {
+var CppDType = /* @__PURE__ */ ((CppDType2) => {
   CppDType2[CppDType2["float32"] = 0] = "float32";
   CppDType2[CppDType2["int32"] = 1] = "int32";
   CppDType2[CppDType2["bool"] = 2] = "bool";
   CppDType2[CppDType2["string"] = 3] = "string";
   CppDType2[CppDType2["complex64"] = 4] = "complex64";
-})(CppDType || (CppDType = {}));
-var FusableActivation;
-(function(FusableActivation2) {
+  return CppDType2;
+})(CppDType || {});
+var FusableActivation = /* @__PURE__ */ ((FusableActivation2) => {
   FusableActivation2[FusableActivation2["linear"] = 0] = "linear";
   FusableActivation2[FusableActivation2["relu"] = 1] = "relu";
   FusableActivation2[FusableActivation2["relu6"] = 2] = "relu6";
@@ -69405,7 +69412,8 @@ var FusableActivation;
   FusableActivation2[FusableActivation2["leakyrelu"] = 4] = "leakyrelu";
   FusableActivation2[FusableActivation2["sigmoid"] = 5] = "sigmoid";
   FusableActivation2[FusableActivation2["elu"] = 6] = "elu";
-})(FusableActivation || (FusableActivation = {}));
+  return FusableActivation2;
+})(FusableActivation || {});
 
 // src/tfjs-backend-wasm/src/kernels/_FusedMatMul.ts
 var wasmFusedMatMul;
@@ -70313,11 +70321,11 @@ var cosConfig4 = createUnaryKernelConfig(Cos);
 var coshConfig4 = createUnaryKernelConfig(Cosh);
 
 // src/tfjs-backend-wasm/src/kernels/CropAndResize.ts
-var InterpolationMethod;
-(function(InterpolationMethod2) {
+var InterpolationMethod = /* @__PURE__ */ ((InterpolationMethod2) => {
   InterpolationMethod2[InterpolationMethod2["bilinear"] = 0] = "bilinear";
   InterpolationMethod2[InterpolationMethod2["nearest"] = 1] = "nearest";
-})(InterpolationMethod || (InterpolationMethod = {}));
+  return InterpolationMethod2;
+})(InterpolationMethod || {});
 var wasmCropAndResize;
 function setup11(backend2) {
   wasmCropAndResize = backend2.wasm.cwrap(CropAndResize, null, [
@@ -70336,14 +70344,14 @@ function setup11(backend2) {
 function cropAndResize5(args) {
   const { backend: backend2, inputs, attrs } = args;
   const { method, extrapolationValue, cropSize } = attrs;
-  const { image: image3, boxes, boxInd } = inputs;
+  const { image: image2, boxes, boxInd } = inputs;
   const numBoxes = boxes.shape[0];
   const [cropHeight, cropWidth] = cropSize;
-  const outShape = [numBoxes, cropHeight, cropWidth, image3.shape[3]];
-  let imagesData = backend2.dataIdMap.get(image3.dataId);
+  const outShape = [numBoxes, cropHeight, cropWidth, image2.shape[3]];
+  let imagesData = backend2.dataIdMap.get(image2.dataId);
   let castedData;
-  if (image3.dtype !== "float32") {
-    castedData = cast6({ backend: backend2, inputs: { x: image3 }, attrs: { dtype: "float32" } });
+  if (image2.dtype !== "float32") {
+    castedData = cast6({ backend: backend2, inputs: { x: image2 }, attrs: { dtype: "float32" } });
     imagesData = backend2.dataIdMap.get(castedData.dataId);
   }
   const imagesId = imagesData.id;
@@ -70351,7 +70359,7 @@ function cropAndResize5(args) {
   const boxIndId = backend2.dataIdMap.get(boxInd.dataId).id;
   const out = backend2.makeOutput(outShape, "float32");
   const outId = backend2.dataIdMap.get(out.dataId).id;
-  const imagesShapeBytes = new Uint8Array(new Int32Array(image3.shape).buffer);
+  const imagesShapeBytes = new Uint8Array(new Int32Array(image2.shape).buffer);
   wasmCropAndResize(imagesId, boxesId, boxIndId, numBoxes, imagesShapeBytes, cropHeight, cropWidth, InterpolationMethod[method], extrapolationValue, outId);
   if (castedData != null) {
     backend2.disposeData(castedData.dataId);
@@ -70576,11 +70584,11 @@ function setup15(backend2) {
 }
 function flipLeftRight2(args) {
   const { inputs, backend: backend2 } = args;
-  const { image: image3 } = inputs;
-  const out = backend2.makeOutput(image3.shape, image3.dtype);
-  const imageId = backend2.dataIdMap.get(image3.dataId).id;
+  const { image: image2 } = inputs;
+  const out = backend2.makeOutput(image2.shape, image2.dtype);
+  const imageId = backend2.dataIdMap.get(image2.dataId).id;
   const outId = backend2.dataIdMap.get(out.dataId).id;
-  const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+  const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
   wasmFlipLeftRight(imageId, batch, imageHeight, imageWidth, numChannels, outId);
   return out;
 }
@@ -70942,7 +70950,7 @@ function setupFunc2(backend2) {
     "number"
   ]);
 }
-function leakyRelu4(args) {
+function leakyRelu5(args) {
   const { inputs: { x }, attrs: { alpha }, backend: backend2 } = args;
   const xId = backend2.dataIdMap.get(x.dataId).id;
   const out = backend2.makeOutput(x.shape, "float32");
@@ -70952,11 +70960,11 @@ function leakyRelu4(args) {
   }
   return out;
 }
-var leakyReluConfig3 = {
+var leakyReluConfig4 = {
   kernelName: LeakyRelu,
   backendName: "wasm",
   setupFunc: setupFunc2,
-  kernelFunc: leakyRelu4
+  kernelFunc: leakyRelu5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Less.ts
@@ -71192,11 +71200,11 @@ var supportsFullBroadcast10 = false;
 var minimumConfig4 = createBinaryKernelConfig(Minimum, supportsFullBroadcast10);
 
 // src/tfjs-backend-wasm/src/kernels/MirrorPad.ts
-var MirrorPaddingMode;
-(function(MirrorPaddingMode2) {
+var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
   MirrorPaddingMode2[MirrorPaddingMode2["reflect"] = 0] = "reflect";
   MirrorPaddingMode2[MirrorPaddingMode2["symmetric"] = 1] = "symmetric";
-})(MirrorPaddingMode || (MirrorPaddingMode = {}));
+  return MirrorPaddingMode2;
+})(MirrorPaddingMode || {});
 var wasmMirrorPad;
 function setup25(backend2) {
   wasmMirrorPad = backend2.wasm.cwrap(MirrorPad, null, [
@@ -71683,12 +71691,12 @@ function setup35(backend2) {
 }
 function rotateWithOffset2(args) {
   const { inputs, backend: backend2, attrs } = args;
-  const { image: image3 } = inputs;
+  const { image: image2 } = inputs;
   const { radians, fillValue, center } = attrs;
-  const out = backend2.makeOutput(image3.shape, image3.dtype);
-  const imageId = backend2.dataIdMap.get(image3.dataId).id;
+  const out = backend2.makeOutput(image2.shape, image2.dtype);
+  const imageId = backend2.dataIdMap.get(image2.dataId).id;
   const outId = backend2.dataIdMap.get(out.dataId).id;
-  const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+  const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
   const [centerX, centerY] = backend_util_exports.getImageCenter(center, imageHeight, imageWidth);
   const fillIsBlack = fillValue === 0;
   const fullOpacityValue = 255;
@@ -72417,9 +72425,9 @@ function setup48(backend2) {
 }
 function transform5(args) {
   const { backend: backend2, inputs, attrs } = args;
-  const { image: image3, transforms } = inputs;
+  const { image: image2, transforms } = inputs;
   const { interpolation, fillMode, fillValue, outputShape } = attrs;
-  const [batch, imageHeight, imageWidth, numChannels] = image3.shape;
+  const [batch, imageHeight, imageWidth, numChannels] = image2.shape;
   const [outHeight, outWidth] = outputShape != null ? outputShape : [imageHeight, imageWidth];
   const outShape = [
     batch,
@@ -72427,10 +72435,10 @@ function transform5(args) {
     outWidth,
     numChannels
   ];
-  const strides = new Uint8Array(new Int32Array(util_exports.computeStrides(image3.shape)).buffer);
-  const out = backend2.makeOutput(outShape, image3.dtype);
+  const strides = new Uint8Array(new Int32Array(util_exports.computeStrides(image2.shape)).buffer);
+  const out = backend2.makeOutput(outShape, image2.dtype);
   const outId = backend2.dataIdMap.get(out.dataId).id;
-  const imageData = backend2.dataIdMap.get(image3.dataId);
+  const imageData = backend2.dataIdMap.get(image2.dataId);
   const imageId = imageData.id;
   const transformsData = backend2.dataIdMap.get(transforms.dataId);
   const transformsId = transformsData.id;
@@ -72453,7 +72461,7 @@ function transform5(args) {
       fillModeId = 1;
       break;
   }
-  wasmTransform(imageId, transformsId, transforms.shape[0] > 1, batch, outHeight, outWidth, numChannels, imageWidth, imageHeight, strides, image3.shape.length - 1, interpolationModeId, fillModeId, fillValue, outId);
+  wasmTransform(imageId, transformsId, transforms.shape[0] > 1, batch, outHeight, outWidth, numChannels, imageWidth, imageHeight, strides, image2.shape.length - 1, interpolationModeId, fillModeId, fillValue, outId);
   return out;
 }
 var transformConfig4 = {
@@ -72550,7 +72558,7 @@ var kernelConfigs4 = [
   greaterConfig4,
   greaterEqualConfig4,
   identityConfig4,
-  leakyReluConfig3,
+  leakyReluConfig4,
   lessConfig4,
   lessEqualConfig4,
   logConfig4,
@@ -72995,7 +73003,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.12.0-20211209";
+var externalVersion = "3.12.0-20211214";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -73263,7 +73271,7 @@ export {
   cosineWindow,
   cumsum,
   customGrad,
-  src_exports as data,
+  src_exports2 as data,
   denseBincount,
   deprecationWarn,
   depthToSpace,
@@ -73335,7 +73343,7 @@ export {
   loadGraphModel,
   loadLayersModel,
   localResponseNormalization,
-  log4 as log,
+  log2 as log,
   log1p,
   logSigmoid,
   logSoftmax,

@@ -2192,7 +2192,7 @@ function getGlobalNamespace() {
 function getGlobalMap() {
   const ns = getGlobalNamespace();
   if (ns._tfGlobals == null) {
-    ns._tfGlobals = new Map();
+    ns._tfGlobals = /* @__PURE__ */ new Map();
   }
   return ns._tfGlobals;
 }
@@ -2389,8 +2389,8 @@ function log(...msg) {
 }
 
 // src/tfjs-core/src/kernel_registry.ts
-var kernelRegistry = getGlobal("kernelRegistry", () => new Map());
-var gradRegistry = getGlobal("gradRegistry", () => new Map());
+var kernelRegistry = getGlobal("kernelRegistry", () => /* @__PURE__ */ new Map());
+var gradRegistry = getGlobal("gradRegistry", () => /* @__PURE__ */ new Map());
 function getKernel(kernelName, backendName) {
   const key = makeKey(kernelName, backendName);
   return kernelRegistry.get(key);
@@ -3251,8 +3251,7 @@ __export(tensor_util_exports, {
 });
 
 // src/tfjs-core/src/types.ts
-var Rank;
-(function(Rank2) {
+var Rank = /* @__PURE__ */ ((Rank2) => {
   Rank2["R0"] = "R0";
   Rank2["R1"] = "R1";
   Rank2["R2"] = "R2";
@@ -3260,35 +3259,36 @@ var Rank;
   Rank2["R4"] = "R4";
   Rank2["R5"] = "R5";
   Rank2["R6"] = "R6";
-})(Rank || (Rank = {}));
-var UpcastInt32AndMap;
-(function(UpcastInt32AndMap2) {
+  return Rank2;
+})(Rank || {});
+var UpcastInt32AndMap = /* @__PURE__ */ ((UpcastInt32AndMap2) => {
   UpcastInt32AndMap2["float32"] = "float32";
   UpcastInt32AndMap2["int32"] = "int32";
   UpcastInt32AndMap2["bool"] = "int32";
   UpcastInt32AndMap2["complex64"] = "complex64";
-})(UpcastInt32AndMap || (UpcastInt32AndMap = {}));
-var UpcastBoolAndMap;
-(function(UpcastBoolAndMap2) {
+  return UpcastInt32AndMap2;
+})(UpcastInt32AndMap || {});
+var UpcastBoolAndMap = /* @__PURE__ */ ((UpcastBoolAndMap2) => {
   UpcastBoolAndMap2["float32"] = "float32";
   UpcastBoolAndMap2["int32"] = "int32";
   UpcastBoolAndMap2["bool"] = "bool";
   UpcastBoolAndMap2["complex64"] = "complex64";
-})(UpcastBoolAndMap || (UpcastBoolAndMap = {}));
-var UpcastFloat32AndMap;
-(function(UpcastFloat32AndMap2) {
+  return UpcastBoolAndMap2;
+})(UpcastBoolAndMap || {});
+var UpcastFloat32AndMap = /* @__PURE__ */ ((UpcastFloat32AndMap2) => {
   UpcastFloat32AndMap2["float32"] = "float32";
   UpcastFloat32AndMap2["int32"] = "float32";
   UpcastFloat32AndMap2["bool"] = "float32";
   UpcastFloat32AndMap2["complex64"] = "complex64";
-})(UpcastFloat32AndMap || (UpcastFloat32AndMap = {}));
-var UpcastComplex64AndMap;
-(function(UpcastComplex64AndMap2) {
+  return UpcastFloat32AndMap2;
+})(UpcastFloat32AndMap || {});
+var UpcastComplex64AndMap = /* @__PURE__ */ ((UpcastComplex64AndMap2) => {
   UpcastComplex64AndMap2["float32"] = "complex64";
   UpcastComplex64AndMap2["int32"] = "complex64";
   UpcastComplex64AndMap2["bool"] = "complex64";
   UpcastComplex64AndMap2["complex64"] = "complex64";
-})(UpcastComplex64AndMap || (UpcastComplex64AndMap = {}));
+  return UpcastComplex64AndMap2;
+})(UpcastComplex64AndMap || {});
 var upcastTypeMap = {
   "float32": UpcastFloat32AndMap,
   "int32": UpcastInt32AndMap,
@@ -3324,7 +3324,7 @@ function isTensorInList(tensor2, tensorList) {
 }
 function getTensorsInContainer(result) {
   const list = [];
-  const seen = new Set();
+  const seen = /* @__PURE__ */ new Set();
   walkTensorContainer(result, list, seen);
   return list;
 }
@@ -8308,7 +8308,7 @@ function log_(x) {
   const inputs = { x: $x };
   return ENGINE.runKernel(Log, inputs);
 }
-var log4 = op({ log_ });
+var log2 = op({ log_ });
 
 // src/tfjs-core/src/ops/log1p.ts
 function log1p_(x) {
@@ -8488,7 +8488,7 @@ function logSoftmax_(logits, axis = -1) {
     const keepDims = true;
     const xMax = max(logits2, axis, true);
     const shifted = sub(logits2, xMax);
-    const value = sub(cast(shifted, "float32"), log4(sum2(exp(shifted), axis, keepDims)));
+    const value = sub(cast(shifted, "float32"), log2(sum2(exp(shifted), axis, keepDims)));
     save([value]);
     const gradFunc = (dy, saved) => {
       const [value2] = saved;
@@ -8575,7 +8575,7 @@ function logSumExp_(x, axis = null, keepDims = false) {
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
-  const d = log4(c);
+  const d = log2(c);
   const res = add2(reshape(xMax, d.shape), d);
   if (keepDims) {
     const newShape = expandShapeToKeepDim(res.shape, axes);
@@ -9023,8 +9023,8 @@ function withSpaceToBatchBasePaddings(filterShape, dilation) {
 var pool = op({ pool_ });
 
 // src/tfjs-core/src/ops/pow.ts
-function pow_(base2, exp2) {
-  let $base = convertToTensor(base2, "base", "pow");
+function pow_(base, exp2) {
+  let $base = convertToTensor(base, "base", "pow");
   let $exp = convertToTensor(exp2, "exp", "pow");
   [$base, $exp] = makeTypesMatch($base, $exp);
   const inputs = { a: $base, b: $exp };
@@ -11125,13 +11125,13 @@ function qr2d(x, fullMatrices = false) {
 var qr = op({ qr_ });
 
 // src/tfjs-core/src/ops/loss_ops_utils.ts
-var Reduction;
-(function(Reduction2) {
+var Reduction = /* @__PURE__ */ ((Reduction2) => {
   Reduction2[Reduction2["NONE"] = 0] = "NONE";
   Reduction2[Reduction2["MEAN"] = 1] = "MEAN";
   Reduction2[Reduction2["SUM"] = 2] = "SUM";
   Reduction2[Reduction2["SUM_BY_NONZERO_WEIGHTS"] = 3] = "SUM_BY_NONZERO_WEIGHTS";
-})(Reduction || (Reduction = {}));
+  return Reduction2;
+})(Reduction || {});
 
 // src/tfjs-core/src/ops/losses/compute_weighted_loss.ts
 function computeWeightedLoss_(losses2, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
@@ -11243,8 +11243,8 @@ function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = Redu
   assertShapesMatch($labels.shape, $predictions.shape, "Error in logLoss: ");
   const one = scalar(1);
   const epsilonScalar = scalar(epsilon);
-  const l1 = neg(mul($labels, log4(add2($predictions, epsilonScalar))));
-  const l2 = mul(sub(one, $labels), log4(add2(sub(one, $predictions), epsilonScalar)));
+  const l1 = neg(mul($labels, log2(add2($predictions, epsilonScalar))));
+  const l2 = mul(sub(one, $labels), log2(add2(sub(one, $predictions), epsilonScalar)));
   const losses2 = sub(l1, l2);
   return computeWeightedLoss(losses2, $weights, reduction);
 }
@@ -13139,7 +13139,7 @@ export {
   linalg,
   linspace,
   localResponseNormalization,
-  log4 as log,
+  log2 as log,
   log1p,
   logSigmoid,
   logSoftmax,

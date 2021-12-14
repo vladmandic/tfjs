@@ -15,6 +15,14 @@ else
   bazel --version 
 fi
 
+if ! [ -x "$(command -v python)" ]; then
+  echo "Python cannot be found"
+  exit 1
+else
+  printf "Found "
+  python --version 
+fi
+
 # build wasm binaries and js bindings
 cd src
 echo "Building: tfjs-backend-wasm"

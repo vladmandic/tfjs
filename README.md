@@ -30,7 +30,7 @@ Node packages (`tfjs-node` and `tfjs-node-gpu`) are not covered
 2. External dependencies: `git`, `bazel`, `python`
    **Git**: assumed to be already installed if you're here :)  
    **Bazel**: requires `bazel 4.x` <https://docs.bazel.build/versions/4.2.1/install-ubuntu.html>  
-   **Python**: requires `python 3.x`, not compatible with `python 2.x`  
+   **Python**: requires `python 3.x` aliased as `python`, not compatible with `python 2.x`  
 
 ## Steps
 
