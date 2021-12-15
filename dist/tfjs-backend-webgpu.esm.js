@@ -11602,25 +11602,21 @@ function getWorkGroupSizeString() {
   [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
 `;
 }
-function getFlatDispatchLayoutMainHeaderString() {
+function getMainHeaderString() {
   return `
   ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-          [[builtin(global_invocation_id)]] globalId : vec3<u32>,
-          [[builtin(num_workgroups)]] numWorkgroups: vec3<u32>)
-`;
-}
-function getNonFlatDispatchLayoutMainHeaderString() {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-          [[builtin(global_invocation_id)]] globalId : vec3<u32>)
+  fn main([[builtin(local_invocation_id)]] LocalId : vec3<u32>,
+          [[builtin(global_invocation_id)]] GlobalId : vec3<u32>,
+          [[builtin(num_workgroups)]] NumWorkgroups: vec3<u32>) {
+    localId = LocalId;
+    globalId = GlobalId;
+    numWorkgroups = NumWorkgroups;
 `;
 }
 function getMainHeaderAndGlobalIndexString() {
   return `
-    ${getFlatDispatchLayoutMainHeaderString()} {
-      let index = getGlobalIndex(globalId, localId, numWorkgroups);
+    ${getMainHeaderString()}
+      let index = getGlobalIndex();
 `;
 }
 function makeShader(inputInfo, outputData, program, isFromPixel = false) {
@@ -11723,6 +11719,10 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
   return source;
 }
 var SHADER_PREFIX = `
+  var<private> localId: vec3<u32>;
+  var<private> globalId: vec3<u32>;
+  var<private> numWorkgroups: vec3<u32>;
+
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
     let mod: i32 = a % b;
@@ -11784,7 +11784,7 @@ var SAMPLING_SNIPPETS = `
   }
 
   // Only used when the y/z dimension of workgroup size is 1.
-  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> i32 {
+  fn getGlobalIndex() -> i32 {
     if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
       return i32(globalId.x);
     }
@@ -12045,8 +12045,8 @@ function generateGetOutputCoords(outShape, dispatchLayout) {
   const outRank = outShape.length;
   if (x.length === outRank) {
     const dtype2 = getCoordsDataType(outRank);
-    const snippet2 = `fn getOutputCoordsWithFlatDispatchLayout(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> ${dtype2}{
-      let globalIndex = getGlobalIndex(globalId, localId, numWorkgroups);
+    const snippet2 = `fn getOutputCoords() -> ${dtype2}{
+      let globalIndex = getGlobalIndex();
       return getCoordsFromFlatIndex(globalIndex);
     }
     `;
@@ -12081,7 +12081,7 @@ function generateGetOutputCoords(outShape, dispatchLayout) {
     dimensions.push(`d${i}`);
   }
   const dtype = getCoordsDataType(rank);
-  let snippet = `fn getOutputCoordsWithNonFlatDispatchLayout(globalId : vec3<u32>) -> ${dtype} {
+  let snippet = `fn getOutputCoords() -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {
@@ -12616,7 +12616,7 @@ function makeMatMulPackedVec4Source(workPerThread, workGroupSize) {
   let TileBOuter = ${tileInfo.TileBOuter};
   let TileInner = ${tileInfo.TileInner};
 
-  ${getNonFlatDispatchLayoutMainHeaderString()} {
+  ${getMainHeaderString()}
 
     let tileRow = i32(localId.y) * RowPerThread;
     let tileCol = i32(localId.x);
@@ -12675,13 +12675,13 @@ function makeMatMulPackedVec4Source(workPerThread, workGroupSize) {
                  globalCol,
                  acc[innerRow], globalId);
     }
-}`;
+  }`;
 }
 function makeMatMulVectorVec4Source(workGroupSize) {
   return `
   var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
   let tileSize = ${workGroupSize[0] * 4};
-  ${getNonFlatDispatchLayoutMainHeaderString()} {
+  ${getMainHeaderString()}
     let tileCol = i32(localId.x);
     let globalCol = i32(globalId.x);
     let globalRow = i32(globalId.y);
@@ -12833,7 +12833,7 @@ function makeMatMulPackedSource(workPerThread, workGroupSize) {
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    ${getNonFlatDispatchLayoutMainHeaderString()} {
+    ${getMainHeaderString()}
       let tileRow = i32(localId.y) * ${workPerThread[1]};
       let tileCol = i32(localId.x) * ${workPerThread[0]};
 
@@ -12921,7 +12921,7 @@ function makeMatMulVectorSource(workGroupSize) {
     let TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
-    ${getNonFlatDispatchLayoutMainHeaderString()} {
+    ${getMainHeaderString()}
       let tileCol = i32(localId.x);
       let globalCol = i32(globalId.x);
       let globalRow = i32(globalId.y);
@@ -13090,8 +13090,8 @@ var MatMulPackedProgram = class {
 function makeMatMulReduceSource() {
   return `
     var<workgroup> sumValues : array<f32, workGroupSizeX>;
-    ${getNonFlatDispatchLayoutMainHeaderString()} {
-      let coords = getOutputCoordsWithNonFlatDispatchLayout(globalId);
+    ${getMainHeaderString()}
+      let coords = getOutputCoords();
       let batch = coords[0];
       let row = coords[1];
       let col = coords[2];
@@ -13218,7 +13218,7 @@ function makeMatMulSmallOutputSizeSource(workGroupSize) {
   // arithmetic operations and others handle IO operations between barrier api,
   // makes ALUs and load/store units work simultaneously, could improves
   // the performance.
-  ${getNonFlatDispatchLayoutMainHeaderString()} {
+  ${getMainHeaderString()}
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);
@@ -16560,8 +16560,8 @@ var Conv2DNaiveProgram = class {
         }
       }
 
-      ${getFlatDispatchLayoutMainHeaderString()} {
-        let coords = getOutputCoordsWithFlatDispatchLayout(globalId, localId, numWorkgroups);
+      ${getMainHeaderString()}
+        let coords = getOutputCoords();
         let batch = coords[0];
         let outChannel = coords[3];
 
@@ -17213,9 +17213,8 @@ var DepthwiseConv2DProgram = class {
         }
       }
 
-      ${getFlatDispatchLayoutMainHeaderString()} {
-        let coords = getOutputCoordsWithFlatDispatchLayout(globalId,
-            localId, numWorkgroups);
+      ${getMainHeaderString()}
+        let coords = getOutputCoords();
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
         let d2 = coords[3];
