@@ -1571,6 +1571,9 @@ var KernelBackend = class {
   readSync(dataId) {
     return notYetImplemented("readSync");
   }
+  readToGPU(dataId, options) {
+    return notYetImplemented("readToGPU");
+  }
   numDataIds() {
     return notYetImplemented("numDataIds");
   }
@@ -3114,6 +3117,10 @@ var Tensor = class {
     }
     return data;
   }
+  dataToGPU(options) {
+    this.throwIfDisposed();
+    return trackerFn().readToGPU(this.dataId, options);
+  }
   dataSync() {
     this.throwIfDisposed();
     const data = trackerFn().readSync(this.dataId);
@@ -3983,6 +3990,10 @@ var _Engine = class {
   read(dataId) {
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.read(dataId);
+  }
+  readToGPU(dataId, options) {
+    const info = this.state.tensorInfo.get(dataId);
+    return info.backend.readToGPU(dataId, options);
   }
   async time(query) {
     const start = now();
@@ -12172,7 +12183,9 @@ function gatherV2Impl(xBuf, indicesBuf, flattenOutputShape) {
     const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
     originalLoc[2] = indicesBuf.values[indicesIndex];
     const originalIndex = xBuf.locToIndex(originalLoc);
-    outBuf.values[i] = xBuf.values[originalIndex];
+    if (0 <= originalIndex && originalIndex < xBuf.values.length) {
+      outBuf.values[i] = xBuf.values[originalIndex];
+    }
   }
   return outBuf;
 }

@@ -1571,6 +1571,9 @@ var KernelBackend = class {
   readSync(dataId) {
     return notYetImplemented("readSync");
   }
+  readToGPU(dataId, options) {
+    return notYetImplemented("readToGPU");
+  }
   numDataIds() {
     return notYetImplemented("numDataIds");
   }
@@ -3112,6 +3115,10 @@ var Tensor = class {
     }
     return data;
   }
+  dataToGPU(options) {
+    this.throwIfDisposed();
+    return trackerFn().readToGPU(this.dataId, options);
+  }
   dataSync() {
     this.throwIfDisposed();
     const data = trackerFn().readSync(this.dataId);
@@ -3984,6 +3991,10 @@ var _Engine = class {
   read(dataId) {
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.read(dataId);
+  }
+  readToGPU(dataId, options) {
+    const info = this.state.tensorInfo.get(dataId);
+    return info.backend.readToGPU(dataId, options);
   }
   async time(query) {
     const start = now();
@@ -11616,9 +11627,9 @@ var WEBGL_ATTRIBUTES = {
 function setWebGLContext(webGLVersion, gl) {
   contexts[webGLVersion] = gl;
 }
-function getWebGLContext(webGLVersion) {
+function getWebGLContext(webGLVersion, customCanvas) {
   if (!(webGLVersion in contexts)) {
-    const newCtx = getWebGLRenderingContext(webGLVersion);
+    const newCtx = getWebGLRenderingContext(webGLVersion, customCanvas);
     if (newCtx !== null) {
       contexts[webGLVersion] = newCtx;
     } else {
@@ -11651,11 +11662,11 @@ function createCanvas(webGLVersion) {
     throw new Error("Cannot create a canvas in this context");
   }
 }
-function getWebGLRenderingContext(webGLVersion) {
+function getWebGLRenderingContext(webGLVersion, customCanvas) {
   if (webGLVersion !== 1 && webGLVersion !== 2) {
     throw new Error("Cannot get WebGL rendering context, WebGL is disabled.");
   }
-  const canvas = createCanvas(webGLVersion);
+  const canvas = customCanvas == null ? createCanvas(webGLVersion) : customCanvas;
   canvas.addEventListener("webglcontextlost", (ev) => {
     ev.preventDefault();
     delete contexts[webGLVersion];
@@ -14156,9 +14167,9 @@ function runProgram(gpgpu, binary, inputs, output, customUniformValues) {
   const outTex = output.texData.texture;
   const outTexShape = output.texData.texShape;
   if (output.texData.isPacked) {
-    gpgpu.setOutputPackedMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+    gpgpu.setOutputPackedMatrixTexture(outTex.texture, outTexShape[0], outTexShape[1]);
   } else {
-    gpgpu.setOutputMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+    gpgpu.setOutputMatrixTexture(outTex.texture, outTexShape[0], outTexShape[1]);
   }
   gpgpu.setProgram(binary.webGLProgram);
   if (env().getNumber("WEBGL_VERSION") === 1) {
@@ -14215,7 +14226,7 @@ function runProgram(gpgpu, binary, inputs, output, customUniformValues) {
     if (input.texData.slice != null && varOffsetLoc != null) {
       gpgpu.gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
     }
-    gpgpu.setInputMatrixTexture(input.texData.texture, varLoc, i);
+    gpgpu.setInputMatrixTexture(input.texData.texture.texture, varLoc, i);
   });
   const outShapeLoc = binary.outShapeLocation;
   if (outShapeLoc) {
@@ -14606,7 +14617,7 @@ function createAndConfigureTexture(gl, width, height, internalFormat, textureFor
     callAndCheck(gl, () => gl.texStorage2D(tex2d, 1, internalFormat, width, height));
   }
   callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
-  return texture;
+  return { texture, texShape: [height, width] };
 }
 function getInternalFormatForFloat32MatrixTexture(textureConfig) {
   return textureConfig.internalFormatFloat;
@@ -14676,14 +14687,12 @@ function uploadPixelDataToTexture(gl, texture, pixels) {
   if (pixels.data instanceof Uint8Array) {
     if (env().getNumber("WEBGL_VERSION") === 2) {
       callAndCheck(gl, () => gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, pixels.width, pixels.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.data));
-      gl.flush();
     } else {
       callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels.data));
     }
   } else {
     if (env().getNumber("WEBGL_VERSION") === 2) {
       callAndCheck(gl, () => gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels));
-      gl.flush();
     } else {
       callAndCheck(gl, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels));
     }
@@ -15581,7 +15590,9 @@ function gatherV2Impl(xBuf, indicesBuf, flattenOutputShape) {
     const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
     originalLoc[2] = indicesBuf.values[indicesIndex];
     const originalIndex = xBuf.locToIndex(originalLoc);
-    outBuf.values[i] = xBuf.values[originalIndex];
+    if (0 <= originalIndex && originalIndex < xBuf.values.length) {
+      outBuf.values[i] = xBuf.values[originalIndex];
+    }
   }
   return outBuf;
 }
@@ -16665,7 +16676,7 @@ var TextureManager = class {
     const texBytes = computeBytes(shape, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig, isPacked);
     const deleteTexThreshold = env().get("WEBGL_DELETE_TEXTURE_THRESHOLD");
     if (deleteTexThreshold !== -1 && this._numBytesAllocated > deleteTexThreshold) {
-      this.gpgpu.deleteMatrixTexture(texture);
+      this.gpgpu.deleteMatrixTexture(texture.texture);
       this._numBytesAllocated -= texBytes;
     } else {
       this.freeTextures[shapeKey].push(texture);
@@ -16709,12 +16720,12 @@ var TextureManager = class {
     }
     for (const texShape in this.freeTextures) {
       this.freeTextures[texShape].forEach((tex) => {
-        this.gpgpu.deleteMatrixTexture(tex);
+        this.gpgpu.deleteMatrixTexture(tex.texture);
       });
     }
     for (const texShape in this.usedTextures) {
       this.usedTextures[texShape].forEach((tex) => {
-        this.gpgpu.deleteMatrixTexture(tex);
+        this.gpgpu.deleteMatrixTexture(tex.texture);
       });
     }
     this.freeTextures = null;
@@ -16933,7 +16944,7 @@ function numMBBeforeWarning() {
   return env().global.screen.height * env().global.screen.width * window.devicePixelRatio * BEFORE_PAGING_CONSTANT / 1024 / 1024;
 }
 var _MathBackendWebGL = class extends KernelBackend {
-  constructor(gpgpu) {
+  constructor(gpuResource) {
     super();
     this.pendingRead = new WeakMap();
     this.pendingDisposal = new WeakSet();
@@ -16948,18 +16959,24 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (!env().getBool("HAS_WEBGL")) {
       throw new Error("WebGL is not supported on this device");
     }
-    if (gpgpu == null) {
-      const gl = getWebGLContext(env().getNumber("WEBGL_VERSION"));
-      this.binaryCache = getBinaryCache(env().getNumber("WEBGL_VERSION"));
-      this.gpgpu = new GPGPUContext(gl);
-      this.canvas = gl.canvas;
-      this.gpgpuCreatedLocally = true;
-    } else {
-      this.gpgpu = gpgpu;
+    let newGPGPU;
+    if (gpuResource != null) {
+      if (gpuResource instanceof GPGPUContext) {
+        newGPGPU = gpuResource;
+      } else {
+        const gl = getWebGLContext(env().getNumber("WEBGL_VERSION"), gpuResource);
+        newGPGPU = new GPGPUContext(gl);
+      }
       this.binaryCache = {};
       this.gpgpuCreatedLocally = false;
-      this.canvas = gpgpu.gl.canvas;
+    } else {
+      const gl = getWebGLContext(env().getNumber("WEBGL_VERSION"));
+      newGPGPU = new GPGPUContext(gl);
+      this.binaryCache = getBinaryCache(env().getNumber("WEBGL_VERSION"));
+      this.gpgpuCreatedLocally = true;
     }
+    this.gpgpu = newGPGPU;
+    this.canvas = this.gpgpu.gl.canvas;
     this.textureManager = new TextureManager(this.gpgpu);
     this.numMBBeforeWarning = numMBBeforeWarning();
     this.texData = new DataStorage(this, engine());
@@ -17081,7 +17098,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (dtype !== "complex64" && env().get("WEBGL_BUFFER_SUPPORTED")) {
       tmpDownloadTarget = this.decode(dataId);
       const tmpData = this.texData.get(tmpDownloadTarget.dataId);
-      buffer2 = this.gpgpu.createBufferFromTexture(tmpData.texture, ...getDenseTexShape(shape));
+      buffer2 = this.gpgpu.createBufferFromTexture(tmpData.texture.texture, ...getDenseTexShape(shape));
     }
     this.pendingRead.set(dataId, []);
     if (dtype !== "complex64") {
@@ -17122,6 +17139,36 @@ var _MathBackendWebGL = class extends KernelBackend {
     }
     return dTypeVals;
   }
+  readToGPU(dataId, options = {}) {
+    const texData = this.texData.get(dataId);
+    const { values, shape, slice: slice3, dtype, isPacked, texture } = texData;
+    if (dtype === "complex64") {
+      throw new Error("Does not support reading texture for complex64 dtype.");
+    }
+    if (slice3 != null) {
+      let program;
+      if (isPacked) {
+        program = new UnaryOpPackedProgram(shape, CLONE);
+      } else {
+        program = new UnaryOpProgram(shape, CLONE);
+      }
+      const res = this.runWebGLProgram(program, [{ dataId, shape, dtype }], dtype);
+      const gpuResouorce = this.readToGPU(res, options);
+      this.disposeIntermediateTensorInfo(res);
+      return gpuResouorce;
+    }
+    if (texture == null) {
+      if (values != null) {
+        throw new Error("Data is not on GPU but on CPU.");
+      } else {
+        throw new Error("There is no data on GPU or CPU.");
+      }
+    }
+    const tmpTarget = this.decode(dataId, options.customTexShape);
+    const tensorRef = engine().makeTensorFromDataId(tmpTarget.dataId, tmpTarget.shape, tmpTarget.dtype);
+    const tmpData = this.texData.get(tmpTarget.dataId);
+    return { tensorRef, ...tmpData.texture };
+  }
   bufferSync(t) {
     const data = this.readSync(t.dataId);
     let decodedData = data;
@@ -17154,7 +17201,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (env().getBool("WEBGL_DOWNLOAD_FLOAT_ENABLED")) {
       const tmpTarget = this.decode(dataId);
       const tmpData2 = this.texData.get(tmpTarget.dataId);
-      const vals2 = this.gpgpu.downloadMatrixFromPackedTexture(tmpData2.texture, ...getDenseTexShape(shape)).subarray(0, size);
+      const vals2 = this.gpgpu.downloadMatrixFromPackedTexture(tmpData2.texture.texture, ...getDenseTexShape(shape)).subarray(0, size);
       this.disposeIntermediateTensorInfo(tmpTarget);
       return vals2;
     }
@@ -17163,14 +17210,14 @@ var _MathBackendWebGL = class extends KernelBackend {
     const program = shouldUsePackedProgram ? new EncodeFloatPackedProgram(outputShape) : new EncodeFloatProgram(outputShape);
     const output = this.runWebGLProgram(program, [{ shape: outputShape, dtype, dataId }], "float32");
     const tmpData = this.texData.get(output.dataId);
-    const vals = this.gpgpu.downloadByteEncodedFloatMatrixFromOutputTexture(tmpData.texture, tmpData.texShape[0], tmpData.texShape[1]).subarray(0, size);
+    const vals = this.gpgpu.downloadByteEncodedFloatMatrixFromOutputTexture(tmpData.texture.texture, tmpData.texShape[0], tmpData.texShape[1]).subarray(0, size);
     this.disposeIntermediateTensorInfo(output);
     return vals;
   }
   timerAvailable() {
     return env().getNumber("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE") > 0;
   }
-  async time(f) {
+  time(f) {
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers = [];
     let outerMostTime = false;
@@ -17194,18 +17241,20 @@ var _MathBackendWebGL = class extends KernelBackend {
       kernelMs: null,
       wallMs: null
     };
-    if (env().getNumber("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE") > 0) {
-      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-      res["kernelMs"] = util_exports.sum(kernelMs);
-      res["getExtraProfileInfo"] = () => kernelMs.map((d, i) => ({ name: flattenedActiveTimerNames[i], ms: d })).map((d) => `${d.name}: ${d.ms}`).join(", ");
-    } else {
-      res["kernelMs"] = {
-        error: "WebGL query timers are not supported in this environment."
-      };
-    }
-    this.uploadWaitMs = 0;
-    this.downloadWaitMs = 0;
-    return res;
+    return (async () => {
+      if (env().getNumber("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE") > 0) {
+        const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+        res["kernelMs"] = util_exports.sum(kernelMs);
+        res["getExtraProfileInfo"] = () => kernelMs.map((d, i) => ({ name: flattenedActiveTimerNames[i], ms: d })).map((d) => `${d.name}: ${d.ms}`).join(", ");
+      } else {
+        res["kernelMs"] = {
+          error: "WebGL query timers are not supported in this environment."
+        };
+      }
+      this.uploadWaitMs = 0;
+      this.downloadWaitMs = 0;
+      return res;
+    })();
   }
   memory() {
     return {
@@ -17286,7 +17335,7 @@ var _MathBackendWebGL = class extends KernelBackend {
   }
   getTexture(dataId) {
     this.uploadToGPU(dataId);
-    return this.texData.get(dataId).texture;
+    return this.texData.get(dataId).texture.texture;
   }
   getDataInfo(dataId) {
     return this.texData.get(dataId);
@@ -17363,30 +17412,34 @@ var _MathBackendWebGL = class extends KernelBackend {
     const output = this.runWebGLProgram(program, [input3D], input.dtype, customValues, preventEagerUnpackingOfOutput);
     return { dataId: output.dataId, shape: afterShape, dtype: output.dtype };
   }
-  decode(dataId) {
+  decode(dataId, customTexShape) {
     const texData = this.texData.get(dataId);
     const { isPacked, shape, dtype } = texData;
+    if (customTexShape != null) {
+      const size = util_exports.sizeFromShape(shape);
+      const texSize = customTexShape[0] * customTexShape[1] * 4;
+      util_exports.assert(size <= texSize, () => "customTexShape is too small. Row * Column * 4 should be equal or larger than the size of the tensor data.");
+    }
     const shapeAs3D = getShapeAs3D(shape);
     let program;
-    const denseTexShape = getDenseTexShape(shapeAs3D);
     if (isPacked) {
       program = new DecodeMatrixPackedProgram(shapeAs3D);
     } else {
       program = new DecodeMatrixProgram(shapeAs3D);
     }
     const preventEagerUnpackingOfOutput = true;
-    const customValues = [denseTexShape];
-    const out = this.runWebGLProgram(program, [{ shape: shapeAs3D, dtype, dataId }], dtype, customValues, preventEagerUnpackingOfOutput);
+    const customValues = [customTexShape != null ? customTexShape : getDenseTexShape(shapeAs3D)];
+    const out = this.runWebGLProgram(program, [{ shape: shapeAs3D, dtype, dataId }], dtype, customValues, preventEagerUnpackingOfOutput, customTexShape);
     return { dtype, shape, dataId: out.dataId };
   }
-  runWebGLProgram(program, inputs, outputDtype, customUniformValues, preventEagerUnpackingOfOutput = false) {
+  runWebGLProgram(program, inputs, outputDtype, customUniformValues, preventEagerUnpackingOfOutput = false, customTexShape) {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;
     }
     if (program.outPackingScheme === PackingScheme.DENSE) {
-      const texelShape = getDenseTexShape(program.outputShape);
+      const texelShape = customTexShape != null ? customTexShape : getDenseTexShape(program.outputShape);
       outData.texShape = texelShape.map((d) => d * 2);
     }
     if (program.outTexUsage != null) {
@@ -23195,7 +23248,9 @@ var GatherProgram = class {
     this.userCode = `
       void main() {
         ${dtype} resRC = getOutputCoords();
-        setOutput(getA(${sourceCoords}));
+        int index = int(getIndices(resRC.x, resRC.z));
+        float inBounds = (index >= 0) && (index < ${aShape[2]}) ? 1.0 : 0.0;
+        setOutput(inBounds * getA(${sourceCoords}));
       }
     `;
   }
@@ -23205,7 +23260,7 @@ function getSourceCoords2(aShape, axis) {
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {
     if (i === 2) {
-      sourceCoords.push("int(getIndices(resRC.x, resRC.z))");
+      sourceCoords.push("index");
     } else {
       sourceCoords.push(`${currentCoords[i]}`);
     }
@@ -23219,11 +23274,13 @@ function gatherV2(args) {
   const { x, indices } = inputs;
   const { axis, batchDims } = attrs;
   const parsedAxis = util_exports.parseAxisParam(axis, x.shape)[0];
-  const indicesVals = backend.readSync(indices.dataId);
-  const axisDim = x.shape[parsedAxis];
-  for (let i = 0; i < indicesVals.length; ++i) {
-    const index = indicesVals[i];
-    util_exports.assert(index <= axisDim - 1 && index >= 0, () => `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+  if (env().get("DEBUG")) {
+    const indicesVals = backend.readSync(indices.dataId);
+    const axisDim = x.shape[parsedAxis];
+    for (let i = 0; i < indicesVals.length; ++i) {
+      const index = indicesVals[i];
+      util_exports.assert(index <= axisDim - 1 && index >= 0, () => `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+    }
   }
   const shapeInfo = backend_util_exports.segment_util.collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
   const indicesSize = util_exports.sizeFromShape(indices.shape);
