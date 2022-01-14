@@ -14846,7 +14846,7 @@ function fusedBatchMatMul(args) {
   wasmFusedMatMul(aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length, transposeA, transposeB, fusedActivation, biasId, preluActivationWeightsId, leakyreluAlpha || 0, outId);
   return out;
 }
-var fusedMatMulConfig = {
+var _fusedMatMulConfig = {
   kernelName: _FusedMatMul,
   backendName: "wasm",
   setupFunc: setup,
@@ -18334,6 +18334,7 @@ var zerosLikeConfig = {
 
 // src/tfjs-backend-wasm/src/register_all_kernels.ts
 var kernelConfigs = [
+  _fusedMatMulConfig,
   absConfig,
   addConfig,
   addNConfig,
@@ -18363,7 +18364,6 @@ var kernelConfigs = [
   flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
-  fusedMatMulConfig,
   fusedBatchNormConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
@@ -18405,8 +18405,8 @@ var kernelConfigs = [
   resizeBilinearConfig,
   reverseConfig,
   rotateWithOffsetConfig,
-  rsqrtConfig,
   roundConfig,
+  rsqrtConfig,
   scatterNdConfig,
   selectConfig,
   sigmoidConfig,

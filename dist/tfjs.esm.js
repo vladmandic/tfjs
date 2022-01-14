@@ -42765,18 +42765,18 @@ var broadcastArgsConfig = {
   kernelFunc: broadcastArgs2
 };
 
-// src/tfjs-backend-cpu/src/kernels/Clip.ts
-var clip = unaryKernelFunc(ClipByValue, (xi, attrs) => {
+// src/tfjs-backend-cpu/src/kernels/ClipByValue.ts
+var clipByValue2 = unaryKernelFunc(ClipByValue, (xi, attrs) => {
   const clipAttrs = attrs;
   if (xi > clipAttrs.clipValueMax) {
     return clipAttrs.clipValueMax;
   }
   return xi < clipAttrs.clipValueMin ? clipAttrs.clipValueMin : xi;
 });
-var clipConfig = {
+var clipByValueConfig = {
   kernelName: ClipByValue,
   backendName: "cpu",
-  kernelFunc: clip
+  kernelFunc: clipByValue2
 };
 
 // src/tfjs-backend-cpu/src/kernels/ComplexAbs.ts
@@ -43735,7 +43735,7 @@ var diagConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Dilation2D.ts
-var dilation2dConfig = {
+var dilation2DConfig = {
   kernelName: Dilation2D,
   backendName: "cpu",
   kernelFunc: ({ inputs, backend: backend2, attrs }) => {
@@ -43800,7 +43800,7 @@ var dilation2dConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Dilation2DBackpropFilter.ts
-var dilation2dBackpropFilterConfig = {
+var dilation2DBackpropFilterConfig = {
   kernelName: Dilation2DBackpropFilter,
   backendName: "cpu",
   kernelFunc: ({ inputs, backend: backend2, attrs }) => {
@@ -43864,7 +43864,7 @@ var dilation2dBackpropFilterConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Dilation2DBackpropInput.ts
-var dilation2dBackpropInputConfig = {
+var dilation2DBackpropInputConfig = {
   kernelName: Dilation2DBackpropInput,
   backendName: "cpu",
   kernelFunc: ({ inputs, backend: backend2, attrs }) => {
@@ -44673,7 +44673,7 @@ function lRN(args) {
   }
   return backend2.makeTensorInfo(x.shape, x.dtype, result);
 }
-var lRNConfig = {
+var LRNConfig = {
   kernelName: LRN,
   backendName: "cpu",
   kernelFunc: lRN
@@ -44712,7 +44712,7 @@ function lRNGrad(args) {
   }
   return backend2.makeTensorInfo(dy.shape, x.dtype, result);
 }
-var lRNGradConfig = {
+var LRNGradConfig = {
   kernelName: LRNGrad,
   backendName: "cpu",
   kernelFunc: lRNGrad
@@ -46615,16 +46615,16 @@ var kernelConfigs = [
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
-  clipConfig,
+  clipByValueConfig,
   complexConfig,
   complexAbsConfig,
   concatConfig,
+  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv2DConfig,
+  conv3DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputV2Config,
-  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
@@ -46635,10 +46635,9 @@ var kernelConfigs = [
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
   diagConfig,
-  dilation2dConfig,
-  dilation2dBackpropInputConfig,
-  dilation2dBackpropFilterConfig,
-  realDivConfig,
+  dilation2DConfig,
+  dilation2DBackpropFilterConfig,
+  dilation2DBackpropInputConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig2,
@@ -46673,15 +46672,15 @@ var kernelConfigs = [
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
-  lRNConfig,
-  lRNGradConfig,
+  LRNConfig,
+  LRNGradConfig,
+  maxConfig,
   maximumConfig,
   maxPoolConfig,
   maxPool3DConfig,
   maxPool3DGradConfig2,
   maxPoolGradConfig2,
   maxPoolWithArgmaxConfig,
-  maxConfig,
   meanConfig,
   minConfig,
   minimumConfig,
@@ -46703,6 +46702,7 @@ var kernelConfigs = [
   prodConfig,
   rangeConfig,
   realConfig,
+  realDivConfig,
   reciprocalConfig,
   reluConfig,
   relu6Config,
@@ -46746,8 +46746,8 @@ var kernelConfigs = [
   tanhConfig,
   tileConfig,
   topKConfig,
-  transposeConfig,
   transformConfig,
+  transposeConfig,
   uniqueConfig,
   unpackConfig,
   unsortedSegmentSumConfig,
@@ -50477,9 +50477,8 @@ var PackProgram = class {
   getOutput(dims) {
     const sourceCoords = this.getSourceCoordsArr(dims);
     if (this.rank === 1) {
-      return `getA(rc),
-              rc + 1 >= ${this.enableShapeUniforms ? "outShape" : this.outputShape[0]} ? 0. : getA(rc + 1),
-              0, 0`;
+      const outShape = this.enableShapeUniforms ? "outShape" : this.outputShape[0];
+      return `getA(rc), (rc + 1 >= ${outShape} ? 0. : getA(rc + 1)), 0, 0`;
     }
     return `getA(${sourceCoords[0]}),
             cEdge ? 0. : getA(${sourceCoords[1]}),
@@ -53788,7 +53787,7 @@ function avgPool3DGrad2(args) {
   const avgPoolBackpropProgram = new AvgPool3DBackpropProgram(convInfo);
   return backend2.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
-var avgPoolGrad3DConfig = {
+var avgPool3DGradConfig3 = {
   kernelName: AvgPool3DGrad,
   backendName: "webgl",
   kernelFunc: avgPool3DGrad2
@@ -54266,7 +54265,7 @@ var ClipPackedProgram = class {
 };
 
 // src/tfjs-backend-webgl/src/kernels/ClipByValue.ts
-function clipByValue2(args) {
+function clipByValue3(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
   const { clipValueMin, clipValueMax } = attrs;
@@ -54279,10 +54278,10 @@ function clipByValue2(args) {
   const customValues = [[clipValueMin], [clipValueMax]];
   return backend2.runWebGLProgram(program, [x], x.dtype, customValues);
 }
-var clipByValueConfig = {
+var clipByValueConfig2 = {
   kernelName: ClipByValue,
   backendName: "webgl",
-  kernelFunc: clipByValue2
+  kernelFunc: clipByValue3
 };
 
 // src/tfjs-backend-webgl/src/complex_abs_gpu.ts
@@ -56456,7 +56455,7 @@ function dilation2D(args) {
   backend2.disposeIntermediateTensorInfo(out);
   return outReshaped;
 }
-var dilation2DConfig = {
+var dilation2DConfig2 = {
   kernelName: Dilation2D,
   backendName: "webgl",
   kernelFunc: dilation2D
@@ -56607,10 +56606,22 @@ var erfConfig2 = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Exp.ts
-var EXP = `return exp(x);`;
+var EXP = CHECK_NAN_SNIPPET_UNARY + `
+  return exp(x);
+`;
+var EXP_PACKED = `
+  vec4 result = exp(x);
+  bvec4 isNaN = isnan(x);
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
 var exp3 = unaryKernelFunc2({
   opSnippet: EXP,
-  packedOpSnippet: EXP,
+  packedOpSnippet: EXP_PACKED,
   cpuKernelImpl: expImplCPU,
   dtype: "float32"
 });
@@ -57385,16 +57396,16 @@ var linSpaceConfig2 = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Log.ts
-var LOG = `if (x < 0.0) return NAN;
-  return log(x);`;
+var LOG = CHECK_NAN_SNIPPET_UNARY + `
+  return x < 0.0 ? 0./0. : log(x);
+`;
 var LOG_PACKED = `
   vec4 result = log(x);
-  vec4 isNaN = vec4(lessThan(x, vec4(0.0)));
-  result.r = isNaN.r == 1.0 ? NAN : result.r;
-  result.g = isNaN.g == 1.0 ? NAN : result.g;
-  result.b = isNaN.b == 1.0 ? NAN : result.b;
-  result.a = isNaN.a == 1.0 ? NAN : result.a;
-
+  bvec4 isNaN = isnan(x);
+  result.r = isNaN.r ? x.r : (x.r < 0.0 ? 0./0. : result.r);
+  result.g = isNaN.g ? x.g : (x.g < 0.0 ? 0./0. : result.g);
+  result.b = isNaN.b ? x.b : (x.b < 0.0 ? 0./0. : result.b);
+  result.a = isNaN.a ? x.a : (x.a < 0.0 ? 0./0. : result.a);
   return result;
 `;
 var log4 = unaryKernelFunc2({ opSnippet: LOG, packedOpSnippet: LOG_PACKED, cpuKernelImpl: logImplCPU });
@@ -57405,7 +57416,9 @@ var logConfig2 = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Log1p.ts
-var LOG1P = `return log(1.0 + x);`;
+var LOG1P = CHECK_NAN_SNIPPET_UNARY + `
+  return log(1.0 + x);
+`;
 var log1p3 = unaryKernelFunc2({ opSnippet: LOG1P });
 var log1pConfig2 = {
   kernelName: Log1p,
@@ -57588,7 +57601,7 @@ var lrn = (args) => {
   const program = env().getBool("WEBGL_PACK_NORMALIZATION") ? new LRNPackedProgram(x.shape, depthRadius, bias, alpha, beta) : new LRNProgram(x.shape, depthRadius, bias, alpha, beta);
   return backend2.runWebGLProgram(program, [x], x.dtype);
 };
-var LRNConfig = {
+var LRNConfig2 = {
   kernelName: LRN,
   backendName: "webgl",
   kernelFunc: lrn
@@ -57672,7 +57685,7 @@ var lrnGrad = (args) => {
   const program = new LRNGradProgram(x.shape, depthRadius, bias, alpha, beta);
   return backend2.runWebGLProgram(program, [x, y, dy], x.dtype);
 };
-var LRNGradConfig = {
+var LRNGradConfig2 = {
   kernelName: LRNGrad,
   backendName: "webgl",
   kernelFunc: lrnGrad
@@ -57968,7 +57981,7 @@ function maxPool3DGrad2(args) {
   backend2.disposeIntermediateTensorInfo(maxPool3dPositions2);
   return result;
 }
-var maxPoolGrad3DConfig = {
+var maxPool3DGradConfig3 = {
   kernelName: MaxPool3DGrad,
   backendName: "webgl",
   kernelFunc: maxPool3DGrad2
@@ -58439,7 +58452,20 @@ var multinomialConfig2 = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Neg.ts
-var NEG = `return -x;`;
+var NEG = CHECK_NAN_SNIPPET + `
+  return -x;
+`;
+var NEG_PACKED = `
+  vec4 result = -x;
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
 function neg3(args) {
   const { inputs, backend: backend2 } = args;
   const { x } = inputs;
@@ -58450,7 +58476,7 @@ function neg3(args) {
   }
   let program;
   if (env().getBool("WEBGL_PACK_UNARY_OPERATIONS")) {
-    program = new UnaryOpPackedProgram(x.shape, NEG);
+    program = new UnaryOpPackedProgram(x.shape, NEG_PACKED);
   } else {
     program = new UnaryOpProgram(x.shape, NEG);
   }
@@ -59825,10 +59851,23 @@ var seluConfig2 = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Sigmoid.ts
-var SIGMOID3 = `return 1.0 / (1.0 + exp(-1.0 * x));`;
+var SIGMOID3 = CHECK_NAN_SNIPPET_UNARY + `
+  return 1.0 / (1.0 + exp(-1.0 * x));
+`;
+var SIGMOID_PACKED = `
+  vec4 result = 1.0 / (1.0 + exp(-1.0 * x));
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
 var sigmoid3 = unaryKernelFunc2({
   opSnippet: SIGMOID3,
-  packedOpSnippet: SIGMOID3,
+  packedOpSnippet: SIGMOID_PACKED,
   cpuKernelImpl: sigmoidImplCPU
 });
 var sigmoidConfig2 = {
@@ -61018,8 +61057,6 @@ var unsortedSegmentSumConfig2 = {
 
 // src/tfjs-backend-webgl/src/register_all_kernels.ts
 var kernelConfigs2 = [
-  LRNConfig,
-  LRNGradConfig,
   _fusedMatMulConfig2,
   absConfig2,
   acosConfig2,
@@ -61032,12 +61069,12 @@ var kernelConfigs2 = [
   argMinConfig2,
   asinConfig2,
   asinhConfig2,
-  atan2Config2,
   atanConfig2,
+  atan2Config2,
   atanhConfig2,
-  avgPool3DConfig2,
   avgPoolConfig2,
-  avgPoolGrad3DConfig,
+  avgPool3DConfig2,
+  avgPool3DGradConfig3,
   avgPoolGradConfig3,
   batchMatMulConfig2,
   batchNormConfig2,
@@ -61046,27 +61083,27 @@ var kernelConfigs2 = [
   broadcastArgsConfig2,
   castConfig2,
   ceilConfig2,
-  clipByValueConfig,
-  complexAbsConfig2,
+  clipByValueConfig2,
   complexConfig2,
+  complexAbsConfig2,
   concatConfig2,
+  conv2DConfig2,
   conv2DBackpropFilterConfig2,
   conv2DBackpropInputConfig2,
-  conv2DConfig2,
+  conv3DConfig2,
   conv3DBackpropFilterV2Config2,
   conv3DBackpropInputConfig,
-  conv3DConfig2,
   cosConfig2,
   coshConfig2,
   cropAndResizeConfig2,
   cumsumConfig2,
   denseBincountConfig2,
   depthToSpaceConfig2,
+  depthwiseConv2dNativeConfig2,
   depthwiseConv2dNativeBackpropFilterConfig2,
   depthwiseConv2dNativeBackpropInputConfig2,
-  depthwiseConv2dNativeConfig2,
   diagConfig2,
-  dilation2DConfig,
+  dilation2DConfig2,
   einsumConfig2,
   eluConfig2,
   eluGradConfig3,
@@ -61097,18 +61134,20 @@ var kernelConfigs2 = [
   lessConfig2,
   lessEqualConfig2,
   linSpaceConfig2,
-  log1pConfig2,
   logConfig2,
+  log1pConfig2,
   logicalAndConfig2,
   logicalNotConfig2,
   logicalOrConfig2,
+  LRNConfig2,
+  LRNGradConfig2,
   maxConfig2,
-  maxPool3DConfig2,
+  maximumConfig2,
   maxPoolConfig2,
-  maxPoolGrad3DConfig,
+  maxPool3DConfig2,
+  maxPool3DGradConfig3,
   maxPoolGradConfig3,
   maxPoolWithArgmaxConfig2,
-  maximumConfig2,
   meanConfig2,
   minConfig2,
   minimumConfig2,
@@ -61132,8 +61171,8 @@ var kernelConfigs2 = [
   realConfig2,
   realDivConfig2,
   reciprocalConfig2,
-  relu6Config2,
   reluConfig2,
+  relu6Config2,
   reshapeConfig2,
   resizeBilinearConfig2,
   resizeBilinearGradConfig3,
@@ -64227,7 +64266,7 @@ var ClipProgram2 = class {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/ClipByValue.ts
-function clipByValue3(args) {
+function clipByValue4(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
   const { clipValueMin, clipValueMax } = attrs;
@@ -64243,10 +64282,10 @@ function clipByValue3(args) {
   }
   return backend2.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
-var clipByValueConfig2 = {
+var clipByValueConfig3 = {
   kernelName: ClipByValue,
   backendName: "webgpu",
-  kernelFunc: clipByValue3
+  kernelFunc: clipByValue4
 };
 
 // src/tfjs-backend-webgpu/src/concat_webgpu.ts
@@ -64271,7 +64310,7 @@ var ConcatProgram2 = class {
     if (this.offsetLength > 0) {
       snippets.push(`if (yC < uniforms.offset0){ setOutputAtCoords(coords.x, coords.y, getT0(yR, yC)); }`);
       for (let i = 1; i < this.offsetLength; i++) {
-        snippets.push(`elseif (yC < uniforms.offset${[i]}){ setOutputAtCoords(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${i - 1})); }`);
+        snippets.push(`else if (yC < uniforms.offset${[i]}){ setOutputAtCoords(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${i - 1})); }`);
       }
       const lastIndex = this.offsetLength;
       const lastShiftIndex = this.offsetLength - 1;
@@ -64627,9 +64666,9 @@ var Conv2DMMVec4Program = class {
       let nextData${index} = x.numbers[divBy4Index${index} + 1];
       if (divBy4Remainder${index} == 1) {
         temp = vec4<f32>(curData${index}.yzw, nextData${index}.x);
-      } elseif (divBy4Remainder${index} == 2) {
+      } else if (divBy4Remainder${index} == 2) {
         temp = vec4<f32>(curData${index}.zw, nextData${index}.xy);
-      } elseif (divBy4Remainder${index} == 3) {
+      } else if (divBy4Remainder${index} == 3) {
         temp = vec4<f32>(curData${index}.w, nextData${index}.xyz);
       }
     }
@@ -64653,7 +64692,7 @@ var Conv2DMMVec4Program = class {
               ${this.getSampleAWithRemainder(2)}
             if (inChCoord == 0) {
               resData = vec4<f32>(resData.xyz, temp.x);
-            } elseif (inChCoord == 1) {
+            } else if (inChCoord == 1) {
               resData = vec4<f32>(resData.xy, temp.xy);
             } else {
               resData = vec4<f32>(resData.x, temp.xyz);
@@ -65709,7 +65748,7 @@ var ReduceProgram2 = class {
       reduceOp = `
          if (isNanCustom(candidate)) {
           bestValue = uniforms.NAN;
-         } elseif (!isNanCustom(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
+         } else if (!isNanCustom(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
            {  bestValue = candidate; }`;
       initValue = "f32(x.numbers[offset])";
     } else if (this.reduceType === "sum" || this.reduceType === "mean") {
@@ -66578,6 +66617,22 @@ var greaterEqualConfig3 = {
   kernelFunc: greaterEqual4
 };
 
+// src/tfjs-backend-webgpu/src/kernels/LeakyRelu.ts
+function leakyRelu4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { alpha } = attrs;
+  const uniformData = [{ type: "float32", data: [alpha] }];
+  const program = new UnaryOpProgram2(x.shape, UnaryOpType.LEAKYRELU);
+  program.uniforms = "alpha : f32;";
+  return backend2.runWebGPUProgram(program, [x], "float32", uniformData);
+}
+var leakyReluConfig3 = {
+  kernelName: LeakyRelu,
+  backendName: "webgpu",
+  kernelFunc: leakyRelu4
+};
+
 // src/tfjs-backend-webgpu/src/kernels/Less.ts
 var less5 = binaryKernelFunc3({ opSnippet: BinaryOpType.LESS, dtype: "bool", cpuKernelImpl: lessImplCPU2 });
 var lessConfig3 = {
@@ -66754,7 +66809,7 @@ var MirrorPadProgram2 = class {
           for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${this.offset};
-            } elseif(${shaderOutC} >= ${shaderEnd}) {
+            } else if(${shaderOutC} >= ${shaderEnd}) {
               ${shaderOutC} = (${shaderEnd} - 1) * 2 - ${shaderOutC} + ${this.offset};
             }
           }
@@ -67073,22 +67128,6 @@ var relu6Config3 = {
   kernelName: Relu6,
   backendName: "webgpu",
   kernelFunc: relu64
-};
-
-// src/tfjs-backend-webgpu/src/kernels/LeakyRelu.ts
-function leakyRelu4(args) {
-  const { inputs, backend: backend2, attrs } = args;
-  const { x } = inputs;
-  const { alpha } = attrs;
-  const uniformData = [{ type: "float32", data: [alpha] }];
-  const program = new UnaryOpProgram2(x.shape, UnaryOpType.LEAKYRELU);
-  program.uniforms = "alpha : f32;";
-  return backend2.runWebGPUProgram(program, [x], "float32", uniformData);
-}
-var leakyReluConfig3 = {
-  kernelName: LeakyRelu,
-  backendName: "webgpu",
-  kernelFunc: leakyRelu4
 };
 
 // src/tfjs-backend-webgpu/src/resize_bilinear_webgpu.ts
@@ -68264,7 +68303,7 @@ var TransformProgram2 = class {
                     inCoord = -inCoord - 1.0;
                   }
                 }
-              } elseif (inCoord > len - 1.0) {
+              } else if (inCoord > len - 1.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
                 } else {
@@ -68276,7 +68315,7 @@ var TransformProgram2 = class {
                 }
               }
               return clamp(inCoord, 0.0, len - 1.0);
-            } elseif (uniforms.fillModeId == 3) {
+            } else if (uniforms.fillModeId == 3) {
               if (inCoord < 0.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
@@ -68284,7 +68323,7 @@ var TransformProgram2 = class {
                   let sz = len - 1.0;
                   inCoord = inCoord + len * (f32(i32(f32(-inCoord / sz))) + 1.0);
                 }
-              } elseif (inCoord > len - 1.0) {
+              } else if (inCoord > len - 1.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
                 } else {
@@ -68293,7 +68332,7 @@ var TransformProgram2 = class {
                 }
               }
               return clamp(inCoord, 0.0, len - 1.0);
-            } elseif (uniforms.fillModeId == 4) {
+            } else if (uniforms.fillModeId == 4) {
               return clamp(outCoord, 0.0, len - 1.0);
             }
             return outCoord;
@@ -68464,7 +68503,7 @@ var kernelConfigs3 = [
   batchToSpaceNDConfig3,
   castConfig3,
   ceilConfig3,
-  clipByValueConfig2,
+  clipByValueConfig3,
   complexConfig3,
   concatConfig3,
   conv2DConfig3,
@@ -68477,8 +68516,8 @@ var kernelConfigs3 = [
   einsumConfig3,
   eluConfig3,
   equalConfig3,
-  expandDimsConfig3,
   expConfig3,
+  expandDimsConfig3,
   expm1Config3,
   fillConfig3,
   flipLeftRightConfig3,
@@ -68494,6 +68533,7 @@ var kernelConfigs3 = [
   greaterEqualConfig3,
   identityConfig3,
   imagConfig3,
+  leakyReluConfig3,
   lessConfig3,
   lessEqualConfig3,
   logConfig3,
@@ -68514,15 +68554,14 @@ var kernelConfigs3 = [
   onesLikeConfig3,
   packConfig3,
   padV2Config3,
+  powConfig3,
   preluConfig3,
   prodConfig3,
-  powConfig3,
   rangeConfig3,
   realConfig3,
   realDivConfig3,
   reluConfig3,
   relu6Config3,
-  leakyReluConfig3,
   reshapeConfig3,
   resizeBilinearConfig3,
   resizeNearestNeighborConfig3,
@@ -68538,8 +68577,8 @@ var kernelConfigs3 = [
   stringNGramsConfig3,
   softmaxConfig3,
   spaceToBatchNDConfig3,
-  splitVConfig3,
   sparseToDenseConfig3,
+  splitVConfig3,
   sqrtConfig3,
   squareConfig3,
   squaredDifferenceConfig3,
@@ -69497,7 +69536,7 @@ function fusedBatchMatMul(args) {
   wasmFusedMatMul(aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length, transposeA, transposeB, fusedActivation, biasId, preluActivationWeightsId, leakyreluAlpha || 0, outId);
   return out;
 }
-var fusedMatMulConfig = {
+var _fusedMatMulConfig4 = {
   kernelName: _FusedMatMul,
   backendName: "wasm",
   setupFunc: setup,
@@ -70125,7 +70164,7 @@ function setup8(backend2) {
     "number"
   ]);
 }
-function clip2(args) {
+function clip(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
   const { clipValueMin, clipValueMax } = attrs;
@@ -70135,11 +70174,11 @@ function clip2(args) {
   wasmClip(xId, clipValueMin, clipValueMax, outId);
   return out;
 }
-var clipByValueConfig3 = {
+var clipByValueConfig4 = {
   kernelName: ClipByValue,
   backendName: "wasm",
   setupFunc: setup8,
-  kernelFunc: clip2
+  kernelFunc: clip
 };
 
 // src/tfjs-backend-wasm/src/kernels/Concat.ts
@@ -72551,6 +72590,7 @@ var zerosLikeConfig4 = {
 
 // src/tfjs-backend-wasm/src/register_all_kernels.ts
 var kernelConfigs4 = [
+  _fusedMatMulConfig4,
   absConfig4,
   addConfig4,
   addNConfig4,
@@ -72562,7 +72602,7 @@ var kernelConfigs4 = [
   batchToSpaceNDConfig4,
   castConfig4,
   ceilConfig4,
-  clipByValueConfig3,
+  clipByValueConfig4,
   concatConfig4,
   conv2DConfig4,
   conv2DBackpropInputConfig4,
@@ -72580,7 +72620,6 @@ var kernelConfigs4 = [
   flipLeftRightConfig4,
   floorConfig4,
   floorDivConfig4,
-  fusedMatMulConfig,
   fusedBatchNormConfig2,
   fusedConv2DConfig4,
   fusedDepthwiseConv2DConfig4,
@@ -72622,8 +72661,8 @@ var kernelConfigs4 = [
   resizeBilinearConfig4,
   reverseConfig3,
   rotateWithOffsetConfig4,
-  rsqrtConfig4,
   roundConfig3,
+  rsqrtConfig4,
   scatterNdConfig4,
   selectConfig4,
   sigmoidConfig4,
@@ -73034,7 +73073,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.12.0-20220108";
+var externalVersion = "3.13.0-20220114";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

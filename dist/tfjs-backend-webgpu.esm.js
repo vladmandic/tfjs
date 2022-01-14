@@ -15899,7 +15899,7 @@ var ConcatProgram = class {
     if (this.offsetLength > 0) {
       snippets.push(`if (yC < uniforms.offset0){ setOutputAtCoords(coords.x, coords.y, getT0(yR, yC)); }`);
       for (let i = 1; i < this.offsetLength; i++) {
-        snippets.push(`elseif (yC < uniforms.offset${[i]}){ setOutputAtCoords(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${i - 1})); }`);
+        snippets.push(`else if (yC < uniforms.offset${[i]}){ setOutputAtCoords(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${i - 1})); }`);
       }
       const lastIndex = this.offsetLength;
       const lastShiftIndex = this.offsetLength - 1;
@@ -16255,9 +16255,9 @@ var Conv2DMMVec4Program = class {
       let nextData${index} = x.numbers[divBy4Index${index} + 1];
       if (divBy4Remainder${index} == 1) {
         temp = vec4<f32>(curData${index}.yzw, nextData${index}.x);
-      } elseif (divBy4Remainder${index} == 2) {
+      } else if (divBy4Remainder${index} == 2) {
         temp = vec4<f32>(curData${index}.zw, nextData${index}.xy);
-      } elseif (divBy4Remainder${index} == 3) {
+      } else if (divBy4Remainder${index} == 3) {
         temp = vec4<f32>(curData${index}.w, nextData${index}.xyz);
       }
     }
@@ -16281,7 +16281,7 @@ var Conv2DMMVec4Program = class {
               ${this.getSampleAWithRemainder(2)}
             if (inChCoord == 0) {
               resData = vec4<f32>(resData.xyz, temp.x);
-            } elseif (inChCoord == 1) {
+            } else if (inChCoord == 1) {
               resData = vec4<f32>(resData.xy, temp.xy);
             } else {
               resData = vec4<f32>(resData.x, temp.xyz);
@@ -17337,7 +17337,7 @@ var ReduceProgram = class {
       reduceOp = `
          if (isNanCustom(candidate)) {
           bestValue = uniforms.NAN;
-         } elseif (!isNanCustom(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
+         } else if (!isNanCustom(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
            {  bestValue = candidate; }`;
       initValue = "f32(x.numbers[offset])";
     } else if (this.reduceType === "sum" || this.reduceType === "mean") {
@@ -18206,6 +18206,22 @@ var greaterEqualConfig = {
   kernelFunc: greaterEqual3
 };
 
+// src/tfjs-backend-webgpu/src/kernels/LeakyRelu.ts
+function leakyRelu2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { alpha } = attrs;
+  const uniformData = [{ type: "float32", data: [alpha] }];
+  const program = new UnaryOpProgram(x.shape, UnaryOpType.LEAKYRELU);
+  program.uniforms = "alpha : f32;";
+  return backend.runWebGPUProgram(program, [x], "float32", uniformData);
+}
+var leakyReluConfig = {
+  kernelName: LeakyRelu,
+  backendName: "webgpu",
+  kernelFunc: leakyRelu2
+};
+
 // src/tfjs-backend-webgpu/src/kernels/Less.ts
 var less3 = binaryKernelFunc({ opSnippet: BinaryOpType.LESS, dtype: "bool", cpuKernelImpl: lessImplCPU });
 var lessConfig = {
@@ -18382,7 +18398,7 @@ var MirrorPadProgram = class {
           for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${this.offset};
-            } elseif(${shaderOutC} >= ${shaderEnd}) {
+            } else if(${shaderOutC} >= ${shaderEnd}) {
               ${shaderOutC} = (${shaderEnd} - 1) * 2 - ${shaderOutC} + ${this.offset};
             }
           }
@@ -18701,22 +18717,6 @@ var relu6Config = {
   kernelName: Relu6,
   backendName: "webgpu",
   kernelFunc: relu62
-};
-
-// src/tfjs-backend-webgpu/src/kernels/LeakyRelu.ts
-function leakyRelu2(args) {
-  const { inputs, backend, attrs } = args;
-  const { x } = inputs;
-  const { alpha } = attrs;
-  const uniformData = [{ type: "float32", data: [alpha] }];
-  const program = new UnaryOpProgram(x.shape, UnaryOpType.LEAKYRELU);
-  program.uniforms = "alpha : f32;";
-  return backend.runWebGPUProgram(program, [x], "float32", uniformData);
-}
-var leakyReluConfig = {
-  kernelName: LeakyRelu,
-  backendName: "webgpu",
-  kernelFunc: leakyRelu2
 };
 
 // src/tfjs-backend-webgpu/src/resize_bilinear_webgpu.ts
@@ -19892,7 +19892,7 @@ var TransformProgram = class {
                     inCoord = -inCoord - 1.0;
                   }
                 }
-              } elseif (inCoord > len - 1.0) {
+              } else if (inCoord > len - 1.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
                 } else {
@@ -19904,7 +19904,7 @@ var TransformProgram = class {
                 }
               }
               return clamp(inCoord, 0.0, len - 1.0);
-            } elseif (uniforms.fillModeId == 3) {
+            } else if (uniforms.fillModeId == 3) {
               if (inCoord < 0.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
@@ -19912,7 +19912,7 @@ var TransformProgram = class {
                   let sz = len - 1.0;
                   inCoord = inCoord + len * (f32(i32(f32(-inCoord / sz))) + 1.0);
                 }
-              } elseif (inCoord > len - 1.0) {
+              } else if (inCoord > len - 1.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
                 } else {
@@ -19921,7 +19921,7 @@ var TransformProgram = class {
                 }
               }
               return clamp(inCoord, 0.0, len - 1.0);
-            } elseif (uniforms.fillModeId == 4) {
+            } else if (uniforms.fillModeId == 4) {
               return clamp(outCoord, 0.0, len - 1.0);
             }
             return outCoord;
@@ -20105,8 +20105,8 @@ var kernelConfigs = [
   einsumConfig,
   eluConfig,
   equalConfig,
-  expandDimsConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fillConfig,
   flipLeftRightConfig,
@@ -20122,6 +20122,7 @@ var kernelConfigs = [
   greaterEqualConfig,
   identityConfig,
   imagConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -20142,15 +20143,14 @@ var kernelConfigs = [
   onesLikeConfig,
   packConfig,
   padV2Config,
+  powConfig,
   preluConfig,
   prodConfig,
-  powConfig,
   rangeConfig,
   realConfig,
   realDivConfig,
   reluConfig,
   relu6Config,
-  leakyReluConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
@@ -20166,8 +20166,8 @@ var kernelConfigs = [
   stringNGramsConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
-  splitVConfig,
   sparseToDenseConfig,
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,

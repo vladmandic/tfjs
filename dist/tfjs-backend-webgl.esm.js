@@ -16543,9 +16543,8 @@ var PackProgram = class {
   getOutput(dims) {
     const sourceCoords = this.getSourceCoordsArr(dims);
     if (this.rank === 1) {
-      return `getA(rc),
-              rc + 1 >= ${this.enableShapeUniforms ? "outShape" : this.outputShape[0]} ? 0. : getA(rc + 1),
-              0, 0`;
+      const outShape = this.enableShapeUniforms ? "outShape" : this.outputShape[0];
+      return `getA(rc), (rc + 1 >= ${outShape} ? 0. : getA(rc + 1)), 0, 0`;
     }
     return `getA(${sourceCoords[0]}),
             cEdge ? 0. : getA(${sourceCoords[1]}),
@@ -19854,7 +19853,7 @@ function avgPool3DGrad(args) {
   const avgPoolBackpropProgram = new AvgPool3DBackpropProgram(convInfo);
   return backend.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
-var avgPoolGrad3DConfig = {
+var avgPool3DGradConfig = {
   kernelName: AvgPool3DGrad,
   backendName: "webgl",
   kernelFunc: avgPool3DGrad
@@ -22673,10 +22672,22 @@ var erfConfig = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Exp.ts
-var EXP = `return exp(x);`;
+var EXP = CHECK_NAN_SNIPPET_UNARY + `
+  return exp(x);
+`;
+var EXP_PACKED = `
+  vec4 result = exp(x);
+  bvec4 isNaN = isnan(x);
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
 var exp3 = unaryKernelFunc2({
   opSnippet: EXP,
-  packedOpSnippet: EXP,
+  packedOpSnippet: EXP_PACKED,
   cpuKernelImpl: expImplCPU,
   dtype: "float32"
 });
@@ -23451,16 +23462,16 @@ var linSpaceConfig = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Log.ts
-var LOG = `if (x < 0.0) return NAN;
-  return log(x);`;
+var LOG = CHECK_NAN_SNIPPET_UNARY + `
+  return x < 0.0 ? 0./0. : log(x);
+`;
 var LOG_PACKED = `
   vec4 result = log(x);
-  vec4 isNaN = vec4(lessThan(x, vec4(0.0)));
-  result.r = isNaN.r == 1.0 ? NAN : result.r;
-  result.g = isNaN.g == 1.0 ? NAN : result.g;
-  result.b = isNaN.b == 1.0 ? NAN : result.b;
-  result.a = isNaN.a == 1.0 ? NAN : result.a;
-
+  bvec4 isNaN = isnan(x);
+  result.r = isNaN.r ? x.r : (x.r < 0.0 ? 0./0. : result.r);
+  result.g = isNaN.g ? x.g : (x.g < 0.0 ? 0./0. : result.g);
+  result.b = isNaN.b ? x.b : (x.b < 0.0 ? 0./0. : result.b);
+  result.a = isNaN.a ? x.a : (x.a < 0.0 ? 0./0. : result.a);
   return result;
 `;
 var log4 = unaryKernelFunc2({ opSnippet: LOG, packedOpSnippet: LOG_PACKED, cpuKernelImpl: logImplCPU });
@@ -23471,7 +23482,9 @@ var logConfig = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Log1p.ts
-var LOG1P = `return log(1.0 + x);`;
+var LOG1P = CHECK_NAN_SNIPPET_UNARY + `
+  return log(1.0 + x);
+`;
 var log1p2 = unaryKernelFunc2({ opSnippet: LOG1P });
 var log1pConfig = {
   kernelName: Log1p,
@@ -24034,7 +24047,7 @@ function maxPool3DGrad(args) {
   backend.disposeIntermediateTensorInfo(maxPool3dPositions);
   return result;
 }
-var maxPoolGrad3DConfig = {
+var maxPool3DGradConfig = {
   kernelName: MaxPool3DGrad,
   backendName: "webgl",
   kernelFunc: maxPool3DGrad
@@ -24505,7 +24518,20 @@ var multinomialConfig = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Neg.ts
-var NEG = `return -x;`;
+var NEG = CHECK_NAN_SNIPPET + `
+  return -x;
+`;
+var NEG_PACKED = `
+  vec4 result = -x;
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
 function neg2(args) {
   const { inputs, backend } = args;
   const { x } = inputs;
@@ -24516,7 +24542,7 @@ function neg2(args) {
   }
   let program;
   if (env().getBool("WEBGL_PACK_UNARY_OPERATIONS")) {
-    program = new UnaryOpPackedProgram(x.shape, NEG);
+    program = new UnaryOpPackedProgram(x.shape, NEG_PACKED);
   } else {
     program = new UnaryOpProgram(x.shape, NEG);
   }
@@ -25891,10 +25917,23 @@ var seluConfig = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Sigmoid.ts
-var SIGMOID3 = `return 1.0 / (1.0 + exp(-1.0 * x));`;
+var SIGMOID3 = CHECK_NAN_SNIPPET_UNARY + `
+  return 1.0 / (1.0 + exp(-1.0 * x));
+`;
+var SIGMOID_PACKED = `
+  vec4 result = 1.0 / (1.0 + exp(-1.0 * x));
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
 var sigmoid3 = unaryKernelFunc2({
   opSnippet: SIGMOID3,
-  packedOpSnippet: SIGMOID3,
+  packedOpSnippet: SIGMOID_PACKED,
   cpuKernelImpl: sigmoidImplCPU
 });
 var sigmoidConfig = {
@@ -27084,8 +27123,6 @@ var unsortedSegmentSumConfig = {
 
 // src/tfjs-backend-webgl/src/register_all_kernels.ts
 var kernelConfigs = [
-  LRNConfig,
-  LRNGradConfig,
   _fusedMatMulConfig,
   absConfig,
   acosConfig,
@@ -27098,12 +27135,12 @@ var kernelConfigs = [
   argMinConfig,
   asinConfig,
   asinhConfig,
-  atan2Config,
   atanConfig,
+  atan2Config,
   atanhConfig,
-  avgPool3DConfig,
   avgPoolConfig,
-  avgPoolGrad3DConfig,
+  avgPool3DConfig,
+  avgPool3DGradConfig,
   avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
@@ -27113,24 +27150,24 @@ var kernelConfigs = [
   castConfig,
   ceilConfig,
   clipByValueConfig,
-  complexAbsConfig,
   complexConfig,
+  complexAbsConfig,
   concatConfig,
+  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv2DConfig,
+  conv3DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputConfig,
-  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
   cumsumConfig,
   denseBincountConfig,
   depthToSpaceConfig,
+  depthwiseConv2dNativeConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
-  depthwiseConv2dNativeConfig,
   diagConfig,
   dilation2DConfig,
   einsumConfig,
@@ -27163,18 +27200,20 @@ var kernelConfigs = [
   lessConfig,
   lessEqualConfig,
   linSpaceConfig,
-  log1pConfig,
   logConfig,
+  log1pConfig,
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
+  LRNConfig,
+  LRNGradConfig,
   maxConfig,
-  maxPool3DConfig,
+  maximumConfig,
   maxPoolConfig,
-  maxPoolGrad3DConfig,
+  maxPool3DConfig,
+  maxPool3DGradConfig,
   maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
-  maximumConfig,
   meanConfig,
   minConfig,
   minimumConfig,
@@ -27198,8 +27237,8 @@ var kernelConfigs = [
   realConfig,
   realDivConfig,
   reciprocalConfig,
-  relu6Config,
   reluConfig,
+  relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
   resizeBilinearGradConfig,

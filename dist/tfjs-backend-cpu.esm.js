@@ -14141,18 +14141,18 @@ var broadcastArgsConfig = {
   kernelFunc: broadcastArgs2
 };
 
-// src/tfjs-backend-cpu/src/kernels/Clip.ts
-var clip = unaryKernelFunc(ClipByValue, (xi, attrs) => {
+// src/tfjs-backend-cpu/src/kernels/ClipByValue.ts
+var clipByValue2 = unaryKernelFunc(ClipByValue, (xi, attrs) => {
   const clipAttrs = attrs;
   if (xi > clipAttrs.clipValueMax) {
     return clipAttrs.clipValueMax;
   }
   return xi < clipAttrs.clipValueMin ? clipAttrs.clipValueMin : xi;
 });
-var clipConfig = {
+var clipByValueConfig = {
   kernelName: ClipByValue,
   backendName: "cpu",
-  kernelFunc: clip
+  kernelFunc: clipByValue2
 };
 
 // src/tfjs-backend-cpu/src/kernels/ComplexAbs.ts
@@ -15111,7 +15111,7 @@ var diagConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Dilation2D.ts
-var dilation2dConfig = {
+var dilation2DConfig = {
   kernelName: Dilation2D,
   backendName: "cpu",
   kernelFunc: ({ inputs, backend, attrs }) => {
@@ -15176,7 +15176,7 @@ var dilation2dConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Dilation2DBackpropFilter.ts
-var dilation2dBackpropFilterConfig = {
+var dilation2DBackpropFilterConfig = {
   kernelName: Dilation2DBackpropFilter,
   backendName: "cpu",
   kernelFunc: ({ inputs, backend, attrs }) => {
@@ -15240,7 +15240,7 @@ var dilation2dBackpropFilterConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Dilation2DBackpropInput.ts
-var dilation2dBackpropInputConfig = {
+var dilation2DBackpropInputConfig = {
   kernelName: Dilation2DBackpropInput,
   backendName: "cpu",
   kernelFunc: ({ inputs, backend, attrs }) => {
@@ -16049,7 +16049,7 @@ function lRN(args) {
   }
   return backend.makeTensorInfo(x.shape, x.dtype, result);
 }
-var lRNConfig = {
+var LRNConfig = {
   kernelName: LRN,
   backendName: "cpu",
   kernelFunc: lRN
@@ -16088,7 +16088,7 @@ function lRNGrad(args) {
   }
   return backend.makeTensorInfo(dy.shape, x.dtype, result);
 }
-var lRNGradConfig = {
+var LRNGradConfig = {
   kernelName: LRNGrad,
   backendName: "cpu",
   kernelFunc: lRNGrad
@@ -17991,16 +17991,16 @@ var kernelConfigs = [
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
-  clipConfig,
+  clipByValueConfig,
   complexConfig,
   complexAbsConfig,
   concatConfig,
+  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv2DConfig,
+  conv3DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputV2Config,
-  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
@@ -18011,10 +18011,9 @@ var kernelConfigs = [
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
   diagConfig,
-  dilation2dConfig,
-  dilation2dBackpropInputConfig,
-  dilation2dBackpropFilterConfig,
-  realDivConfig,
+  dilation2DConfig,
+  dilation2DBackpropFilterConfig,
+  dilation2DBackpropInputConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,
@@ -18049,15 +18048,15 @@ var kernelConfigs = [
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
-  lRNConfig,
-  lRNGradConfig,
+  LRNConfig,
+  LRNGradConfig,
+  maxConfig,
   maximumConfig,
   maxPoolConfig,
   maxPool3DConfig,
   maxPool3DGradConfig,
   maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
-  maxConfig,
   meanConfig,
   minConfig,
   minimumConfig,
@@ -18079,6 +18078,7 @@ var kernelConfigs = [
   prodConfig,
   rangeConfig,
   realConfig,
+  realDivConfig,
   reciprocalConfig,
   reluConfig,
   relu6Config,
@@ -18122,8 +18122,8 @@ var kernelConfigs = [
   tanhConfig,
   tileConfig,
   topKConfig,
-  transposeConfig,
   transformConfig,
+  transposeConfig,
   uniqueConfig,
   unpackConfig,
   unsortedSegmentSumConfig,
