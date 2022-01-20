@@ -5458,7 +5458,7 @@ var Environment = class {
   setPlatform(platformName, platform) {
     if (this.platform != null) {
       if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
-        console.warn(`Platform ${this.platformName} has already been set. Overwriting the platform with ${platform}.`);
+        console.warn(`Platform ${this.platformName} has already been set. Overwriting the platform with ${platformName}.`);
       }
     }
     this.platformName = platformName;
@@ -8225,7 +8225,7 @@ var PlatformNode = class {
     return new this.util.TextDecoder(encoding).decode(bytes);
   }
 };
-if (env().get("IS_NODE")) {
+if (env().get("IS_NODE") && !env().get("IS_BROWSER")) {
   env().setPlatform("node", new PlatformNode());
 }
 
