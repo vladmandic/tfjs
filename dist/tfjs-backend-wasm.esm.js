@@ -6,23 +6,22 @@ var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __commonJS = (cb, mod2) => function __require() {
-  return mod2 || (0, cb[Object.keys(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
+  return mod2 || (0, cb[__getOwnPropNames(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
 };
 var __export = (target, all3) => {
-  __markAsModule(target);
   for (var name in all3)
     __defProp(target, name, { get: all3[name], enumerable: true });
 };
-var __reExport = (target, module, desc) => {
+var __reExport = (target, module, copyDefault, desc) => {
   if (module && typeof module === "object" || typeof module === "function") {
     for (let key of __getOwnPropNames(module))
-      if (!__hasOwnProp.call(target, key) && key !== "default")
+      if (!__hasOwnProp.call(target, key) && (copyDefault || key !== "default"))
         __defProp(target, key, { get: () => module[key], enumerable: !(desc = __getOwnPropDesc(module, key)) || desc.enumerable });
   }
   return target;
 };
-var __toModule = (module) => {
-  return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
+var __toESM = (module, isNodeMode) => {
+  return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", !isNodeMode && module && module.__esModule ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
 };
 
 // src/node_modules/long/src/long.js
@@ -4925,7 +4924,7 @@ var DataStorage = class {
   constructor(backend, dataMover) {
     this.backend = backend;
     this.dataMover = dataMover;
-    this.data = new WeakMap();
+    this.data = /* @__PURE__ */ new WeakMap();
     this.dataIdsCount = 0;
   }
   get(dataId) {
@@ -5872,7 +5871,7 @@ __export(util_exports, {
 });
 
 // src/tfjs-core/src/hash_util.ts
-var LongExports = __toModule(require_long());
+var LongExports = __toESM(require_long());
 var Long = LongExports.default || LongExports;
 function hexToLong(hex) {
   return Long.fromString(hex, true, 16);
@@ -6704,7 +6703,7 @@ var EngineState = class {
     this.scopeStack = [];
     this.numDataMovesStack = [];
     this.nextScopeId = 0;
-    this.tensorInfo = new WeakMap();
+    this.tensorInfo = /* @__PURE__ */ new WeakMap();
     this.profiling = false;
     this.activeProfile = {
       newBytes: 0,
@@ -11468,7 +11467,7 @@ function rand_(shape, randFunction, dtype) {
 var rand = op({ rand_ });
 
 // src/tfjs-core/src/ops/rand_util.ts
-var seedrandom = __toModule(require_seedrandom2());
+var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
   constructor(mean3, stdDeviation, dtype, truncated, seed) {
     this.mean = mean3;
@@ -13129,30 +13128,21 @@ function qr2d(x, fullMatrices = false) {
 }
 var qr = op({ qr_ });
 
-// src/tfjs-core/src/ops/loss_ops_utils.ts
-var Reduction = /* @__PURE__ */ ((Reduction2) => {
-  Reduction2[Reduction2["NONE"] = 0] = "NONE";
-  Reduction2[Reduction2["MEAN"] = 1] = "MEAN";
-  Reduction2[Reduction2["SUM"] = 2] = "SUM";
-  Reduction2[Reduction2["SUM_BY_NONZERO_WEIGHTS"] = 3] = "SUM_BY_NONZERO_WEIGHTS";
-  return Reduction2;
-})(Reduction || {});
-
 // src/tfjs-core/src/ops/losses/compute_weighted_loss.ts
-function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function computeWeightedLoss_(losses, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $losses = convertToTensor(losses, "losses", "computeWeightedLoss");
   let $weights = null;
   if (weights != null) {
     $weights = convertToTensor(weights, "weights", "computeWeightedLoss");
   }
   const weightedLoss = $weights == null ? $losses : mul($losses, $weights);
-  if (reduction === Reduction.NONE) {
+  if (reduction === 0 /* NONE */) {
     return weightedLoss;
   }
-  if (reduction === Reduction.SUM) {
+  if (reduction === 2 /* SUM */) {
     return sum2(weightedLoss);
   }
-  if (reduction === Reduction.MEAN) {
+  if (reduction === 1 /* MEAN */) {
     if ($weights == null) {
       return mean(weightedLoss);
     } else {
@@ -13161,7 +13151,7 @@ function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZ
       return broadcastFactor > 1 ? div(result, scalar(broadcastFactor)) : result;
     }
   }
-  if (reduction === Reduction.SUM_BY_NONZERO_WEIGHTS) {
+  if (reduction === 3 /* SUM_BY_NONZERO_WEIGHTS */) {
     if ($weights == null) {
       return div(sum2(weightedLoss), scalar($losses.size));
     } else {
@@ -13175,7 +13165,7 @@ function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZ
 var computeWeightedLoss = op({ computeWeightedLoss_ });
 
 // src/tfjs-core/src/ops/losses/absolute_difference.ts
-function absoluteDifference_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function absoluteDifference_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "absoluteDifference");
   const $predictions = convertToTensor(predictions, "predictions", "absoluteDifference");
   let $weights = null;
@@ -13189,7 +13179,7 @@ function absoluteDifference_(labels, predictions, weights, reduction = Reduction
 var absoluteDifference = op({ absoluteDifference_ });
 
 // src/tfjs-core/src/ops/losses/cosine_distance.ts
-function cosineDistance_(labels, predictions, axis, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function cosineDistance_(labels, predictions, axis, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "cosineDistance");
   const $predictions = convertToTensor(predictions, "predictions", "cosineDistance");
   let $weights = null;
@@ -13204,7 +13194,7 @@ function cosineDistance_(labels, predictions, axis, weights, reduction = Reducti
 var cosineDistance = op({ cosineDistance_ });
 
 // src/tfjs-core/src/ops/losses/hinge_loss.ts
-function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function hingeLoss_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $labels = convertToTensor(labels, "labels", "hingeLoss");
   const $predictions = convertToTensor(predictions, "predictions", "hingeLoss");
   let $weights = null;
@@ -13220,7 +13210,7 @@ function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_N
 var hingeLoss = op({ hingeLoss_ });
 
 // src/tfjs-core/src/ops/losses/huber_loss.ts
-function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function huberLoss_(labels, predictions, weights, delta = 1, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "huberLoss");
   const $predictions = convertToTensor(predictions, "predictions", "huberLoss");
   let $weights = null;
@@ -13238,7 +13228,7 @@ function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reducti
 var huberLoss = op({ huberLoss_ });
 
 // src/tfjs-core/src/ops/losses/log_loss.ts
-function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "logLoss");
   const $predictions = convertToTensor(predictions, "predictions", "logLoss");
   let $weights = null;
@@ -13256,7 +13246,7 @@ function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = Redu
 var logLoss = op({ logLoss_ });
 
 // src/tfjs-core/src/ops/losses/mean_squared_error.ts
-function meanSquaredError_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function meanSquaredError_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "meanSquaredError");
   const $predictions = convertToTensor(predictions, "predictions", "meanSquaredError");
   let $weights = null;
@@ -13279,7 +13269,7 @@ function sigmoidCrossEntropyWithLogits_(labels, logits) {
   const sigmoidOutput = log1p(exp(neg(abs($logits))));
   return add2(sub(maxOutput, outputXTarget), sigmoidOutput);
 }
-function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $multiClassLabels = convertToTensor(multiClassLabels, "multiClassLabels", "sigmoidCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "sigmoidCrossEntropy");
   let $weights = null;
@@ -13325,7 +13315,7 @@ function softmaxCrossEntropyWithLogits_(labels, logits, dim = -1) {
   });
   return customOp(labels, logits);
 }
-function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $onehotLabels = convertToTensor(onehotLabels, "onehotLabels", "softmaxCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "softmaxCrossEntropy");
   let $weights = null;
@@ -18523,13 +18513,13 @@ ENV3.registerFlag("WASM_HAS_MULTITHREAD_SUPPORT", async () => {
 });
 
 // src/tfjs-backend-wasm/src/backend_wasm.ts
-var import_tfjs_backend_wasm_threaded_simd = __toModule(require_tfjs_backend_wasm_threaded_simd());
+var import_tfjs_backend_wasm_threaded_simd = __toESM(require_tfjs_backend_wasm_threaded_simd());
 
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.worker.js
 var wasmWorkerContents = 'var Module={};function threadPrintErr(){var text=Array.prototype.slice.call(arguments).join(" ");console.error(text)}function threadAlert(){var text=Array.prototype.slice.call(arguments).join(" ");postMessage({cmd:"alert",text:text,threadId:Module["_pthread_self"]()})}var err=threadPrintErr;this.alert=threadAlert;Module["instantiateWasm"]=function(info,receiveInstance){var instance=new WebAssembly.Instance(Module["wasmModule"],info);Module["wasmModule"]=null;receiveInstance(instance);return instance.exports};function moduleLoaded(){}this.onmessage=function(e){try{if(e.data.cmd==="load"){Module["wasmModule"]=e.data.wasmModule;Module["wasmMemory"]=e.data.wasmMemory;Module["buffer"]=Module["wasmMemory"].buffer;Module["ENVIRONMENT_IS_PTHREAD"]=true;if(typeof e.data.urlOrBlob==="string"){importScripts(e.data.urlOrBlob)}else{var objectUrl=URL.createObjectURL(e.data.urlOrBlob);importScripts(objectUrl);URL.revokeObjectURL(objectUrl)}WasmBackendModuleThreadedSimd(Module).then(function(instance){Module=instance;moduleLoaded()})}else if(e.data.cmd==="objectTransfer"){Module["PThread"].receiveObjectTransfer(e.data)}else if(e.data.cmd==="run"){Module["__performance_now_clock_drift"]=performance.now()-e.data.time;Module["__emscripten_thread_init"](e.data.threadInfoStruct,0,0);var max=e.data.stackBase;var top=e.data.stackBase+e.data.stackSize;Module["establishStackSpace"](top,max);Module["_emscripten_tls_init"]();Module["PThread"].receiveObjectTransfer(e.data);Module["PThread"].setThreadStatus(Module["_pthread_self"](),1);try{var result=Module["invokeEntryPoint"](e.data.start_routine,e.data.arg);if(!Module["getNoExitRuntime"]())Module["PThread"].threadExit(result)}catch(ex){if(ex==="Canceled!"){Module["PThread"].threadCancel()}else if(ex!="unwind"){if(ex instanceof Module["ExitStatus"]){if(Module["getNoExitRuntime"]()){}else{Module["PThread"].threadExit(ex.status)}}else{Module["PThread"].threadExit(-2);throw ex}}}}else if(e.data.cmd==="cancel"){if(Module["_pthread_self"]()){Module["PThread"].threadCancel()}}else if(e.data.target==="setimmediate"){}else if(e.data.cmd==="processThreadQueue"){if(Module["_pthread_self"]()){Module["_emscripten_current_thread_process_queued_calls"]()}}else{err("worker.js received unknown command "+e.data.cmd);err(e.data)}}catch(ex){err("worker.js onmessage() captured an uncaught exception: "+ex);if(ex&&ex.stack)err(ex.stack);throw ex}};if(typeof process==="object"&&typeof process.versions==="object"&&typeof process.versions.node==="string"){self={location:{href:__filename}};var onmessage=this.onmessage;var nodeWorkerThreads=require("worker_threads");global.Worker=nodeWorkerThreads.Worker;var parentPort=nodeWorkerThreads.parentPort;parentPort.on("message",function(data){onmessage({data:data})});var nodeFS=require("fs");var nodeRead=function(filename){return nodeFS.readFileSync(filename,"utf8")};function globalEval(x){global.require=require;global.Module=Module;eval.call(null,x)}importScripts=function(f){globalEval(nodeRead(f))};postMessage=function(msg){parentPort.postMessage(msg)};if(typeof performance==="undefined"){performance={now:function(){return Date.now()}}}}';
 
 // src/tfjs-backend-wasm/src/backend_wasm.ts
-var import_tfjs_backend_wasm = __toModule(require_tfjs_backend_wasm());
+var import_tfjs_backend_wasm = __toESM(require_tfjs_backend_wasm());
 var BackendWasm = class extends KernelBackend {
   constructor(wasm) {
     super();

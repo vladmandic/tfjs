@@ -6,23 +6,22 @@ var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __commonJS = (cb, mod3) => function __require() {
-  return mod3 || (0, cb[Object.keys(cb)[0]])((mod3 = { exports: {} }).exports, mod3), mod3.exports;
+  return mod3 || (0, cb[__getOwnPropNames(cb)[0]])((mod3 = { exports: {} }).exports, mod3), mod3.exports;
 };
 var __export = (target, all3) => {
-  __markAsModule(target);
   for (var name in all3)
     __defProp(target, name, { get: all3[name], enumerable: true });
 };
-var __reExport = (target, module, desc) => {
+var __reExport = (target, module, copyDefault, desc) => {
   if (module && typeof module === "object" || typeof module === "function") {
     for (let key of __getOwnPropNames(module))
-      if (!__hasOwnProp.call(target, key) && key !== "default")
+      if (!__hasOwnProp.call(target, key) && (copyDefault || key !== "default"))
         __defProp(target, key, { get: () => module[key], enumerable: !(desc = __getOwnPropDesc(module, key)) || desc.enumerable });
   }
   return target;
 };
-var __toModule = (module) => {
-  return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
+var __toESM = (module, isNodeMode) => {
+  return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", !isNodeMode && module && module.__esModule ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
 };
 
 // src/node_modules/long/src/long.js
@@ -1528,7 +1527,7 @@ var DataStorage = class {
   constructor(backend, dataMover) {
     this.backend = backend;
     this.dataMover = dataMover;
-    this.data = new WeakMap();
+    this.data = /* @__PURE__ */ new WeakMap();
     this.dataIdsCount = 0;
   }
   get(dataId) {
@@ -2485,7 +2484,7 @@ __export(util_exports, {
 });
 
 // src/tfjs-core/src/hash_util.ts
-var LongExports = __toModule(require_long());
+var LongExports = __toESM(require_long());
 var Long = LongExports.default || LongExports;
 function hexToLong(hex) {
   return Long.fromString(hex, true, 16);
@@ -3320,7 +3319,7 @@ var EngineState = class {
     this.scopeStack = [];
     this.numDataMovesStack = [];
     this.nextScopeId = 0;
-    this.tensorInfo = new WeakMap();
+    this.tensorInfo = /* @__PURE__ */ new WeakMap();
     this.profiling = false;
     this.activeProfile = {
       newBytes: 0,
@@ -8107,7 +8106,7 @@ function rand_(shape, randFunction, dtype) {
 var rand = op({ rand_ });
 
 // src/tfjs-core/src/ops/rand_util.ts
-var seedrandom = __toModule(require_seedrandom2());
+var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
   constructor(mean2, stdDeviation, dtype, truncated, seed) {
     this.mean = mean2;
@@ -9911,30 +9910,21 @@ function qr2d(x, fullMatrices = false) {
 }
 var qr = op({ qr_ });
 
-// src/tfjs-core/src/ops/loss_ops_utils.ts
-var Reduction = /* @__PURE__ */ ((Reduction2) => {
-  Reduction2[Reduction2["NONE"] = 0] = "NONE";
-  Reduction2[Reduction2["MEAN"] = 1] = "MEAN";
-  Reduction2[Reduction2["SUM"] = 2] = "SUM";
-  Reduction2[Reduction2["SUM_BY_NONZERO_WEIGHTS"] = 3] = "SUM_BY_NONZERO_WEIGHTS";
-  return Reduction2;
-})(Reduction || {});
-
 // src/tfjs-core/src/ops/losses/compute_weighted_loss.ts
-function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function computeWeightedLoss_(losses, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $losses = convertToTensor(losses, "losses", "computeWeightedLoss");
   let $weights = null;
   if (weights != null) {
     $weights = convertToTensor(weights, "weights", "computeWeightedLoss");
   }
   const weightedLoss = $weights == null ? $losses : mul($losses, $weights);
-  if (reduction === Reduction.NONE) {
+  if (reduction === 0 /* NONE */) {
     return weightedLoss;
   }
-  if (reduction === Reduction.SUM) {
+  if (reduction === 2 /* SUM */) {
     return sum2(weightedLoss);
   }
-  if (reduction === Reduction.MEAN) {
+  if (reduction === 1 /* MEAN */) {
     if ($weights == null) {
       return mean(weightedLoss);
     } else {
@@ -9943,7 +9933,7 @@ function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZ
       return broadcastFactor > 1 ? div(result, scalar(broadcastFactor)) : result;
     }
   }
-  if (reduction === Reduction.SUM_BY_NONZERO_WEIGHTS) {
+  if (reduction === 3 /* SUM_BY_NONZERO_WEIGHTS */) {
     if ($weights == null) {
       return div(sum2(weightedLoss), scalar($losses.size));
     } else {
@@ -9957,7 +9947,7 @@ function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZ
 var computeWeightedLoss = op({ computeWeightedLoss_ });
 
 // src/tfjs-core/src/ops/losses/absolute_difference.ts
-function absoluteDifference_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function absoluteDifference_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "absoluteDifference");
   const $predictions = convertToTensor(predictions, "predictions", "absoluteDifference");
   let $weights = null;
@@ -9971,7 +9961,7 @@ function absoluteDifference_(labels, predictions, weights, reduction = Reduction
 var absoluteDifference = op({ absoluteDifference_ });
 
 // src/tfjs-core/src/ops/losses/cosine_distance.ts
-function cosineDistance_(labels, predictions, axis, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function cosineDistance_(labels, predictions, axis, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "cosineDistance");
   const $predictions = convertToTensor(predictions, "predictions", "cosineDistance");
   let $weights = null;
@@ -9986,7 +9976,7 @@ function cosineDistance_(labels, predictions, axis, weights, reduction = Reducti
 var cosineDistance = op({ cosineDistance_ });
 
 // src/tfjs-core/src/ops/losses/hinge_loss.ts
-function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function hingeLoss_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $labels = convertToTensor(labels, "labels", "hingeLoss");
   const $predictions = convertToTensor(predictions, "predictions", "hingeLoss");
   let $weights = null;
@@ -10002,7 +9992,7 @@ function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_N
 var hingeLoss = op({ hingeLoss_ });
 
 // src/tfjs-core/src/ops/losses/huber_loss.ts
-function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function huberLoss_(labels, predictions, weights, delta = 1, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "huberLoss");
   const $predictions = convertToTensor(predictions, "predictions", "huberLoss");
   let $weights = null;
@@ -10020,7 +10010,7 @@ function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reducti
 var huberLoss = op({ huberLoss_ });
 
 // src/tfjs-core/src/ops/losses/log_loss.ts
-function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "logLoss");
   const $predictions = convertToTensor(predictions, "predictions", "logLoss");
   let $weights = null;
@@ -10038,7 +10028,7 @@ function logLoss_(labels, predictions, weights, epsilon = 1e-7, reduction = Redu
 var logLoss = op({ logLoss_ });
 
 // src/tfjs-core/src/ops/losses/mean_squared_error.ts
-function meanSquaredError_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function meanSquaredError_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "meanSquaredError");
   const $predictions = convertToTensor(predictions, "predictions", "meanSquaredError");
   let $weights = null;
@@ -10061,7 +10051,7 @@ function sigmoidCrossEntropyWithLogits_(labels, logits) {
   const sigmoidOutput = log1p(exp(neg(abs($logits))));
   return add2(sub(maxOutput, outputXTarget), sigmoidOutput);
 }
-function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $multiClassLabels = convertToTensor(multiClassLabels, "multiClassLabels", "sigmoidCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "sigmoidCrossEntropy");
   let $weights = null;
@@ -10107,7 +10097,7 @@ function softmaxCrossEntropyWithLogits_(labels, logits, dim = -1) {
   });
   return customOp(labels, logits);
 }
-function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $onehotLabels = convertToTensor(onehotLabels, "onehotLabels", "softmaxCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "softmaxCrossEntropy");
   let $weights = null;
@@ -11628,7 +11618,7 @@ function setWebGLContext(webGLVersion, gl) {
   contexts[webGLVersion] = gl;
 }
 function getWebGLContext(webGLVersion, customCanvas) {
-  if (!(webGLVersion in contexts)) {
+  if (!(webGLVersion in contexts) || customCanvas != null) {
     const newCtx = getWebGLRenderingContext(webGLVersion, customCanvas);
     if (newCtx !== null) {
       contexts[webGLVersion] = newCtx;
@@ -11678,26 +11668,6 @@ function getWebGLRenderingContext(webGLVersion, customCanvas) {
 }
 
 // src/tfjs-backend-webgl/src/tex_util.ts
-var PackingScheme = /* @__PURE__ */ ((PackingScheme2) => {
-  PackingScheme2[PackingScheme2["DENSE"] = 0] = "DENSE";
-  PackingScheme2[PackingScheme2["SHARED_BATCH"] = 1] = "SHARED_BATCH";
-  return PackingScheme2;
-})(PackingScheme || {});
-var TextureUsage = /* @__PURE__ */ ((TextureUsage2) => {
-  TextureUsage2[TextureUsage2["RENDER"] = 0] = "RENDER";
-  TextureUsage2[TextureUsage2["UPLOAD"] = 1] = "UPLOAD";
-  TextureUsage2[TextureUsage2["PIXELS"] = 2] = "PIXELS";
-  TextureUsage2[TextureUsage2["DOWNLOAD"] = 3] = "DOWNLOAD";
-  return TextureUsage2;
-})(TextureUsage || {});
-var PhysicalTextureType = /* @__PURE__ */ ((PhysicalTextureType2) => {
-  PhysicalTextureType2[PhysicalTextureType2["UNPACKED_FLOAT16"] = 0] = "UNPACKED_FLOAT16";
-  PhysicalTextureType2[PhysicalTextureType2["UNPACKED_FLOAT32"] = 1] = "UNPACKED_FLOAT32";
-  PhysicalTextureType2[PhysicalTextureType2["PACKED_4X1_UNSIGNED_BYTE"] = 2] = "PACKED_4X1_UNSIGNED_BYTE";
-  PhysicalTextureType2[PhysicalTextureType2["PACKED_2X2_FLOAT32"] = 3] = "PACKED_2X2_FLOAT32";
-  PhysicalTextureType2[PhysicalTextureType2["PACKED_2X2_FLOAT16"] = 4] = "PACKED_2X2_FLOAT16";
-  return PhysicalTextureType2;
-})(PhysicalTextureType || {});
 function getUnpackedMatrixTextureShapeWidthHeight(rows, columns) {
   return [columns, rows];
 }
@@ -14337,7 +14307,7 @@ var DecodeMatrixProgram = class {
     this.variableNames = ["A"];
     this.packedInputs = false;
     this.packedOutput = true;
-    this.outPackingScheme = PackingScheme.DENSE;
+    this.outPackingScheme = 0 /* DENSE */;
     this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
@@ -14372,7 +14342,7 @@ var DecodeMatrixPackedProgram = class {
     this.variableNames = ["A"];
     this.packedInputs = true;
     this.packedOutput = true;
-    this.outPackingScheme = PackingScheme.DENSE;
+    this.outPackingScheme = 0 /* DENSE */;
     this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
@@ -14405,7 +14375,7 @@ var DecodeMatrixPackedProgram = class {
 var EncodeFloatProgram = class {
   constructor(outputShape) {
     this.variableNames = ["A"];
-    this.outTexUsage = TextureUsage.DOWNLOAD;
+    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -14425,7 +14395,7 @@ var EncodeFloatPackedProgram = class {
     this.variableNames = ["A"];
     this.packedInputs = true;
     this.packedOutput = false;
-    this.outTexUsage = TextureUsage.DOWNLOAD;
+    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -16646,15 +16616,15 @@ var TextureManager = class {
       return newTexture2;
     }
     let newTexture;
-    if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
+    if (physicalTexType === 3 /* PACKED_2X2_FLOAT32 */) {
       newTexture = this.gpgpu.createPackedMatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
+    } else if (physicalTexType === 4 /* PACKED_2X2_FLOAT16 */) {
       newTexture = this.gpgpu.createFloat16PackedMatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT32) {
+    } else if (physicalTexType === 1 /* UNPACKED_FLOAT32 */) {
       newTexture = this.gpgpu.createFloat32MatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT16) {
+    } else if (physicalTexType === 0 /* UNPACKED_FLOAT16 */) {
       newTexture = this.gpgpu.createFloat16MatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE) {
+    } else if (physicalTexType === 2 /* PACKED_4X1_UNSIGNED_BYTE */) {
       newTexture = this.gpgpu.createUnsignedBytesMatrixTexture(shapeRC[0], shapeRC[1]);
     }
     this.usedTextures[shapeKey].push(newTexture);
@@ -16767,15 +16737,15 @@ function computeBytes(shape, physicalTexType, gl, textureConfig, isPacked) {
 }
 function internalFormatForPhysicalTexType(physicalTexType, textureConfig) {
   switch (physicalTexType) {
-    case PhysicalTextureType.PACKED_2X2_FLOAT32:
+    case 3 /* PACKED_2X2_FLOAT32 */:
       return getInternalFormatForPackedMatrixTexture(textureConfig);
-    case PhysicalTextureType.PACKED_2X2_FLOAT16:
+    case 4 /* PACKED_2X2_FLOAT16 */:
       return getInternalFormatForFloat16PackedMatrixTexture(textureConfig);
-    case PhysicalTextureType.UNPACKED_FLOAT32:
+    case 1 /* UNPACKED_FLOAT32 */:
       return getInternalFormatForFloat32MatrixTexture(textureConfig);
-    case PhysicalTextureType.UNPACKED_FLOAT16:
+    case 0 /* UNPACKED_FLOAT16 */:
       return getInternalFormatForFloat16MatrixTexture(textureConfig);
-    case PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE:
+    case 2 /* PACKED_4X1_UNSIGNED_BYTE */:
       return getInternalFormatForUnsignedBytesMatrixTexture(textureConfig);
     default:
       throw new Error(`Unknown physical texture type ${physicalTexType}`);
@@ -16784,22 +16754,22 @@ function internalFormatForPhysicalTexType(physicalTexType, textureConfig) {
 function getPhysicalTextureForRendering(isPacked) {
   if (env().getBool("WEBGL_RENDER_FLOAT32_ENABLED")) {
     if (isPacked) {
-      return PhysicalTextureType.PACKED_2X2_FLOAT32;
+      return 3 /* PACKED_2X2_FLOAT32 */;
     }
-    return PhysicalTextureType.UNPACKED_FLOAT32;
+    return 1 /* UNPACKED_FLOAT32 */;
   }
   if (isPacked) {
-    return PhysicalTextureType.PACKED_2X2_FLOAT16;
+    return 4 /* PACKED_2X2_FLOAT16 */;
   }
-  return PhysicalTextureType.UNPACKED_FLOAT16;
+  return 0 /* UNPACKED_FLOAT16 */;
 }
 function getPhysicalFromLogicalTextureType(logicalTexType, isPacked) {
-  if (logicalTexType === TextureUsage.UPLOAD) {
-    return PhysicalTextureType.PACKED_2X2_FLOAT32;
-  } else if (logicalTexType === TextureUsage.RENDER || logicalTexType == null) {
+  if (logicalTexType === 1 /* UPLOAD */) {
+    return 3 /* PACKED_2X2_FLOAT32 */;
+  } else if (logicalTexType === 0 /* RENDER */ || logicalTexType == null) {
     return getPhysicalTextureForRendering(isPacked);
-  } else if (logicalTexType === TextureUsage.DOWNLOAD || logicalTexType === TextureUsage.PIXELS) {
-    return PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE;
+  } else if (logicalTexType === 3 /* DOWNLOAD */ || logicalTexType === 2 /* PIXELS */) {
+    return 2 /* PACKED_4X1_UNSIGNED_BYTE */;
   }
   throw new Error(`Unknown logical texture type ${logicalTexType}`);
 }
@@ -16945,9 +16915,9 @@ function numMBBeforeWarning() {
 var _MathBackendWebGL = class extends KernelBackend {
   constructor(gpuResource) {
     super();
-    this.pendingRead = new WeakMap();
-    this.pendingDisposal = new WeakSet();
-    this.dataRefCount = new WeakMap();
+    this.pendingRead = /* @__PURE__ */ new WeakMap();
+    this.pendingDisposal = /* @__PURE__ */ new WeakSet();
+    this.dataRefCount = /* @__PURE__ */ new WeakMap();
     this.numBytesInGPU = 0;
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
@@ -16994,7 +16964,7 @@ var _MathBackendWebGL = class extends KernelBackend {
       throw new Error(`Cannot write to a complex64 dtype. Please use tf.complex(real, imag).`);
     }
     const dataId = { id: this.nextDataId() };
-    this.texData.set(dataId, { shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1 });
+    this.texData.set(dataId, { shape, dtype, values, usage: 1 /* UPLOAD */, refCount: 1 });
     return dataId;
   }
   refCount(dataId) {
@@ -17021,7 +16991,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (dtype === "complex64") {
       throw new Error(`Cannot write to a complex64 dtype. Please use tf.complex(real, imag).`);
     }
-    this.texData.set(dataId, { shape, dtype, values, usage: TextureUsage.UPLOAD, refCount });
+    this.texData.set(dataId, { shape, dtype, values, usage: 1 /* UPLOAD */, refCount });
   }
   disposeIntermediateTensorInfo(tensorInfo) {
     this.disposeData(tensorInfo.dataId);
@@ -17437,7 +17407,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (program.packedOutput) {
       outData.isPacked = true;
     }
-    if (program.outPackingScheme === PackingScheme.DENSE) {
+    if (program.outPackingScheme === 0 /* DENSE */) {
       const texelShape = customTexShape != null ? customTexShape : getDenseTexShape(program.outputShape);
       outData.texShape = texelShape.map((d) => d * 2);
     }
@@ -17606,9 +17576,9 @@ var _MathBackendWebGL = class extends KernelBackend {
       const tempDenseInputHandle = this.makeTensorInfo(tempDenseInputTexShape, dtype);
       const tempDenseInputTexData = this.texData.get(tempDenseInputHandle.dataId);
       if (isByteArray) {
-        tempDenseInputTexData.usage = TextureUsage.PIXELS;
+        tempDenseInputTexData.usage = 2 /* PIXELS */;
       } else {
-        tempDenseInputTexData.usage = TextureUsage.UPLOAD;
+        tempDenseInputTexData.usage = 1 /* UPLOAD */;
       }
       tempDenseInputTexData.texShape = tempDenseInputTexShape;
       this.gpgpu.uploadDenseMatrixToTexture(this.getTexture(tempDenseInputHandle.dataId), width, height, values);
@@ -23060,7 +23030,7 @@ function fromPixels2(args) {
     pixels = fromPixels2DContext2.canvas;
   }
   const tempPixelHandle = backend.makeTensorInfo(texShape, "int32");
-  backend.texData.get(tempPixelHandle.dataId).usage = TextureUsage.PIXELS;
+  backend.texData.get(tempPixelHandle.dataId).usage = 2 /* PIXELS */;
   backend.gpgpu.uploadPixelDataToTexture(backend.getTexture(tempPixelHandle.dataId), pixels);
   const program = env().getBool("WEBGL_PACK") ? new FromPixelsPackedProgram(outShape) : new FromPixelsProgram(outShape);
   const res = backend.runWebGLProgram(program, [tempPixelHandle], "int32");

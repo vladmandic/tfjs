@@ -6,23 +6,22 @@ var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __commonJS = (cb, mod4) => function __require() {
-  return mod4 || (0, cb[Object.keys(cb)[0]])((mod4 = { exports: {} }).exports, mod4), mod4.exports;
+  return mod4 || (0, cb[__getOwnPropNames(cb)[0]])((mod4 = { exports: {} }).exports, mod4), mod4.exports;
 };
 var __export = (target, all5) => {
-  __markAsModule(target);
   for (var name in all5)
     __defProp(target, name, { get: all5[name], enumerable: true });
 };
-var __reExport = (target, module, desc) => {
+var __reExport = (target, module, copyDefault, desc) => {
   if (module && typeof module === "object" || typeof module === "function") {
     for (let key of __getOwnPropNames(module))
-      if (!__hasOwnProp.call(target, key) && key !== "default")
+      if (!__hasOwnProp.call(target, key) && (copyDefault || key !== "default"))
         __defProp(target, key, { get: () => module[key], enumerable: !(desc = __getOwnPropDesc(module, key)) || desc.enumerable });
   }
   return target;
 };
-var __toModule = (module) => {
-  return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
+var __toESM = (module, isNodeMode) => {
+  return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", !isNodeMode && module && module.__esModule ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
 };
 
 // src/node_modules/long/src/long.js
@@ -4931,7 +4930,7 @@ var DataStorage = class {
   constructor(backend2, dataMover) {
     this.backend = backend2;
     this.dataMover = dataMover;
-    this.data = new WeakMap();
+    this.data = /* @__PURE__ */ new WeakMap();
     this.dataIdsCount = 0;
   }
   get(dataId) {
@@ -5922,7 +5921,7 @@ __export(util_exports, {
 });
 
 // src/tfjs-core/src/hash_util.ts
-var LongExports = __toModule(require_long());
+var LongExports = __toESM(require_long());
 var Long = LongExports.default || LongExports;
 function hexToLong(hex) {
   return Long.fromString(hex, true, 16);
@@ -6779,7 +6778,7 @@ var EngineState = class {
     this.scopeStack = [];
     this.numDataMovesStack = [];
     this.nextScopeId = 0;
-    this.tensorInfo = new WeakMap();
+    this.tensorInfo = /* @__PURE__ */ new WeakMap();
     this.profiling = false;
     this.activeProfile = {
       newBytes: 0,
@@ -12497,7 +12496,7 @@ function rand_(shape, randFunction, dtype) {
 var rand = op({ rand_ });
 
 // src/tfjs-core/src/ops/rand_util.ts
-var seedrandom = __toModule(require_seedrandom2());
+var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
   constructor(mean5, stdDeviation, dtype, truncated, seed) {
     this.mean = mean5;
@@ -14557,20 +14556,20 @@ var Reduction = /* @__PURE__ */ ((Reduction2) => {
 })(Reduction || {});
 
 // src/tfjs-core/src/ops/losses/compute_weighted_loss.ts
-function computeWeightedLoss_(losses2, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function computeWeightedLoss_(losses2, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $losses = convertToTensor(losses2, "losses", "computeWeightedLoss");
   let $weights = null;
   if (weights != null) {
     $weights = convertToTensor(weights, "weights", "computeWeightedLoss");
   }
   const weightedLoss = $weights == null ? $losses : mul($losses, $weights);
-  if (reduction === Reduction.NONE) {
+  if (reduction === 0 /* NONE */) {
     return weightedLoss;
   }
-  if (reduction === Reduction.SUM) {
+  if (reduction === 2 /* SUM */) {
     return sum2(weightedLoss);
   }
-  if (reduction === Reduction.MEAN) {
+  if (reduction === 1 /* MEAN */) {
     if ($weights == null) {
       return mean(weightedLoss);
     } else {
@@ -14579,7 +14578,7 @@ function computeWeightedLoss_(losses2, weights, reduction = Reduction.SUM_BY_NON
       return broadcastFactor > 1 ? div(result, scalar(broadcastFactor)) : result;
     }
   }
-  if (reduction === Reduction.SUM_BY_NONZERO_WEIGHTS) {
+  if (reduction === 3 /* SUM_BY_NONZERO_WEIGHTS */) {
     if ($weights == null) {
       return div(sum2(weightedLoss), scalar($losses.size));
     } else {
@@ -14593,7 +14592,7 @@ function computeWeightedLoss_(losses2, weights, reduction = Reduction.SUM_BY_NON
 var computeWeightedLoss = op({ computeWeightedLoss_ });
 
 // src/tfjs-core/src/ops/losses/absolute_difference.ts
-function absoluteDifference_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function absoluteDifference_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "absoluteDifference");
   const $predictions = convertToTensor(predictions, "predictions", "absoluteDifference");
   let $weights = null;
@@ -14607,7 +14606,7 @@ function absoluteDifference_(labels, predictions, weights, reduction = Reduction
 var absoluteDifference = op({ absoluteDifference_ });
 
 // src/tfjs-core/src/ops/losses/cosine_distance.ts
-function cosineDistance_(labels, predictions, axis, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function cosineDistance_(labels, predictions, axis, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "cosineDistance");
   const $predictions = convertToTensor(predictions, "predictions", "cosineDistance");
   let $weights = null;
@@ -14622,7 +14621,7 @@ function cosineDistance_(labels, predictions, axis, weights, reduction = Reducti
 var cosineDistance = op({ cosineDistance_ });
 
 // src/tfjs-core/src/ops/losses/hinge_loss.ts
-function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function hingeLoss_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $labels = convertToTensor(labels, "labels", "hingeLoss");
   const $predictions = convertToTensor(predictions, "predictions", "hingeLoss");
   let $weights = null;
@@ -14638,7 +14637,7 @@ function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_N
 var hingeLoss = op({ hingeLoss_ });
 
 // src/tfjs-core/src/ops/losses/huber_loss.ts
-function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function huberLoss_(labels, predictions, weights, delta = 1, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "huberLoss");
   const $predictions = convertToTensor(predictions, "predictions", "huberLoss");
   let $weights = null;
@@ -14656,7 +14655,7 @@ function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reducti
 var huberLoss = op({ huberLoss_ });
 
 // src/tfjs-core/src/ops/losses/log_loss.ts
-function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "logLoss");
   const $predictions = convertToTensor(predictions, "predictions", "logLoss");
   let $weights = null;
@@ -14674,7 +14673,7 @@ function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction = Red
 var logLoss = op({ logLoss_ });
 
 // src/tfjs-core/src/ops/losses/mean_squared_error.ts
-function meanSquaredError_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function meanSquaredError_(labels, predictions, weights, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   const $labels = convertToTensor(labels, "labels", "meanSquaredError");
   const $predictions = convertToTensor(predictions, "predictions", "meanSquaredError");
   let $weights = null;
@@ -14697,7 +14696,7 @@ function sigmoidCrossEntropyWithLogits_(labels, logits) {
   const sigmoidOutput = log1p(exp(neg(abs($logits))));
   return add2(sub(maxOutput, outputXTarget), sigmoidOutput);
 }
-function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $multiClassLabels = convertToTensor(multiClassLabels, "multiClassLabels", "sigmoidCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "sigmoidCrossEntropy");
   let $weights = null;
@@ -14743,7 +14742,7 @@ function softmaxCrossEntropyWithLogits_(labels, logits, dim = -1) {
   });
   return customOp(labels, logits);
 }
-function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
+function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = 3 /* SUM_BY_NONZERO_WEIGHTS */) {
   let $onehotLabels = convertToTensor(onehotLabels, "onehotLabels", "softmaxCrossEntropy");
   const $logits = convertToTensor(logits, "logits", "softmaxCrossEntropy");
   let $weights = null;
@@ -20951,13 +20950,13 @@ function plainObjectCheck(x) {
 // src/tfjs-layers/src/utils/layer_utils.ts
 function printSummary(model2, lineLength, positions, printFn = console.log) {
   const sequentialLike = isModelSequentialLike(model2);
-  const toDisplay = ["Layer (type)", "Output shape", "Param #"];
+  const toDisplay = ["Layer (type)", "Input Shape", "Output shape", "Param #"];
   if (sequentialLike) {
-    lineLength = lineLength || 65;
-    positions = positions || [0.45, 0.85, 1];
+    lineLength = lineLength || 90;
+    positions = positions || [0.32, 0.61, 0.89, 1];
   } else {
-    lineLength = lineLength || 98;
-    positions = positions || [0.33, 0.55, 0.67, 1];
+    lineLength = lineLength || 115;
+    positions = positions || [0.24, 0.48, 0.7, 0.8, 1];
   }
   if (positions[positions.length - 1] <= 1) {
     positions = positions.map((p2) => Math.floor(lineLength * p2));
@@ -21047,6 +21046,12 @@ function printRow(fields, positions, printFn = console.log) {
 }
 function printLayerSummary(layer, positions, printFn) {
   let outputShape;
+  let inputShape;
+  try {
+    inputShape = layer.inboundNodes.map((x) => JSON.stringify(x.inputShapes)).join(",");
+  } catch (err) {
+    inputShape = "multiple";
+  }
   try {
     outputShape = JSON.stringify(layer.outputShape);
   } catch (err) {
@@ -21054,11 +21059,22 @@ function printLayerSummary(layer, positions, printFn) {
   }
   const name = layer.name;
   const className = layer.getClassName();
-  const fields = [`${name} (${className})`, outputShape, layer.countParams().toString()];
+  const fields = [
+    `${name} (${className})`,
+    inputShape,
+    outputShape,
+    layer.countParams().toString()
+  ];
   printRow(fields, positions, printFn);
 }
 function printLayerSummaryWithConnections(layer, positions, relevantNodes, printFn) {
   let outputShape;
+  let inputShape;
+  try {
+    inputShape = layer.inboundNodes.map((x) => JSON.stringify(x.inputShapes)).join(",");
+  } catch (err) {
+    inputShape = "multiple";
+  }
   try {
     outputShape = JSON.stringify(layer.outputShape);
   } catch (err) {
@@ -21081,13 +21097,14 @@ function printLayerSummaryWithConnections(layer, positions, relevantNodes, print
   const firstConnection = connections.length === 0 ? "" : connections[0];
   const fields = [
     `${name} (${className})`,
+    inputShape,
     outputShape,
     layer.countParams().toString(),
     firstConnection
   ];
   printRow(fields, positions, printFn);
   for (let i = 1; i < connections.length; ++i) {
-    printRow(["", "", "", connections[i]], positions, printFn);
+    printRow(["", "", "", "", connections[i]], positions, printFn);
   }
 }
 
@@ -35600,19 +35617,19 @@ function parseDtypeParam(value) {
     value = DataType8[value];
   }
   switch (value) {
-    case DataType8.DT_FLOAT:
-    case DataType8.DT_HALF:
+    case 1 /* DT_FLOAT */:
+    case 19 /* DT_HALF */:
       return "float32";
-    case DataType8.DT_INT32:
-    case DataType8.DT_INT64:
-    case DataType8.DT_INT8:
-    case DataType8.DT_UINT8:
+    case 3 /* DT_INT32 */:
+    case 9 /* DT_INT64 */:
+    case 6 /* DT_INT8 */:
+    case 4 /* DT_UINT8 */:
       return "int32";
-    case DataType8.DT_BOOL:
+    case 10 /* DT_BOOL */:
       return "bool";
-    case DataType8.DT_DOUBLE:
+    case 2 /* DT_DOUBLE */:
       return "float32";
-    case DataType8.DT_STRING:
+    case 7 /* DT_STRING */:
       return "string";
     default:
       return null;
@@ -38393,10 +38410,10 @@ __export(src_exports2, {
 });
 
 // src/tfjs-data/src/dataset.ts
-var seedrandom3 = __toModule(require_seedrandom2());
+var seedrandom3 = __toESM(require_seedrandom2());
 
 // src/tfjs-data/src/iterators/lazy_iterator.ts
-var seedrandom2 = __toModule(require_seedrandom2());
+var seedrandom2 = __toESM(require_seedrandom2());
 
 // src/tfjs-data/src/util/deep_map.ts
 function deepMap(input2, mapFn) {
@@ -39359,7 +39376,7 @@ function zip(datasets) {
         throw new Error("Leaves of the structure passed to zip() must be Datasets, not primitives.");
       }
     });
-    return iteratorFromZipped(streams, ZipMismatchMode.SHORTEST);
+    return iteratorFromZipped(streams, 1 /* SHORTEST */);
   }, size);
 }
 function deepBatchConcat(rows) {
@@ -45093,7 +45110,7 @@ var modConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Multinomial.ts
-var seedrandom4 = __toModule(require_seedrandom2());
+var seedrandom4 = __toESM(require_seedrandom2());
 
 // src/tfjs-backend-cpu/src/kernels/Softmax.ts
 function softmax3(args) {
@@ -46819,7 +46836,7 @@ function setWebGLContext(webGLVersion, gl) {
   contexts[webGLVersion] = gl;
 }
 function getWebGLContext(webGLVersion, customCanvas) {
-  if (!(webGLVersion in contexts)) {
+  if (!(webGLVersion in contexts) || customCanvas != null) {
     const newCtx = getWebGLRenderingContext(webGLVersion, customCanvas);
     if (newCtx !== null) {
       contexts[webGLVersion] = newCtx;
@@ -46869,26 +46886,6 @@ function getWebGLRenderingContext(webGLVersion, customCanvas) {
 }
 
 // src/tfjs-backend-webgl/src/tex_util.ts
-var PackingScheme = /* @__PURE__ */ ((PackingScheme2) => {
-  PackingScheme2[PackingScheme2["DENSE"] = 0] = "DENSE";
-  PackingScheme2[PackingScheme2["SHARED_BATCH"] = 1] = "SHARED_BATCH";
-  return PackingScheme2;
-})(PackingScheme || {});
-var TextureUsage = /* @__PURE__ */ ((TextureUsage2) => {
-  TextureUsage2[TextureUsage2["RENDER"] = 0] = "RENDER";
-  TextureUsage2[TextureUsage2["UPLOAD"] = 1] = "UPLOAD";
-  TextureUsage2[TextureUsage2["PIXELS"] = 2] = "PIXELS";
-  TextureUsage2[TextureUsage2["DOWNLOAD"] = 3] = "DOWNLOAD";
-  return TextureUsage2;
-})(TextureUsage || {});
-var PhysicalTextureType = /* @__PURE__ */ ((PhysicalTextureType2) => {
-  PhysicalTextureType2[PhysicalTextureType2["UNPACKED_FLOAT16"] = 0] = "UNPACKED_FLOAT16";
-  PhysicalTextureType2[PhysicalTextureType2["UNPACKED_FLOAT32"] = 1] = "UNPACKED_FLOAT32";
-  PhysicalTextureType2[PhysicalTextureType2["PACKED_4X1_UNSIGNED_BYTE"] = 2] = "PACKED_4X1_UNSIGNED_BYTE";
-  PhysicalTextureType2[PhysicalTextureType2["PACKED_2X2_FLOAT32"] = 3] = "PACKED_2X2_FLOAT32";
-  PhysicalTextureType2[PhysicalTextureType2["PACKED_2X2_FLOAT16"] = 4] = "PACKED_2X2_FLOAT16";
-  return PhysicalTextureType2;
-})(PhysicalTextureType || {});
 function getUnpackedMatrixTextureShapeWidthHeight(rows, columns) {
   return [columns, rows];
 }
@@ -49528,7 +49525,7 @@ var DecodeMatrixProgram = class {
     this.variableNames = ["A"];
     this.packedInputs = false;
     this.packedOutput = true;
-    this.outPackingScheme = PackingScheme.DENSE;
+    this.outPackingScheme = 0 /* DENSE */;
     this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
@@ -49563,7 +49560,7 @@ var DecodeMatrixPackedProgram = class {
     this.variableNames = ["A"];
     this.packedInputs = true;
     this.packedOutput = true;
-    this.outPackingScheme = PackingScheme.DENSE;
+    this.outPackingScheme = 0 /* DENSE */;
     this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
@@ -49596,7 +49593,7 @@ var DecodeMatrixPackedProgram = class {
 var EncodeFloatProgram = class {
   constructor(outputShape) {
     this.variableNames = ["A"];
-    this.outTexUsage = TextureUsage.DOWNLOAD;
+    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -49616,7 +49613,7 @@ var EncodeFloatPackedProgram = class {
     this.variableNames = ["A"];
     this.packedInputs = true;
     this.packedOutput = false;
-    this.outTexUsage = TextureUsage.DOWNLOAD;
+    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -50580,15 +50577,15 @@ var TextureManager = class {
       return newTexture2;
     }
     let newTexture;
-    if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
+    if (physicalTexType === 3 /* PACKED_2X2_FLOAT32 */) {
       newTexture = this.gpgpu.createPackedMatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
+    } else if (physicalTexType === 4 /* PACKED_2X2_FLOAT16 */) {
       newTexture = this.gpgpu.createFloat16PackedMatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT32) {
+    } else if (physicalTexType === 1 /* UNPACKED_FLOAT32 */) {
       newTexture = this.gpgpu.createFloat32MatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT16) {
+    } else if (physicalTexType === 0 /* UNPACKED_FLOAT16 */) {
       newTexture = this.gpgpu.createFloat16MatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE) {
+    } else if (physicalTexType === 2 /* PACKED_4X1_UNSIGNED_BYTE */) {
       newTexture = this.gpgpu.createUnsignedBytesMatrixTexture(shapeRC[0], shapeRC[1]);
     }
     this.usedTextures[shapeKey].push(newTexture);
@@ -50701,15 +50698,15 @@ function computeBytes(shape, physicalTexType, gl, textureConfig, isPacked) {
 }
 function internalFormatForPhysicalTexType(physicalTexType, textureConfig) {
   switch (physicalTexType) {
-    case PhysicalTextureType.PACKED_2X2_FLOAT32:
+    case 3 /* PACKED_2X2_FLOAT32 */:
       return getInternalFormatForPackedMatrixTexture(textureConfig);
-    case PhysicalTextureType.PACKED_2X2_FLOAT16:
+    case 4 /* PACKED_2X2_FLOAT16 */:
       return getInternalFormatForFloat16PackedMatrixTexture(textureConfig);
-    case PhysicalTextureType.UNPACKED_FLOAT32:
+    case 1 /* UNPACKED_FLOAT32 */:
       return getInternalFormatForFloat32MatrixTexture(textureConfig);
-    case PhysicalTextureType.UNPACKED_FLOAT16:
+    case 0 /* UNPACKED_FLOAT16 */:
       return getInternalFormatForFloat16MatrixTexture(textureConfig);
-    case PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE:
+    case 2 /* PACKED_4X1_UNSIGNED_BYTE */:
       return getInternalFormatForUnsignedBytesMatrixTexture(textureConfig);
     default:
       throw new Error(`Unknown physical texture type ${physicalTexType}`);
@@ -50718,22 +50715,22 @@ function internalFormatForPhysicalTexType(physicalTexType, textureConfig) {
 function getPhysicalTextureForRendering(isPacked) {
   if (env().getBool("WEBGL_RENDER_FLOAT32_ENABLED")) {
     if (isPacked) {
-      return PhysicalTextureType.PACKED_2X2_FLOAT32;
+      return 3 /* PACKED_2X2_FLOAT32 */;
     }
-    return PhysicalTextureType.UNPACKED_FLOAT32;
+    return 1 /* UNPACKED_FLOAT32 */;
   }
   if (isPacked) {
-    return PhysicalTextureType.PACKED_2X2_FLOAT16;
+    return 4 /* PACKED_2X2_FLOAT16 */;
   }
-  return PhysicalTextureType.UNPACKED_FLOAT16;
+  return 0 /* UNPACKED_FLOAT16 */;
 }
 function getPhysicalFromLogicalTextureType(logicalTexType, isPacked) {
-  if (logicalTexType === TextureUsage.UPLOAD) {
-    return PhysicalTextureType.PACKED_2X2_FLOAT32;
-  } else if (logicalTexType === TextureUsage.RENDER || logicalTexType == null) {
+  if (logicalTexType === 1 /* UPLOAD */) {
+    return 3 /* PACKED_2X2_FLOAT32 */;
+  } else if (logicalTexType === 0 /* RENDER */ || logicalTexType == null) {
     return getPhysicalTextureForRendering(isPacked);
-  } else if (logicalTexType === TextureUsage.DOWNLOAD || logicalTexType === TextureUsage.PIXELS) {
-    return PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE;
+  } else if (logicalTexType === 3 /* DOWNLOAD */ || logicalTexType === 2 /* PIXELS */) {
+    return 2 /* PACKED_4X1_UNSIGNED_BYTE */;
   }
   throw new Error(`Unknown logical texture type ${logicalTexType}`);
 }
@@ -50879,9 +50876,9 @@ function numMBBeforeWarning() {
 var _MathBackendWebGL = class extends KernelBackend {
   constructor(gpuResource) {
     super();
-    this.pendingRead = new WeakMap();
-    this.pendingDisposal = new WeakSet();
-    this.dataRefCount = new WeakMap();
+    this.pendingRead = /* @__PURE__ */ new WeakMap();
+    this.pendingDisposal = /* @__PURE__ */ new WeakSet();
+    this.dataRefCount = /* @__PURE__ */ new WeakMap();
     this.numBytesInGPU = 0;
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
@@ -50928,7 +50925,7 @@ var _MathBackendWebGL = class extends KernelBackend {
       throw new Error(`Cannot write to a complex64 dtype. Please use tf.complex(real, imag).`);
     }
     const dataId = { id: this.nextDataId() };
-    this.texData.set(dataId, { shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1 });
+    this.texData.set(dataId, { shape, dtype, values, usage: 1 /* UPLOAD */, refCount: 1 });
     return dataId;
   }
   refCount(dataId) {
@@ -50955,7 +50952,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (dtype === "complex64") {
       throw new Error(`Cannot write to a complex64 dtype. Please use tf.complex(real, imag).`);
     }
-    this.texData.set(dataId, { shape, dtype, values, usage: TextureUsage.UPLOAD, refCount });
+    this.texData.set(dataId, { shape, dtype, values, usage: 1 /* UPLOAD */, refCount });
   }
   disposeIntermediateTensorInfo(tensorInfo) {
     this.disposeData(tensorInfo.dataId);
@@ -51371,7 +51368,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (program.packedOutput) {
       outData.isPacked = true;
     }
-    if (program.outPackingScheme === PackingScheme.DENSE) {
+    if (program.outPackingScheme === 0 /* DENSE */) {
       const texelShape = customTexShape != null ? customTexShape : getDenseTexShape(program.outputShape);
       outData.texShape = texelShape.map((d) => d * 2);
     }
@@ -51540,9 +51537,9 @@ var _MathBackendWebGL = class extends KernelBackend {
       const tempDenseInputHandle = this.makeTensorInfo(tempDenseInputTexShape, dtype);
       const tempDenseInputTexData = this.texData.get(tempDenseInputHandle.dataId);
       if (isByteArray) {
-        tempDenseInputTexData.usage = TextureUsage.PIXELS;
+        tempDenseInputTexData.usage = 2 /* PIXELS */;
       } else {
-        tempDenseInputTexData.usage = TextureUsage.UPLOAD;
+        tempDenseInputTexData.usage = 1 /* UPLOAD */;
       }
       tempDenseInputTexData.texShape = tempDenseInputTexShape;
       this.gpgpu.uploadDenseMatrixToTexture(this.getTexture(tempDenseInputHandle.dataId), width, height, values);
@@ -56994,7 +56991,7 @@ function fromPixels2(args) {
     pixels = fromPixels2DContext2.canvas;
   }
   const tempPixelHandle = backend2.makeTensorInfo(texShape, "int32");
-  backend2.texData.get(tempPixelHandle.dataId).usage = TextureUsage.PIXELS;
+  backend2.texData.get(tempPixelHandle.dataId).usage = 2 /* PIXELS */;
   backend2.gpgpu.uploadPixelDataToTexture(backend2.getTexture(tempPixelHandle.dataId), pixels);
   const program = env().getBool("WEBGL_PACK") ? new FromPixelsPackedProgram(outShape) : new FromPixelsProgram(outShape);
   const res = backend2.runWebGLProgram(program, [tempPixelHandle], "int32");
@@ -61278,15 +61275,15 @@ function mapToWgslTypes(type, isVec4) {
 }
 function getWorkGroupSizeString() {
   return `
-  [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
+  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
 `;
 }
 function getMainHeaderString() {
   return `
   ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] LocalId : vec3<u32>,
-          [[builtin(global_invocation_id)]] GlobalId : vec3<u32>,
-          [[builtin(num_workgroups)]] NumWorkgroups: vec3<u32>) {
+  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+          @builtin(global_invocation_id) GlobalId : vec3<u32>,
+          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
     localId = LocalId;
     globalId = GlobalId;
     numWorkgroups = NumWorkgroups;
@@ -61338,8 +61335,8 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
         dispatchSize    : vec3<u32>;
       };
 
-      [[group(0), binding(0)]] var<storage, write> result : Matrix0;
-      [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
+      @group(0) @binding(0) var<storage, write> result : Matrix0;
+      @group(0) @binding(2) var<uniform> uniforms: Uniform;
     `);
     return [
       commonSnippet,
@@ -61370,7 +61367,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
         numbers: array<atomic<i32>>;
     };
 
-    [[group(0), binding(0)]] var<storage, read_write> result : Matrix0;
+    @group(0) @binding(0) var<storage, read_write> result : Matrix0;
   `);
   } else {
     prefixSnippets.push(`
@@ -61378,7 +61375,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
-    [[group(0), binding(0)]] var<storage, write> result : Matrix0;
+    @group(0) @binding(0) var<storage, write> result : Matrix0;
   `);
   }
   program.variableNames.forEach((x, i) => {
@@ -61386,12 +61383,12 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
     struct Matrix${1 + i} {
       numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
-    [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
+    @group(0) @binding(${1 + i}) var<storage, read> ${x} : Matrix${1 + i};
     `);
   });
   if (uniformDeclaration !== "") {
     prefixSnippets.push(`
-    [[group(0), binding(${1 + program.variableNames.length})]] var<uniform> uniforms : Uniforms;
+    @group(0) @binding(${1 + program.variableNames.length}) var<uniform> uniforms : Uniforms;
     `);
   }
   const [coordsSnippet, dispatchLayoutRank] = getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
@@ -61896,28 +61893,6 @@ function isWebGPUSupported() {
 }
 
 // src/tfjs-backend-webgpu/src/binary_op_util.ts
-var BinaryOpType = /* @__PURE__ */ ((BinaryOpType6) => {
-  BinaryOpType6[BinaryOpType6["MUL"] = 0] = "MUL";
-  BinaryOpType6[BinaryOpType6["ADD"] = 1] = "ADD";
-  BinaryOpType6[BinaryOpType6["SUB"] = 2] = "SUB";
-  BinaryOpType6[BinaryOpType6["DIV"] = 3] = "DIV";
-  BinaryOpType6[BinaryOpType6["EQUAL"] = 4] = "EQUAL";
-  BinaryOpType6[BinaryOpType6["GREATER"] = 5] = "GREATER";
-  BinaryOpType6[BinaryOpType6["GREATER_EQUAL"] = 6] = "GREATER_EQUAL";
-  BinaryOpType6[BinaryOpType6["LESS"] = 7] = "LESS";
-  BinaryOpType6[BinaryOpType6["LESS_EQUAL"] = 8] = "LESS_EQUAL";
-  BinaryOpType6[BinaryOpType6["LOGICAL_AND"] = 9] = "LOGICAL_AND";
-  BinaryOpType6[BinaryOpType6["NOT_EQUAL"] = 10] = "NOT_EQUAL";
-  BinaryOpType6[BinaryOpType6["SQUARED_DIFFERENCE"] = 11] = "SQUARED_DIFFERENCE";
-  BinaryOpType6[BinaryOpType6["INT_DIV"] = 12] = "INT_DIV";
-  BinaryOpType6[BinaryOpType6["POW"] = 13] = "POW";
-  BinaryOpType6[BinaryOpType6["PRELU"] = 14] = "PRELU";
-  BinaryOpType6[BinaryOpType6["MAX"] = 15] = "MAX";
-  BinaryOpType6[BinaryOpType6["MIN"] = 16] = "MIN";
-  BinaryOpType6[BinaryOpType6["COMPLEX_MULTIPLY_REAL"] = 17] = "COMPLEX_MULTIPLY_REAL";
-  BinaryOpType6[BinaryOpType6["COMPLEX_MULTIPLY_IMAG"] = 18] = "COMPLEX_MULTIPLY_IMAG";
-  return BinaryOpType6;
-})(BinaryOpType || {});
 var ADD2 = "return a + b;";
 var COMPLEX_MULTIPLY_REAL = "return areal * breal - aimag * bimag;";
 var COMPLEX_MULTIPLY_IMAG = "return areal * bimag + aimag * breal;";
@@ -62084,33 +62059,6 @@ function getBinaryOpString(type, useVec4) {
 }
 
 // src/tfjs-backend-webgpu/src/unary_op_util.ts
-var UnaryOpType = /* @__PURE__ */ ((UnaryOpType3) => {
-  UnaryOpType3[UnaryOpType3["ABS"] = 0] = "ABS";
-  UnaryOpType3[UnaryOpType3["CEIL"] = 1] = "CEIL";
-  UnaryOpType3[UnaryOpType3["COS"] = 2] = "COS";
-  UnaryOpType3[UnaryOpType3["COSH"] = 3] = "COSH";
-  UnaryOpType3[UnaryOpType3["ELU"] = 4] = "ELU";
-  UnaryOpType3[UnaryOpType3["EXP"] = 5] = "EXP";
-  UnaryOpType3[UnaryOpType3["EXPM1"] = 6] = "EXPM1";
-  UnaryOpType3[UnaryOpType3["FLOOR"] = 7] = "FLOOR";
-  UnaryOpType3[UnaryOpType3["LINEAR"] = 8] = "LINEAR";
-  UnaryOpType3[UnaryOpType3["LOG"] = 9] = "LOG";
-  UnaryOpType3[UnaryOpType3["LOGICAL_NOT"] = 10] = "LOGICAL_NOT";
-  UnaryOpType3[UnaryOpType3["NEG"] = 11] = "NEG";
-  UnaryOpType3[UnaryOpType3["PRELU"] = 12] = "PRELU";
-  UnaryOpType3[UnaryOpType3["RELU"] = 13] = "RELU";
-  UnaryOpType3[UnaryOpType3["RELU6"] = 14] = "RELU6";
-  UnaryOpType3[UnaryOpType3["LEAKYRELU"] = 15] = "LEAKYRELU";
-  UnaryOpType3[UnaryOpType3["RSQRT"] = 16] = "RSQRT";
-  UnaryOpType3[UnaryOpType3["SIN"] = 17] = "SIN";
-  UnaryOpType3[UnaryOpType3["SINH"] = 18] = "SINH";
-  UnaryOpType3[UnaryOpType3["SIGMOID"] = 19] = "SIGMOID";
-  UnaryOpType3[UnaryOpType3["SQRT"] = 20] = "SQRT";
-  UnaryOpType3[UnaryOpType3["SQUARE"] = 21] = "SQUARE";
-  UnaryOpType3[UnaryOpType3["TANH"] = 22] = "TANH";
-  UnaryOpType3[UnaryOpType3["TO_INT"] = 23] = "TO_INT";
-  return UnaryOpType3;
-})(UnaryOpType || {});
 var ABS3 = `return abs(a);`;
 var CEIL2 = `return ceil(a);`;
 var COS2 = `return cos(a);`;
@@ -62240,56 +62188,48 @@ function mapActivationToShaderProgram2(activation2, packed = false) {
   if (activation2 === null) {
     return null;
   } else if (activation2 === "linear") {
-    return getUnaryOpString(UnaryOpType.LINEAR);
+    return getUnaryOpString(8 /* LINEAR */);
   } else if (activation2 === "relu") {
-    return getUnaryOpString(UnaryOpType.RELU, packed);
+    return getUnaryOpString(13 /* RELU */, packed);
   } else if (activation2 === "elu") {
-    return getUnaryOpString(UnaryOpType.ELU, packed);
+    return getUnaryOpString(4 /* ELU */, packed);
   } else if (activation2 === "relu6") {
-    return getUnaryOpString(UnaryOpType.RELU6, packed);
+    return getUnaryOpString(14 /* RELU6 */, packed);
   } else if (activation2 === "prelu") {
-    return getBinaryOpString(BinaryOpType.PRELU, packed);
+    return getBinaryOpString(14 /* PRELU */, packed);
   } else if (activation2 === "sigmoid") {
-    return getUnaryOpString(UnaryOpType.SIGMOID);
+    return getUnaryOpString(19 /* SIGMOID */);
   }
   throw new Error(`Activation ${activation2} has not been implemented for the WebGPU backend.`);
 }
 
 // src/tfjs-backend-webgpu/src/matmul_packed_vec4_webgpu.ts
-function makeMatMulPackedVec4Source(workPerThread, workGroupSize) {
-  const tileInfo = {
-    RowPerThread: workPerThread[1],
-    ColPerThread: workPerThread[0],
-    TileAOuter: workGroupSize[1] * workPerThread[1],
-    TileBOuter: workGroupSize[0] * workPerThread[0],
-    TileInner: workGroupSize[0] * workPerThread[0]
-  };
+function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileInner) {
+  util_exports.assert(tileInner % 4 === 0 && workPerThread[0] === 4, () => "tileInner must be divisible by 4. And ColPerThread must be 4");
   return `
-  var<workgroup> mm_Asub : array<array<vec4<f32>, ${tileInfo.TileInner / tileInfo.ColPerThread}>, ${tileInfo.TileAOuter}>;
-  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${tileInfo.TileBOuter / tileInfo.ColPerThread}>, ${tileInfo.TileInner}>;
+  var<workgroup> mm_Asub : array<array<vec4<f32>, ${tileInner / workPerThread[0]}>, ${tileAOuter}>;
+  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
-  let RowPerThread = ${tileInfo.RowPerThread};
-  let ColPerThread = ${tileInfo.ColPerThread}; // only support ColPerThread = 4
-  let TileAOuter = ${tileInfo.TileAOuter};
-  let TileBOuter = ${tileInfo.TileBOuter};
-  let TileInner = ${tileInfo.TileInner};
+  let RowPerThread = ${workPerThread[1]};
+  let ColPerThread = ${workPerThread[0]};
+  let TileInner = ${tileInner};
 
   ${getMainHeaderString()}
 
-    let tileRow = i32(localId.y) * RowPerThread;
+    let tileRow = ${tileAOuter === 1 ? "0" : "i32(localId.y) * RowPerThread"};
     let tileCol = i32(localId.x);
 
-    let globalRow = i32(globalId.y) * RowPerThread;
+    let globalRow = ${tileAOuter === 1 ? "0" : "i32(globalId.y) * RowPerThread"};
     let globalCol = i32(globalId.x);
     let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
 
-    var acc: array<vec4<f32>, ${tileInfo.RowPerThread}>;
+    var acc: array<vec4<f32>, RowPerThread>;
     var ACached : vec4<f32>;
     var BCached : array<vec4<f32>, 4>;
 
     // Loop over shared dimension.
     var globalColA = tileCol;
-    let RowPerThreadB = TileInner / ${workGroupSize[1]};
+    let RowPerThreadB = TileInner / i32(workGroupSizeY);
     let tileRowB = i32(localId.y) * RowPerThreadB;
     for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
@@ -62335,66 +62275,20 @@ function makeMatMulPackedVec4Source(workPerThread, workGroupSize) {
     }
   }`;
 }
-function makeMatMulVectorVec4Source(workGroupSize) {
-  return `
-  var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
-  let tileSize = ${workGroupSize[0] * 4};
-  ${getMainHeaderString()}
-    let tileCol = i32(localId.x);
-    let globalCol = i32(globalId.x);
-    let globalRow = i32(globalId.y);
-
-    let numTiles = (uniforms.dimInner - 1) / tileSize + 1;
-
-    // Without this initialization strange values show up in acc.
-    var acc = vec4<f32>(0.0);
-
-    // Loop over shared dimension.
-    for (var t = 0; t < numTiles; t = t + 1) {
-      // Load one tile of A into local memory.
-      let colA = t * tileSize / 4 + tileCol;
-      mm_Asub[tileCol] = mm_readA(globalRow, colA, globalId);
-
-      workgroupBarrier();
-
-      // Compute acc values for a single thread.
-      for (var k = 0; k < tileSize / 4; k = k + 1) {
-        let rowB = t * tileSize + k * 4;
-        let BCached0 = mm_readB(rowB, globalCol, globalId);
-        let BCached1 = mm_readB(rowB + 1, globalCol, globalId);
-        let BCached2 = mm_readB(rowB + 2, globalCol, globalId);
-        let BCached3 = mm_readB(rowB + 3, globalCol, globalId);
-
-        let ACached = mm_Asub[k];
-        acc = acc + BCached0 * ACached.x;
-        acc = acc + BCached1 * ACached.y;
-        acc = acc + BCached2 * ACached.z;
-        acc = acc + BCached3 * ACached.w;
-      }
-
-      workgroupBarrier();
-    }
-
-    if (globalRow < uniforms.dimAOuter && globalCol < uniforms.dimBOuter) {
-      mm_write(globalRow, globalCol, acc, globalId);
-    }
-  }
-`;
-}
 var MatMulPackedVec4Program = class {
   constructor(aShape, outputShape, rowPerThread, bias = null, activation2 = null, preluActivationWeights = null) {
     this.variableNames = ["A", "B"];
     this.uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
-    this.workGroupSize = [16, 16, 1];
+    this.workGroupSize = [8, 8, 1];
     this.isVec4 = true;
-    this.vecSize = 4;
     this.outputShape = outputShape;
-    this.workGroupSize = computeWorkGroupSizeForMatMul(outputShape[1], aShape[2], outputShape[2]);
     this.dispatchLayout = { x: [2], y: [1], z: [0] };
     if (outputShape[1] === 1) {
-      rowPerThread = 1;
+      this.elementsPerThread = [4, 1, 1];
+    } else {
+      this.elementsPerThread = [4, 4, 1];
     }
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.vecSize, rowPerThread, 1]);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
     if (addBias) {
@@ -62403,23 +62297,22 @@ var MatMulPackedVec4Program = class {
     if (hasPreluActivationWeights) {
       this.variableNames.push("preluActivationWeights");
     }
-    this.workPerThread = rowPerThread;
+    this.tileAOuter = outputShape[1] === 1 ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
+    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileInner = this.tileBOuter;
     this.aShape = aShape;
     this.addBias = addBias;
     this.activation = activation2;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${this.activation}_${this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
+    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}`;
   }
   getShapeFit() {
     const dimInner = this.aShape[2];
     const dimBOuter = this.outputShape[2];
     const bShape = [this.outputShape[0], dimInner, dimBOuter];
-    const tileAOuter = this.workGroupSize[1] * this.workPerThread;
-    const tileBOuter = this.workGroupSize[0] * this.vecSize;
-    const tileInner = tileBOuter;
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
+    const tileSizeA = [this.tileAOuter, this.tileInner];
+    const tileSizeB = [this.tileInner, this.tileBOuter];
     return [
       tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
       tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
@@ -62454,13 +62347,13 @@ var MatMulPackedVec4Program = class {
     const userCode = `
       ${activationSnippet}
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / ${this.vecSize};
+        let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
         let batch = i32(globalId.z);
         ${sampleA};
       }
 
       fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / ${this.vecSize};
+        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
         let batch = i32(globalId.z);
         ${sampleB};
       }
@@ -62476,8 +62369,7 @@ var MatMulPackedVec4Program = class {
           setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], value);
         }
       }
-      ${this.outputShape[1] > 1 ? makeMatMulPackedVec4Source([this.vecSize, this.workPerThread, 1], this.workGroupSize) : makeMatMulVectorVec4Source(this.workGroupSize)}
-
+      ${makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner)}
     `;
     return userCode;
   }
@@ -63389,7 +63281,7 @@ function binaryKernelFunc3({ opSnippet, cpuKernelImpl, supportsComplex = false, 
       const aData = webgpuBackend.tensorMap.get(a.dataId);
       const bData = webgpuBackend.tensorMap.get(b.dataId);
       let real5, imag5;
-      if (opSnippet !== BinaryOpType.MUL) {
+      if (opSnippet !== 0 /* MUL */) {
         [real5, imag5] = [
           [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
           [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
@@ -63409,8 +63301,8 @@ function binaryKernelFunc3({ opSnippet, cpuKernelImpl, supportsComplex = false, 
           return webgpuBackend.runWebGPUProgram(program2, [aHandle, bHandle], upcastType(aPart.dtype, bPart.dtype));
         });
       } else {
-        const realProgram = new BinaryOpComplexProgram2(BinaryOpType.COMPLEX_MULTIPLY_REAL, a.shape, b.shape);
-        const imagProgram = new BinaryOpComplexProgram2(BinaryOpType.COMPLEX_MULTIPLY_IMAG, a.shape, b.shape);
+        const realProgram = new BinaryOpComplexProgram2(17 /* COMPLEX_MULTIPLY_REAL */, a.shape, b.shape);
+        const imagProgram = new BinaryOpComplexProgram2(18 /* COMPLEX_MULTIPLY_IMAG */, a.shape, b.shape);
         const inputs2 = [
           {
             dataId: aData.complexTensorInfos.real.dataId,
@@ -63492,7 +63384,7 @@ var {
 } = shared_exports;
 
 // src/tfjs-backend-webgpu/src/kernels/Abs.ts
-var abs4 = unaryKernelFunc3({ opType: UnaryOpType.ABS, cpuKernelImpl: simpleAbsImplCPU2 });
+var abs4 = unaryKernelFunc3({ opType: 0 /* ABS */, cpuKernelImpl: simpleAbsImplCPU2 });
 var absConfig3 = {
   kernelName: Abs,
   backendName: "webgpu",
@@ -63501,7 +63393,7 @@ var absConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Add.ts
 var addKernelFunc2 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.ADD,
+  opSnippet: 1 /* ADD */,
   cpuKernelImpl: addImplCPU2,
   supportsComplex: true
 });
@@ -63702,8 +63594,8 @@ var TransposeSharedProgram = class {
       let TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${this.workGroupSize[0]}>;
       ${getWorkGroupSizeString()}
-      fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-              [[builtin(workgroup_id)]] workgroupId : vec3<u32>) {
+      fn main(@builtin(local_invocation_id) localId : vec3<u32>,
+              @builtin(workgroup_id) workgroupId : vec3<u32>) {
         var x = i32(workgroupId.x) * TILE_DIM + i32(localId.x);
         var y = i32(workgroupId.y) * TILE_DIM + i32(localId.y);
         let width = uniforms.outShape[0];
@@ -64118,7 +64010,7 @@ var batchToSpaceNDConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/NotEqual.ts
 var notEqual4 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.NOT_EQUAL,
+  opSnippet: 10 /* NOT_EQUAL */,
   dtype: "bool",
   cpuKernelImpl: notEqualImplCPU2
 });
@@ -64143,7 +64035,7 @@ var realConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernel_utils/int.ts
 function int2(input2, backend2) {
-  const program = new UnaryOpProgram2(input2.shape, UnaryOpType.TO_INT);
+  const program = new UnaryOpProgram2(input2.shape, 23 /* TO_INT */);
   const output = backend2.runWebGPUProgram(program, [input2], "int32");
   return { dataId: output.dataId, shape: output.shape, dtype: output.dtype };
 }
@@ -64193,7 +64085,7 @@ var castConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Ceil.ts
-var ceil4 = unaryKernelFunc3({ opType: UnaryOpType.CEIL, cpuKernelImpl: ceilImplCPU2 });
+var ceil4 = unaryKernelFunc3({ opType: 1 /* CEIL */, cpuKernelImpl: ceilImplCPU2 });
 var ceilConfig3 = {
   kernelName: Ceil,
   backendName: "webgpu",
@@ -64500,13 +64392,17 @@ var Conv2DMMVec4Program = class {
     this.variableNames = ["x", "W"];
     this.uniforms = `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
       dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+    this.workGroupSize = [8, 8, 1];
     this.isVec4 = true;
     this.outputShape = convInfo.outShape;
     util_exports.assert(convInfo.dataFormat === "channelsLast", () => "TODO: NCHW is unimplemented");
     this.dispatchLayout = { x: [3], y: [1, 2], z: [0] };
-    this.workGroupSize = [8, 8, 1];
-    const elementsPerThread = [4, 4, 1];
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, elementsPerThread);
+    if (this.outputShape[1] === 1) {
+      this.elementsPerThread = [4, 1, 1];
+    } else {
+      this.elementsPerThread = [4, 4, 1];
+    }
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
     this.convInfo = convInfo;
     this.addBias = addBias;
     this.activation = activation2;
@@ -64521,15 +64417,15 @@ var Conv2DMMVec4Program = class {
     if (this.hasLeakyreluAlpha) {
       this.variableNames.push("leakyreluAlpha");
     }
-    [this.fitA, this.fitB] = this.getShapeFit(elementsPerThread);
-    this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}`;
+    this.tileAOuter = this.outputShape[1] === 1 ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
+    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileInner = this.tileBOuter;
+    [this.fitA, this.fitB] = this.getShapeFit();
+    this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}`;
   }
-  getShapeFit(elementsPerThread) {
-    const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
-    const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
-    const tileInner = tileBOuter;
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
+  getShapeFit() {
+    const tileSizeA = [this.tileAOuter, this.tileInner];
+    const tileSizeB = [this.tileInner, this.tileBOuter];
     const dimAOuter = this.outputShape[1] * this.outputShape[2];
     const dimBOuter = this.outputShape[3];
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth * this.convInfo.inChannels;
@@ -64561,8 +64457,7 @@ var Conv2DMMVec4Program = class {
     `;
   }
   getUserCode() {
-    const elementsPerThread = [4, 4, 1];
-    const matMulSource = makeMatMulPackedVec4Source(elementsPerThread, this.workGroupSize);
+    const matMulSource = makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner);
     const remainder = this.convInfo.inChannels % 4;
     const remainderSnippet = remainder === 0 ? `// The bounds checking is always needed since we use it to pad zero for
           // the 'same' padding type.
@@ -65289,7 +65184,7 @@ var conv2DBackpropInputConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Cos.ts
-var cos4 = unaryKernelFunc3({ opType: UnaryOpType.COS });
+var cos4 = unaryKernelFunc3({ opType: 2 /* COS */ });
 var cosConfig3 = {
   kernelName: Cos,
   backendName: "webgpu",
@@ -65297,7 +65192,7 @@ var cosConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Cosh.ts
-var cosh4 = unaryKernelFunc3({ opType: UnaryOpType.COSH });
+var cosh4 = unaryKernelFunc3({ opType: 3 /* COSH */ });
 var coshConfig3 = {
   kernelName: Cosh,
   backendName: "webgpu",
@@ -65561,7 +65456,7 @@ var DepthwiseConv2D3x3Program = class {
       ${activationSnippet}
 
       ${getWorkGroupSizeString()}
-      fn main([[builtin(global_invocation_id)]] globalId: vec3<u32>) {
+      fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
         let batch = 0;
         let r = i32(globalId.x);
         let c = i32(globalId.y) * 4;
@@ -65781,7 +65676,7 @@ var depthwiseConv2dNativeConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Multiply.ts
 var multiplyKernelFunc = binaryKernelFunc3({
-  opSnippet: BinaryOpType.MUL,
+  opSnippet: 0 /* MUL */,
   cpuKernelImpl: multiplyImplCPU2,
   supportsComplex: true
 });
@@ -66005,7 +65900,7 @@ var einsumConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Elu.ts
-var elu6 = unaryKernelFunc3({ opType: UnaryOpType.ELU });
+var elu6 = unaryKernelFunc3({ opType: 4 /* ELU */ });
 var eluConfig3 = {
   kernelName: Elu,
   backendName: "webgpu",
@@ -66013,7 +65908,7 @@ var eluConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Equal.ts
-var equal4 = binaryKernelFunc3({ opSnippet: BinaryOpType.EQUAL, dtype: "bool", cpuKernelImpl: equalImplCPU2 });
+var equal4 = binaryKernelFunc3({ opSnippet: 4 /* EQUAL */, dtype: "bool", cpuKernelImpl: equalImplCPU2 });
 var equalConfig3 = {
   kernelName: Equal,
   backendName: "webgpu",
@@ -66022,7 +65917,7 @@ var equalConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Exp.ts
 var exp4 = unaryKernelFunc3({
-  opType: UnaryOpType.EXP,
+  opType: 5 /* EXP */,
   cpuKernelImpl: expImplCPU2,
   dtype: "float32"
 });
@@ -66054,7 +65949,7 @@ var expandDimsConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Expm1.ts
-var expm14 = unaryKernelFunc3({ opType: UnaryOpType.EXPM1, cpuKernelImpl: expm1ImplCPU2 });
+var expm14 = unaryKernelFunc3({ opType: 6 /* EXPM1 */, cpuKernelImpl: expm1ImplCPU2 });
 var expm1Config3 = {
   kernelName: Expm1,
   backendName: "webgpu",
@@ -66149,7 +66044,7 @@ var flipLeftRightConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Floor.ts
-var floor4 = unaryKernelFunc3({ opType: UnaryOpType.FLOOR, cpuKernelImpl: floorImplCPU2 });
+var floor4 = unaryKernelFunc3({ opType: 7 /* FLOOR */, cpuKernelImpl: floorImplCPU2 });
 var floorConfig3 = {
   kernelName: Floor,
   backendName: "webgpu",
@@ -66157,7 +66052,7 @@ var floorConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/FloorDiv.ts
-var floorDiv4 = binaryKernelFunc3({ opSnippet: BinaryOpType.INT_DIV, dtype: "int32" });
+var floorDiv4 = binaryKernelFunc3({ opSnippet: 12 /* INT_DIV */, dtype: "int32" });
 var floorDivConfig3 = {
   kernelName: FloorDiv,
   backendName: "webgpu",
@@ -66625,7 +66520,7 @@ var gatherV2Config3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Greater.ts
 var greater5 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.GREATER,
+  opSnippet: 5 /* GREATER */,
   cpuKernelImpl: greaterImplCPU2,
   dtype: "bool"
 });
@@ -66637,7 +66532,7 @@ var greaterConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/GreaterEqual.ts
 var greaterEqual4 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.GREATER_EQUAL,
+  opSnippet: 6 /* GREATER_EQUAL */,
   dtype: "bool",
   cpuKernelImpl: greaterEqualImplCPU2
 });
@@ -66653,7 +66548,7 @@ function leakyRelu4(args) {
   const { x } = inputs;
   const { alpha } = attrs;
   const uniformData = [{ type: "float32", data: [alpha] }];
-  const program = new UnaryOpProgram2(x.shape, UnaryOpType.LEAKYRELU);
+  const program = new UnaryOpProgram2(x.shape, 15 /* LEAKYRELU */);
   program.uniforms = "alpha : f32;";
   return backend2.runWebGPUProgram(program, [x], "float32", uniformData);
 }
@@ -66664,7 +66559,7 @@ var leakyReluConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Less.ts
-var less5 = binaryKernelFunc3({ opSnippet: BinaryOpType.LESS, dtype: "bool", cpuKernelImpl: lessImplCPU2 });
+var less5 = binaryKernelFunc3({ opSnippet: 7 /* LESS */, dtype: "bool", cpuKernelImpl: lessImplCPU2 });
 var lessConfig3 = {
   kernelName: Less,
   backendName: "webgpu",
@@ -66673,7 +66568,7 @@ var lessConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/LessEqual.ts
 var lessEqual4 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.LESS_EQUAL,
+  opSnippet: 8 /* LESS_EQUAL */,
   dtype: "bool",
   cpuKernelImpl: lessEqualImplCPU2
 });
@@ -66684,7 +66579,7 @@ var lessEqualConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Log.ts
-var log5 = unaryKernelFunc3({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU2 });
+var log5 = unaryKernelFunc3({ opType: 9 /* LOG */, cpuKernelImpl: logImplCPU2 });
 var logConfig3 = {
   kernelName: Log,
   backendName: "webgpu",
@@ -66693,7 +66588,7 @@ var logConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalAnd.ts
 var logicalAnd4 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.LOGICAL_AND,
+  opSnippet: 9 /* LOGICAL_AND */,
   dtype: "bool"
 });
 var logicalAndConfig3 = {
@@ -66703,7 +66598,7 @@ var logicalAndConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalNot.ts
-var logicalNot4 = unaryKernelFunc3({ opType: UnaryOpType.LOGICAL_NOT });
+var logicalNot4 = unaryKernelFunc3({ opType: 10 /* LOGICAL_NOT */ });
 var logicalNotConfig3 = {
   kernelName: LogicalNot,
   backendName: "webgpu",
@@ -66725,7 +66620,7 @@ var maxConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Maximum.ts
 var maximum5 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.MAX,
+  opSnippet: 15 /* MAX */,
   cpuKernelImpl: maximumImplCPU2
 });
 var maximumConfig3 = {
@@ -66795,7 +66690,7 @@ var minConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Minimum.ts
 var minimum5 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.MIN,
+  opSnippet: 16 /* MIN */,
   cpuKernelImpl: minimumImplCPU2
 });
 var minimumConfig3 = {
@@ -66877,7 +66772,7 @@ function neg4(args) {
     const [outValues, newShape] = negImplCPU2(xData.values, x.shape, x.dtype);
     return backend2.makeTensorInfo(newShape, x.dtype, outValues);
   }
-  const program = new UnaryOpProgram2(x.shape, UnaryOpType.NEG);
+  const program = new UnaryOpProgram2(x.shape, 11 /* NEG */);
   return backend2.runWebGPUProgram(program, [x], x.dtype);
 }
 var negConfig3 = {
@@ -67089,7 +66984,7 @@ var padV2Config3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Pow.ts
 var pow4 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.POW
+  opSnippet: 13 /* POW */
 });
 var powConfig3 = {
   kernelName: Pow,
@@ -67101,7 +66996,7 @@ var powConfig3 = {
 function prelu5(args) {
   const { inputs, backend: backend2 } = args;
   const { x, alpha } = inputs;
-  const program = new BinaryOpProgram2(BinaryOpType.PRELU, x.shape, alpha.shape);
+  const program = new BinaryOpProgram2(14 /* PRELU */, x.shape, alpha.shape);
   return backend2.runWebGPUProgram(program, [x, alpha], "float32");
 }
 var preluConfig3 = {
@@ -67137,7 +67032,7 @@ var rangeConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/RealDiv.ts
-var realDiv2 = binaryKernelFunc3({ opSnippet: BinaryOpType.DIV });
+var realDiv2 = binaryKernelFunc3({ opSnippet: 3 /* DIV */ });
 var realDivConfig3 = {
   kernelName: RealDiv,
   backendName: "webgpu",
@@ -67145,7 +67040,7 @@ var realDivConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Relu.ts
-var relu4 = unaryKernelFunc3({ opType: UnaryOpType.RELU });
+var relu4 = unaryKernelFunc3({ opType: 13 /* RELU */ });
 var reluConfig3 = {
   kernelName: Relu,
   backendName: "webgpu",
@@ -67153,7 +67048,7 @@ var reluConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Relu6.ts
-var relu64 = unaryKernelFunc3({ opType: UnaryOpType.RELU6 });
+var relu64 = unaryKernelFunc3({ opType: 14 /* RELU6 */ });
 var relu6Config3 = {
   kernelName: Relu6,
   backendName: "webgpu",
@@ -67399,7 +67294,7 @@ var rotateWithOffsetConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Rsqrt.ts
-var rsqrt4 = unaryKernelFunc3({ opType: UnaryOpType.RSQRT, cpuKernelImpl: rsqrtImplCPU2 });
+var rsqrt4 = unaryKernelFunc3({ opType: 16 /* RSQRT */, cpuKernelImpl: rsqrtImplCPU2 });
 var rsqrtConfig3 = {
   kernelName: Rsqrt,
   backendName: "webgpu",
@@ -67588,7 +67483,7 @@ var selectConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sigmoid.ts
-var sigmoid4 = unaryKernelFunc3({ opType: UnaryOpType.SIGMOID });
+var sigmoid4 = unaryKernelFunc3({ opType: 19 /* SIGMOID */ });
 var sigmoidConfig3 = {
   kernelName: Sigmoid,
   backendName: "webgpu",
@@ -67596,7 +67491,7 @@ var sigmoidConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sin.ts
-var sin4 = unaryKernelFunc3({ opType: UnaryOpType.SIN });
+var sin4 = unaryKernelFunc3({ opType: 17 /* SIN */ });
 var sinConfig3 = {
   kernelName: Sin,
   backendName: "webgpu",
@@ -67604,7 +67499,7 @@ var sinConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sinh.ts
-var sinh4 = unaryKernelFunc3({ opType: UnaryOpType.SINH });
+var sinh4 = unaryKernelFunc3({ opType: 18 /* SINH */ });
 var sinhConfig3 = {
   kernelName: Sinh,
   backendName: "webgpu",
@@ -67613,7 +67508,7 @@ var sinhConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernels/Sub.ts
 var sub4 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.SUB,
+  opSnippet: 2 /* SUB */,
   cpuKernelImpl: subImplCPU2,
   supportsComplex: true
 });
@@ -67810,7 +67705,7 @@ var splitVConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sqrt.ts
-var sqrt4 = unaryKernelFunc3({ opType: UnaryOpType.SQRT });
+var sqrt4 = unaryKernelFunc3({ opType: 20 /* SQRT */ });
 var sqrtConfig3 = {
   kernelName: Sqrt,
   backendName: "webgpu",
@@ -67824,14 +67719,14 @@ var squareConfig3 = {
   kernelFunc: ({ inputs, backend: backend2 }) => {
     const { x } = inputs;
     const webGPUBackend = backend2;
-    const program = new UnaryOpProgram2(x.shape, UnaryOpType.SQUARE);
+    const program = new UnaryOpProgram2(x.shape, 21 /* SQUARE */);
     return webGPUBackend.runWebGPUProgram(program, [x], x.dtype);
   }
 };
 
 // src/tfjs-backend-webgpu/src/kernels/SquaredDifference.ts
 var squaredDifference4 = binaryKernelFunc3({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE
+  opSnippet: 11 /* SQUARED_DIFFERENCE */
 });
 var squaredDifferenceConfig3 = {
   kernelName: SquaredDifference,
@@ -67960,7 +67855,7 @@ var stringNGramsConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Tanh.ts
-var tanh5 = unaryKernelFunc3({ opType: UnaryOpType.TANH });
+var tanh5 = unaryKernelFunc3({ opType: 22 /* TANH */ });
 var tanhConfig3 = {
   kernelName: Tanh,
   backendName: "webgpu",
@@ -68742,7 +68637,7 @@ var FromPixelsProgram2 = class {
     const textureLoad = this.useImport ? "textureLoad(src, vec2<i32>(coords.yx));" : "textureLoad(src, vec2<i32>(coords.yx), 0)";
     const textureType = this.useImport ? "texture_external" : "texture_2d<f32>";
     return `
-      [[binding(1), group(0)]] var src: ${textureType};
+      @binding(1) @group(0) var src: ${textureType};
 
       ${getMainHeaderAndGlobalIndexString()}
         let flatIndexBase = index * uniforms.numChannels;
@@ -68871,7 +68766,7 @@ var CPU_HANDOFF_SIZE_THRESHOLD2 = env().getNumber("WEBGPU_CPU_HANDOFF_SIZE_THRES
 var _WebGPUBackend = class extends KernelBackend {
   constructor(device, supportTimeQuery = false) {
     super();
-    this.commandQueueOwnedIds = new WeakSet();
+    this.commandQueueOwnedIds = /* @__PURE__ */ new WeakSet();
     this.tensorDisposalQueue = [];
     this.uniformDisposalQueue = [];
     this.stagingDisposalQueue = [];
@@ -69019,7 +68914,7 @@ var _WebGPUBackend = class extends KernelBackend {
     this.queue.submit([this.currentCommandEncoder.finish()]);
     this.currentCommandEncoder = null;
     this.dispatchNumberInEncoder = 0;
-    this.commandQueueOwnedIds = new WeakSet();
+    this.commandQueueOwnedIds = /* @__PURE__ */ new WeakSet();
     this.flushDisposalQueue();
   }
   getBuffer(dataId) {
@@ -72809,13 +72704,13 @@ ENV6.registerFlag("WASM_HAS_MULTITHREAD_SUPPORT", async () => {
 });
 
 // src/tfjs-backend-wasm/src/backend_wasm.ts
-var import_tfjs_backend_wasm_threaded_simd = __toModule(require_tfjs_backend_wasm_threaded_simd());
+var import_tfjs_backend_wasm_threaded_simd = __toESM(require_tfjs_backend_wasm_threaded_simd());
 
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.worker.js
 var wasmWorkerContents = 'var Module={};function threadPrintErr(){var text=Array.prototype.slice.call(arguments).join(" ");console.error(text)}function threadAlert(){var text=Array.prototype.slice.call(arguments).join(" ");postMessage({cmd:"alert",text:text,threadId:Module["_pthread_self"]()})}var err=threadPrintErr;this.alert=threadAlert;Module["instantiateWasm"]=function(info,receiveInstance){var instance=new WebAssembly.Instance(Module["wasmModule"],info);Module["wasmModule"]=null;receiveInstance(instance);return instance.exports};function moduleLoaded(){}this.onmessage=function(e){try{if(e.data.cmd==="load"){Module["wasmModule"]=e.data.wasmModule;Module["wasmMemory"]=e.data.wasmMemory;Module["buffer"]=Module["wasmMemory"].buffer;Module["ENVIRONMENT_IS_PTHREAD"]=true;if(typeof e.data.urlOrBlob==="string"){importScripts(e.data.urlOrBlob)}else{var objectUrl=URL.createObjectURL(e.data.urlOrBlob);importScripts(objectUrl);URL.revokeObjectURL(objectUrl)}WasmBackendModuleThreadedSimd(Module).then(function(instance){Module=instance;moduleLoaded()})}else if(e.data.cmd==="objectTransfer"){Module["PThread"].receiveObjectTransfer(e.data)}else if(e.data.cmd==="run"){Module["__performance_now_clock_drift"]=performance.now()-e.data.time;Module["__emscripten_thread_init"](e.data.threadInfoStruct,0,0);var max=e.data.stackBase;var top=e.data.stackBase+e.data.stackSize;Module["establishStackSpace"](top,max);Module["_emscripten_tls_init"]();Module["PThread"].receiveObjectTransfer(e.data);Module["PThread"].setThreadStatus(Module["_pthread_self"](),1);try{var result=Module["invokeEntryPoint"](e.data.start_routine,e.data.arg);if(!Module["getNoExitRuntime"]())Module["PThread"].threadExit(result)}catch(ex){if(ex==="Canceled!"){Module["PThread"].threadCancel()}else if(ex!="unwind"){if(ex instanceof Module["ExitStatus"]){if(Module["getNoExitRuntime"]()){}else{Module["PThread"].threadExit(ex.status)}}else{Module["PThread"].threadExit(-2);throw ex}}}}else if(e.data.cmd==="cancel"){if(Module["_pthread_self"]()){Module["PThread"].threadCancel()}}else if(e.data.target==="setimmediate"){}else if(e.data.cmd==="processThreadQueue"){if(Module["_pthread_self"]()){Module["_emscripten_current_thread_process_queued_calls"]()}}else{err("worker.js received unknown command "+e.data.cmd);err(e.data)}}catch(ex){err("worker.js onmessage() captured an uncaught exception: "+ex);if(ex&&ex.stack)err(ex.stack);throw ex}};if(typeof process==="object"&&typeof process.versions==="object"&&typeof process.versions.node==="string"){self={location:{href:__filename}};var onmessage=this.onmessage;var nodeWorkerThreads=require("worker_threads");global.Worker=nodeWorkerThreads.Worker;var parentPort=nodeWorkerThreads.parentPort;parentPort.on("message",function(data){onmessage({data:data})});var nodeFS=require("fs");var nodeRead=function(filename){return nodeFS.readFileSync(filename,"utf8")};function globalEval(x){global.require=require;global.Module=Module;eval.call(null,x)}importScripts=function(f){globalEval(nodeRead(f))};postMessage=function(msg){parentPort.postMessage(msg)};if(typeof performance==="undefined"){performance={now:function(){return Date.now()}}}}';
 
 // src/tfjs-backend-wasm/src/backend_wasm.ts
-var import_tfjs_backend_wasm = __toModule(require_tfjs_backend_wasm());
+var import_tfjs_backend_wasm = __toESM(require_tfjs_backend_wasm());
 var BackendWasm = class extends KernelBackend {
   constructor(wasm) {
     super();
@@ -73103,7 +72998,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.13.0-20220120";
+var externalVersion = "3.13.0-20220207";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
