@@ -61886,10 +61886,7 @@ function ArrayBufferToTypedArray(data, dtype) {
   }
 }
 function isWebGPUSupported() {
-  if (!navigator.gpu) {
-    return false;
-  }
-  return true;
+  return (typeof window !== "undefined" || typeof WorkerGlobalScope !== "undefined") && !!navigator.gpu;
 }
 
 // src/tfjs-backend-webgpu/src/binary_op_util.ts
@@ -69371,7 +69368,7 @@ __export(webgpu_exports, {
 });
 
 // src/tfjs-backend-webgpu/src/index.ts
-if (device_util_exports.isBrowser() && isWebGPUSupported()) {
+if (isWebGPUSupported()) {
   registerBackend("webgpu", async () => {
     env().set("CHECK_COMPUTATION_FOR_ERRORS", false);
     const gpuDescriptor = {
@@ -72998,7 +72995,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.13.0-20220210";
+var externalVersion = "3.13.0-20220214";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
