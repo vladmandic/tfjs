@@ -1559,7 +1559,7 @@ var require_os = __commonJS({
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.js
 var require_tfjs_backend_wasm_threaded_simd = __commonJS({
   "src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.js"(exports, module) {
-    var WasmBackendModuleThreadedSimd2 = function() {
+    var WasmBackendModuleThreadedSimd2 = (() => {
       var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : void 0;
       if (typeof __filename !== "undefined")
         _scriptDir = _scriptDir || __filename;
@@ -1577,17 +1577,29 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
           return HEAPU8;
         }
+        function GROWABLE_HEAP_I16() {
+          if (wasmMemory.buffer != buffer2) {
+            updateGlobalBufferAndViews(wasmMemory.buffer);
+          }
+          return HEAP16;
+        }
+        function GROWABLE_HEAP_U16() {
+          if (wasmMemory.buffer != buffer2) {
+            updateGlobalBufferAndViews(wasmMemory.buffer);
+          }
+          return HEAPU16;
+        }
         function GROWABLE_HEAP_I32() {
           if (wasmMemory.buffer != buffer2) {
             updateGlobalBufferAndViews(wasmMemory.buffer);
           }
           return HEAP32;
         }
-        function GROWABLE_HEAP_U32() {
+        function GROWABLE_HEAP_F32() {
           if (wasmMemory.buffer != buffer2) {
             updateGlobalBufferAndViews(wasmMemory.buffer);
           }
-          return HEAPU32;
+          return HEAPF32;
         }
         function GROWABLE_HEAP_F64() {
           if (wasmMemory.buffer != buffer2) {
@@ -1605,30 +1617,16 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         if (typeof process !== "undefined" && process.listeners) {
           beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
         }
-        var moduleOverrides = {};
-        var key;
-        for (key in Module) {
-          if (Module.hasOwnProperty(key)) {
-            moduleOverrides[key] = Module[key];
-          }
-        }
+        var moduleOverrides = Object.assign({}, Module);
         var arguments_ = [];
         var thisProgram = "./this.program";
-        var quit_ = function(status, toThrow) {
+        var quit_ = (status, toThrow) => {
           throw toThrow;
         };
-        var ENVIRONMENT_IS_WEB = false;
-        var ENVIRONMENT_IS_WORKER = false;
-        var ENVIRONMENT_IS_NODE = false;
-        var ENVIRONMENT_IS_SHELL = false;
-        ENVIRONMENT_IS_WEB = typeof window === "object";
-        ENVIRONMENT_IS_WORKER = typeof importScripts === "function";
-        ENVIRONMENT_IS_NODE = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
-        ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
+        var ENVIRONMENT_IS_WEB = typeof window === "object";
+        var ENVIRONMENT_IS_WORKER = typeof importScripts === "function";
+        var ENVIRONMENT_IS_NODE = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
         var ENVIRONMENT_IS_PTHREAD = Module["ENVIRONMENT_IS_PTHREAD"] || false;
-        if (ENVIRONMENT_IS_PTHREAD) {
-          buffer2 = Module["buffer"];
-        }
         var scriptDirectory = "";
         function locateFile(path) {
           if (Module["locateFile"]) {
@@ -1637,29 +1635,48 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return scriptDirectory + path;
         }
         var read_, readAsync, readBinary, setWindowTitle;
-        var nodeFS;
+        function logExceptionOnExit(e) {
+          if (e instanceof ExitStatus)
+            return;
+          let toLog = e;
+          err("exiting due to exception: " + toLog);
+        }
+        var fs;
         var nodePath;
+        var requireNodeFS;
         if (ENVIRONMENT_IS_NODE) {
           if (ENVIRONMENT_IS_WORKER) {
             scriptDirectory = require_path().dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
-          read_ = function shell_read(filename, binary) {
-            if (!nodeFS)
-              nodeFS = require_fs();
-            if (!nodePath)
+          requireNodeFS = () => {
+            if (!nodePath) {
+              fs = require_fs();
               nodePath = require_path();
-            filename = nodePath["normalize"](filename);
-            return nodeFS["readFileSync"](filename, binary ? null : "utf8");
+            }
           };
-          readBinary = function readBinary2(filename) {
+          read_ = function shell_read(filename, binary) {
+            requireNodeFS();
+            filename = nodePath["normalize"](filename);
+            return fs.readFileSync(filename, binary ? void 0 : "utf8");
+          };
+          readBinary = (filename) => {
             var ret = read_(filename, true);
             if (!ret.buffer) {
               ret = new Uint8Array(ret);
             }
-            assert3(ret.buffer);
             return ret;
+          };
+          readAsync = (filename, onload, onerror) => {
+            requireNodeFS();
+            filename = nodePath["normalize"](filename);
+            fs.readFile(filename, function(err2, data) {
+              if (err2)
+                onerror(err2);
+              else
+                onload(data.buffer);
+            });
           };
           if (process["argv"].length > 1) {
             thisProgram = process["argv"][1].replace(/\\/g, "/");
@@ -1670,14 +1687,21 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
               throw ex;
             }
           });
-          process["on"]("unhandledRejection", abort);
-          quit_ = function(status) {
+          process["on"]("unhandledRejection", function(reason) {
+            throw reason;
+          });
+          quit_ = (status, toThrow) => {
+            if (keepRuntimeAlive()) {
+              process["exitCode"] = status;
+              throw toThrow;
+            }
+            logExceptionOnExit(toThrow);
             process["exit"](status);
           };
           Module["inspect"] = function() {
             return "[Emscripten Module object]";
           };
-          var nodeWorkerThreads;
+          let nodeWorkerThreads;
           try {
             nodeWorkerThreads = require_worker_threads();
           } catch (e) {
@@ -1685,37 +1709,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             throw e;
           }
           global.Worker = nodeWorkerThreads.Worker;
-        } else if (ENVIRONMENT_IS_SHELL) {
-          if (typeof read != "undefined") {
-            read_ = function shell_read(f) {
-              return read(f);
-            };
-          }
-          readBinary = function readBinary2(f) {
-            var data;
-            if (typeof readbuffer === "function") {
-              return new Uint8Array(readbuffer(f));
-            }
-            data = read(f, "binary");
-            assert3(typeof data === "object");
-            return data;
-          };
-          if (typeof scriptArgs != "undefined") {
-            arguments_ = scriptArgs;
-          } else if (typeof arguments != "undefined") {
-            arguments_ = arguments;
-          }
-          if (typeof quit === "function") {
-            quit_ = function(status) {
-              quit(status);
-            };
-          }
-          if (typeof print !== "undefined") {
-            if (typeof console === "undefined")
-              console = {};
-            console.log = print;
-            console.warn = console.error = typeof printErr !== "undefined" ? printErr : print;
-          }
         } else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
           if (ENVIRONMENT_IS_WORKER) {
             scriptDirectory = self.location.href;
@@ -1726,36 +1719,19 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             scriptDirectory = _scriptDir;
           }
           if (scriptDirectory.indexOf("blob:") !== 0) {
-            scriptDirectory = scriptDirectory.substr(0, scriptDirectory.lastIndexOf("/") + 1);
+            scriptDirectory = scriptDirectory.substr(0, scriptDirectory.replace(/[?#].*/, "").lastIndexOf("/") + 1);
           } else {
             scriptDirectory = "";
           }
-          if (ENVIRONMENT_IS_NODE) {
-            read_ = function shell_read(filename, binary) {
-              if (!nodeFS)
-                nodeFS = require_fs();
-              if (!nodePath)
-                nodePath = require_path();
-              filename = nodePath["normalize"](filename);
-              return nodeFS["readFileSync"](filename, binary ? null : "utf8");
-            };
-            readBinary = function readBinary2(filename) {
-              var ret = read_(filename, true);
-              if (!ret.buffer) {
-                ret = new Uint8Array(ret);
-              }
-              assert3(ret.buffer);
-              return ret;
-            };
-          } else {
-            read_ = function(url) {
+          if (!ENVIRONMENT_IS_NODE) {
+            read_ = (url) => {
               var xhr = new XMLHttpRequest();
               xhr.open("GET", url, false);
               xhr.send(null);
               return xhr.responseText;
             };
             if (ENVIRONMENT_IS_WORKER) {
-              readBinary = function(url) {
+              readBinary = (url) => {
                 var xhr = new XMLHttpRequest();
                 xhr.open("GET", url, false);
                 xhr.responseType = "arraybuffer";
@@ -1763,11 +1739,11 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
                 return new Uint8Array(xhr.response);
               };
             }
-            readAsync = function(url, onload, onerror) {
+            readAsync = (url, onload, onerror) => {
               var xhr = new XMLHttpRequest();
               xhr.open("GET", url, true);
               xhr.responseType = "arraybuffer";
-              xhr.onload = function() {
+              xhr.onload = () => {
                 if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
                   onload(xhr.response);
                   return;
@@ -1778,9 +1754,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
               xhr.send(null);
             };
           }
-          setWindowTitle = function(title) {
-            document.title = title;
-          };
+          setWindowTitle = (title) => document.title = title;
         } else {
         }
         if (ENVIRONMENT_IS_NODE) {
@@ -1788,13 +1762,16 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             global.performance = require_perf_hooks().performance;
           }
         }
-        var out = Module["print"] || console.log.bind(console);
-        var err = Module["printErr"] || console.warn.bind(console);
-        for (key in moduleOverrides) {
-          if (moduleOverrides.hasOwnProperty(key)) {
-            Module[key] = moduleOverrides[key];
-          }
+        var defaultPrint = console.log.bind(console);
+        var defaultPrintErr = console.warn.bind(console);
+        if (ENVIRONMENT_IS_NODE) {
+          requireNodeFS();
+          defaultPrint = (str) => fs.writeSync(1, str + "\n");
+          defaultPrintErr = (str) => fs.writeSync(2, str + "\n");
         }
+        var out = Module["print"] || defaultPrint;
+        var err = Module["printErr"] || defaultPrintErr;
+        Object.assign(Module, moduleOverrides);
         moduleOverrides = null;
         if (Module["arguments"])
           arguments_ = Module["arguments"];
@@ -1802,6 +1779,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           thisProgram = Module["thisProgram"];
         if (Module["quit"])
           quit_ = Module["quit"];
+        var POINTER_SIZE = 4;
         function warnOnce(text) {
           if (!warnOnce.shown)
             warnOnce.shown = {};
@@ -1810,6 +1788,63 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             err(text);
           }
         }
+        function convertJsFunctionToWasm(func2, sig) {
+          if (typeof WebAssembly.Function === "function") {
+            var typeNames = { "i": "i32", "j": "i64", "f": "f32", "d": "f64" };
+            var type = { parameters: [], results: sig[0] == "v" ? [] : [typeNames[sig[0]]] };
+            for (var i = 1; i < sig.length; ++i) {
+              type.parameters.push(typeNames[sig[i]]);
+            }
+            return new WebAssembly.Function(type, func2);
+          }
+          var typeSection = [1, 0, 1, 96];
+          var sigRet = sig.slice(0, 1);
+          var sigParam = sig.slice(1);
+          var typeCodes = { "i": 127, "j": 126, "f": 125, "d": 124 };
+          typeSection.push(sigParam.length);
+          for (var i = 0; i < sigParam.length; ++i) {
+            typeSection.push(typeCodes[sigParam[i]]);
+          }
+          if (sigRet == "v") {
+            typeSection.push(0);
+          } else {
+            typeSection = typeSection.concat([1, typeCodes[sigRet]]);
+          }
+          typeSection[1] = typeSection.length - 2;
+          var bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0].concat(typeSection, [2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0]));
+          var module2 = new WebAssembly.Module(bytes);
+          var instance = new WebAssembly.Instance(module2, { "e": { "f": func2 } });
+          var wrappedFunc = instance.exports["f"];
+          return wrappedFunc;
+        }
+        var freeTableIndexes = [];
+        var functionsInTableMap;
+        function getEmptyTableSlot() {
+          if (freeTableIndexes.length) {
+            return freeTableIndexes.pop();
+          }
+          try {
+            wasmTable.grow(1);
+          } catch (err2) {
+            if (!(err2 instanceof RangeError)) {
+              throw err2;
+            }
+            throw "Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.";
+          }
+          return wasmTable.length - 1;
+        }
+        function updateTableMap(offset, count2) {
+          for (var i = offset; i < offset + count2; i++) {
+            var item = getWasmTableEntry(i);
+            if (item) {
+              functionsInTableMap.set(item, i);
+            }
+          }
+        }
+        var tempRet0 = 0;
+        var setTempRet0 = (value) => {
+          tempRet0 = value;
+        };
         var Atomics_load = Atomics.load;
         var Atomics_store = Atomics.store;
         var Atomics_compareExchange = Atomics.compareExchange;
@@ -1826,12 +1861,11 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var EXITSTATUS;
         function assert3(condition, text) {
           if (!condition) {
-            abort("Assertion failed: " + text);
+            abort(text);
           }
         }
         function getCFunc(ident) {
           var func2 = Module["_" + ident];
-          assert3(func2, "Cannot call unknown function " + ident + ", make sure it is exported");
           return func2;
         }
         function ccall(ident, returnType, argTypes, args, opts) {
@@ -1871,9 +1905,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             }
           }
           var ret = func2.apply(null, cArgs);
-          ret = convertReturnValue(ret);
-          if (stack2 !== 0)
-            stackRestore(stack2);
+          function onDone(ret2) {
+            if (stack2 !== 0)
+              stackRestore(stack2);
+            return convertReturnValue(ret2);
+          }
+          ret = onDone(ret);
           return ret;
         }
         function cwrap(ident, returnType, argTypes, opts) {
@@ -1889,33 +1926,49 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return ccall(ident, returnType, argTypes, arguments, opts);
           };
         }
+        var ALLOC_STACK = 1;
+        function TextDecoderWrapper(encoding) {
+          var textDecoder = new TextDecoder(encoding);
+          this.decode = (data) => {
+            if (data.buffer instanceof SharedArrayBuffer) {
+              data = new Uint8Array(data);
+            }
+            return textDecoder.decode.call(textDecoder, data);
+          };
+        }
+        var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoderWrapper("utf8") : void 0;
         function UTF8ArrayToString(heap, idx, maxBytesToRead) {
           var endIdx = idx + maxBytesToRead;
-          var str = "";
-          while (!(idx >= endIdx)) {
-            var u0 = heap[idx++];
-            if (!u0)
-              return str;
-            if (!(u0 & 128)) {
-              str += String.fromCharCode(u0);
-              continue;
-            }
-            var u1 = heap[idx++] & 63;
-            if ((u0 & 224) == 192) {
-              str += String.fromCharCode((u0 & 31) << 6 | u1);
-              continue;
-            }
-            var u2 = heap[idx++] & 63;
-            if ((u0 & 240) == 224) {
-              u0 = (u0 & 15) << 12 | u1 << 6 | u2;
-            } else {
-              u0 = (u0 & 7) << 18 | u1 << 12 | u2 << 6 | heap[idx++] & 63;
-            }
-            if (u0 < 65536) {
-              str += String.fromCharCode(u0);
-            } else {
-              var ch = u0 - 65536;
-              str += String.fromCharCode(55296 | ch >> 10, 56320 | ch & 1023);
+          var endPtr = idx;
+          while (heap[endPtr] && !(endPtr >= endIdx))
+            ++endPtr;
+          if (endPtr - idx > 16 && heap.subarray && UTF8Decoder) {
+            return UTF8Decoder.decode(heap.subarray(idx, endPtr));
+          } else {
+            var str = "";
+            while (idx < endPtr) {
+              var u0 = heap[idx++];
+              if (!(u0 & 128)) {
+                str += String.fromCharCode(u0);
+                continue;
+              }
+              var u1 = heap[idx++] & 63;
+              if ((u0 & 224) == 192) {
+                str += String.fromCharCode((u0 & 31) << 6 | u1);
+                continue;
+              }
+              var u2 = heap[idx++] & 63;
+              if ((u0 & 240) == 224) {
+                u0 = (u0 & 15) << 12 | u1 << 6 | u2;
+              } else {
+                u0 = (u0 & 7) << 18 | u1 << 12 | u2 << 6 | heap[idx++] & 63;
+              }
+              if (u0 < 65536) {
+                str += String.fromCharCode(u0);
+              } else {
+                var ch = u0 - 65536;
+                str += String.fromCharCode(55296 | ch >> 10, 56320 | ch & 1023);
+              }
             }
           }
           return str;
@@ -1981,8 +2034,16 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
           return len;
         }
+        var UTF16Decoder = typeof TextDecoder !== "undefined" ? new TextDecoderWrapper("utf-16le") : void 0;
         function writeArrayToMemory(array2, buffer3) {
           GROWABLE_HEAP_I8().set(array2, buffer3);
+        }
+        function writeAsciiToMemory(str, buffer3, dontAddNull) {
+          for (var i = 0; i < str.length; ++i) {
+            GROWABLE_HEAP_I8()[buffer3++ >> 0] = str.charCodeAt(i);
+          }
+          if (!dontAddNull)
+            GROWABLE_HEAP_I8()[buffer3 >> 0] = 0;
         }
         function alignUp(x, multiple) {
           if (x % multiple > 0) {
@@ -1991,6 +2052,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return x;
         }
         var buffer2, HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAPF64;
+        if (ENVIRONMENT_IS_PTHREAD) {
+          buffer2 = Module["buffer"];
+        }
         function updateGlobalBufferAndViews(buf) {
           buffer2 = buf;
           Module["HEAP8"] = HEAP8 = new Int8Array(buf);
@@ -2028,18 +2092,15 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var wasmTable;
         var __ATPRERUN__ = [];
         var __ATINIT__ = [];
-        var __ATMAIN__ = [];
         var __ATEXIT__ = [];
         var __ATPOSTRUN__ = [];
         var runtimeInitialized = false;
         var runtimeExited = false;
-        if (!ENVIRONMENT_IS_PTHREAD)
-          __ATINIT__.push({ func: function() {
-            ___wasm_call_ctors();
-          } });
+        var runtimeKeepaliveCounter = 0;
+        function keepRuntimeAlive() {
+          return noExitRuntime || runtimeKeepaliveCounter > 0;
+        }
         function preRun() {
-          if (ENVIRONMENT_IS_PTHREAD)
-            return;
           if (Module["preRun"]) {
             if (typeof Module["preRun"] == "function")
               Module["preRun"] = [Module["preRun"]];
@@ -2055,14 +2116,10 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return;
           callRuntimeCallbacks(__ATINIT__);
         }
-        function preMain() {
-          if (ENVIRONMENT_IS_PTHREAD)
-            return;
-          callRuntimeCallbacks(__ATMAIN__);
-        }
         function exitRuntime() {
           if (ENVIRONMENT_IS_PTHREAD)
             return;
+          PThread.terminateAllThreads();
           runtimeExited = true;
         }
         function postRun() {
@@ -2080,6 +2137,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         function addOnPreRun(cb) {
           __ATPRERUN__.unshift(cb);
         }
+        function addOnInit(cb) {
+          __ATINIT__.unshift(cb);
+        }
         function addOnPostRun(cb) {
           __ATPOSTRUN__.unshift(cb);
         }
@@ -2087,7 +2147,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var runDependencyWatcher = null;
         var dependenciesFulfilled = null;
         function addRunDependency(id) {
-          assert3(!ENVIRONMENT_IS_PTHREAD, "addRunDependency cannot be used in a pthread worker");
           runDependencies++;
           if (Module["monitorRunDependencies"]) {
             Module["monitorRunDependencies"](runDependencies);
@@ -2113,32 +2172,31 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         Module["preloadedImages"] = {};
         Module["preloadedAudios"] = {};
         function abort(what) {
-          if (Module["onAbort"]) {
-            Module["onAbort"](what);
+          if (ENVIRONMENT_IS_PTHREAD) {
+            postMessage({ "cmd": "onAbort", "arg": what });
+          } else {
+            if (Module["onAbort"]) {
+              Module["onAbort"](what);
+            }
           }
-          if (ENVIRONMENT_IS_PTHREAD)
-            console.error("Pthread aborting at " + new Error().stack);
-          what += "";
+          what = "Aborted(" + what + ")";
           err(what);
           ABORT = true;
           EXITSTATUS = 1;
-          what = "abort(" + what + "). Build with -s ASSERTIONS=1 for more info.";
+          what += ". Build with -s ASSERTIONS=1 for more info.";
           var e = new WebAssembly.RuntimeError(what);
           readyPromiseReject(e);
           throw e;
         }
-        function hasPrefix(str, prefix) {
-          return String.prototype.startsWith ? str.startsWith(prefix) : str.indexOf(prefix) === 0;
-        }
         var dataURIPrefix = "data:application/octet-stream;base64,";
         function isDataURI(filename) {
-          return hasPrefix(filename, dataURIPrefix);
+          return filename.startsWith(dataURIPrefix);
         }
-        var fileURIPrefix = "file://";
         function isFileURI(filename) {
-          return hasPrefix(filename, fileURIPrefix);
+          return filename.startsWith("file://");
         }
-        var wasmBinaryFile = "tfjs-backend-wasm-threaded-simd.wasm";
+        var wasmBinaryFile;
+        wasmBinaryFile = "tfjs-backend-wasm-threaded-simd.wasm";
         if (!isDataURI(wasmBinaryFile)) {
           wasmBinaryFile = locateFile(wasmBinaryFile);
         }
@@ -2182,11 +2240,13 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           });
         }
         function createWasm() {
-          var info = { "a": asmLibraryArg };
+          var info = { "env": asmLibraryArg, "wasi_snapshot_preview1": asmLibraryArg };
           function receiveInstance(instance, module2) {
             var exports3 = instance.exports;
             Module["asm"] = exports3;
-            wasmTable = Module["asm"]["nb"];
+            registerTlsInit(Module["asm"]["emscripten_tls_init"]);
+            wasmTable = Module["asm"]["__indirect_function_table"];
+            addOnInit(Module["asm"]["__wasm_call_ctors"]);
             wasmModule = module2;
             if (!ENVIRONMENT_IS_PTHREAD) {
               var numWorkersToLoad = PThread.unusedWorkers.length;
@@ -2201,12 +2261,14 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           if (!ENVIRONMENT_IS_PTHREAD) {
             addRunDependency("wasm-instantiate");
           }
-          function receiveInstantiatedSource(output) {
-            receiveInstance(output["instance"], output["module"]);
+          function receiveInstantiationResult(result) {
+            receiveInstance(result["instance"], result["module"]);
           }
           function instantiateArrayBuffer(receiver) {
             return getBinaryPromise().then(function(binary) {
               return WebAssembly.instantiate(binary, info);
+            }).then(function(instance) {
+              return instance;
             }).then(receiver, function(reason) {
               err("failed to asynchronously prepare wasm: " + reason);
               abort(reason);
@@ -2216,14 +2278,14 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             if (!wasmBinary && typeof WebAssembly.instantiateStreaming === "function" && !isDataURI(wasmBinaryFile) && !isFileURI(wasmBinaryFile) && typeof fetch === "function") {
               return fetch(wasmBinaryFile, { credentials: "same-origin" }).then(function(response) {
                 var result = WebAssembly.instantiateStreaming(response, info);
-                return result.then(receiveInstantiatedSource, function(reason) {
+                return result.then(receiveInstantiationResult, function(reason) {
                   err("wasm streaming compile failed: " + reason);
                   err("falling back to ArrayBuffer instantiation");
-                  return instantiateArrayBuffer(receiveInstantiatedSource);
+                  return instantiateArrayBuffer(receiveInstantiationResult);
                 });
               });
             } else {
-              return instantiateArrayBuffer(receiveInstantiatedSource);
+              return instantiateArrayBuffer(receiveInstantiationResult);
             }
           }
           if (Module["instantiateWasm"]) {
@@ -2238,16 +2300,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           instantiateAsync().catch(readyPromiseReject);
           return {};
         }
-        var ASM_CONSTS = { 10216: function() {
-          throw "Canceled!";
-        }, 10234: function($0, $1) {
-          setTimeout(function() {
-            __emscripten_do_dispatch_to_thread($0, $1);
-          }, 0);
-        } };
-        function initPthreadsJS() {
-          PThread.initRuntime();
-        }
+        var tempDouble;
+        var tempI64;
+        var ASM_CONSTS = {};
         function callRuntimeCallbacks(callbacks2) {
           while (callbacks2.length > 0) {
             var callback = callbacks2.shift();
@@ -2258,118 +2313,76 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             var func2 = callback.func;
             if (typeof func2 === "number") {
               if (callback.arg === void 0) {
-                wasmTable.get(func2)();
+                getWasmTableEntry(func2)();
               } else {
-                wasmTable.get(func2)(callback.arg);
+                getWasmTableEntry(func2)(callback.arg);
               }
             } else {
               func2(callback.arg === void 0 ? null : callback.arg);
             }
           }
         }
-        var ERRNO_CODES = { EPERM: 63, ENOENT: 44, ESRCH: 71, EINTR: 27, EIO: 29, ENXIO: 60, E2BIG: 1, ENOEXEC: 45, EBADF: 8, ECHILD: 12, EAGAIN: 6, EWOULDBLOCK: 6, ENOMEM: 48, EACCES: 2, EFAULT: 21, ENOTBLK: 105, EBUSY: 10, EEXIST: 20, EXDEV: 75, ENODEV: 43, ENOTDIR: 54, EISDIR: 31, EINVAL: 28, ENFILE: 41, EMFILE: 33, ENOTTY: 59, ETXTBSY: 74, EFBIG: 22, ENOSPC: 51, ESPIPE: 70, EROFS: 69, EMLINK: 34, EPIPE: 64, EDOM: 18, ERANGE: 68, ENOMSG: 49, EIDRM: 24, ECHRNG: 106, EL2NSYNC: 156, EL3HLT: 107, EL3RST: 108, ELNRNG: 109, EUNATCH: 110, ENOCSI: 111, EL2HLT: 112, EDEADLK: 16, ENOLCK: 46, EBADE: 113, EBADR: 114, EXFULL: 115, ENOANO: 104, EBADRQC: 103, EBADSLT: 102, EDEADLOCK: 16, EBFONT: 101, ENOSTR: 100, ENODATA: 116, ETIME: 117, ENOSR: 118, ENONET: 119, ENOPKG: 120, EREMOTE: 121, ENOLINK: 47, EADV: 122, ESRMNT: 123, ECOMM: 124, EPROTO: 65, EMULTIHOP: 36, EDOTDOT: 125, EBADMSG: 9, ENOTUNIQ: 126, EBADFD: 127, EREMCHG: 128, ELIBACC: 129, ELIBBAD: 130, ELIBSCN: 131, ELIBMAX: 132, ELIBEXEC: 133, ENOSYS: 52, ENOTEMPTY: 55, ENAMETOOLONG: 37, ELOOP: 32, EOPNOTSUPP: 138, EPFNOSUPPORT: 139, ECONNRESET: 15, ENOBUFS: 42, EAFNOSUPPORT: 5, EPROTOTYPE: 67, ENOTSOCK: 57, ENOPROTOOPT: 50, ESHUTDOWN: 140, ECONNREFUSED: 14, EADDRINUSE: 3, ECONNABORTED: 13, ENETUNREACH: 40, ENETDOWN: 38, ETIMEDOUT: 73, EHOSTDOWN: 142, EHOSTUNREACH: 23, EINPROGRESS: 26, EALREADY: 7, EDESTADDRREQ: 17, EMSGSIZE: 35, EPROTONOSUPPORT: 66, ESOCKTNOSUPPORT: 137, EADDRNOTAVAIL: 4, ENETRESET: 39, EISCONN: 30, ENOTCONN: 53, ETOOMANYREFS: 141, EUSERS: 136, EDQUOT: 19, ESTALE: 72, ENOTSUP: 138, ENOMEDIUM: 148, EILSEQ: 25, EOVERFLOW: 61, ECANCELED: 11, ENOTRECOVERABLE: 56, EOWNERDEAD: 62, ESTRPIPE: 135 };
-        function _emscripten_futex_wake(addr, count2) {
-          if (addr <= 0 || addr > GROWABLE_HEAP_I8().length || addr & true || count2 < 0)
-            return -28;
-          if (count2 == 0)
-            return 0;
-          if (count2 >= 2147483647)
-            count2 = Infinity;
-          var mainThreadWaitAddress = Atomics.load(GROWABLE_HEAP_I32(), __emscripten_main_thread_futex >> 2);
-          var mainThreadWoken = 0;
-          if (mainThreadWaitAddress == addr) {
-            var loadedAddr = Atomics.compareExchange(GROWABLE_HEAP_I32(), __emscripten_main_thread_futex >> 2, mainThreadWaitAddress, 0);
-            if (loadedAddr == mainThreadWaitAddress) {
-              --count2;
-              mainThreadWoken = 1;
-              if (count2 <= 0)
-                return 1;
-            }
-          }
-          var ret = Atomics.notify(GROWABLE_HEAP_I32(), addr >> 2, count2);
-          if (ret >= 0)
-            return ret + mainThreadWoken;
-          throw "Atomics.notify returned an unexpected value " + ret;
+        function withStackSave(f) {
+          var stack2 = stackSave();
+          var ret = f();
+          stackRestore(stack2);
+          return ret;
         }
-        Module["_emscripten_futex_wake"] = _emscripten_futex_wake;
+        function demangle(func2) {
+          return func2;
+        }
+        function demangleAll(text) {
+          var regex = /\b_Z[\w\d_]+/g;
+          return text.replace(regex, function(x) {
+            var y = demangle(x);
+            return x === y ? x : y + " [" + x + "]";
+          });
+        }
         function killThread(pthread_ptr) {
-          if (ENVIRONMENT_IS_PTHREAD)
-            throw "Internal Error! killThread() can only ever be called from main application thread!";
-          if (!pthread_ptr)
-            throw "Internal Error! Null pthread_ptr in killThread!";
-          GROWABLE_HEAP_I32()[pthread_ptr + 12 >> 2] = 0;
+          GROWABLE_HEAP_I32()[pthread_ptr >> 2] = 0;
           var pthread = PThread.pthreads[pthread_ptr];
+          delete PThread.pthreads[pthread_ptr];
           pthread.worker.terminate();
-          PThread.freeThreadData(pthread);
+          __emscripten_thread_free_data(pthread_ptr);
           PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(pthread.worker), 1);
           pthread.worker.pthread = void 0;
         }
         function cancelThread(pthread_ptr) {
-          if (ENVIRONMENT_IS_PTHREAD)
-            throw "Internal Error! cancelThread() can only ever be called from main application thread!";
-          if (!pthread_ptr)
-            throw "Internal Error! Null pthread_ptr in cancelThread!";
           var pthread = PThread.pthreads[pthread_ptr];
           pthread.worker.postMessage({ "cmd": "cancel" });
         }
         function cleanupThread(pthread_ptr) {
-          if (ENVIRONMENT_IS_PTHREAD)
-            throw "Internal Error! cleanupThread() can only ever be called from main application thread!";
-          if (!pthread_ptr)
-            throw "Internal Error! Null pthread_ptr in cleanupThread!";
           var pthread = PThread.pthreads[pthread_ptr];
           if (pthread) {
-            GROWABLE_HEAP_I32()[pthread_ptr + 12 >> 2] = 0;
+            GROWABLE_HEAP_I32()[pthread_ptr >> 2] = 0;
             var worker = pthread.worker;
             PThread.returnWorkerToPool(worker);
           }
         }
-        var PThread = { unusedWorkers: [], runningWorkers: [], initMainThreadBlock: function() {
+        function _exit(status) {
+          exit(status);
+        }
+        function handleException(e) {
+          if (e instanceof ExitStatus || e == "unwind") {
+            return EXITSTATUS;
+          }
+          quit_(1, e);
+        }
+        var PThread = { unusedWorkers: [], runningWorkers: [], tlsInitFunctions: [], init: function() {
+          if (ENVIRONMENT_IS_PTHREAD) {
+            PThread.initWorker();
+          } else {
+            PThread.initMainThread();
+          }
+        }, initMainThread: function() {
           var pthreadPoolSize = 8;
           for (var i = 0; i < pthreadPoolSize; ++i) {
             PThread.allocateUnusedWorker();
           }
-        }, initRuntime: function() {
-          var tb = _malloc(228);
-          for (var i = 0; i < 228 / 4; ++i)
-            GROWABLE_HEAP_U32()[tb / 4 + i] = 0;
-          GROWABLE_HEAP_I32()[tb + 12 >> 2] = tb;
-          var headPtr = tb + 152;
-          GROWABLE_HEAP_I32()[headPtr >> 2] = headPtr;
-          var tlsMemory = _malloc(512);
-          for (var i = 0; i < 128; ++i)
-            GROWABLE_HEAP_U32()[tlsMemory / 4 + i] = 0;
-          Atomics.store(GROWABLE_HEAP_U32(), tb + 100 >> 2, tlsMemory);
-          Atomics.store(GROWABLE_HEAP_U32(), tb + 40 >> 2, tb);
-          __emscripten_thread_init(tb, !ENVIRONMENT_IS_WORKER, 1);
-          _emscripten_register_main_browser_thread_id(tb);
         }, initWorker: function() {
-        }, pthreads: {}, threadExitHandlers: [], setThreadStatus: function() {
-        }, runExitHandlers: function() {
-          while (PThread.threadExitHandlers.length > 0) {
-            PThread.threadExitHandlers.pop()();
-          }
-          if (ENVIRONMENT_IS_PTHREAD && _pthread_self())
-            ___pthread_tsd_run_dtors();
-        }, runExitHandlersAndDeinitThread: function(tb, exitCode) {
-          Atomics.store(GROWABLE_HEAP_U32(), tb + 56 >> 2, 1);
-          Atomics.store(GROWABLE_HEAP_U32(), tb + 60 >> 2, 0);
-          PThread.runExitHandlers();
-          Atomics.store(GROWABLE_HEAP_U32(), tb + 4 >> 2, exitCode);
-          Atomics.store(GROWABLE_HEAP_U32(), tb + 0 >> 2, 1);
-          _emscripten_futex_wake(tb + 0, 2147483647);
-          __emscripten_thread_init(0, 0, 0);
-        }, threadExit: function(exitCode) {
-          var tb = _pthread_self();
-          if (tb) {
-            PThread.runExitHandlersAndDeinitThread(tb, exitCode);
-            if (ENVIRONMENT_IS_PTHREAD) {
-              postMessage({ "cmd": "exit" });
-            }
-          }
-        }, threadCancel: function() {
-          PThread.runExitHandlersAndDeinitThread(_pthread_self(), -1);
-          postMessage({ "cmd": "cancelDone" });
+          noExitRuntime = false;
+        }, pthreads: {}, setExitStatus: function(status) {
+          EXITSTATUS = status;
         }, terminateAllThreads: function() {
           for (var t in PThread.pthreads) {
             var pthread = PThread.pthreads[t];
@@ -2377,40 +2390,17 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
               PThread.returnWorkerToPool(pthread.worker);
             }
           }
-          PThread.pthreads = {};
           for (var i = 0; i < PThread.unusedWorkers.length; ++i) {
             var worker = PThread.unusedWorkers[i];
             worker.terminate();
           }
           PThread.unusedWorkers = [];
-          for (var i = 0; i < PThread.runningWorkers.length; ++i) {
-            var worker = PThread.runningWorkers[i];
-            var pthread = worker.pthread;
-            PThread.freeThreadData(pthread);
-            worker.terminate();
-          }
-          PThread.runningWorkers = [];
-        }, freeThreadData: function(pthread) {
-          if (!pthread)
-            return;
-          if (pthread.threadInfoStruct) {
-            var tlsMemory = GROWABLE_HEAP_I32()[pthread.threadInfoStruct + 100 >> 2];
-            GROWABLE_HEAP_I32()[pthread.threadInfoStruct + 100 >> 2] = 0;
-            _free(tlsMemory);
-            _free(pthread.threadInfoStruct);
-          }
-          pthread.threadInfoStruct = 0;
-          if (pthread.allocatedOwnStack && pthread.stackBase)
-            _free(pthread.stackBase);
-          pthread.stackBase = 0;
-          if (pthread.worker)
-            pthread.worker.pthread = null;
         }, returnWorkerToPool: function(worker) {
           PThread.runWithoutMainThreadQueuedCalls(function() {
             delete PThread.pthreads[worker.pthread.threadInfoStruct];
             PThread.unusedWorkers.push(worker);
             PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker), 1);
-            PThread.freeThreadData(worker.pthread);
+            __emscripten_thread_free_data(worker.pthread.threadInfoStruct);
             worker.pthread = void 0;
           });
         }, runWithoutMainThreadQueuedCalls: function(func2) {
@@ -2421,8 +2411,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             GROWABLE_HEAP_I32()[__emscripten_allow_main_runtime_queued_calls >> 2] = 1;
           }
         }, receiveObjectTransfer: function(data) {
+        }, threadInit: function() {
+          for (var i in PThread.tlsInitFunctions) {
+            PThread.tlsInitFunctions[i]();
+          }
         }, loadWasmModuleToWorker: function(worker, onFinishedLoading) {
-          worker.onmessage = function(e) {
+          worker.onmessage = (e) => {
             var d = e["data"];
             var cmd = d["cmd"];
             if (worker.pthread)
@@ -2430,9 +2424,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             if (d["targetThread"] && d["targetThread"] != _pthread_self()) {
               var thread = PThread.pthreads[d.targetThread];
               if (thread) {
-                thread.worker.postMessage(e.data, d["transferList"]);
+                thread.worker.postMessage(d, d["transferList"]);
               } else {
-                console.error('Internal error! Worker sent a message "' + cmd + '" to target pthread ' + d["targetThread"] + ", but that thread no longer exists!");
+                err('Internal error! Worker sent a message "' + cmd + '" to target pthread ' + d["targetThread"] + ", but that thread no longer exists!");
               }
               PThread.currentProxiedOperationCallerThread = void 0;
               return;
@@ -2440,7 +2434,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             if (cmd === "processQueuedMainThreadWork") {
               _emscripten_main_thread_process_queued_calls();
             } else if (cmd === "spawnThread") {
-              spawnThread(e.data);
+              spawnThread(d);
             } else if (cmd === "cleanupThread") {
               cleanupThread(d["thread"]);
             } else if (cmd === "killThread") {
@@ -2461,41 +2455,30 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
               err("Thread " + d["threadId"] + ": " + d["text"]);
             } else if (cmd === "alert") {
               alert("Thread " + d["threadId"] + ": " + d["text"]);
-            } else if (cmd === "exit") {
-              var detached = worker.pthread && Atomics.load(GROWABLE_HEAP_U32(), worker.pthread.threadInfoStruct + 64 >> 2);
-              if (detached) {
-                PThread.returnWorkerToPool(worker);
+            } else if (d.target === "setimmediate") {
+              worker.postMessage(d);
+            } else if (cmd === "onAbort") {
+              if (Module["onAbort"]) {
+                Module["onAbort"](d["arg"]);
               }
-            } else if (cmd === "exitProcess") {
-              try {
-                exit(d["returnCode"]);
-              } catch (e2) {
-                if (e2 instanceof ExitStatus)
-                  return;
-                throw e2;
-              }
-            } else if (cmd === "cancelDone") {
-              PThread.returnWorkerToPool(worker);
-            } else if (cmd === "objectTransfer") {
-              PThread.receiveObjectTransfer(e.data);
-            } else if (e.data.target === "setimmediate") {
-              worker.postMessage(e.data);
             } else {
               err("worker sent an unknown command " + cmd);
             }
             PThread.currentProxiedOperationCallerThread = void 0;
           };
-          worker.onerror = function(e) {
-            err("pthread sent an error! " + e.filename + ":" + e.lineno + ": " + e.message);
+          worker.onerror = (e) => {
+            var message = "worker sent an error!";
+            err(message + " " + e.filename + ":" + e.lineno + ": " + e.message);
+            throw e;
           };
           if (ENVIRONMENT_IS_NODE) {
             worker.on("message", function(data) {
               worker.onmessage({ data });
             });
-            worker.on("error", function(data) {
-              worker.onerror(data);
+            worker.on("error", function(e) {
+              worker.onerror(e);
             });
-            worker.on("exit", function(data) {
+            worker.on("detachedExit", function() {
             });
           }
           worker.postMessage({ "cmd": "load", "urlOrBlob": Module["mainScriptUrlOrBlob"] || _scriptDir, "wasmMemory": wasmMemory, "wasmModule": wasmModule });
@@ -2507,57 +2490,144 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             PThread.allocateUnusedWorker();
             PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0]);
           }
-          if (PThread.unusedWorkers.length > 0)
-            return PThread.unusedWorkers.pop();
-          else
-            return null;
-        }, busySpinWait: function(msecs) {
-          var t = performance.now() + msecs;
-          while (performance.now() < t) {
-          }
+          return PThread.unusedWorkers.pop();
         } };
-        function establishStackSpace(stackTop, stackMax) {
+        function establishStackSpace() {
+          var pthread_ptr = _pthread_self();
+          var stackTop = GROWABLE_HEAP_I32()[pthread_ptr + 44 >> 2];
+          var stackSize = GROWABLE_HEAP_I32()[pthread_ptr + 48 >> 2];
+          var stackMax = stackTop - stackSize;
           _emscripten_stack_set_limits(stackTop, stackMax);
           stackRestore(stackTop);
         }
         Module["establishStackSpace"] = establishStackSpace;
-        function getNoExitRuntime() {
-          return noExitRuntime;
+        function exitOnMainThread(returnCode) {
+          if (ENVIRONMENT_IS_PTHREAD)
+            return _emscripten_proxy_to_main_thread_js(1, 0, returnCode);
+          try {
+            _exit(returnCode);
+          } catch (e) {
+            handleException(e);
+          }
         }
-        Module["getNoExitRuntime"] = getNoExitRuntime;
+        var wasmTableMirror = [];
+        function getWasmTableEntry(funcPtr) {
+          var func2 = wasmTableMirror[funcPtr];
+          if (!func2) {
+            if (funcPtr >= wasmTableMirror.length)
+              wasmTableMirror.length = funcPtr + 1;
+            wasmTableMirror[funcPtr] = func2 = wasmTable.get(funcPtr);
+          }
+          return func2;
+        }
         function invokeEntryPoint(ptr, arg) {
-          return wasmTable.get(ptr)(arg);
+          return getWasmTableEntry(ptr)(arg);
         }
         Module["invokeEntryPoint"] = invokeEntryPoint;
-        function ___assert_fail(condition, filename, line, func2) {
-          abort("Assertion failed: " + UTF8ToString(condition) + ", at: " + [filename ? UTF8ToString(filename) : "unknown filename", line, func2 ? UTF8ToString(func2) : "unknown function"]);
+        function jsStackTrace() {
+          var error = new Error();
+          if (!error.stack) {
+            try {
+              throw new Error();
+            } catch (e) {
+              error = e;
+            }
+            if (!error.stack) {
+              return "(no stack trace available)";
+            }
+          }
+          return error.stack.toString();
         }
-        function ___call_main(argc, argv) {
-          var returnCode = _main(argc, argv);
+        function registerTlsInit(tlsInitFunc, moduleExports, metadata) {
+          PThread.tlsInitFunctions.push(tlsInitFunc);
+        }
+        function setWasmTableEntry(idx, func2) {
+          wasmTable.set(idx, func2);
+          wasmTableMirror[idx] = func2;
         }
         var _emscripten_get_now;
         if (ENVIRONMENT_IS_NODE) {
-          _emscripten_get_now = function() {
+          _emscripten_get_now = () => {
             var t = process["hrtime"]();
             return t[0] * 1e3 + t[1] / 1e6;
           };
         } else if (ENVIRONMENT_IS_PTHREAD) {
-          _emscripten_get_now = function() {
-            return performance.now() - Module["__performance_now_clock_drift"];
-          };
-        } else if (typeof dateNow !== "undefined") {
-          _emscripten_get_now = dateNow;
+          _emscripten_get_now = () => performance.now() - Module["__performance_now_clock_drift"];
         } else
-          _emscripten_get_now = function() {
-            return performance.now();
-          };
+          _emscripten_get_now = () => performance.now();
+        var _emscripten_get_now_is_monotonic = true;
         function setErrNo(value) {
           GROWABLE_HEAP_I32()[___errno_location() >> 2] = value;
           return value;
         }
-        function _atexit(func2, arg) {
-          if (ENVIRONMENT_IS_PTHREAD)
-            return _emscripten_proxy_to_main_thread_js(1, 1, func2, arg);
+        function _clock_gettime(clk_id, tp) {
+          var now2;
+          if (clk_id === 0) {
+            now2 = Date.now();
+          } else if ((clk_id === 1 || clk_id === 4) && _emscripten_get_now_is_monotonic) {
+            now2 = _emscripten_get_now();
+          } else {
+            setErrNo(28);
+            return -1;
+          }
+          GROWABLE_HEAP_I32()[tp >> 2] = now2 / 1e3 | 0;
+          GROWABLE_HEAP_I32()[tp + 4 >> 2] = now2 % 1e3 * 1e3 * 1e3 | 0;
+          return 0;
+        }
+        function ___clock_gettime(a0, a12) {
+          return _clock_gettime(a0, a12);
+        }
+        function ___emscripten_init_main_thread_js(tb) {
+          __emscripten_thread_init(tb, !ENVIRONMENT_IS_WORKER, 1, !ENVIRONMENT_IS_WEB);
+          PThread.threadInit();
+        }
+        function ___emscripten_thread_cleanup(thread) {
+          if (!ENVIRONMENT_IS_PTHREAD)
+            cleanupThread(thread);
+          else
+            postMessage({ "cmd": "cleanupThread", "thread": thread });
+        }
+        function spawnThread(threadParams) {
+          var worker = PThread.getNewWorker();
+          if (!worker) {
+            return 6;
+          }
+          PThread.runningWorkers.push(worker);
+          var pthread = PThread.pthreads[threadParams.pthread_ptr] = { worker, threadInfoStruct: threadParams.pthread_ptr };
+          worker.pthread = pthread;
+          var msg = { "cmd": "run", "start_routine": threadParams.startRoutine, "arg": threadParams.arg, "threadInfoStruct": threadParams.pthread_ptr };
+          worker.runPthread = () => {
+            msg.time = performance.now();
+            worker.postMessage(msg, threadParams.transferList);
+          };
+          if (worker.loaded) {
+            worker.runPthread();
+            delete worker.runPthread;
+          }
+          return 0;
+        }
+        function ___pthread_create_js(pthread_ptr, attr, start_routine, arg) {
+          if (typeof SharedArrayBuffer === "undefined") {
+            err("Current environment does not support SharedArrayBuffer, pthreads are not available!");
+            return 6;
+          }
+          var transferList = [];
+          var error = 0;
+          if (ENVIRONMENT_IS_PTHREAD && (transferList.length === 0 || error)) {
+            return _emscripten_sync_run_in_main_thread_4(687865856, pthread_ptr, attr, start_routine, arg);
+          }
+          if (error)
+            return error;
+          var threadParams = { startRoutine: start_routine, pthread_ptr, arg, transferList };
+          if (ENVIRONMENT_IS_PTHREAD) {
+            threadParams.cmd = "spawnThread";
+            postMessage(threadParams, transferList);
+            return 0;
+          }
+          return spawnThread(threadParams);
+        }
+        function __emscripten_default_pthread_stack_size() {
+          return 2097152;
         }
         function __emscripten_notify_thread_queue(targetThreadId, mainThreadId) {
           if (targetThreadId == mainThreadId) {
@@ -2575,51 +2645,17 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return 1;
         }
         function _abort() {
-          abort();
+          abort("");
         }
-        function _emscripten_asm_const_int(code, sigPtr, argbuf) {
-          var args = readAsmConstArgs(sigPtr, argbuf);
-          return ASM_CONSTS[code].apply(null, args);
+        function _emscripten_check_blocking_allowed() {
+          if (ENVIRONMENT_IS_NODE)
+            return;
+          if (ENVIRONMENT_IS_WORKER)
+            return;
+          warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread");
         }
-        function _emscripten_conditional_set_current_thread_status(expectedStatus, newStatus) {
-        }
-        function _emscripten_futex_wait(addr, val, timeout) {
-          if (addr <= 0 || addr > GROWABLE_HEAP_I8().length || addr & true)
-            return -28;
-          if (!ENVIRONMENT_IS_WEB) {
-            var ret = Atomics.wait(GROWABLE_HEAP_I32(), addr >> 2, val, timeout);
-            if (ret === "timed-out")
-              return -73;
-            if (ret === "not-equal")
-              return -6;
-            if (ret === "ok")
-              return 0;
-            throw "Atomics.wait returned an unexpected value " + ret;
-          } else {
-            if (Atomics.load(GROWABLE_HEAP_I32(), addr >> 2) != val) {
-              return -6;
-            }
-            var tNow = performance.now();
-            var tEnd = tNow + timeout;
-            var lastAddr = Atomics.exchange(GROWABLE_HEAP_I32(), __emscripten_main_thread_futex >> 2, addr);
-            while (1) {
-              tNow = performance.now();
-              if (tNow > tEnd) {
-                lastAddr = Atomics.exchange(GROWABLE_HEAP_I32(), __emscripten_main_thread_futex >> 2, 0);
-                return -73;
-              }
-              lastAddr = Atomics.exchange(GROWABLE_HEAP_I32(), __emscripten_main_thread_futex >> 2, 0);
-              if (lastAddr == 0) {
-                break;
-              }
-              _emscripten_main_thread_process_queued_calls();
-              if (Atomics.load(GROWABLE_HEAP_I32(), addr >> 2) != val) {
-                return -6;
-              }
-              lastAddr = Atomics.exchange(GROWABLE_HEAP_I32(), __emscripten_main_thread_futex >> 2, addr);
-            }
-            return 0;
-          }
+        function _emscripten_get_heap_max() {
+          return 2147483648;
         }
         function _emscripten_memcpy_big(dest, src, num) {
           GROWABLE_HEAP_U8().copyWithin(dest, src, src + num);
@@ -2631,33 +2667,19 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         function _emscripten_proxy_to_main_thread_js(index, sync) {
           var numCallArgs = arguments.length - 2;
-          var stack2 = stackSave();
-          var serializedNumCallArgs = numCallArgs;
-          var args = stackAlloc(serializedNumCallArgs * 8);
-          var b = args >> 3;
-          for (var i = 0; i < numCallArgs; i++) {
-            var arg = arguments[2 + i];
-            GROWABLE_HEAP_F64()[b + i] = arg;
-          }
-          var ret = _emscripten_run_in_main_runtime_thread_js(index, serializedNumCallArgs, args, sync);
-          stackRestore(stack2);
-          return ret;
+          var outerArgs = arguments;
+          return withStackSave(function() {
+            var serializedNumCallArgs = numCallArgs;
+            var args = stackAlloc(serializedNumCallArgs * 8);
+            var b = args >> 3;
+            for (var i = 0; i < numCallArgs; i++) {
+              var arg = outerArgs[2 + i];
+              GROWABLE_HEAP_F64()[b + i] = arg;
+            }
+            return _emscripten_run_in_main_runtime_thread_js(index, serializedNumCallArgs, args, sync);
+          });
         }
         var _emscripten_receive_on_main_thread_js_callArgs = [];
-        var readAsmConstArgsArray = [];
-        function readAsmConstArgs(sigPtr, buf) {
-          readAsmConstArgsArray.length = 0;
-          var ch;
-          buf >>= 2;
-          while (ch = GROWABLE_HEAP_U8()[sigPtr++]) {
-            var double = ch < 105;
-            if (double && buf & 1)
-              buf++;
-            readAsmConstArgsArray.push(double ? GROWABLE_HEAP_F64()[buf++ >> 1] : GROWABLE_HEAP_I32()[buf]);
-            ++buf;
-          }
-          return readAsmConstArgsArray;
-        }
         function _emscripten_receive_on_main_thread_js(index, numCallArgs, args) {
           _emscripten_receive_on_main_thread_js_callArgs.length = numCallArgs;
           var b = args >> 3;
@@ -2668,9 +2690,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           var func2 = !isEmAsmConst ? proxiedFunctionTable[index] : ASM_CONSTS[-index - 1];
           return func2.apply(null, _emscripten_receive_on_main_thread_js_callArgs);
         }
-        function _emscripten_get_heap_size() {
-          return GROWABLE_HEAP_U8().length;
-        }
         function emscripten_realloc_buffer(size) {
           try {
             wasmMemory.grow(size - buffer2.byteLength + 65535 >>> 16);
@@ -2680,11 +2699,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
         }
         function _emscripten_resize_heap(requestedSize) {
-          var oldSize = _emscripten_get_heap_size();
+          var oldSize = GROWABLE_HEAP_U8().length;
+          requestedSize = requestedSize >>> 0;
           if (requestedSize <= oldSize) {
             return false;
           }
-          var maxHeapSize = 2147483648;
+          var maxHeapSize = _emscripten_get_heap_max();
           if (requestedSize > maxHeapSize) {
             return false;
           }
@@ -2781,13 +2801,13 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             }
           }
         }, queueEventHandlerOnThread_iiii: function(targetThread, eventHandlerFunc, eventTypeId, eventData, userData) {
-          var stackTop = stackSave();
-          var varargs = stackAlloc(12);
-          GROWABLE_HEAP_I32()[varargs >> 2] = eventTypeId;
-          GROWABLE_HEAP_I32()[varargs + 4 >> 2] = eventData;
-          GROWABLE_HEAP_I32()[varargs + 8 >> 2] = userData;
-          __emscripten_call_on_thread(0, targetThread, 637534208, eventHandlerFunc, eventData, varargs);
-          stackRestore(stackTop);
+          withStackSave(function() {
+            var varargs = stackAlloc(12);
+            GROWABLE_HEAP_I32()[varargs >> 2] = eventTypeId;
+            GROWABLE_HEAP_I32()[varargs + 4 >> 2] = eventData;
+            GROWABLE_HEAP_I32()[varargs + 8 >> 2] = userData;
+            _emscripten_dispatch_to_thread_(targetThread, 637534208, eventHandlerFunc, eventData, varargs);
+          });
         }, getTargetThreadForEventCallback: function(targetThread) {
           switch (targetThread) {
             case 1:
@@ -2815,17 +2835,17 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return cString;
         }
         function _emscripten_set_offscreencanvas_size_on_target_thread_js(targetThread, targetCanvas, width, height) {
-          var stackTop = stackSave();
-          var varargs = stackAlloc(12);
-          var targetCanvasPtr = 0;
-          if (targetCanvas) {
-            targetCanvasPtr = stringToNewUTF8(targetCanvas);
-          }
-          GROWABLE_HEAP_I32()[varargs >> 2] = targetCanvasPtr;
-          GROWABLE_HEAP_I32()[varargs + 4 >> 2] = width;
-          GROWABLE_HEAP_I32()[varargs + 8 >> 2] = height;
-          __emscripten_call_on_thread(0, targetThread, 657457152, 0, targetCanvasPtr, varargs);
-          stackRestore(stackTop);
+          withStackSave(function() {
+            var varargs = stackAlloc(12);
+            var targetCanvasPtr = 0;
+            if (targetCanvas) {
+              targetCanvasPtr = stringToNewUTF8(targetCanvas);
+            }
+            GROWABLE_HEAP_I32()[varargs >> 2] = targetCanvasPtr;
+            GROWABLE_HEAP_I32()[varargs + 4 >> 2] = width;
+            GROWABLE_HEAP_I32()[varargs + 8 >> 2] = height;
+            _emscripten_dispatch_to_thread_(targetThread, 657457152, 0, targetCanvasPtr, varargs);
+          });
         }
         function _emscripten_set_offscreencanvas_size_on_target_thread(targetThread, targetCanvas, width, height) {
           targetCanvas = targetCanvas ? UTF8ToString(targetCanvas) : "";
@@ -2886,9 +2906,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return _emscripten_set_canvas_element_size_main_thread(target, width, height);
           }
         }
-        function _emscripten_set_current_thread_status(newStatus) {
-        }
-        function _emscripten_set_thread_name(threadId, name) {
+        function _emscripten_unwind_to_js_event_loop() {
+          throw "unwind";
         }
         function __webgl_enable_ANGLE_instanced_arrays(ctx) {
           var ext = ctx.getExtension("ANGLE_instanced_arrays");
@@ -2935,7 +2954,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         function __webgl_enable_WEBGL_multi_draw(ctx) {
           return !!(ctx.multiDrawWebgl = ctx.getExtension("WEBGL_multi_draw"));
         }
-        var GL = { counter: 1, buffers: [], programs: [], framebuffers: [], renderbuffers: [], textures: [], uniforms: [], shaders: [], vaos: [], contexts: {}, offscreenCanvases: {}, timerQueriesEXT: [], programInfos: {}, stringCache: {}, unpackAlignment: 4, recordError: function recordError(errorCode) {
+        var GL = { counter: 1, buffers: [], programs: [], framebuffers: [], renderbuffers: [], textures: [], shaders: [], vaos: [], contexts: {}, offscreenCanvases: {}, queries: [], stringCache: {}, unpackAlignment: 4, recordError: function recordError(errorCode) {
           if (!GL.lastError) {
             GL.lastError = errorCode;
           }
@@ -2953,6 +2972,13 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
           return source;
         }, createContext: function(canvas, webGLContextAttributes) {
+          if (!canvas.getContextSafariWebGL2Fixed) {
+            canvas.getContextSafariWebGL2Fixed = canvas.getContext;
+            canvas.getContext = function(ver, attrs) {
+              var gl = canvas.getContextSafariWebGL2Fixed(ver, attrs);
+              return ver == "webgl" == gl instanceof WebGLRenderingContext ? gl : null;
+            };
+          }
           var ctx = canvas.getContext("webgl", webGLContextAttributes);
           if (!ctx)
             return 0;
@@ -2994,39 +3020,16 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           __webgl_enable_ANGLE_instanced_arrays(GLctx2);
           __webgl_enable_OES_vertex_array_object(GLctx2);
           __webgl_enable_WEBGL_draw_buffers(GLctx2);
-          GLctx2.disjointTimerQueryExt = GLctx2.getExtension("EXT_disjoint_timer_query");
+          {
+            GLctx2.disjointTimerQueryExt = GLctx2.getExtension("EXT_disjoint_timer_query");
+          }
           __webgl_enable_WEBGL_multi_draw(GLctx2);
           var exts = GLctx2.getSupportedExtensions() || [];
           exts.forEach(function(ext) {
-            if (ext.indexOf("lose_context") < 0 && ext.indexOf("debug") < 0) {
+            if (!ext.includes("lose_context") && !ext.includes("debug")) {
               GLctx2.getExtension(ext);
             }
           });
-        }, populateUniformTable: function(program) {
-          var p2 = GL.programs[program];
-          var ptable = GL.programInfos[program] = { uniforms: {}, maxUniformLength: 0, maxAttributeLength: -1, maxUniformBlockNameLength: -1 };
-          var utable = ptable.uniforms;
-          var numUniforms = GLctx.getProgramParameter(p2, 35718);
-          for (var i = 0; i < numUniforms; ++i) {
-            var u = GLctx.getActiveUniform(p2, i);
-            var name = u.name;
-            ptable.maxUniformLength = Math.max(ptable.maxUniformLength, name.length + 1);
-            if (name.slice(-1) == "]") {
-              name = name.slice(0, name.lastIndexOf("["));
-            }
-            var loc = GLctx.getUniformLocation(p2, name);
-            if (loc) {
-              var id = GL.getNewId(GL.uniforms);
-              utable[name] = [u.size, id];
-              GL.uniforms[id] = loc;
-              for (var j = 1; j < u.size; ++j) {
-                var n = name + "[" + j + "]";
-                loc = GLctx.getUniformLocation(p2, n);
-                id = GL.getNewId(GL.uniforms);
-                GL.uniforms[id] = loc;
-              }
-            }
-          }
         } };
         var __emscripten_webgl_power_preferences = ["default", "low-power", "high-performance"];
         function _emscripten_webgl_do_create_context(target, attributes) {
@@ -3078,8 +3081,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return _emscripten_proxy_to_main_thread_js(5, 1, fd, iov, iovcnt, pnum);
           var num = 0;
           for (var i = 0; i < iovcnt; i++) {
-            var ptr = GROWABLE_HEAP_I32()[iov + i * 8 >> 2];
-            var len = GROWABLE_HEAP_I32()[iov + (i * 8 + 4) >> 2];
+            var ptr = GROWABLE_HEAP_I32()[iov >> 2];
+            var len = GROWABLE_HEAP_I32()[iov + 4 >> 2];
+            iov += 8;
             for (var j = 0; j < len; j++) {
               SYSCALLS.printChar(fd, GROWABLE_HEAP_U8()[ptr + j]);
             }
@@ -3088,681 +3092,360 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           GROWABLE_HEAP_I32()[pnum >> 2] = num;
           return 0;
         }
-        function _pthread_cleanup_pop(execute2) {
-          var routine = PThread.threadExitHandlers.pop();
-          if (execute2)
-            routine();
+        function _setTempRet0(val) {
+          setTempRet0(val);
         }
-        function _pthread_cleanup_push(routine, arg) {
-          PThread.threadExitHandlers.push(function() {
-            wasmTable.get(routine)(arg);
-          });
-        }
-        function spawnThread(threadParams) {
-          if (ENVIRONMENT_IS_PTHREAD)
-            throw "Internal Error! spawnThread() can only ever be called from main application thread!";
-          var worker = PThread.getNewWorker();
-          if (worker.pthread !== void 0)
-            throw "Internal error!";
-          if (!threadParams.pthread_ptr)
-            throw "Internal error, no pthread ptr!";
-          PThread.runningWorkers.push(worker);
-          var tlsMemory = _malloc(128 * 4);
-          for (var i = 0; i < 128; ++i) {
-            GROWABLE_HEAP_I32()[tlsMemory + i * 4 >> 2] = 0;
-          }
-          var stackHigh = threadParams.stackBase + threadParams.stackSize;
-          var pthread = PThread.pthreads[threadParams.pthread_ptr] = { worker, stackBase: threadParams.stackBase, stackSize: threadParams.stackSize, allocatedOwnStack: threadParams.allocatedOwnStack, threadInfoStruct: threadParams.pthread_ptr };
-          var tis = pthread.threadInfoStruct >> 2;
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (64 >> 2), threadParams.detached);
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (100 >> 2), tlsMemory);
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (40 >> 2), pthread.threadInfoStruct);
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (80 >> 2), threadParams.stackSize);
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (76 >> 2), stackHigh);
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (104 >> 2), threadParams.stackSize);
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (104 + 8 >> 2), stackHigh);
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (104 + 12 >> 2), threadParams.detached);
-          var global_libc = _emscripten_get_global_libc();
-          var global_locale = global_libc + 40;
-          Atomics.store(GROWABLE_HEAP_U32(), tis + (172 >> 2), global_locale);
-          worker.pthread = pthread;
-          var msg = { "cmd": "run", "start_routine": threadParams.startRoutine, "arg": threadParams.arg, "threadInfoStruct": threadParams.pthread_ptr, "stackBase": threadParams.stackBase, "stackSize": threadParams.stackSize };
-          worker.runPthread = function() {
-            msg.time = performance.now();
-            worker.postMessage(msg, threadParams.transferList);
-          };
-          if (worker.loaded) {
-            worker.runPthread();
-            delete worker.runPthread;
-          }
-        }
-        function _pthread_create(pthread_ptr, attr, start_routine, arg) {
-          if (typeof SharedArrayBuffer === "undefined") {
-            err("Current environment does not support SharedArrayBuffer, pthreads are not available!");
-            return 6;
-          }
-          if (!pthread_ptr) {
-            err("pthread_create called with a null thread pointer!");
-            return 28;
-          }
-          var transferList = [];
-          var error = 0;
-          if (ENVIRONMENT_IS_PTHREAD && (transferList.length === 0 || error)) {
-            return _emscripten_sync_run_in_main_thread_4(687865856, pthread_ptr, attr, start_routine, arg);
-          }
-          if (error)
-            return error;
-          var stackSize = 0;
-          var stackBase = 0;
-          var detached = 0;
-          if (attr && attr != -1) {
-            stackSize = GROWABLE_HEAP_I32()[attr >> 2];
-            stackSize += 81920;
-            stackBase = GROWABLE_HEAP_I32()[attr + 8 >> 2];
-            detached = GROWABLE_HEAP_I32()[attr + 12 >> 2] !== 0;
-          } else {
-            stackSize = 2097152;
-          }
-          var allocatedOwnStack = stackBase == 0;
-          if (allocatedOwnStack) {
-            stackBase = _memalign(16, stackSize);
-          } else {
-            stackBase -= stackSize;
-            assert3(stackBase > 0);
-          }
-          var threadInfoStruct = _malloc(228);
-          for (var i = 0; i < 228 >> 2; ++i)
-            GROWABLE_HEAP_U32()[(threadInfoStruct >> 2) + i] = 0;
-          GROWABLE_HEAP_I32()[pthread_ptr >> 2] = threadInfoStruct;
-          GROWABLE_HEAP_I32()[threadInfoStruct + 12 >> 2] = threadInfoStruct;
-          var headPtr = threadInfoStruct + 152;
-          GROWABLE_HEAP_I32()[headPtr >> 2] = headPtr;
-          var threadParams = { stackBase, stackSize, allocatedOwnStack, detached, startRoutine: start_routine, pthread_ptr: threadInfoStruct, arg, transferList };
-          if (ENVIRONMENT_IS_PTHREAD) {
-            threadParams.cmd = "spawnThread";
-            postMessage(threadParams, transferList);
-          } else {
-            spawnThread(threadParams);
-          }
-          return 0;
-        }
-        function __pthread_testcancel_js() {
-          if (!ENVIRONMENT_IS_PTHREAD)
-            return;
-          var tb = _pthread_self();
-          if (!tb)
-            return;
-          var cancelDisabled = Atomics.load(GROWABLE_HEAP_U32(), tb + 56 >> 2);
-          if (cancelDisabled)
-            return;
-          var canceled = Atomics.load(GROWABLE_HEAP_U32(), tb + 0 >> 2);
-          if (canceled == 2)
-            throw "Canceled!";
-        }
-        function _emscripten_check_blocking_allowed() {
-          if (ENVIRONMENT_IS_NODE)
-            return;
-          if (ENVIRONMENT_IS_WORKER)
-            return;
-          warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread");
-        }
-        function __emscripten_do_pthread_join(thread, status, block) {
-          if (!thread) {
-            err("pthread_join attempted on a null thread pointer!");
-            return ERRNO_CODES.ESRCH;
-          }
-          if (ENVIRONMENT_IS_PTHREAD && _pthread_self() == thread) {
-            err("PThread " + thread + " is attempting to join to itself!");
-            return ERRNO_CODES.EDEADLK;
-          } else if (!ENVIRONMENT_IS_PTHREAD && _emscripten_main_browser_thread_id() == thread) {
-            err("Main thread " + thread + " is attempting to join to itself!");
-            return ERRNO_CODES.EDEADLK;
-          }
-          var self2 = GROWABLE_HEAP_I32()[thread + 12 >> 2];
-          if (self2 !== thread) {
-            err("pthread_join attempted on thread " + thread + ", which does not point to a valid thread, or does not exist anymore!");
-            return ERRNO_CODES.ESRCH;
-          }
-          var detached = Atomics.load(GROWABLE_HEAP_U32(), thread + 64 >> 2);
-          if (detached) {
-            err("Attempted to join thread " + thread + ", which was already detached!");
-            return ERRNO_CODES.EINVAL;
-          }
-          if (block) {
-            _emscripten_check_blocking_allowed();
-          }
-          for (; ; ) {
-            var threadStatus = Atomics.load(GROWABLE_HEAP_U32(), thread + 0 >> 2);
-            if (threadStatus == 1) {
-              var threadExitCode = Atomics.load(GROWABLE_HEAP_U32(), thread + 4 >> 2);
-              if (status)
-                GROWABLE_HEAP_I32()[status >> 2] = threadExitCode;
-              Atomics.store(GROWABLE_HEAP_U32(), thread + 64 >> 2, 1);
-              if (!ENVIRONMENT_IS_PTHREAD)
-                cleanupThread(thread);
-              else
-                postMessage({ "cmd": "cleanupThread", "thread": thread });
-              return 0;
-            }
-            if (!block) {
-              return ERRNO_CODES.EBUSY;
-            }
-            __pthread_testcancel_js();
-            if (!ENVIRONMENT_IS_PTHREAD)
-              _emscripten_main_thread_process_queued_calls();
-            _emscripten_futex_wait(thread + 0, threadStatus, ENVIRONMENT_IS_PTHREAD ? 100 : 1);
-          }
-        }
-        function _pthread_join(thread, status) {
-          return __emscripten_do_pthread_join(thread, status, true);
-        }
-        function _sysconf(name) {
-          if (ENVIRONMENT_IS_PTHREAD)
-            return _emscripten_proxy_to_main_thread_js(6, 1, name);
-          switch (name) {
-            case 30:
-              return 16384;
-            case 85:
-              var maxHeapSize = 2147483648;
-              return maxHeapSize / 16384;
-            case 132:
-            case 133:
-            case 12:
-            case 137:
-            case 138:
-            case 15:
-            case 235:
-            case 16:
-            case 17:
-            case 18:
-            case 19:
-            case 20:
-            case 149:
-            case 13:
-            case 10:
-            case 236:
-            case 153:
-            case 9:
-            case 21:
-            case 22:
-            case 159:
-            case 154:
-            case 14:
-            case 77:
-            case 78:
-            case 139:
-            case 82:
-            case 68:
-            case 67:
-            case 164:
-            case 11:
-            case 29:
-            case 47:
-            case 48:
-            case 95:
-            case 52:
-            case 51:
-            case 46:
-              return 200809;
-            case 27:
-            case 246:
-            case 127:
-            case 128:
-            case 23:
-            case 24:
-            case 160:
-            case 161:
-            case 181:
-            case 182:
-            case 242:
-            case 183:
-            case 184:
-            case 243:
-            case 244:
-            case 245:
-            case 165:
-            case 178:
-            case 179:
-            case 49:
-            case 50:
-            case 168:
-            case 169:
-            case 175:
-            case 170:
-            case 171:
-            case 172:
-            case 97:
-            case 76:
-            case 32:
-            case 173:
-            case 35:
-            case 80:
-            case 81:
-            case 79:
-              return -1;
-            case 176:
-            case 177:
-            case 7:
-            case 155:
-            case 8:
-            case 157:
-            case 125:
-            case 126:
-            case 92:
-            case 93:
-            case 129:
-            case 130:
-            case 131:
-            case 94:
-            case 91:
-              return 1;
-            case 74:
-            case 60:
-            case 69:
-            case 70:
-            case 4:
-              return 1024;
-            case 31:
-            case 42:
-            case 72:
-              return 32;
-            case 87:
-            case 26:
-            case 33:
-              return 2147483647;
-            case 34:
-            case 1:
-              return 47839;
-            case 38:
-            case 36:
-              return 99;
-            case 43:
-            case 37:
-              return 2048;
-            case 0:
-              return 2097152;
-            case 3:
-              return 65536;
-            case 28:
-              return 32768;
-            case 44:
-              return 32767;
-            case 75:
-              return 16384;
-            case 39:
-              return 1e3;
-            case 89:
-              return 700;
-            case 71:
-              return 256;
-            case 40:
-              return 255;
-            case 2:
-              return 100;
-            case 180:
-              return 64;
-            case 25:
-              return 20;
-            case 5:
-              return 16;
-            case 6:
-              return 6;
-            case 73:
-              return 4;
-            case 84: {
-              if (typeof navigator === "object")
-                return navigator["hardwareConcurrency"] || 1;
-              return 1;
-            }
-          }
-          setErrNo(28);
-          return -1;
-        }
-        if (!ENVIRONMENT_IS_PTHREAD)
-          PThread.initMainThreadBlock();
+        PThread.init();
         var GLctx;
-        var proxiedFunctionTable = [null, _atexit, _emscripten_set_canvas_element_size_main_thread, _fd_close, _fd_seek, _fd_write, _sysconf];
-        var asmLibraryArg = { "e": ___assert_fail, "r": ___call_main, "x": __emscripten_notify_thread_queue, "b": _abort, "y": _emscripten_asm_const_int, "j": _emscripten_conditional_set_current_thread_status, "d": _emscripten_futex_wait, "c": _emscripten_futex_wake, "f": _emscripten_get_now, "p": _emscripten_memcpy_big, "A": _emscripten_num_logical_cores, "u": _emscripten_receive_on_main_thread_js, "q": _emscripten_resize_heap, "v": _emscripten_set_canvas_element_size, "i": _emscripten_set_current_thread_status, "s": _emscripten_set_thread_name, "w": _emscripten_webgl_create_context, "l": _fd_close, "n": _fd_seek, "g": _fd_write, "o": initPthreadsJS, "a": wasmMemory || Module["wasmMemory"], "z": _pthread_cleanup_pop, "k": _pthread_cleanup_push, "h": _pthread_create, "m": _pthread_join, "t": _sysconf };
+        var proxiedFunctionTable = [null, exitOnMainThread, _emscripten_set_canvas_element_size_main_thread, _fd_close, _fd_seek, _fd_write];
+        var ASSERTIONS = false;
+        var asmLibraryArg = { "__clock_gettime": ___clock_gettime, "__emscripten_init_main_thread_js": ___emscripten_init_main_thread_js, "__emscripten_thread_cleanup": ___emscripten_thread_cleanup, "__pthread_create_js": ___pthread_create_js, "_emscripten_default_pthread_stack_size": __emscripten_default_pthread_stack_size, "_emscripten_notify_thread_queue": __emscripten_notify_thread_queue, "abort": _abort, "emscripten_check_blocking_allowed": _emscripten_check_blocking_allowed, "emscripten_get_heap_max": _emscripten_get_heap_max, "emscripten_get_now": _emscripten_get_now, "emscripten_memcpy_big": _emscripten_memcpy_big, "emscripten_num_logical_cores": _emscripten_num_logical_cores, "emscripten_receive_on_main_thread_js": _emscripten_receive_on_main_thread_js, "emscripten_resize_heap": _emscripten_resize_heap, "emscripten_set_canvas_element_size": _emscripten_set_canvas_element_size, "emscripten_unwind_to_js_event_loop": _emscripten_unwind_to_js_event_loop, "emscripten_webgl_create_context": _emscripten_webgl_create_context, "exit": _exit, "fd_close": _fd_close, "fd_seek": _fd_seek, "fd_write": _fd_write, "memory": wasmMemory || Module["wasmMemory"], "setTempRet0": _setTempRet0 };
         var asm = createWasm();
         var ___wasm_call_ctors = Module["___wasm_call_ctors"] = function() {
-          return (___wasm_call_ctors = Module["___wasm_call_ctors"] = Module["asm"]["B"]).apply(null, arguments);
+          return (___wasm_call_ctors = Module["___wasm_call_ctors"] = Module["asm"]["__wasm_call_ctors"]).apply(null, arguments);
         };
         var _init = Module["_init"] = function() {
-          return (_init = Module["_init"] = Module["asm"]["C"]).apply(null, arguments);
+          return (_init = Module["_init"] = Module["asm"]["init"]).apply(null, arguments);
         };
         var _init_with_threads_count = Module["_init_with_threads_count"] = function() {
-          return (_init_with_threads_count = Module["_init_with_threads_count"] = Module["asm"]["D"]).apply(null, arguments);
+          return (_init_with_threads_count = Module["_init_with_threads_count"] = Module["asm"]["init_with_threads_count"]).apply(null, arguments);
         };
         var _get_threads_count = Module["_get_threads_count"] = function() {
-          return (_get_threads_count = Module["_get_threads_count"] = Module["asm"]["E"]).apply(null, arguments);
+          return (_get_threads_count = Module["_get_threads_count"] = Module["asm"]["get_threads_count"]).apply(null, arguments);
         };
         var _register_tensor = Module["_register_tensor"] = function() {
-          return (_register_tensor = Module["_register_tensor"] = Module["asm"]["F"]).apply(null, arguments);
+          return (_register_tensor = Module["_register_tensor"] = Module["asm"]["register_tensor"]).apply(null, arguments);
         };
         var _dispose_data = Module["_dispose_data"] = function() {
-          return (_dispose_data = Module["_dispose_data"] = Module["asm"]["G"]).apply(null, arguments);
+          return (_dispose_data = Module["_dispose_data"] = Module["asm"]["dispose_data"]).apply(null, arguments);
         };
         var _dispose = Module["_dispose"] = function() {
-          return (_dispose = Module["_dispose"] = Module["asm"]["H"]).apply(null, arguments);
+          return (_dispose = Module["_dispose"] = Module["asm"]["dispose"]).apply(null, arguments);
         };
         var _Abs = Module["_Abs"] = function() {
-          return (_Abs = Module["_Abs"] = Module["asm"]["I"]).apply(null, arguments);
+          return (_Abs = Module["_Abs"] = Module["asm"]["Abs"]).apply(null, arguments);
         };
         var _Add = Module["_Add"] = function() {
-          return (_Add = Module["_Add"] = Module["asm"]["J"]).apply(null, arguments);
+          return (_Add = Module["_Add"] = Module["asm"]["Add"]).apply(null, arguments);
         };
         var _AddN = Module["_AddN"] = function() {
-          return (_AddN = Module["_AddN"] = Module["asm"]["K"]).apply(null, arguments);
+          return (_AddN = Module["_AddN"] = Module["asm"]["AddN"]).apply(null, arguments);
         };
         var _All = Module["_All"] = function() {
-          return (_All = Module["_All"] = Module["asm"]["L"]).apply(null, arguments);
+          return (_All = Module["_All"] = Module["asm"]["All"]).apply(null, arguments);
         };
         var _Any = Module["_Any"] = function() {
-          return (_Any = Module["_Any"] = Module["asm"]["M"]).apply(null, arguments);
+          return (_Any = Module["_Any"] = Module["asm"]["Any"]).apply(null, arguments);
         };
         var _ArgMax = Module["_ArgMax"] = function() {
-          return (_ArgMax = Module["_ArgMax"] = Module["asm"]["N"]).apply(null, arguments);
+          return (_ArgMax = Module["_ArgMax"] = Module["asm"]["ArgMax"]).apply(null, arguments);
         };
         var _AvgPool = Module["_AvgPool"] = function() {
-          return (_AvgPool = Module["_AvgPool"] = Module["asm"]["O"]).apply(null, arguments);
+          return (_AvgPool = Module["_AvgPool"] = Module["asm"]["AvgPool"]).apply(null, arguments);
         };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
-          return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["P"]).apply(null, arguments);
+          return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
-          return (_Ceil = Module["_Ceil"] = Module["asm"]["Q"]).apply(null, arguments);
+          return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
         };
         var _ClipByValue = Module["_ClipByValue"] = function() {
-          return (_ClipByValue = Module["_ClipByValue"] = Module["asm"]["R"]).apply(null, arguments);
+          return (_ClipByValue = Module["_ClipByValue"] = Module["asm"]["ClipByValue"]).apply(null, arguments);
         };
         var _Conv2D2 = Module["_Conv2D"] = function() {
-          return (_Conv2D2 = Module["_Conv2D"] = Module["asm"]["S"]).apply(null, arguments);
+          return (_Conv2D2 = Module["_Conv2D"] = Module["asm"]["Conv2D"]).apply(null, arguments);
         };
         var _Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = function() {
-          return (_Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = Module["asm"]["T"]).apply(null, arguments);
+          return (_Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = Module["asm"]["Conv2DBackpropInput"]).apply(null, arguments);
         };
         var _Cos = Module["_Cos"] = function() {
-          return (_Cos = Module["_Cos"] = Module["asm"]["U"]).apply(null, arguments);
+          return (_Cos = Module["_Cos"] = Module["asm"]["Cos"]).apply(null, arguments);
         };
         var _Cosh = Module["_Cosh"] = function() {
-          return (_Cosh = Module["_Cosh"] = Module["asm"]["V"]).apply(null, arguments);
+          return (_Cosh = Module["_Cosh"] = Module["asm"]["Cosh"]).apply(null, arguments);
         };
         var _CropAndResize = Module["_CropAndResize"] = function() {
-          return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["W"]).apply(null, arguments);
+          return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["CropAndResize"]).apply(null, arguments);
         };
         var _Cumsum = Module["_Cumsum"] = function() {
-          return (_Cumsum = Module["_Cumsum"] = Module["asm"]["X"]).apply(null, arguments);
+          return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
         };
         var _DepthToSpace = Module["_DepthToSpace"] = function() {
-          return (_DepthToSpace = Module["_DepthToSpace"] = Module["asm"]["Y"]).apply(null, arguments);
+          return (_DepthToSpace = Module["_DepthToSpace"] = Module["asm"]["DepthToSpace"]).apply(null, arguments);
         };
         var _DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = function() {
-          return (_DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = Module["asm"]["Z"]).apply(null, arguments);
+          return (_DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = Module["asm"]["DepthwiseConv2dNative"]).apply(null, arguments);
         };
         var _Elu = Module["_Elu"] = function() {
-          return (_Elu = Module["_Elu"] = Module["asm"]["_"]).apply(null, arguments);
+          return (_Elu = Module["_Elu"] = Module["asm"]["Elu"]).apply(null, arguments);
         };
         var _Equal = Module["_Equal"] = function() {
-          return (_Equal = Module["_Equal"] = Module["asm"]["$"]).apply(null, arguments);
+          return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
-          return (_Exp = Module["_Exp"] = Module["asm"]["aa"]).apply(null, arguments);
+          return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
         };
         var _FlipLeftRight = Module["_FlipLeftRight"] = function() {
-          return (_FlipLeftRight = Module["_FlipLeftRight"] = Module["asm"]["ba"]).apply(null, arguments);
+          return (_FlipLeftRight = Module["_FlipLeftRight"] = Module["asm"]["FlipLeftRight"]).apply(null, arguments);
         };
         var _Floor = Module["_Floor"] = function() {
-          return (_Floor = Module["_Floor"] = Module["asm"]["ca"]).apply(null, arguments);
+          return (_Floor = Module["_Floor"] = Module["asm"]["Floor"]).apply(null, arguments);
         };
         var _FloorDiv = Module["_FloorDiv"] = function() {
-          return (_FloorDiv = Module["_FloorDiv"] = Module["asm"]["da"]).apply(null, arguments);
+          return (_FloorDiv = Module["_FloorDiv"] = Module["asm"]["FloorDiv"]).apply(null, arguments);
         };
         var _FusedBatchNorm = Module["_FusedBatchNorm"] = function() {
-          return (_FusedBatchNorm = Module["_FusedBatchNorm"] = Module["asm"]["ea"]).apply(null, arguments);
+          return (_FusedBatchNorm = Module["_FusedBatchNorm"] = Module["asm"]["FusedBatchNorm"]).apply(null, arguments);
         };
         var _FusedConv2D = Module["_FusedConv2D"] = function() {
-          return (_FusedConv2D = Module["_FusedConv2D"] = Module["asm"]["fa"]).apply(null, arguments);
+          return (_FusedConv2D = Module["_FusedConv2D"] = Module["asm"]["FusedConv2D"]).apply(null, arguments);
         };
         var _FusedDepthwiseConv2D = Module["_FusedDepthwiseConv2D"] = function() {
-          return (_FusedDepthwiseConv2D = Module["_FusedDepthwiseConv2D"] = Module["asm"]["ga"]).apply(null, arguments);
+          return (_FusedDepthwiseConv2D = Module["_FusedDepthwiseConv2D"] = Module["asm"]["FusedDepthwiseConv2D"]).apply(null, arguments);
         };
         var _Gather = Module["_Gather"] = function() {
-          return (_Gather = Module["_Gather"] = Module["asm"]["ha"]).apply(null, arguments);
+          return (_Gather = Module["_Gather"] = Module["asm"]["Gather"]).apply(null, arguments);
         };
         var _GatherNd = Module["_GatherNd"] = function() {
-          return (_GatherNd = Module["_GatherNd"] = Module["asm"]["ia"]).apply(null, arguments);
+          return (_GatherNd = Module["_GatherNd"] = Module["asm"]["GatherNd"]).apply(null, arguments);
         };
         var _Greater = Module["_Greater"] = function() {
-          return (_Greater = Module["_Greater"] = Module["asm"]["ja"]).apply(null, arguments);
+          return (_Greater = Module["_Greater"] = Module["asm"]["Greater"]).apply(null, arguments);
         };
         var _GreaterEqual = Module["_GreaterEqual"] = function() {
-          return (_GreaterEqual = Module["_GreaterEqual"] = Module["asm"]["ka"]).apply(null, arguments);
+          return (_GreaterEqual = Module["_GreaterEqual"] = Module["asm"]["GreaterEqual"]).apply(null, arguments);
         };
         var _LeakyRelu = Module["_LeakyRelu"] = function() {
-          return (_LeakyRelu = Module["_LeakyRelu"] = Module["asm"]["la"]).apply(null, arguments);
+          return (_LeakyRelu = Module["_LeakyRelu"] = Module["asm"]["LeakyRelu"]).apply(null, arguments);
         };
         var _Less = Module["_Less"] = function() {
-          return (_Less = Module["_Less"] = Module["asm"]["ma"]).apply(null, arguments);
+          return (_Less = Module["_Less"] = Module["asm"]["Less"]).apply(null, arguments);
         };
         var _LessEqual = Module["_LessEqual"] = function() {
-          return (_LessEqual = Module["_LessEqual"] = Module["asm"]["na"]).apply(null, arguments);
+          return (_LessEqual = Module["_LessEqual"] = Module["asm"]["LessEqual"]).apply(null, arguments);
         };
         var _Log = Module["_Log"] = function() {
-          return (_Log = Module["_Log"] = Module["asm"]["oa"]).apply(null, arguments);
+          return (_Log = Module["_Log"] = Module["asm"]["Log"]).apply(null, arguments);
         };
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
-          return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["pa"]).apply(null, arguments);
+          return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
         };
         var _Max = Module["_Max"] = function() {
-          return (_Max = Module["_Max"] = Module["asm"]["qa"]).apply(null, arguments);
+          return (_Max = Module["_Max"] = Module["asm"]["Max"]).apply(null, arguments);
         };
         var _MaxPool = Module["_MaxPool"] = function() {
-          return (_MaxPool = Module["_MaxPool"] = Module["asm"]["ra"]).apply(null, arguments);
+          return (_MaxPool = Module["_MaxPool"] = Module["asm"]["MaxPool"]).apply(null, arguments);
         };
         var _Maximum = Module["_Maximum"] = function() {
-          return (_Maximum = Module["_Maximum"] = Module["asm"]["sa"]).apply(null, arguments);
+          return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
         var _Mean = Module["_Mean"] = function() {
-          return (_Mean = Module["_Mean"] = Module["asm"]["ta"]).apply(null, arguments);
+          return (_Mean = Module["_Mean"] = Module["asm"]["Mean"]).apply(null, arguments);
         };
         var _Min = Module["_Min"] = function() {
-          return (_Min = Module["_Min"] = Module["asm"]["ua"]).apply(null, arguments);
+          return (_Min = Module["_Min"] = Module["asm"]["Min"]).apply(null, arguments);
         };
         var _Minimum = Module["_Minimum"] = function() {
-          return (_Minimum = Module["_Minimum"] = Module["asm"]["va"]).apply(null, arguments);
+          return (_Minimum = Module["_Minimum"] = Module["asm"]["Minimum"]).apply(null, arguments);
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
-          return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["wa"]).apply(null, arguments);
+          return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
         };
         var _Multiply = Module["_Multiply"] = function() {
-          return (_Multiply = Module["_Multiply"] = Module["asm"]["xa"]).apply(null, arguments);
+          return (_Multiply = Module["_Multiply"] = Module["asm"]["Multiply"]).apply(null, arguments);
         };
         var _Neg = Module["_Neg"] = function() {
-          return (_Neg = Module["_Neg"] = Module["asm"]["ya"]).apply(null, arguments);
+          return (_Neg = Module["_Neg"] = Module["asm"]["Neg"]).apply(null, arguments);
         };
         var _NonMaxSuppressionV3 = Module["_NonMaxSuppressionV3"] = function() {
-          return (_NonMaxSuppressionV3 = Module["_NonMaxSuppressionV3"] = Module["asm"]["za"]).apply(null, arguments);
+          return (_NonMaxSuppressionV3 = Module["_NonMaxSuppressionV3"] = Module["asm"]["NonMaxSuppressionV3"]).apply(null, arguments);
         };
         var _NonMaxSuppressionV4 = Module["_NonMaxSuppressionV4"] = function() {
-          return (_NonMaxSuppressionV4 = Module["_NonMaxSuppressionV4"] = Module["asm"]["Aa"]).apply(null, arguments);
+          return (_NonMaxSuppressionV4 = Module["_NonMaxSuppressionV4"] = Module["asm"]["NonMaxSuppressionV4"]).apply(null, arguments);
         };
         var _NonMaxSuppressionV5 = Module["_NonMaxSuppressionV5"] = function() {
-          return (_NonMaxSuppressionV5 = Module["_NonMaxSuppressionV5"] = Module["asm"]["Ba"]).apply(null, arguments);
+          return (_NonMaxSuppressionV5 = Module["_NonMaxSuppressionV5"] = Module["asm"]["NonMaxSuppressionV5"]).apply(null, arguments);
         };
         var _NotEqual = Module["_NotEqual"] = function() {
-          return (_NotEqual = Module["_NotEqual"] = Module["asm"]["Ca"]).apply(null, arguments);
+          return (_NotEqual = Module["_NotEqual"] = Module["asm"]["NotEqual"]).apply(null, arguments);
         };
         var _OneHot = Module["_OneHot"] = function() {
-          return (_OneHot = Module["_OneHot"] = Module["asm"]["Da"]).apply(null, arguments);
+          return (_OneHot = Module["_OneHot"] = Module["asm"]["OneHot"]).apply(null, arguments);
         };
         var _PadV2 = Module["_PadV2"] = function() {
-          return (_PadV2 = Module["_PadV2"] = Module["asm"]["Ea"]).apply(null, arguments);
+          return (_PadV2 = Module["_PadV2"] = Module["asm"]["PadV2"]).apply(null, arguments);
         };
         var _Pow = Module["_Pow"] = function() {
-          return (_Pow = Module["_Pow"] = Module["asm"]["Fa"]).apply(null, arguments);
+          return (_Pow = Module["_Pow"] = Module["asm"]["Pow"]).apply(null, arguments);
         };
         var _Prelu = Module["_Prelu"] = function() {
-          return (_Prelu = Module["_Prelu"] = Module["asm"]["Ga"]).apply(null, arguments);
+          return (_Prelu = Module["_Prelu"] = Module["asm"]["Prelu"]).apply(null, arguments);
         };
         var _Prod = Module["_Prod"] = function() {
-          return (_Prod = Module["_Prod"] = Module["asm"]["Ha"]).apply(null, arguments);
+          return (_Prod = Module["_Prod"] = Module["asm"]["Prod"]).apply(null, arguments);
         };
         var _RealDiv = Module["_RealDiv"] = function() {
-          return (_RealDiv = Module["_RealDiv"] = Module["asm"]["Ia"]).apply(null, arguments);
+          return (_RealDiv = Module["_RealDiv"] = Module["asm"]["RealDiv"]).apply(null, arguments);
         };
         var _Relu = Module["_Relu"] = function() {
-          return (_Relu = Module["_Relu"] = Module["asm"]["Ja"]).apply(null, arguments);
+          return (_Relu = Module["_Relu"] = Module["asm"]["Relu"]).apply(null, arguments);
         };
         var _Relu6 = Module["_Relu6"] = function() {
-          return (_Relu6 = Module["_Relu6"] = Module["asm"]["Ka"]).apply(null, arguments);
+          return (_Relu6 = Module["_Relu6"] = Module["asm"]["Relu6"]).apply(null, arguments);
         };
         var _ResizeBilinear = Module["_ResizeBilinear"] = function() {
-          return (_ResizeBilinear = Module["_ResizeBilinear"] = Module["asm"]["La"]).apply(null, arguments);
+          return (_ResizeBilinear = Module["_ResizeBilinear"] = Module["asm"]["ResizeBilinear"]).apply(null, arguments);
         };
         var _Reverse = Module["_Reverse"] = function() {
-          return (_Reverse = Module["_Reverse"] = Module["asm"]["Ma"]).apply(null, arguments);
+          return (_Reverse = Module["_Reverse"] = Module["asm"]["Reverse"]).apply(null, arguments);
         };
         var _RotateWithOffset = Module["_RotateWithOffset"] = function() {
-          return (_RotateWithOffset = Module["_RotateWithOffset"] = Module["asm"]["Na"]).apply(null, arguments);
+          return (_RotateWithOffset = Module["_RotateWithOffset"] = Module["asm"]["RotateWithOffset"]).apply(null, arguments);
         };
         var _Round = Module["_Round"] = function() {
-          return (_Round = Module["_Round"] = Module["asm"]["Oa"]).apply(null, arguments);
+          return (_Round = Module["_Round"] = Module["asm"]["Round"]).apply(null, arguments);
         };
         var _Rsqrt = Module["_Rsqrt"] = function() {
-          return (_Rsqrt = Module["_Rsqrt"] = Module["asm"]["Pa"]).apply(null, arguments);
+          return (_Rsqrt = Module["_Rsqrt"] = Module["asm"]["Rsqrt"]).apply(null, arguments);
         };
         var _ScatterNd = Module["_ScatterNd"] = function() {
-          return (_ScatterNd = Module["_ScatterNd"] = Module["asm"]["Qa"]).apply(null, arguments);
+          return (_ScatterNd = Module["_ScatterNd"] = Module["asm"]["ScatterNd"]).apply(null, arguments);
         };
         var _SelectV2 = Module["_SelectV2"] = function() {
-          return (_SelectV2 = Module["_SelectV2"] = Module["asm"]["Ra"]).apply(null, arguments);
+          return (_SelectV2 = Module["_SelectV2"] = Module["asm"]["SelectV2"]).apply(null, arguments);
         };
         var _Sigmoid = Module["_Sigmoid"] = function() {
-          return (_Sigmoid = Module["_Sigmoid"] = Module["asm"]["Sa"]).apply(null, arguments);
+          return (_Sigmoid = Module["_Sigmoid"] = Module["asm"]["Sigmoid"]).apply(null, arguments);
         };
         var _Sin = Module["_Sin"] = function() {
-          return (_Sin = Module["_Sin"] = Module["asm"]["Ta"]).apply(null, arguments);
+          return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
-          return (_Softmax = Module["_Softmax"] = Module["asm"]["Ua"]).apply(null, arguments);
+          return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
         };
         var _SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = function() {
-          return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["Va"]).apply(null, arguments);
+          return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["SparseFillEmptyRows"]).apply(null, arguments);
         };
         var _SparseReshape = Module["_SparseReshape"] = function() {
-          return (_SparseReshape = Module["_SparseReshape"] = Module["asm"]["Wa"]).apply(null, arguments);
+          return (_SparseReshape = Module["_SparseReshape"] = Module["asm"]["SparseReshape"]).apply(null, arguments);
         };
         var _SparseSegmentReduction = Module["_SparseSegmentReduction"] = function() {
-          return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["Xa"]).apply(null, arguments);
+          return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["SparseSegmentReduction"]).apply(null, arguments);
         };
         var _Sqrt = Module["_Sqrt"] = function() {
-          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Ya"]).apply(null, arguments);
+          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Sqrt"]).apply(null, arguments);
         };
         var _Square = Module["_Square"] = function() {
-          return (_Square = Module["_Square"] = Module["asm"]["Za"]).apply(null, arguments);
+          return (_Square = Module["_Square"] = Module["asm"]["Square"]).apply(null, arguments);
         };
         var _SquaredDifference = Module["_SquaredDifference"] = function() {
-          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["_a"]).apply(null, arguments);
+          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["SquaredDifference"]).apply(null, arguments);
         };
         var _Step = Module["_Step"] = function() {
-          return (_Step = Module["_Step"] = Module["asm"]["$a"]).apply(null, arguments);
+          return (_Step = Module["_Step"] = Module["asm"]["Step"]).apply(null, arguments);
         };
         var _StridedSlice = Module["_StridedSlice"] = function() {
-          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["ab"]).apply(null, arguments);
+          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["StridedSlice"]).apply(null, arguments);
         };
         var _Sub = Module["_Sub"] = function() {
-          return (_Sub = Module["_Sub"] = Module["asm"]["bb"]).apply(null, arguments);
+          return (_Sub = Module["_Sub"] = Module["asm"]["Sub"]).apply(null, arguments);
         };
         var _Sum = Module["_Sum"] = function() {
-          return (_Sum = Module["_Sum"] = Module["asm"]["cb"]).apply(null, arguments);
+          return (_Sum = Module["_Sum"] = Module["asm"]["Sum"]).apply(null, arguments);
         };
         var _Tan = Module["_Tan"] = function() {
-          return (_Tan = Module["_Tan"] = Module["asm"]["db"]).apply(null, arguments);
+          return (_Tan = Module["_Tan"] = Module["asm"]["Tan"]).apply(null, arguments);
         };
         var _Tanh = Module["_Tanh"] = function() {
-          return (_Tanh = Module["_Tanh"] = Module["asm"]["eb"]).apply(null, arguments);
+          return (_Tanh = Module["_Tanh"] = Module["asm"]["Tanh"]).apply(null, arguments);
         };
         var _Tile = Module["_Tile"] = function() {
-          return (_Tile = Module["_Tile"] = Module["asm"]["fb"]).apply(null, arguments);
+          return (_Tile = Module["_Tile"] = Module["asm"]["Tile"]).apply(null, arguments);
         };
         var _TopK = Module["_TopK"] = function() {
-          return (_TopK = Module["_TopK"] = Module["asm"]["gb"]).apply(null, arguments);
+          return (_TopK = Module["_TopK"] = Module["asm"]["TopK"]).apply(null, arguments);
         };
         var _Transform = Module["_Transform"] = function() {
-          return (_Transform = Module["_Transform"] = Module["asm"]["hb"]).apply(null, arguments);
+          return (_Transform = Module["_Transform"] = Module["asm"]["Transform"]).apply(null, arguments);
         };
         var _Transpose = Module["_Transpose"] = function() {
-          return (_Transpose = Module["_Transpose"] = Module["asm"]["ib"]).apply(null, arguments);
+          return (_Transpose = Module["_Transpose"] = Module["asm"]["Transpose"]).apply(null, arguments);
         };
         var __FusedMatMul = Module["__FusedMatMul"] = function() {
-          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["jb"]).apply(null, arguments);
+          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["_FusedMatMul"]).apply(null, arguments);
         };
         var _malloc = Module["_malloc"] = function() {
-          return (_malloc = Module["_malloc"] = Module["asm"]["kb"]).apply(null, arguments);
+          return (_malloc = Module["_malloc"] = Module["asm"]["malloc"]).apply(null, arguments);
         };
         var _free = Module["_free"] = function() {
-          return (_free = Module["_free"] = Module["asm"]["lb"]).apply(null, arguments);
-        };
-        var ___errno_location = Module["___errno_location"] = function() {
-          return (___errno_location = Module["___errno_location"] = Module["asm"]["mb"]).apply(null, arguments);
-        };
-        var _emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = function() {
-          return (_emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = Module["asm"]["ob"]).apply(null, arguments);
-        };
-        var _pthread_self = Module["_pthread_self"] = function() {
-          return (_pthread_self = Module["_pthread_self"] = Module["asm"]["pb"]).apply(null, arguments);
-        };
-        var ___pthread_tsd_run_dtors = Module["___pthread_tsd_run_dtors"] = function() {
-          return (___pthread_tsd_run_dtors = Module["___pthread_tsd_run_dtors"] = Module["asm"]["qb"]).apply(null, arguments);
-        };
-        var _emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = function() {
-          return (_emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = Module["asm"]["rb"]).apply(null, arguments);
-        };
-        var _emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = function() {
-          return (_emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = Module["asm"]["sb"]).apply(null, arguments);
-        };
-        var _emscripten_register_main_browser_thread_id = Module["_emscripten_register_main_browser_thread_id"] = function() {
-          return (_emscripten_register_main_browser_thread_id = Module["_emscripten_register_main_browser_thread_id"] = Module["asm"]["tb"]).apply(null, arguments);
-        };
-        var _emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = function() {
-          return (_emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = Module["asm"]["ub"]).apply(null, arguments);
-        };
-        var __emscripten_do_dispatch_to_thread = Module["__emscripten_do_dispatch_to_thread"] = function() {
-          return (__emscripten_do_dispatch_to_thread = Module["__emscripten_do_dispatch_to_thread"] = Module["asm"]["vb"]).apply(null, arguments);
-        };
-        var _emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = function() {
-          return (_emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = Module["asm"]["wb"]).apply(null, arguments);
-        };
-        var _emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = function() {
-          return (_emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = Module["asm"]["xb"]).apply(null, arguments);
-        };
-        var __emscripten_call_on_thread = Module["__emscripten_call_on_thread"] = function() {
-          return (__emscripten_call_on_thread = Module["__emscripten_call_on_thread"] = Module["asm"]["yb"]).apply(null, arguments);
+          return (_free = Module["_free"] = Module["asm"]["free"]).apply(null, arguments);
         };
         var _emscripten_tls_init = Module["_emscripten_tls_init"] = function() {
-          return (_emscripten_tls_init = Module["_emscripten_tls_init"] = Module["asm"]["zb"]).apply(null, arguments);
+          return (_emscripten_tls_init = Module["_emscripten_tls_init"] = Module["asm"]["emscripten_tls_init"]).apply(null, arguments);
+        };
+        var ___errno_location = Module["___errno_location"] = function() {
+          return (___errno_location = Module["___errno_location"] = Module["asm"]["__errno_location"]).apply(null, arguments);
+        };
+        var _pthread_self = Module["_pthread_self"] = function() {
+          return (_pthread_self = Module["_pthread_self"] = Module["asm"]["pthread_self"]).apply(null, arguments);
+        };
+        var _emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = function() {
+          return (_emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null, arguments);
+        };
+        var __emscripten_thread_crashed = Module["__emscripten_thread_crashed"] = function() {
+          return (__emscripten_thread_crashed = Module["__emscripten_thread_crashed"] = Module["asm"]["_emscripten_thread_crashed"]).apply(null, arguments);
         };
         var __emscripten_thread_init = Module["__emscripten_thread_init"] = function() {
-          return (__emscripten_thread_init = Module["__emscripten_thread_init"] = Module["asm"]["Ab"]).apply(null, arguments);
+          return (__emscripten_thread_init = Module["__emscripten_thread_init"] = Module["asm"]["_emscripten_thread_init"]).apply(null, arguments);
         };
-        var stackSave = Module["stackSave"] = function() {
-          return (stackSave = Module["stackSave"] = Module["asm"]["Bb"]).apply(null, arguments);
+        var _emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = function() {
+          return (_emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = Module["asm"]["emscripten_current_thread_process_queued_calls"]).apply(null, arguments);
         };
-        var stackRestore = Module["stackRestore"] = function() {
-          return (stackRestore = Module["stackRestore"] = Module["asm"]["Cb"]).apply(null, arguments);
+        var _emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = function() {
+          return (_emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = Module["asm"]["emscripten_main_browser_thread_id"]).apply(null, arguments);
         };
-        var stackAlloc = Module["stackAlloc"] = function() {
-          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["Db"]).apply(null, arguments);
+        var _emscripten_sync_run_in_main_thread_2 = Module["_emscripten_sync_run_in_main_thread_2"] = function() {
+          return (_emscripten_sync_run_in_main_thread_2 = Module["_emscripten_sync_run_in_main_thread_2"] = Module["asm"]["emscripten_sync_run_in_main_thread_2"]).apply(null, arguments);
         };
-        var _emscripten_stack_set_limits = Module["_emscripten_stack_set_limits"] = function() {
-          return (_emscripten_stack_set_limits = Module["_emscripten_stack_set_limits"] = Module["asm"]["Eb"]).apply(null, arguments);
+        var _emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = function() {
+          return (_emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = Module["asm"]["emscripten_sync_run_in_main_thread_4"]).apply(null, arguments);
+        };
+        var _emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = function() {
+          return (_emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null, arguments);
+        };
+        var _emscripten_dispatch_to_thread_ = Module["_emscripten_dispatch_to_thread_"] = function() {
+          return (_emscripten_dispatch_to_thread_ = Module["_emscripten_dispatch_to_thread_"] = Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null, arguments);
+        };
+        var __emscripten_thread_free_data = Module["__emscripten_thread_free_data"] = function() {
+          return (__emscripten_thread_free_data = Module["__emscripten_thread_free_data"] = Module["asm"]["_emscripten_thread_free_data"]).apply(null, arguments);
+        };
+        var __emscripten_thread_exit = Module["__emscripten_thread_exit"] = function() {
+          return (__emscripten_thread_exit = Module["__emscripten_thread_exit"] = Module["asm"]["_emscripten_thread_exit"]).apply(null, arguments);
         };
         var _memalign = Module["_memalign"] = function() {
-          return (_memalign = Module["_memalign"] = Module["asm"]["Fb"]).apply(null, arguments);
+          return (_memalign = Module["_memalign"] = Module["asm"]["memalign"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 10208;
-        var __emscripten_main_thread_futex = Module["__emscripten_main_thread_futex"] = 10412;
+        var _emscripten_stack_set_limits = Module["_emscripten_stack_set_limits"] = function() {
+          return (_emscripten_stack_set_limits = Module["_emscripten_stack_set_limits"] = Module["asm"]["emscripten_stack_set_limits"]).apply(null, arguments);
+        };
+        var stackSave = Module["stackSave"] = function() {
+          return (stackSave = Module["stackSave"] = Module["asm"]["stackSave"]).apply(null, arguments);
+        };
+        var stackRestore = Module["stackRestore"] = function() {
+          return (stackRestore = Module["stackRestore"] = Module["asm"]["stackRestore"]).apply(null, arguments);
+        };
+        var stackAlloc = Module["stackAlloc"] = function() {
+          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["stackAlloc"]).apply(null, arguments);
+        };
+        var dynCall_iijjiiii = Module["dynCall_iijjiiii"] = function() {
+          return (dynCall_iijjiiii = Module["dynCall_iijjiiii"] = Module["asm"]["dynCall_iijjiiii"]).apply(null, arguments);
+        };
+        var dynCall_jiji = Module["dynCall_jiji"] = function() {
+          return (dynCall_jiji = Module["dynCall_jiji"] = Module["asm"]["dynCall_jiji"]).apply(null, arguments);
+        };
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21408;
         Module["cwrap"] = cwrap;
+        Module["keepRuntimeAlive"] = keepRuntimeAlive;
         Module["PThread"] = PThread;
         Module["PThread"] = PThread;
         Module["wasmMemory"] = wasmMemory;
@@ -3802,7 +3485,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             if (ABORT)
               return;
             initRuntime();
-            preMain();
             readyPromiseResolve(Module);
             if (Module["onRuntimeInitialized"])
               Module["onRuntimeInitialized"]();
@@ -3822,26 +3504,29 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         Module["run"] = run;
         function exit(status, implicit) {
-          if (implicit && noExitRuntime && status === 0) {
-            return;
-          }
+          EXITSTATUS = status;
           if (!implicit) {
             if (ENVIRONMENT_IS_PTHREAD) {
-              postMessage({ "cmd": "exitProcess", "returnCode": status });
-              throw new ExitStatus(status);
+              exitOnMainThread(status);
+              throw "unwind";
             } else {
             }
           }
-          if (noExitRuntime) {
+          if (keepRuntimeAlive()) {
           } else {
-            PThread.terminateAllThreads();
-            EXITSTATUS = status;
             exitRuntime();
+          }
+          procExit(status);
+        }
+        function procExit(code) {
+          EXITSTATUS = code;
+          if (!keepRuntimeAlive()) {
+            PThread.terminateAllThreads();
             if (Module["onExit"])
-              Module["onExit"](status);
+              Module["onExit"](code);
             ABORT = true;
           }
-          quit_(status, new ExitStatus(status));
+          quit_(code, new ExitStatus(code));
         }
         if (Module["preInit"]) {
           if (typeof Module["preInit"] == "function")
@@ -3849,10 +3534,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           while (Module["preInit"].length > 0) {
             Module["preInit"].pop()();
           }
-        }
-        if (ENVIRONMENT_IS_PTHREAD) {
-          noExitRuntime = false;
-          PThread.initWorker();
         }
         run();
         var listenersAdded;
@@ -3885,7 +3566,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         return WasmBackendModuleThreadedSimd3.ready;
       };
-    }();
+    })();
     if (typeof exports === "object" && typeof module === "object")
       module.exports = WasmBackendModuleThreadedSimd2;
     else if (typeof define === "function" && define["amd"])
@@ -3900,7 +3581,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.js
 var require_tfjs_backend_wasm = __commonJS({
   "src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.js"(exports, module) {
-    var WasmBackendModule2 = function() {
+    var WasmBackendModule2 = (() => {
       var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : void 0;
       if (typeof __filename !== "undefined")
         _scriptDir = _scriptDir || __filename;
@@ -3916,26 +3597,15 @@ var require_tfjs_backend_wasm = __commonJS({
         if (typeof process !== "undefined" && process.listeners) {
           beforeListeners = { uncaughtException: process.listeners("uncaughtException"), unhandledRejection: process.listeners("unhandledRejection") };
         }
-        var moduleOverrides = {};
-        var key;
-        for (key in Module) {
-          if (Module.hasOwnProperty(key)) {
-            moduleOverrides[key] = Module[key];
-          }
-        }
+        var moduleOverrides = Object.assign({}, Module);
         var arguments_ = [];
         var thisProgram = "./this.program";
-        var quit_ = function(status, toThrow) {
+        var quit_ = (status, toThrow) => {
           throw toThrow;
         };
-        var ENVIRONMENT_IS_WEB = false;
-        var ENVIRONMENT_IS_WORKER = false;
-        var ENVIRONMENT_IS_NODE = false;
-        var ENVIRONMENT_IS_SHELL = false;
-        ENVIRONMENT_IS_WEB = typeof window === "object";
-        ENVIRONMENT_IS_WORKER = typeof importScripts === "function";
-        ENVIRONMENT_IS_NODE = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
-        ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
+        var ENVIRONMENT_IS_WEB = typeof window === "object";
+        var ENVIRONMENT_IS_WORKER = typeof importScripts === "function";
+        var ENVIRONMENT_IS_NODE = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
         var scriptDirectory = "";
         function locateFile(path) {
           if (Module["locateFile"]) {
@@ -3944,29 +3614,48 @@ var require_tfjs_backend_wasm = __commonJS({
           return scriptDirectory + path;
         }
         var read_, readAsync, readBinary, setWindowTitle;
-        var nodeFS;
+        function logExceptionOnExit(e) {
+          if (e instanceof ExitStatus)
+            return;
+          let toLog = e;
+          err("exiting due to exception: " + toLog);
+        }
+        var fs;
         var nodePath;
+        var requireNodeFS;
         if (ENVIRONMENT_IS_NODE) {
           if (ENVIRONMENT_IS_WORKER) {
             scriptDirectory = require_path().dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
-          read_ = function shell_read(filename, binary) {
-            if (!nodeFS)
-              nodeFS = require_fs();
-            if (!nodePath)
+          requireNodeFS = () => {
+            if (!nodePath) {
+              fs = require_fs();
               nodePath = require_path();
-            filename = nodePath["normalize"](filename);
-            return nodeFS["readFileSync"](filename, binary ? null : "utf8");
+            }
           };
-          readBinary = function readBinary2(filename) {
+          read_ = function shell_read(filename, binary) {
+            requireNodeFS();
+            filename = nodePath["normalize"](filename);
+            return fs.readFileSync(filename, binary ? void 0 : "utf8");
+          };
+          readBinary = (filename) => {
             var ret = read_(filename, true);
             if (!ret.buffer) {
               ret = new Uint8Array(ret);
             }
-            assert3(ret.buffer);
             return ret;
+          };
+          readAsync = (filename, onload, onerror) => {
+            requireNodeFS();
+            filename = nodePath["normalize"](filename);
+            fs.readFile(filename, function(err2, data) {
+              if (err2)
+                onerror(err2);
+              else
+                onload(data.buffer);
+            });
           };
           if (process["argv"].length > 1) {
             thisProgram = process["argv"][1].replace(/\\/g, "/");
@@ -3977,44 +3666,20 @@ var require_tfjs_backend_wasm = __commonJS({
               throw ex;
             }
           });
-          process["on"]("unhandledRejection", abort);
-          quit_ = function(status) {
+          process["on"]("unhandledRejection", function(reason) {
+            throw reason;
+          });
+          quit_ = (status, toThrow) => {
+            if (keepRuntimeAlive()) {
+              process["exitCode"] = status;
+              throw toThrow;
+            }
+            logExceptionOnExit(toThrow);
             process["exit"](status);
           };
           Module["inspect"] = function() {
             return "[Emscripten Module object]";
           };
-        } else if (ENVIRONMENT_IS_SHELL) {
-          if (typeof read != "undefined") {
-            read_ = function shell_read(f) {
-              return read(f);
-            };
-          }
-          readBinary = function readBinary2(f) {
-            var data;
-            if (typeof readbuffer === "function") {
-              return new Uint8Array(readbuffer(f));
-            }
-            data = read(f, "binary");
-            assert3(typeof data === "object");
-            return data;
-          };
-          if (typeof scriptArgs != "undefined") {
-            arguments_ = scriptArgs;
-          } else if (typeof arguments != "undefined") {
-            arguments_ = arguments;
-          }
-          if (typeof quit === "function") {
-            quit_ = function(status) {
-              quit(status);
-            };
-          }
-          if (typeof print !== "undefined") {
-            if (typeof console === "undefined")
-              console = {};
-            console.log = print;
-            console.warn = console.error = typeof printErr !== "undefined" ? printErr : print;
-          }
         } else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
           if (ENVIRONMENT_IS_WORKER) {
             scriptDirectory = self.location.href;
@@ -4025,19 +3690,19 @@ var require_tfjs_backend_wasm = __commonJS({
             scriptDirectory = _scriptDir;
           }
           if (scriptDirectory.indexOf("blob:") !== 0) {
-            scriptDirectory = scriptDirectory.substr(0, scriptDirectory.lastIndexOf("/") + 1);
+            scriptDirectory = scriptDirectory.substr(0, scriptDirectory.replace(/[?#].*/, "").lastIndexOf("/") + 1);
           } else {
             scriptDirectory = "";
           }
           {
-            read_ = function(url) {
+            read_ = (url) => {
               var xhr = new XMLHttpRequest();
               xhr.open("GET", url, false);
               xhr.send(null);
               return xhr.responseText;
             };
             if (ENVIRONMENT_IS_WORKER) {
-              readBinary = function(url) {
+              readBinary = (url) => {
                 var xhr = new XMLHttpRequest();
                 xhr.open("GET", url, false);
                 xhr.responseType = "arraybuffer";
@@ -4045,11 +3710,11 @@ var require_tfjs_backend_wasm = __commonJS({
                 return new Uint8Array(xhr.response);
               };
             }
-            readAsync = function(url, onload, onerror) {
+            readAsync = (url, onload, onerror) => {
               var xhr = new XMLHttpRequest();
               xhr.open("GET", url, true);
               xhr.responseType = "arraybuffer";
-              xhr.onload = function() {
+              xhr.onload = () => {
                 if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
                   onload(xhr.response);
                   return;
@@ -4060,18 +3725,12 @@ var require_tfjs_backend_wasm = __commonJS({
               xhr.send(null);
             };
           }
-          setWindowTitle = function(title) {
-            document.title = title;
-          };
+          setWindowTitle = (title) => document.title = title;
         } else {
         }
         var out = Module["print"] || console.log.bind(console);
         var err = Module["printErr"] || console.warn.bind(console);
-        for (key in moduleOverrides) {
-          if (moduleOverrides.hasOwnProperty(key)) {
-            Module[key] = moduleOverrides[key];
-          }
-        }
+        Object.assign(Module, moduleOverrides);
         moduleOverrides = null;
         if (Module["arguments"])
           arguments_ = Module["arguments"];
@@ -4079,6 +3738,72 @@ var require_tfjs_backend_wasm = __commonJS({
           thisProgram = Module["thisProgram"];
         if (Module["quit"])
           quit_ = Module["quit"];
+        var POINTER_SIZE = 4;
+        function warnOnce(text) {
+          if (!warnOnce.shown)
+            warnOnce.shown = {};
+          if (!warnOnce.shown[text]) {
+            warnOnce.shown[text] = 1;
+            err(text);
+          }
+        }
+        function convertJsFunctionToWasm(func2, sig) {
+          if (typeof WebAssembly.Function === "function") {
+            var typeNames = { "i": "i32", "j": "i64", "f": "f32", "d": "f64" };
+            var type = { parameters: [], results: sig[0] == "v" ? [] : [typeNames[sig[0]]] };
+            for (var i = 1; i < sig.length; ++i) {
+              type.parameters.push(typeNames[sig[i]]);
+            }
+            return new WebAssembly.Function(type, func2);
+          }
+          var typeSection = [1, 0, 1, 96];
+          var sigRet = sig.slice(0, 1);
+          var sigParam = sig.slice(1);
+          var typeCodes = { "i": 127, "j": 126, "f": 125, "d": 124 };
+          typeSection.push(sigParam.length);
+          for (var i = 0; i < sigParam.length; ++i) {
+            typeSection.push(typeCodes[sigParam[i]]);
+          }
+          if (sigRet == "v") {
+            typeSection.push(0);
+          } else {
+            typeSection = typeSection.concat([1, typeCodes[sigRet]]);
+          }
+          typeSection[1] = typeSection.length - 2;
+          var bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0].concat(typeSection, [2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0]));
+          var module2 = new WebAssembly.Module(bytes);
+          var instance = new WebAssembly.Instance(module2, { "e": { "f": func2 } });
+          var wrappedFunc = instance.exports["f"];
+          return wrappedFunc;
+        }
+        var freeTableIndexes = [];
+        var functionsInTableMap;
+        function getEmptyTableSlot() {
+          if (freeTableIndexes.length) {
+            return freeTableIndexes.pop();
+          }
+          try {
+            wasmTable.grow(1);
+          } catch (err2) {
+            if (!(err2 instanceof RangeError)) {
+              throw err2;
+            }
+            throw "Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.";
+          }
+          return wasmTable.length - 1;
+        }
+        function updateTableMap(offset, count2) {
+          for (var i = offset; i < offset + count2; i++) {
+            var item = getWasmTableEntry(i);
+            if (item) {
+              functionsInTableMap.set(item, i);
+            }
+          }
+        }
+        var tempRet0 = 0;
+        var setTempRet0 = (value) => {
+          tempRet0 = value;
+        };
         var wasmBinary;
         if (Module["wasmBinary"])
           wasmBinary = Module["wasmBinary"];
@@ -4091,12 +3816,11 @@ var require_tfjs_backend_wasm = __commonJS({
         var EXITSTATUS;
         function assert3(condition, text) {
           if (!condition) {
-            abort("Assertion failed: " + text);
+            abort(text);
           }
         }
         function getCFunc(ident) {
           var func2 = Module["_" + ident];
-          assert3(func2, "Cannot call unknown function " + ident + ", make sure it is exported");
           return func2;
         }
         function ccall(ident, returnType, argTypes, args, opts) {
@@ -4136,9 +3860,12 @@ var require_tfjs_backend_wasm = __commonJS({
             }
           }
           var ret = func2.apply(null, cArgs);
-          ret = convertReturnValue(ret);
-          if (stack2 !== 0)
-            stackRestore(stack2);
+          function onDone(ret2) {
+            if (stack2 !== 0)
+              stackRestore(stack2);
+            return convertReturnValue(ret2);
+          }
+          ret = onDone(ret);
           return ret;
         }
         function cwrap(ident, returnType, argTypes, opts) {
@@ -4154,6 +3881,7 @@ var require_tfjs_backend_wasm = __commonJS({
             return ccall(ident, returnType, argTypes, arguments, opts);
           };
         }
+        var ALLOC_STACK = 1;
         var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf8") : void 0;
         function UTF8ArrayToString(heap, idx, maxBytesToRead) {
           var endIdx = idx + maxBytesToRead;
@@ -4235,8 +3963,33 @@ var require_tfjs_backend_wasm = __commonJS({
         function stringToUTF8(str, outPtr, maxBytesToWrite) {
           return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
         }
+        function lengthBytesUTF8(str) {
+          var len = 0;
+          for (var i = 0; i < str.length; ++i) {
+            var u = str.charCodeAt(i);
+            if (u >= 55296 && u <= 57343)
+              u = 65536 + ((u & 1023) << 10) | str.charCodeAt(++i) & 1023;
+            if (u <= 127)
+              ++len;
+            else if (u <= 2047)
+              len += 2;
+            else if (u <= 65535)
+              len += 3;
+            else
+              len += 4;
+          }
+          return len;
+        }
+        var UTF16Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-16le") : void 0;
         function writeArrayToMemory(array2, buffer3) {
           HEAP8.set(array2, buffer3);
+        }
+        function writeAsciiToMemory(str, buffer3, dontAddNull) {
+          for (var i = 0; i < str.length; ++i) {
+            HEAP8[buffer3++ >> 0] = str.charCodeAt(i);
+          }
+          if (!dontAddNull)
+            HEAP8[buffer3 >> 0] = 0;
         }
         function alignUp(x, multiple) {
           if (x % multiple > 0) {
@@ -4260,12 +4013,13 @@ var require_tfjs_backend_wasm = __commonJS({
         var wasmTable;
         var __ATPRERUN__ = [];
         var __ATINIT__ = [];
-        var __ATMAIN__ = [];
         var __ATPOSTRUN__ = [];
         var runtimeInitialized = false;
-        __ATINIT__.push({ func: function() {
-          ___wasm_call_ctors();
-        } });
+        var runtimeExited = false;
+        var runtimeKeepaliveCounter = 0;
+        function keepRuntimeAlive() {
+          return noExitRuntime || runtimeKeepaliveCounter > 0;
+        }
         function preRun() {
           if (Module["preRun"]) {
             if (typeof Module["preRun"] == "function")
@@ -4280,8 +4034,8 @@ var require_tfjs_backend_wasm = __commonJS({
           runtimeInitialized = true;
           callRuntimeCallbacks(__ATINIT__);
         }
-        function preMain() {
-          callRuntimeCallbacks(__ATMAIN__);
+        function exitRuntime() {
+          runtimeExited = true;
         }
         function postRun() {
           if (Module["postRun"]) {
@@ -4295,6 +4049,9 @@ var require_tfjs_backend_wasm = __commonJS({
         }
         function addOnPreRun(cb) {
           __ATPRERUN__.unshift(cb);
+        }
+        function addOnInit(cb) {
+          __ATINIT__.unshift(cb);
         }
         function addOnPostRun(cb) {
           __ATPOSTRUN__.unshift(cb);
@@ -4328,30 +4085,29 @@ var require_tfjs_backend_wasm = __commonJS({
         Module["preloadedImages"] = {};
         Module["preloadedAudios"] = {};
         function abort(what) {
-          if (Module["onAbort"]) {
-            Module["onAbort"](what);
+          {
+            if (Module["onAbort"]) {
+              Module["onAbort"](what);
+            }
           }
-          what += "";
+          what = "Aborted(" + what + ")";
           err(what);
           ABORT = true;
           EXITSTATUS = 1;
-          what = "abort(" + what + "). Build with -s ASSERTIONS=1 for more info.";
+          what += ". Build with -s ASSERTIONS=1 for more info.";
           var e = new WebAssembly.RuntimeError(what);
           readyPromiseReject(e);
           throw e;
         }
-        function hasPrefix(str, prefix) {
-          return String.prototype.startsWith ? str.startsWith(prefix) : str.indexOf(prefix) === 0;
-        }
         var dataURIPrefix = "data:application/octet-stream;base64,";
         function isDataURI(filename) {
-          return hasPrefix(filename, dataURIPrefix);
+          return filename.startsWith(dataURIPrefix);
         }
-        var fileURIPrefix = "file://";
         function isFileURI(filename) {
-          return hasPrefix(filename, fileURIPrefix);
+          return filename.startsWith("file://");
         }
-        var wasmBinaryFile = "tfjs-backend-wasm.wasm";
+        var wasmBinaryFile;
+        wasmBinaryFile = "tfjs-backend-wasm.wasm";
         if (!isDataURI(wasmBinaryFile)) {
           wasmBinaryFile = locateFile(wasmBinaryFile);
         }
@@ -4395,22 +4151,25 @@ var require_tfjs_backend_wasm = __commonJS({
           });
         }
         function createWasm() {
-          var info = { "a": asmLibraryArg };
+          var info = { "env": asmLibraryArg, "wasi_snapshot_preview1": asmLibraryArg };
           function receiveInstance(instance, module2) {
             var exports3 = instance.exports;
             Module["asm"] = exports3;
-            wasmMemory = Module["asm"]["h"];
+            wasmMemory = Module["asm"]["memory"];
             updateGlobalBufferAndViews(wasmMemory.buffer);
-            wasmTable = Module["asm"]["Va"];
+            wasmTable = Module["asm"]["__indirect_function_table"];
+            addOnInit(Module["asm"]["__wasm_call_ctors"]);
             removeRunDependency("wasm-instantiate");
           }
           addRunDependency("wasm-instantiate");
-          function receiveInstantiatedSource(output) {
-            receiveInstance(output["instance"]);
+          function receiveInstantiationResult(result) {
+            receiveInstance(result["instance"]);
           }
           function instantiateArrayBuffer(receiver) {
             return getBinaryPromise().then(function(binary) {
               return WebAssembly.instantiate(binary, info);
+            }).then(function(instance) {
+              return instance;
             }).then(receiver, function(reason) {
               err("failed to asynchronously prepare wasm: " + reason);
               abort(reason);
@@ -4420,14 +4179,14 @@ var require_tfjs_backend_wasm = __commonJS({
             if (!wasmBinary && typeof WebAssembly.instantiateStreaming === "function" && !isDataURI(wasmBinaryFile) && !isFileURI(wasmBinaryFile) && typeof fetch === "function") {
               return fetch(wasmBinaryFile, { credentials: "same-origin" }).then(function(response) {
                 var result = WebAssembly.instantiateStreaming(response, info);
-                return result.then(receiveInstantiatedSource, function(reason) {
+                return result.then(receiveInstantiationResult, function(reason) {
                   err("wasm streaming compile failed: " + reason);
                   err("falling back to ArrayBuffer instantiation");
-                  return instantiateArrayBuffer(receiveInstantiatedSource);
+                  return instantiateArrayBuffer(receiveInstantiationResult);
                 });
               });
             } else {
-              return instantiateArrayBuffer(receiveInstantiatedSource);
+              return instantiateArrayBuffer(receiveInstantiationResult);
             }
           }
           if (Module["instantiateWasm"]) {
@@ -4442,6 +4201,8 @@ var require_tfjs_backend_wasm = __commonJS({
           instantiateAsync().catch(readyPromiseReject);
           return {};
         }
+        var tempDouble;
+        var tempI64;
         function callRuntimeCallbacks(callbacks2) {
           while (callbacks2.length > 0) {
             var callback = callbacks2.shift();
@@ -4452,23 +4213,61 @@ var require_tfjs_backend_wasm = __commonJS({
             var func2 = callback.func;
             if (typeof func2 === "number") {
               if (callback.arg === void 0) {
-                wasmTable.get(func2)();
+                getWasmTableEntry(func2)();
               } else {
-                wasmTable.get(func2)(callback.arg);
+                getWasmTableEntry(func2)(callback.arg);
               }
             } else {
               func2(callback.arg === void 0 ? null : callback.arg);
             }
           }
         }
+        function demangle(func2) {
+          return func2;
+        }
+        function demangleAll(text) {
+          var regex = /\b_Z[\w\d_]+/g;
+          return text.replace(regex, function(x) {
+            var y = demangle(x);
+            return x === y ? x : y + " [" + x + "]";
+          });
+        }
+        var wasmTableMirror = [];
+        function getWasmTableEntry(funcPtr) {
+          var func2 = wasmTableMirror[funcPtr];
+          if (!func2) {
+            if (funcPtr >= wasmTableMirror.length)
+              wasmTableMirror.length = funcPtr + 1;
+            wasmTableMirror[funcPtr] = func2 = wasmTable.get(funcPtr);
+          }
+          return func2;
+        }
+        function jsStackTrace() {
+          var error = new Error();
+          if (!error.stack) {
+            try {
+              throw new Error();
+            } catch (e) {
+              error = e;
+            }
+            if (!error.stack) {
+              return "(no stack trace available)";
+            }
+          }
+          return error.stack.toString();
+        }
+        function setWasmTableEntry(idx, func2) {
+          wasmTable.set(idx, func2);
+          wasmTableMirror[idx] = func2;
+        }
         function _abort() {
-          abort();
+          abort("");
         }
         function _emscripten_memcpy_big(dest, src, num) {
           HEAPU8.copyWithin(dest, src, src + num);
         }
-        function _emscripten_get_heap_size() {
-          return HEAPU8.length;
+        function _emscripten_get_heap_max() {
+          return 2147483648;
         }
         function emscripten_realloc_buffer(size) {
           try {
@@ -4479,8 +4278,9 @@ var require_tfjs_backend_wasm = __commonJS({
           }
         }
         function _emscripten_resize_heap(requestedSize) {
-          var oldSize = _emscripten_get_heap_size();
-          var maxHeapSize = 2147483648;
+          var oldSize = HEAPU8.length;
+          requestedSize = requestedSize >>> 0;
+          var maxHeapSize = _emscripten_get_heap_max();
           if (requestedSize > maxHeapSize) {
             return false;
           }
@@ -4521,8 +4321,9 @@ var require_tfjs_backend_wasm = __commonJS({
         function _fd_write(fd, iov, iovcnt, pnum) {
           var num = 0;
           for (var i = 0; i < iovcnt; i++) {
-            var ptr = HEAP32[iov + i * 8 >> 2];
-            var len = HEAP32[iov + (i * 8 + 4) >> 2];
+            var ptr = HEAP32[iov >> 2];
+            var len = HEAP32[iov + 4 >> 2];
+            iov += 8;
             for (var j = 0; j < len; j++) {
               SYSCALLS.printChar(fd, HEAPU8[ptr + j]);
             }
@@ -4531,298 +4332,311 @@ var require_tfjs_backend_wasm = __commonJS({
           HEAP32[pnum >> 2] = num;
           return 0;
         }
-        function _pthread_join() {
-          return 28;
+        function _setTempRet0(val) {
+          setTempRet0(val);
         }
-        var asmLibraryArg = { "a": _abort, "d": _emscripten_memcpy_big, "e": _emscripten_resize_heap, "f": _fd_close, "c": _fd_seek, "b": _fd_write, "g": _pthread_join };
+        var ASSERTIONS = false;
+        var asmLibraryArg = { "abort": _abort, "emscripten_memcpy_big": _emscripten_memcpy_big, "emscripten_resize_heap": _emscripten_resize_heap, "fd_close": _fd_close, "fd_seek": _fd_seek, "fd_write": _fd_write, "setTempRet0": _setTempRet0 };
         var asm = createWasm();
         var ___wasm_call_ctors = Module["___wasm_call_ctors"] = function() {
-          return (___wasm_call_ctors = Module["___wasm_call_ctors"] = Module["asm"]["i"]).apply(null, arguments);
+          return (___wasm_call_ctors = Module["___wasm_call_ctors"] = Module["asm"]["__wasm_call_ctors"]).apply(null, arguments);
         };
         var _init = Module["_init"] = function() {
-          return (_init = Module["_init"] = Module["asm"]["j"]).apply(null, arguments);
+          return (_init = Module["_init"] = Module["asm"]["init"]).apply(null, arguments);
         };
         var _init_with_threads_count = Module["_init_with_threads_count"] = function() {
-          return (_init_with_threads_count = Module["_init_with_threads_count"] = Module["asm"]["k"]).apply(null, arguments);
+          return (_init_with_threads_count = Module["_init_with_threads_count"] = Module["asm"]["init_with_threads_count"]).apply(null, arguments);
         };
         var _get_threads_count = Module["_get_threads_count"] = function() {
-          return (_get_threads_count = Module["_get_threads_count"] = Module["asm"]["l"]).apply(null, arguments);
+          return (_get_threads_count = Module["_get_threads_count"] = Module["asm"]["get_threads_count"]).apply(null, arguments);
         };
         var _register_tensor = Module["_register_tensor"] = function() {
-          return (_register_tensor = Module["_register_tensor"] = Module["asm"]["m"]).apply(null, arguments);
+          return (_register_tensor = Module["_register_tensor"] = Module["asm"]["register_tensor"]).apply(null, arguments);
         };
         var _dispose_data = Module["_dispose_data"] = function() {
-          return (_dispose_data = Module["_dispose_data"] = Module["asm"]["n"]).apply(null, arguments);
+          return (_dispose_data = Module["_dispose_data"] = Module["asm"]["dispose_data"]).apply(null, arguments);
         };
         var _dispose = Module["_dispose"] = function() {
-          return (_dispose = Module["_dispose"] = Module["asm"]["o"]).apply(null, arguments);
+          return (_dispose = Module["_dispose"] = Module["asm"]["dispose"]).apply(null, arguments);
         };
         var _Abs = Module["_Abs"] = function() {
-          return (_Abs = Module["_Abs"] = Module["asm"]["p"]).apply(null, arguments);
+          return (_Abs = Module["_Abs"] = Module["asm"]["Abs"]).apply(null, arguments);
         };
         var _Add = Module["_Add"] = function() {
-          return (_Add = Module["_Add"] = Module["asm"]["q"]).apply(null, arguments);
+          return (_Add = Module["_Add"] = Module["asm"]["Add"]).apply(null, arguments);
         };
         var _AddN = Module["_AddN"] = function() {
-          return (_AddN = Module["_AddN"] = Module["asm"]["r"]).apply(null, arguments);
+          return (_AddN = Module["_AddN"] = Module["asm"]["AddN"]).apply(null, arguments);
         };
         var _All = Module["_All"] = function() {
-          return (_All = Module["_All"] = Module["asm"]["s"]).apply(null, arguments);
+          return (_All = Module["_All"] = Module["asm"]["All"]).apply(null, arguments);
         };
         var _Any = Module["_Any"] = function() {
-          return (_Any = Module["_Any"] = Module["asm"]["t"]).apply(null, arguments);
+          return (_Any = Module["_Any"] = Module["asm"]["Any"]).apply(null, arguments);
         };
         var _ArgMax = Module["_ArgMax"] = function() {
-          return (_ArgMax = Module["_ArgMax"] = Module["asm"]["u"]).apply(null, arguments);
+          return (_ArgMax = Module["_ArgMax"] = Module["asm"]["ArgMax"]).apply(null, arguments);
         };
         var _AvgPool = Module["_AvgPool"] = function() {
-          return (_AvgPool = Module["_AvgPool"] = Module["asm"]["v"]).apply(null, arguments);
+          return (_AvgPool = Module["_AvgPool"] = Module["asm"]["AvgPool"]).apply(null, arguments);
         };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
-          return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["w"]).apply(null, arguments);
+          return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
-          return (_Ceil = Module["_Ceil"] = Module["asm"]["x"]).apply(null, arguments);
+          return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
         };
         var _ClipByValue = Module["_ClipByValue"] = function() {
-          return (_ClipByValue = Module["_ClipByValue"] = Module["asm"]["y"]).apply(null, arguments);
+          return (_ClipByValue = Module["_ClipByValue"] = Module["asm"]["ClipByValue"]).apply(null, arguments);
         };
         var _Conv2D2 = Module["_Conv2D"] = function() {
-          return (_Conv2D2 = Module["_Conv2D"] = Module["asm"]["z"]).apply(null, arguments);
+          return (_Conv2D2 = Module["_Conv2D"] = Module["asm"]["Conv2D"]).apply(null, arguments);
         };
         var _Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = function() {
-          return (_Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = Module["asm"]["A"]).apply(null, arguments);
+          return (_Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = Module["asm"]["Conv2DBackpropInput"]).apply(null, arguments);
         };
         var _Cos = Module["_Cos"] = function() {
-          return (_Cos = Module["_Cos"] = Module["asm"]["B"]).apply(null, arguments);
+          return (_Cos = Module["_Cos"] = Module["asm"]["Cos"]).apply(null, arguments);
         };
         var _Cosh = Module["_Cosh"] = function() {
-          return (_Cosh = Module["_Cosh"] = Module["asm"]["C"]).apply(null, arguments);
+          return (_Cosh = Module["_Cosh"] = Module["asm"]["Cosh"]).apply(null, arguments);
         };
         var _CropAndResize = Module["_CropAndResize"] = function() {
-          return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["D"]).apply(null, arguments);
+          return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["CropAndResize"]).apply(null, arguments);
         };
         var _Cumsum = Module["_Cumsum"] = function() {
-          return (_Cumsum = Module["_Cumsum"] = Module["asm"]["E"]).apply(null, arguments);
+          return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
         };
         var _DepthToSpace = Module["_DepthToSpace"] = function() {
-          return (_DepthToSpace = Module["_DepthToSpace"] = Module["asm"]["F"]).apply(null, arguments);
+          return (_DepthToSpace = Module["_DepthToSpace"] = Module["asm"]["DepthToSpace"]).apply(null, arguments);
         };
         var _DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = function() {
-          return (_DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = Module["asm"]["G"]).apply(null, arguments);
+          return (_DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = Module["asm"]["DepthwiseConv2dNative"]).apply(null, arguments);
         };
         var _Elu = Module["_Elu"] = function() {
-          return (_Elu = Module["_Elu"] = Module["asm"]["H"]).apply(null, arguments);
+          return (_Elu = Module["_Elu"] = Module["asm"]["Elu"]).apply(null, arguments);
         };
         var _Equal = Module["_Equal"] = function() {
-          return (_Equal = Module["_Equal"] = Module["asm"]["I"]).apply(null, arguments);
+          return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
-          return (_Exp = Module["_Exp"] = Module["asm"]["J"]).apply(null, arguments);
+          return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
         };
         var _FlipLeftRight = Module["_FlipLeftRight"] = function() {
-          return (_FlipLeftRight = Module["_FlipLeftRight"] = Module["asm"]["K"]).apply(null, arguments);
+          return (_FlipLeftRight = Module["_FlipLeftRight"] = Module["asm"]["FlipLeftRight"]).apply(null, arguments);
         };
         var _Floor = Module["_Floor"] = function() {
-          return (_Floor = Module["_Floor"] = Module["asm"]["L"]).apply(null, arguments);
+          return (_Floor = Module["_Floor"] = Module["asm"]["Floor"]).apply(null, arguments);
         };
         var _FloorDiv = Module["_FloorDiv"] = function() {
-          return (_FloorDiv = Module["_FloorDiv"] = Module["asm"]["M"]).apply(null, arguments);
+          return (_FloorDiv = Module["_FloorDiv"] = Module["asm"]["FloorDiv"]).apply(null, arguments);
         };
         var _FusedBatchNorm = Module["_FusedBatchNorm"] = function() {
-          return (_FusedBatchNorm = Module["_FusedBatchNorm"] = Module["asm"]["N"]).apply(null, arguments);
+          return (_FusedBatchNorm = Module["_FusedBatchNorm"] = Module["asm"]["FusedBatchNorm"]).apply(null, arguments);
         };
         var _FusedConv2D = Module["_FusedConv2D"] = function() {
-          return (_FusedConv2D = Module["_FusedConv2D"] = Module["asm"]["O"]).apply(null, arguments);
+          return (_FusedConv2D = Module["_FusedConv2D"] = Module["asm"]["FusedConv2D"]).apply(null, arguments);
         };
         var _FusedDepthwiseConv2D = Module["_FusedDepthwiseConv2D"] = function() {
-          return (_FusedDepthwiseConv2D = Module["_FusedDepthwiseConv2D"] = Module["asm"]["P"]).apply(null, arguments);
+          return (_FusedDepthwiseConv2D = Module["_FusedDepthwiseConv2D"] = Module["asm"]["FusedDepthwiseConv2D"]).apply(null, arguments);
         };
         var _Gather = Module["_Gather"] = function() {
-          return (_Gather = Module["_Gather"] = Module["asm"]["Q"]).apply(null, arguments);
+          return (_Gather = Module["_Gather"] = Module["asm"]["Gather"]).apply(null, arguments);
         };
         var _GatherNd = Module["_GatherNd"] = function() {
-          return (_GatherNd = Module["_GatherNd"] = Module["asm"]["R"]).apply(null, arguments);
+          return (_GatherNd = Module["_GatherNd"] = Module["asm"]["GatherNd"]).apply(null, arguments);
         };
         var _Greater = Module["_Greater"] = function() {
-          return (_Greater = Module["_Greater"] = Module["asm"]["S"]).apply(null, arguments);
+          return (_Greater = Module["_Greater"] = Module["asm"]["Greater"]).apply(null, arguments);
         };
         var _GreaterEqual = Module["_GreaterEqual"] = function() {
-          return (_GreaterEqual = Module["_GreaterEqual"] = Module["asm"]["T"]).apply(null, arguments);
+          return (_GreaterEqual = Module["_GreaterEqual"] = Module["asm"]["GreaterEqual"]).apply(null, arguments);
         };
         var _LeakyRelu = Module["_LeakyRelu"] = function() {
-          return (_LeakyRelu = Module["_LeakyRelu"] = Module["asm"]["U"]).apply(null, arguments);
+          return (_LeakyRelu = Module["_LeakyRelu"] = Module["asm"]["LeakyRelu"]).apply(null, arguments);
         };
         var _Less = Module["_Less"] = function() {
-          return (_Less = Module["_Less"] = Module["asm"]["V"]).apply(null, arguments);
+          return (_Less = Module["_Less"] = Module["asm"]["Less"]).apply(null, arguments);
         };
         var _LessEqual = Module["_LessEqual"] = function() {
-          return (_LessEqual = Module["_LessEqual"] = Module["asm"]["W"]).apply(null, arguments);
+          return (_LessEqual = Module["_LessEqual"] = Module["asm"]["LessEqual"]).apply(null, arguments);
         };
         var _Log = Module["_Log"] = function() {
-          return (_Log = Module["_Log"] = Module["asm"]["X"]).apply(null, arguments);
+          return (_Log = Module["_Log"] = Module["asm"]["Log"]).apply(null, arguments);
         };
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
-          return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["Y"]).apply(null, arguments);
+          return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
         };
         var _Max = Module["_Max"] = function() {
-          return (_Max = Module["_Max"] = Module["asm"]["Z"]).apply(null, arguments);
+          return (_Max = Module["_Max"] = Module["asm"]["Max"]).apply(null, arguments);
         };
         var _MaxPool = Module["_MaxPool"] = function() {
-          return (_MaxPool = Module["_MaxPool"] = Module["asm"]["_"]).apply(null, arguments);
+          return (_MaxPool = Module["_MaxPool"] = Module["asm"]["MaxPool"]).apply(null, arguments);
         };
         var _Maximum = Module["_Maximum"] = function() {
-          return (_Maximum = Module["_Maximum"] = Module["asm"]["$"]).apply(null, arguments);
+          return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
         var _Mean = Module["_Mean"] = function() {
-          return (_Mean = Module["_Mean"] = Module["asm"]["aa"]).apply(null, arguments);
+          return (_Mean = Module["_Mean"] = Module["asm"]["Mean"]).apply(null, arguments);
         };
         var _Min = Module["_Min"] = function() {
-          return (_Min = Module["_Min"] = Module["asm"]["ba"]).apply(null, arguments);
+          return (_Min = Module["_Min"] = Module["asm"]["Min"]).apply(null, arguments);
         };
         var _Minimum = Module["_Minimum"] = function() {
-          return (_Minimum = Module["_Minimum"] = Module["asm"]["ca"]).apply(null, arguments);
+          return (_Minimum = Module["_Minimum"] = Module["asm"]["Minimum"]).apply(null, arguments);
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
-          return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["da"]).apply(null, arguments);
+          return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
         };
         var _Multiply = Module["_Multiply"] = function() {
-          return (_Multiply = Module["_Multiply"] = Module["asm"]["ea"]).apply(null, arguments);
+          return (_Multiply = Module["_Multiply"] = Module["asm"]["Multiply"]).apply(null, arguments);
         };
         var _Neg = Module["_Neg"] = function() {
-          return (_Neg = Module["_Neg"] = Module["asm"]["fa"]).apply(null, arguments);
+          return (_Neg = Module["_Neg"] = Module["asm"]["Neg"]).apply(null, arguments);
         };
         var _NonMaxSuppressionV3 = Module["_NonMaxSuppressionV3"] = function() {
-          return (_NonMaxSuppressionV3 = Module["_NonMaxSuppressionV3"] = Module["asm"]["ga"]).apply(null, arguments);
+          return (_NonMaxSuppressionV3 = Module["_NonMaxSuppressionV3"] = Module["asm"]["NonMaxSuppressionV3"]).apply(null, arguments);
         };
         var _NonMaxSuppressionV4 = Module["_NonMaxSuppressionV4"] = function() {
-          return (_NonMaxSuppressionV4 = Module["_NonMaxSuppressionV4"] = Module["asm"]["ha"]).apply(null, arguments);
+          return (_NonMaxSuppressionV4 = Module["_NonMaxSuppressionV4"] = Module["asm"]["NonMaxSuppressionV4"]).apply(null, arguments);
         };
         var _NonMaxSuppressionV5 = Module["_NonMaxSuppressionV5"] = function() {
-          return (_NonMaxSuppressionV5 = Module["_NonMaxSuppressionV5"] = Module["asm"]["ia"]).apply(null, arguments);
+          return (_NonMaxSuppressionV5 = Module["_NonMaxSuppressionV5"] = Module["asm"]["NonMaxSuppressionV5"]).apply(null, arguments);
         };
         var _NotEqual = Module["_NotEqual"] = function() {
-          return (_NotEqual = Module["_NotEqual"] = Module["asm"]["ja"]).apply(null, arguments);
+          return (_NotEqual = Module["_NotEqual"] = Module["asm"]["NotEqual"]).apply(null, arguments);
         };
         var _OneHot = Module["_OneHot"] = function() {
-          return (_OneHot = Module["_OneHot"] = Module["asm"]["ka"]).apply(null, arguments);
+          return (_OneHot = Module["_OneHot"] = Module["asm"]["OneHot"]).apply(null, arguments);
         };
         var _PadV2 = Module["_PadV2"] = function() {
-          return (_PadV2 = Module["_PadV2"] = Module["asm"]["la"]).apply(null, arguments);
+          return (_PadV2 = Module["_PadV2"] = Module["asm"]["PadV2"]).apply(null, arguments);
         };
         var _Pow = Module["_Pow"] = function() {
-          return (_Pow = Module["_Pow"] = Module["asm"]["ma"]).apply(null, arguments);
+          return (_Pow = Module["_Pow"] = Module["asm"]["Pow"]).apply(null, arguments);
         };
         var _Prelu = Module["_Prelu"] = function() {
-          return (_Prelu = Module["_Prelu"] = Module["asm"]["na"]).apply(null, arguments);
+          return (_Prelu = Module["_Prelu"] = Module["asm"]["Prelu"]).apply(null, arguments);
         };
         var _Prod = Module["_Prod"] = function() {
-          return (_Prod = Module["_Prod"] = Module["asm"]["oa"]).apply(null, arguments);
+          return (_Prod = Module["_Prod"] = Module["asm"]["Prod"]).apply(null, arguments);
         };
         var _RealDiv = Module["_RealDiv"] = function() {
-          return (_RealDiv = Module["_RealDiv"] = Module["asm"]["pa"]).apply(null, arguments);
+          return (_RealDiv = Module["_RealDiv"] = Module["asm"]["RealDiv"]).apply(null, arguments);
         };
         var _Relu = Module["_Relu"] = function() {
-          return (_Relu = Module["_Relu"] = Module["asm"]["qa"]).apply(null, arguments);
+          return (_Relu = Module["_Relu"] = Module["asm"]["Relu"]).apply(null, arguments);
         };
         var _Relu6 = Module["_Relu6"] = function() {
-          return (_Relu6 = Module["_Relu6"] = Module["asm"]["ra"]).apply(null, arguments);
+          return (_Relu6 = Module["_Relu6"] = Module["asm"]["Relu6"]).apply(null, arguments);
         };
         var _ResizeBilinear = Module["_ResizeBilinear"] = function() {
-          return (_ResizeBilinear = Module["_ResizeBilinear"] = Module["asm"]["sa"]).apply(null, arguments);
+          return (_ResizeBilinear = Module["_ResizeBilinear"] = Module["asm"]["ResizeBilinear"]).apply(null, arguments);
         };
         var _Reverse = Module["_Reverse"] = function() {
-          return (_Reverse = Module["_Reverse"] = Module["asm"]["ta"]).apply(null, arguments);
+          return (_Reverse = Module["_Reverse"] = Module["asm"]["Reverse"]).apply(null, arguments);
         };
         var _RotateWithOffset = Module["_RotateWithOffset"] = function() {
-          return (_RotateWithOffset = Module["_RotateWithOffset"] = Module["asm"]["ua"]).apply(null, arguments);
+          return (_RotateWithOffset = Module["_RotateWithOffset"] = Module["asm"]["RotateWithOffset"]).apply(null, arguments);
         };
         var _Round = Module["_Round"] = function() {
-          return (_Round = Module["_Round"] = Module["asm"]["va"]).apply(null, arguments);
+          return (_Round = Module["_Round"] = Module["asm"]["Round"]).apply(null, arguments);
         };
         var _Rsqrt = Module["_Rsqrt"] = function() {
-          return (_Rsqrt = Module["_Rsqrt"] = Module["asm"]["wa"]).apply(null, arguments);
+          return (_Rsqrt = Module["_Rsqrt"] = Module["asm"]["Rsqrt"]).apply(null, arguments);
         };
         var _ScatterNd = Module["_ScatterNd"] = function() {
-          return (_ScatterNd = Module["_ScatterNd"] = Module["asm"]["xa"]).apply(null, arguments);
+          return (_ScatterNd = Module["_ScatterNd"] = Module["asm"]["ScatterNd"]).apply(null, arguments);
         };
         var _SelectV2 = Module["_SelectV2"] = function() {
-          return (_SelectV2 = Module["_SelectV2"] = Module["asm"]["ya"]).apply(null, arguments);
+          return (_SelectV2 = Module["_SelectV2"] = Module["asm"]["SelectV2"]).apply(null, arguments);
         };
         var _Sigmoid = Module["_Sigmoid"] = function() {
-          return (_Sigmoid = Module["_Sigmoid"] = Module["asm"]["za"]).apply(null, arguments);
+          return (_Sigmoid = Module["_Sigmoid"] = Module["asm"]["Sigmoid"]).apply(null, arguments);
         };
         var _Sin = Module["_Sin"] = function() {
-          return (_Sin = Module["_Sin"] = Module["asm"]["Aa"]).apply(null, arguments);
+          return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
-          return (_Softmax = Module["_Softmax"] = Module["asm"]["Ba"]).apply(null, arguments);
+          return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
         };
         var _SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = function() {
-          return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["Ca"]).apply(null, arguments);
+          return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["SparseFillEmptyRows"]).apply(null, arguments);
         };
         var _SparseReshape = Module["_SparseReshape"] = function() {
-          return (_SparseReshape = Module["_SparseReshape"] = Module["asm"]["Da"]).apply(null, arguments);
+          return (_SparseReshape = Module["_SparseReshape"] = Module["asm"]["SparseReshape"]).apply(null, arguments);
         };
         var _SparseSegmentReduction = Module["_SparseSegmentReduction"] = function() {
-          return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["Ea"]).apply(null, arguments);
+          return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["SparseSegmentReduction"]).apply(null, arguments);
         };
         var _Sqrt = Module["_Sqrt"] = function() {
-          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Fa"]).apply(null, arguments);
+          return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Sqrt"]).apply(null, arguments);
         };
         var _Square = Module["_Square"] = function() {
-          return (_Square = Module["_Square"] = Module["asm"]["Ga"]).apply(null, arguments);
+          return (_Square = Module["_Square"] = Module["asm"]["Square"]).apply(null, arguments);
         };
         var _SquaredDifference = Module["_SquaredDifference"] = function() {
-          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["Ha"]).apply(null, arguments);
+          return (_SquaredDifference = Module["_SquaredDifference"] = Module["asm"]["SquaredDifference"]).apply(null, arguments);
         };
         var _Step = Module["_Step"] = function() {
-          return (_Step = Module["_Step"] = Module["asm"]["Ia"]).apply(null, arguments);
+          return (_Step = Module["_Step"] = Module["asm"]["Step"]).apply(null, arguments);
         };
         var _StridedSlice = Module["_StridedSlice"] = function() {
-          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["Ja"]).apply(null, arguments);
+          return (_StridedSlice = Module["_StridedSlice"] = Module["asm"]["StridedSlice"]).apply(null, arguments);
         };
         var _Sub = Module["_Sub"] = function() {
-          return (_Sub = Module["_Sub"] = Module["asm"]["Ka"]).apply(null, arguments);
+          return (_Sub = Module["_Sub"] = Module["asm"]["Sub"]).apply(null, arguments);
         };
         var _Sum = Module["_Sum"] = function() {
-          return (_Sum = Module["_Sum"] = Module["asm"]["La"]).apply(null, arguments);
+          return (_Sum = Module["_Sum"] = Module["asm"]["Sum"]).apply(null, arguments);
         };
         var _Tan = Module["_Tan"] = function() {
-          return (_Tan = Module["_Tan"] = Module["asm"]["Ma"]).apply(null, arguments);
+          return (_Tan = Module["_Tan"] = Module["asm"]["Tan"]).apply(null, arguments);
         };
         var _Tanh = Module["_Tanh"] = function() {
-          return (_Tanh = Module["_Tanh"] = Module["asm"]["Na"]).apply(null, arguments);
+          return (_Tanh = Module["_Tanh"] = Module["asm"]["Tanh"]).apply(null, arguments);
         };
         var _Tile = Module["_Tile"] = function() {
-          return (_Tile = Module["_Tile"] = Module["asm"]["Oa"]).apply(null, arguments);
+          return (_Tile = Module["_Tile"] = Module["asm"]["Tile"]).apply(null, arguments);
         };
         var _TopK = Module["_TopK"] = function() {
-          return (_TopK = Module["_TopK"] = Module["asm"]["Pa"]).apply(null, arguments);
+          return (_TopK = Module["_TopK"] = Module["asm"]["TopK"]).apply(null, arguments);
         };
         var _Transform = Module["_Transform"] = function() {
-          return (_Transform = Module["_Transform"] = Module["asm"]["Qa"]).apply(null, arguments);
+          return (_Transform = Module["_Transform"] = Module["asm"]["Transform"]).apply(null, arguments);
         };
         var _Transpose = Module["_Transpose"] = function() {
-          return (_Transpose = Module["_Transpose"] = Module["asm"]["Ra"]).apply(null, arguments);
+          return (_Transpose = Module["_Transpose"] = Module["asm"]["Transpose"]).apply(null, arguments);
         };
         var __FusedMatMul = Module["__FusedMatMul"] = function() {
-          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["Sa"]).apply(null, arguments);
+          return (__FusedMatMul = Module["__FusedMatMul"] = Module["asm"]["_FusedMatMul"]).apply(null, arguments);
         };
         var _malloc = Module["_malloc"] = function() {
-          return (_malloc = Module["_malloc"] = Module["asm"]["Ta"]).apply(null, arguments);
+          return (_malloc = Module["_malloc"] = Module["asm"]["malloc"]).apply(null, arguments);
         };
         var _free = Module["_free"] = function() {
-          return (_free = Module["_free"] = Module["asm"]["Ua"]).apply(null, arguments);
+          return (_free = Module["_free"] = Module["asm"]["free"]).apply(null, arguments);
+        };
+        var ___errno_location = Module["___errno_location"] = function() {
+          return (___errno_location = Module["___errno_location"] = Module["asm"]["__errno_location"]).apply(null, arguments);
+        };
+        var _emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = function() {
+          return (_emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null, arguments);
         };
         var stackSave = Module["stackSave"] = function() {
-          return (stackSave = Module["stackSave"] = Module["asm"]["Wa"]).apply(null, arguments);
+          return (stackSave = Module["stackSave"] = Module["asm"]["stackSave"]).apply(null, arguments);
         };
         var stackRestore = Module["stackRestore"] = function() {
-          return (stackRestore = Module["stackRestore"] = Module["asm"]["Xa"]).apply(null, arguments);
+          return (stackRestore = Module["stackRestore"] = Module["asm"]["stackRestore"]).apply(null, arguments);
         };
         var stackAlloc = Module["stackAlloc"] = function() {
-          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["Ya"]).apply(null, arguments);
+          return (stackAlloc = Module["stackAlloc"] = Module["asm"]["stackAlloc"]).apply(null, arguments);
+        };
+        var dynCall_iijjiiii = Module["dynCall_iijjiiii"] = function() {
+          return (dynCall_iijjiiii = Module["dynCall_iijjiiii"] = Module["asm"]["dynCall_iijjiiii"]).apply(null, arguments);
+        };
+        var dynCall_jiji = Module["dynCall_jiji"] = function() {
+          return (dynCall_jiji = Module["dynCall_jiji"] = Module["asm"]["dynCall_jiji"]).apply(null, arguments);
         };
         Module["cwrap"] = cwrap;
         var calledRun;
@@ -4854,7 +4668,6 @@ var require_tfjs_backend_wasm = __commonJS({
             if (ABORT)
               return;
             initRuntime();
-            preMain();
             readyPromiseResolve(Module);
             if (Module["onRuntimeInitialized"])
               Module["onRuntimeInitialized"]();
@@ -4873,6 +4686,15 @@ var require_tfjs_backend_wasm = __commonJS({
           }
         }
         Module["run"] = run;
+        function procExit(code) {
+          EXITSTATUS = code;
+          if (!keepRuntimeAlive()) {
+            if (Module["onExit"])
+              Module["onExit"](code);
+            ABORT = true;
+          }
+          quit_(code, new ExitStatus(code));
+        }
         if (Module["preInit"]) {
           if (typeof Module["preInit"] == "function")
             Module["preInit"] = [Module["preInit"]];
@@ -4911,7 +4733,7 @@ var require_tfjs_backend_wasm = __commonJS({
         }
         return WasmBackendModule3.ready;
       };
-    }();
+    })();
     if (typeof exports === "object" && typeof module === "object")
       module.exports = WasmBackendModule2;
     else if (typeof define === "function" && define["amd"])
@@ -8665,7 +8487,7 @@ function clone_(x) {
 var clone = op({ clone_ });
 
 // src/tfjs-core/src/ops/print.ts
-function print2(x, verbose = false) {
+function print(x, verbose = false) {
   console.log(x.toString(verbose));
 }
 
@@ -8675,7 +8497,7 @@ var opHandler2 = {
   buffer,
   cast,
   clone,
-  print: print2
+  print
 };
 setOpHandler(opHandler2);
 
@@ -72704,7 +72526,7 @@ ENV6.registerFlag("WASM_HAS_MULTITHREAD_SUPPORT", async () => {
 var import_tfjs_backend_wasm_threaded_simd = __toESM(require_tfjs_backend_wasm_threaded_simd());
 
 // src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.worker.js
-var wasmWorkerContents = 'var Module={};function threadPrintErr(){var text=Array.prototype.slice.call(arguments).join(" ");console.error(text)}function threadAlert(){var text=Array.prototype.slice.call(arguments).join(" ");postMessage({cmd:"alert",text:text,threadId:Module["_pthread_self"]()})}var err=threadPrintErr;this.alert=threadAlert;Module["instantiateWasm"]=function(info,receiveInstance){var instance=new WebAssembly.Instance(Module["wasmModule"],info);Module["wasmModule"]=null;receiveInstance(instance);return instance.exports};function moduleLoaded(){}this.onmessage=function(e){try{if(e.data.cmd==="load"){Module["wasmModule"]=e.data.wasmModule;Module["wasmMemory"]=e.data.wasmMemory;Module["buffer"]=Module["wasmMemory"].buffer;Module["ENVIRONMENT_IS_PTHREAD"]=true;if(typeof e.data.urlOrBlob==="string"){importScripts(e.data.urlOrBlob)}else{var objectUrl=URL.createObjectURL(e.data.urlOrBlob);importScripts(objectUrl);URL.revokeObjectURL(objectUrl)}WasmBackendModuleThreadedSimd(Module).then(function(instance){Module=instance;moduleLoaded()})}else if(e.data.cmd==="objectTransfer"){Module["PThread"].receiveObjectTransfer(e.data)}else if(e.data.cmd==="run"){Module["__performance_now_clock_drift"]=performance.now()-e.data.time;Module["__emscripten_thread_init"](e.data.threadInfoStruct,0,0);var max=e.data.stackBase;var top=e.data.stackBase+e.data.stackSize;Module["establishStackSpace"](top,max);Module["_emscripten_tls_init"]();Module["PThread"].receiveObjectTransfer(e.data);Module["PThread"].setThreadStatus(Module["_pthread_self"](),1);try{var result=Module["invokeEntryPoint"](e.data.start_routine,e.data.arg);if(!Module["getNoExitRuntime"]())Module["PThread"].threadExit(result)}catch(ex){if(ex==="Canceled!"){Module["PThread"].threadCancel()}else if(ex!="unwind"){if(ex instanceof Module["ExitStatus"]){if(Module["getNoExitRuntime"]()){}else{Module["PThread"].threadExit(ex.status)}}else{Module["PThread"].threadExit(-2);throw ex}}}}else if(e.data.cmd==="cancel"){if(Module["_pthread_self"]()){Module["PThread"].threadCancel()}}else if(e.data.target==="setimmediate"){}else if(e.data.cmd==="processThreadQueue"){if(Module["_pthread_self"]()){Module["_emscripten_current_thread_process_queued_calls"]()}}else{err("worker.js received unknown command "+e.data.cmd);err(e.data)}}catch(ex){err("worker.js onmessage() captured an uncaught exception: "+ex);if(ex&&ex.stack)err(ex.stack);throw ex}};if(typeof process==="object"&&typeof process.versions==="object"&&typeof process.versions.node==="string"){self={location:{href:__filename}};var onmessage=this.onmessage;var nodeWorkerThreads=require("worker_threads");global.Worker=nodeWorkerThreads.Worker;var parentPort=nodeWorkerThreads.parentPort;parentPort.on("message",function(data){onmessage({data:data})});var nodeFS=require("fs");var nodeRead=function(filename){return nodeFS.readFileSync(filename,"utf8")};function globalEval(x){global.require=require;global.Module=Module;eval.call(null,x)}importScripts=function(f){globalEval(nodeRead(f))};postMessage=function(msg){parentPort.postMessage(msg)};if(typeof performance==="undefined"){performance={now:function(){return Date.now()}}}}';
+var wasmWorkerContents = '"use strict";var Module={};var ENVIRONMENT_IS_NODE=typeof process==="object"&&typeof process.versions==="object"&&typeof process.versions.node==="string";if(ENVIRONMENT_IS_NODE){var nodeWorkerThreads=require("worker_threads");var parentPort=nodeWorkerThreads.parentPort;parentPort.on("message",function(data){onmessage({data:data})});var fs=require("fs");Object.assign(global,{self:global,require:require,Module:Module,location:{href:__filename},Worker:nodeWorkerThreads.Worker,importScripts:function(f){(0,eval)(fs.readFileSync(f,"utf8"))},postMessage:function(msg){parentPort.postMessage(msg)},performance:global.performance||{now:function(){return Date.now()}}})}function threadPrintErr(){var text=Array.prototype.slice.call(arguments).join(" ");if(ENVIRONMENT_IS_NODE){fs.writeSync(2,text+"\n");return}console.error(text)}function threadAlert(){var text=Array.prototype.slice.call(arguments).join(" ");postMessage({cmd:"alert",text:text,threadId:Module["_pthread_self"]()})}var err=threadPrintErr;self.alert=threadAlert;Module["instantiateWasm"]=((info,receiveInstance)=>{var instance=new WebAssembly.Instance(Module["wasmModule"],info);receiveInstance(instance);Module["wasmModule"]=null;return instance.exports});self.onmessage=(e=>{try{if(e.data.cmd==="load"){Module["wasmModule"]=e.data.wasmModule;Module["wasmMemory"]=e.data.wasmMemory;Module["buffer"]=Module["wasmMemory"].buffer;Module["ENVIRONMENT_IS_PTHREAD"]=true;if(typeof e.data.urlOrBlob==="string"){importScripts(e.data.urlOrBlob)}else{var objectUrl=URL.createObjectURL(e.data.urlOrBlob);importScripts(objectUrl);URL.revokeObjectURL(objectUrl)}WasmBackendModuleThreadedSimd(Module).then(function(instance){Module=instance})}else if(e.data.cmd==="run"){Module["__performance_now_clock_drift"]=performance.now()-e.data.time;Module["__emscripten_thread_init"](e.data.threadInfoStruct,0,0,1);Module["establishStackSpace"]();Module["PThread"].receiveObjectTransfer(e.data);Module["PThread"].threadInit();try{var result=Module["invokeEntryPoint"](e.data.start_routine,e.data.arg);if(Module["keepRuntimeAlive"]()){Module["PThread"].setExitStatus(result)}else{Module["__emscripten_thread_exit"](result)}}catch(ex){if(ex!="unwind"){if(ex instanceof Module["ExitStatus"]){if(Module["keepRuntimeAlive"]()){}else{Module["__emscripten_thread_exit"](ex.status)}}else{throw ex}}}}else if(e.data.cmd==="cancel"){if(Module["_pthread_self"]()){Module["__emscripten_thread_exit"](-1)}}else if(e.data.target==="setimmediate"){}else if(e.data.cmd==="processThreadQueue"){if(Module["_pthread_self"]()){Module["_emscripten_current_thread_process_queued_calls"]()}}else if(e.data.cmd==="processProxyingQueue"){if(Module["_pthread_self"]()){Module["_emscripten_proxy_execute_queue"](e.data.queue)}}else{err("worker.js received unknown command "+e.data.cmd);err(e.data)}}catch(ex){err("worker.js onmessage() captured an uncaught exception: "+ex);if(ex&&ex.stack)err(ex.stack);if(Module["__emscripten_thread_crashed"]){Module["__emscripten_thread_crashed"]()}throw ex}});';
 
 // src/tfjs-backend-wasm/src/backend_wasm.ts
 var import_tfjs_backend_wasm = __toESM(require_tfjs_backend_wasm());
@@ -72995,7 +72817,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.13.0-20220214";
+var externalVersion = "3.13.0-20220217";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -73384,7 +73206,7 @@ export {
   pool,
   pow,
   prelu,
-  print2 as print,
+  print,
   prod,
   profile,
   rand,
