@@ -12280,7 +12280,8 @@ function getGlslDifferences() {
     defineOutput = "out vec4 outputColor;";
     defineSpecialNaN = `
       bool isnan_custom(float val) {
-        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
+        uint floatToUint = floatBitsToUint(val);
+        return (floatToUint & 0x7fffffffu) > 0x7f800000u;
       }
 
       bvec4 isnan_custom(vec4 val) {

@@ -29075,55 +29075,55 @@ ENV3.registerFlag("KEEP_INTERMEDIATE_TENSORS", () => false, (debugValue) => {
 });
 
 // src/tfjs-converter/src/data/compiled_api.ts
-var DataType8 = /* @__PURE__ */ ((DataType48) => {
-  DataType48[DataType48["DT_INVALID"] = 0] = "DT_INVALID";
-  DataType48[DataType48["DT_FLOAT"] = 1] = "DT_FLOAT";
-  DataType48[DataType48["DT_DOUBLE"] = 2] = "DT_DOUBLE";
-  DataType48[DataType48["DT_INT32"] = 3] = "DT_INT32";
-  DataType48[DataType48["DT_UINT8"] = 4] = "DT_UINT8";
-  DataType48[DataType48["DT_INT16"] = 5] = "DT_INT16";
-  DataType48[DataType48["DT_INT8"] = 6] = "DT_INT8";
-  DataType48[DataType48["DT_STRING"] = 7] = "DT_STRING";
-  DataType48[DataType48["DT_COMPLEX64"] = 8] = "DT_COMPLEX64";
-  DataType48[DataType48["DT_INT64"] = 9] = "DT_INT64";
-  DataType48[DataType48["DT_BOOL"] = 10] = "DT_BOOL";
-  DataType48[DataType48["DT_QINT8"] = 11] = "DT_QINT8";
-  DataType48[DataType48["DT_QUINT8"] = 12] = "DT_QUINT8";
-  DataType48[DataType48["DT_QINT32"] = 13] = "DT_QINT32";
-  DataType48[DataType48["DT_BFLOAT16"] = 14] = "DT_BFLOAT16";
-  DataType48[DataType48["DT_QINT16"] = 15] = "DT_QINT16";
-  DataType48[DataType48["DT_QUINT16"] = 16] = "DT_QUINT16";
-  DataType48[DataType48["DT_UINT16"] = 17] = "DT_UINT16";
-  DataType48[DataType48["DT_COMPLEX128"] = 18] = "DT_COMPLEX128";
-  DataType48[DataType48["DT_HALF"] = 19] = "DT_HALF";
-  DataType48[DataType48["DT_RESOURCE"] = 20] = "DT_RESOURCE";
-  DataType48[DataType48["DT_VARIANT"] = 21] = "DT_VARIANT";
-  DataType48[DataType48["DT_UINT32"] = 22] = "DT_UINT32";
-  DataType48[DataType48["DT_UINT64"] = 23] = "DT_UINT64";
-  DataType48[DataType48["DT_FLOAT_REF"] = 101] = "DT_FLOAT_REF";
-  DataType48[DataType48["DT_DOUBLE_REF"] = 102] = "DT_DOUBLE_REF";
-  DataType48[DataType48["DT_INT32_REF"] = 103] = "DT_INT32_REF";
-  DataType48[DataType48["DT_UINT8_REF"] = 104] = "DT_UINT8_REF";
-  DataType48[DataType48["DT_INT16_REF"] = 105] = "DT_INT16_REF";
-  DataType48[DataType48["DT_INT8_REF"] = 106] = "DT_INT8_REF";
-  DataType48[DataType48["DT_STRING_REF"] = 107] = "DT_STRING_REF";
-  DataType48[DataType48["DT_COMPLEX64_REF"] = 108] = "DT_COMPLEX64_REF";
-  DataType48[DataType48["DT_INT64_REF"] = 109] = "DT_INT64_REF";
-  DataType48[DataType48["DT_BOOL_REF"] = 110] = "DT_BOOL_REF";
-  DataType48[DataType48["DT_QINT8_REF"] = 111] = "DT_QINT8_REF";
-  DataType48[DataType48["DT_QUINT8_REF"] = 112] = "DT_QUINT8_REF";
-  DataType48[DataType48["DT_QINT32_REF"] = 113] = "DT_QINT32_REF";
-  DataType48[DataType48["DT_BFLOAT16_REF"] = 114] = "DT_BFLOAT16_REF";
-  DataType48[DataType48["DT_QINT16_REF"] = 115] = "DT_QINT16_REF";
-  DataType48[DataType48["DT_QUINT16_REF"] = 116] = "DT_QUINT16_REF";
-  DataType48[DataType48["DT_UINT16_REF"] = 117] = "DT_UINT16_REF";
-  DataType48[DataType48["DT_COMPLEX128_REF"] = 118] = "DT_COMPLEX128_REF";
-  DataType48[DataType48["DT_HALF_REF"] = 119] = "DT_HALF_REF";
-  DataType48[DataType48["DT_RESOURCE_REF"] = 120] = "DT_RESOURCE_REF";
-  DataType48[DataType48["DT_VARIANT_REF"] = 121] = "DT_VARIANT_REF";
-  DataType48[DataType48["DT_UINT32_REF"] = 122] = "DT_UINT32_REF";
-  DataType48[DataType48["DT_UINT64_REF"] = 123] = "DT_UINT64_REF";
-  return DataType48;
+var DataType8 = /* @__PURE__ */ ((DataType47) => {
+  DataType47[DataType47["DT_INVALID"] = 0] = "DT_INVALID";
+  DataType47[DataType47["DT_FLOAT"] = 1] = "DT_FLOAT";
+  DataType47[DataType47["DT_DOUBLE"] = 2] = "DT_DOUBLE";
+  DataType47[DataType47["DT_INT32"] = 3] = "DT_INT32";
+  DataType47[DataType47["DT_UINT8"] = 4] = "DT_UINT8";
+  DataType47[DataType47["DT_INT16"] = 5] = "DT_INT16";
+  DataType47[DataType47["DT_INT8"] = 6] = "DT_INT8";
+  DataType47[DataType47["DT_STRING"] = 7] = "DT_STRING";
+  DataType47[DataType47["DT_COMPLEX64"] = 8] = "DT_COMPLEX64";
+  DataType47[DataType47["DT_INT64"] = 9] = "DT_INT64";
+  DataType47[DataType47["DT_BOOL"] = 10] = "DT_BOOL";
+  DataType47[DataType47["DT_QINT8"] = 11] = "DT_QINT8";
+  DataType47[DataType47["DT_QUINT8"] = 12] = "DT_QUINT8";
+  DataType47[DataType47["DT_QINT32"] = 13] = "DT_QINT32";
+  DataType47[DataType47["DT_BFLOAT16"] = 14] = "DT_BFLOAT16";
+  DataType47[DataType47["DT_QINT16"] = 15] = "DT_QINT16";
+  DataType47[DataType47["DT_QUINT16"] = 16] = "DT_QUINT16";
+  DataType47[DataType47["DT_UINT16"] = 17] = "DT_UINT16";
+  DataType47[DataType47["DT_COMPLEX128"] = 18] = "DT_COMPLEX128";
+  DataType47[DataType47["DT_HALF"] = 19] = "DT_HALF";
+  DataType47[DataType47["DT_RESOURCE"] = 20] = "DT_RESOURCE";
+  DataType47[DataType47["DT_VARIANT"] = 21] = "DT_VARIANT";
+  DataType47[DataType47["DT_UINT32"] = 22] = "DT_UINT32";
+  DataType47[DataType47["DT_UINT64"] = 23] = "DT_UINT64";
+  DataType47[DataType47["DT_FLOAT_REF"] = 101] = "DT_FLOAT_REF";
+  DataType47[DataType47["DT_DOUBLE_REF"] = 102] = "DT_DOUBLE_REF";
+  DataType47[DataType47["DT_INT32_REF"] = 103] = "DT_INT32_REF";
+  DataType47[DataType47["DT_UINT8_REF"] = 104] = "DT_UINT8_REF";
+  DataType47[DataType47["DT_INT16_REF"] = 105] = "DT_INT16_REF";
+  DataType47[DataType47["DT_INT8_REF"] = 106] = "DT_INT8_REF";
+  DataType47[DataType47["DT_STRING_REF"] = 107] = "DT_STRING_REF";
+  DataType47[DataType47["DT_COMPLEX64_REF"] = 108] = "DT_COMPLEX64_REF";
+  DataType47[DataType47["DT_INT64_REF"] = 109] = "DT_INT64_REF";
+  DataType47[DataType47["DT_BOOL_REF"] = 110] = "DT_BOOL_REF";
+  DataType47[DataType47["DT_QINT8_REF"] = 111] = "DT_QINT8_REF";
+  DataType47[DataType47["DT_QUINT8_REF"] = 112] = "DT_QUINT8_REF";
+  DataType47[DataType47["DT_QINT32_REF"] = 113] = "DT_QINT32_REF";
+  DataType47[DataType47["DT_BFLOAT16_REF"] = 114] = "DT_BFLOAT16_REF";
+  DataType47[DataType47["DT_QINT16_REF"] = 115] = "DT_QINT16_REF";
+  DataType47[DataType47["DT_QUINT16_REF"] = 116] = "DT_QUINT16_REF";
+  DataType47[DataType47["DT_UINT16_REF"] = 117] = "DT_UINT16_REF";
+  DataType47[DataType47["DT_COMPLEX128_REF"] = 118] = "DT_COMPLEX128_REF";
+  DataType47[DataType47["DT_HALF_REF"] = 119] = "DT_HALF_REF";
+  DataType47[DataType47["DT_RESOURCE_REF"] = 120] = "DT_RESOURCE_REF";
+  DataType47[DataType47["DT_VARIANT_REF"] = 121] = "DT_VARIANT_REF";
+  DataType47[DataType47["DT_UINT32_REF"] = 122] = "DT_UINT32_REF";
+  DataType47[DataType47["DT_UINT64_REF"] = 123] = "DT_UINT64_REF";
+  return DataType47;
 })(DataType8 || {});
 var SaverDef;
 ((SaverDef2) => {
@@ -47320,7 +47320,8 @@ function getGlslDifferences() {
     defineOutput = "out vec4 outputColor;";
     defineSpecialNaN = `
       bool isnan_custom(float val) {
-        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
+        uint floatToUint = floatBitsToUint(val);
+        return (floatToUint & 0x7fffffffu) > 0x7f800000u;
       }
 
       bvec4 isnan_custom(vec4 val) {
@@ -61267,20 +61268,17 @@ var commonSnippet = `
     return res;
   }
 
-  fn isNanCustom(val : f32) -> bool {
-    if (val > 0.0) {
-      return false;
-    }
-    if (val < 0.0) {
-      return false;
-    }
-    if (val == 0.0) {
-      return false;
-    }
-    return true;
+  // NaN defination in IEEE 754-1985 is :
+  //   - sign = either 0 or 1.
+  //   - biased exponent = all 1 bits.
+  //   - fraction = anything except all 0 bits (since all 0 bits represents infinity).
+  // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
+  fn isnan(val: f32) -> bool {
+    let floatToUint: u32 = bitcast<u32>(val);
+    return (floatToUint & 0x7fffffffu) > 0x7f800000u;
   }
-  fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
-    return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
+  fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
   }
 `;
 function getOutputIndexFromCoordsSnippet(outRank) {
@@ -61617,11 +61615,6 @@ __export(webgpu_util_exports, {
   isWebGPUSupported: () => isWebGPUSupported,
   tilesFitEvenlyIntoShape: () => tilesFitEvenlyIntoShape
 });
-
-// src/tfjs-backend-webgpu/src/constants.ts
-var MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE = 65535;
-
-// src/tfjs-backend-webgpu/src/webgpu_util.ts
 var arrayProduct = (arr) => {
   let product = 1;
   for (let i = 0; i < arr.length; i++) {
@@ -61641,18 +61634,7 @@ function computeDispatch(layout, outputShape, workGroupSize = [1, 1, 1], element
     layout.y ? Math.ceil(arrayProduct(layout.y.map((d) => outputShape[d])) / (workGroupSize[1] * elementsPerThread[1])) : 1,
     layout.z ? Math.ceil(arrayProduct(layout.z.map((d) => outputShape[d])) / (workGroupSize[2] * elementsPerThread[2])) : 1
   ];
-  if (dispatchX <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && dispatchY <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && dispatchZ <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    return [dispatchX, dispatchY, dispatchZ];
-  }
-  util_exports.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && layout.y === void 0 && layout.z === void 0, () => "Dispatch size exceeds WebGPU limits in Y or Z dimension.");
-  let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
-  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util_exports.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE, () => "Total dispatch size exceeds WebGPU maximum.");
-    return [dispatchAverage, dispatchAverage, dispatchAverage];
-  } else {
-    return [dispatchAverage, dispatchAverage, 1];
-  }
+  return [dispatchX, dispatchY, dispatchZ];
 }
 function computeWorkGroupSizeForConv2d(layout, outputShape) {
   const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
@@ -61733,8 +61715,8 @@ var LOGICAL_AND2 = "return f32(f32(a) >= 1.0 && f32(b) >= 1.0);";
 var LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
 var CHECK_NAN_SNIPPET4 = `
-  if (isNanCustom(a)) { return a; }
-  if (isNanCustom(b)) { return b; }
+  if (isnan(a)) { return a; }
+  if (isnan(b)) { return b; }
   `;
 var CHECK_NAN_SNIPPET_VEC4 = `
   if (isNaN.r) {
@@ -61825,7 +61807,7 @@ function getMinMaxString(op2, useVec4) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET4;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op2}(a, b));
-    let isNaN = isNanCustomVec4(a) | isNanCustomVec4(b);
+    let isNaN = isnanVec4(a) | isnanVec4(b);
     ` + checkNanSnippet + `
     return resultTemp;
   ` : checkNanSnippet + `
@@ -61917,7 +61899,7 @@ var RELU64 = "return clamp(a, 0.0, 6.0);";
 var RELU6_VEC4 = "return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));";
 var RELU_VEC4 = `
   var resFloat = a * vec4<f32>(a >= vec4<f32>(0.0));
-  let isNaN = isNanCustomVec4(a);
+  let isNaN = isnanVec4(a);
 
   if (isNaN.r) {
     resFloat.r = a.r;
@@ -63360,7 +63342,7 @@ var ArgMinMaxProgram2 = class {
         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
             k = k + i32(workGroupSizeX)) {
           let candidate = f32(x.numbers[getInputIndex(coordInfo, k)]);
-          if (!isNanCustom(candidate) && candidate ${this.op} bestValue) {
+          if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;
           }
@@ -63932,7 +63914,7 @@ var ClipVec4Program = class {
           let value = getAByOutputIndex(index);
           var clampedValue : vec4<f32>;
           for (var i = 0; i < 4; i = i + 1) {
-            if (isNanCustom(value[i])) {
+            if (isnan(value[i])) {
               clampedValue[i] = value[i];
             } else {
               clampedValue[i] = clamp(value[i], uniforms.minVal, uniforms.maxVal);
@@ -63964,7 +63946,7 @@ var ClipProgram2 = class {
       ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
-          if (isNanCustom(value)) {
+          if (isnan(value)) {
             setOutputAtIndex(index, value);
             return;
           }
@@ -65525,9 +65507,9 @@ var ReduceProgram2 = class {
     let initValue = "0.0";
     if (this.reduceType === "min" || this.reduceType === "max") {
       reduceOp = `
-         if (isNanCustom(candidate)) {
+         if (isnan(candidate)) {
           bestValue = uniforms.NAN;
-         } else if (!isNanCustom(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
+         } else if (!isnan(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
            {  bestValue = candidate; }`;
       initValue = "f32(x.numbers[offset])";
     } else if (this.reduceType === "sum" || this.reduceType === "mean") {
@@ -68582,6 +68564,23 @@ var FromPixelsImportProgram = class extends FromPixelsProgram2 {
 
 // src/tfjs-backend-webgpu/src/backend_webgpu.ts
 var CPU_HANDOFF_SIZE_THRESHOLD2 = env().getNumber("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD");
+var reshapeDispatch = (device, program) => {
+  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE = device.limits.maxComputeWorkgroupsPerDimension;
+  const layout = program["dispatchLayout"];
+  const dispatch = program["dispatch"];
+  if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
+    return dispatch;
+  }
+  util_exports.assert(dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && layout.y === void 0 && layout.z === void 0, () => "Dispatch size exceeds WebGPU limits in Y or Z dimension.");
+  let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
+  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+    dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
+    util_exports.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE, () => "Total dispatch size exceeds WebGPU maximum.");
+    return [dispatchAverage, dispatchAverage, dispatchAverage];
+  } else {
+    return [dispatchAverage, dispatchAverage, 1];
+  }
+};
 var _WebGPUBackend = class extends KernelBackend {
   constructor(device, supportTimeQuery = false) {
     super();
@@ -69021,6 +69020,7 @@ var _WebGPUBackend = class extends KernelBackend {
       }
       this.uploadToGPU(output.dataId);
     }
+    program.dispatch = reshapeDispatch(this.device, program);
     let uniformsWithType = [{ type: "float32", data: [NaN] }];
     const bufferShapes = inputs.concat(output).map((d) => d.shape);
     const uniformsType = "int32";
@@ -69097,6 +69097,7 @@ var _WebGPUBackend = class extends KernelBackend {
     return output;
   }
   runFromPixelsProgram(program, output, layout, externalResource, outputId) {
+    program.dispatch = reshapeDispatch(this.device, program);
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
       entries: [
@@ -69197,10 +69198,15 @@ if (isWebGPUSupported()) {
       powerPreference: env().get("WEBGPU_USE_LOW_POWER_GPU") ? "low-power" : "high-performance"
     };
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    let deviceDescriptor = {};
+    const adapterLimits = adapter.limits;
+    const deviceDescriptor = {};
     const supportTimeQuery = adapter.features.has("timestamp-query");
+    deviceDescriptor.requiredLimits = {
+      "maxComputeWorkgroupStorageSize": adapterLimits.maxComputeWorkgroupStorageSize,
+      "maxComputeWorkgroupsPerDimension": adapterLimits.maxComputeWorkgroupsPerDimension
+    };
     if (supportTimeQuery) {
-      deviceDescriptor = { requiredFeatures: ["timestamp-query"] };
+      deviceDescriptor.requiredFeatures = ["timestamp-query"];
     } else {
       console.warn(`This device doesn't support timestamp-query extension. Start Chrome browser with flag --disable-dawn-features=disallow_unsafe_apis then try again. Or zero will shown for the kernel time when profiling mode isenabled. Using performance.now is not workable for webgpu sinceit doesn't support synchronously to read data from GPU.`);
     }
@@ -72817,7 +72823,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.13.0-20220217";
+var externalVersion = "3.13.0-20220227";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

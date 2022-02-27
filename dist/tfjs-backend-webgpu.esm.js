@@ -11737,20 +11737,17 @@ var commonSnippet = `
     return res;
   }
 
-  fn isNanCustom(val : f32) -> bool {
-    if (val > 0.0) {
-      return false;
-    }
-    if (val < 0.0) {
-      return false;
-    }
-    if (val == 0.0) {
-      return false;
-    }
-    return true;
+  // NaN defination in IEEE 754-1985 is :
+  //   - sign = either 0 or 1.
+  //   - biased exponent = all 1 bits.
+  //   - fraction = anything except all 0 bits (since all 0 bits represents infinity).
+  // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
+  fn isnan(val: f32) -> bool {
+    let floatToUint: u32 = bitcast<u32>(val);
+    return (floatToUint & 0x7fffffffu) > 0x7f800000u;
   }
-  fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
-    return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
+  fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
   }
 `;
 function getOutputIndexFromCoordsSnippet(outRank) {
@@ -12087,11 +12084,6 @@ __export(webgpu_util_exports, {
   isWebGPUSupported: () => isWebGPUSupported,
   tilesFitEvenlyIntoShape: () => tilesFitEvenlyIntoShape
 });
-
-// src/tfjs-backend-webgpu/src/constants.ts
-var MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE = 65535;
-
-// src/tfjs-backend-webgpu/src/webgpu_util.ts
 var arrayProduct = (arr) => {
   let product = 1;
   for (let i = 0; i < arr.length; i++) {
@@ -12111,18 +12103,7 @@ function computeDispatch(layout, outputShape, workGroupSize = [1, 1, 1], element
     layout.y ? Math.ceil(arrayProduct(layout.y.map((d) => outputShape[d])) / (workGroupSize[1] * elementsPerThread[1])) : 1,
     layout.z ? Math.ceil(arrayProduct(layout.z.map((d) => outputShape[d])) / (workGroupSize[2] * elementsPerThread[2])) : 1
   ];
-  if (dispatchX <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && dispatchY <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && dispatchZ <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    return [dispatchX, dispatchY, dispatchZ];
-  }
-  util_exports.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && layout.y === void 0 && layout.z === void 0, () => "Dispatch size exceeds WebGPU limits in Y or Z dimension.");
-  let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
-  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util_exports.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE, () => "Total dispatch size exceeds WebGPU maximum.");
-    return [dispatchAverage, dispatchAverage, dispatchAverage];
-  } else {
-    return [dispatchAverage, dispatchAverage, 1];
-  }
+  return [dispatchX, dispatchY, dispatchZ];
 }
 function computeWorkGroupSizeForConv2d(layout, outputShape) {
   const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
@@ -12203,8 +12184,8 @@ var LOGICAL_AND = "return f32(f32(a) >= 1.0 && f32(b) >= 1.0);";
 var LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
 var CHECK_NAN_SNIPPET = `
-  if (isNanCustom(a)) { return a; }
-  if (isNanCustom(b)) { return b; }
+  if (isnan(a)) { return a; }
+  if (isnan(b)) { return b; }
   `;
 var CHECK_NAN_SNIPPET_VEC4 = `
   if (isNaN.r) {
@@ -12295,7 +12276,7 @@ function getMinMaxString(op2, useVec4) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op2}(a, b));
-    let isNaN = isNanCustomVec4(a) | isNanCustomVec4(b);
+    let isNaN = isnanVec4(a) | isnanVec4(b);
     ` + checkNanSnippet + `
     return resultTemp;
   ` : checkNanSnippet + `
@@ -12387,7 +12368,7 @@ var RELU6 = "return clamp(a, 0.0, 6.0);";
 var RELU6_VEC4 = "return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));";
 var RELU_VEC4 = `
   var resFloat = a * vec4<f32>(a >= vec4<f32>(0.0));
-  let isNaN = isNanCustomVec4(a);
+  let isNaN = isnanVec4(a);
 
   if (isNaN.r) {
     resFloat.r = a.r;
@@ -15087,7 +15068,7 @@ var ArgMinMaxProgram = class {
         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
             k = k + i32(workGroupSizeX)) {
           let candidate = f32(x.numbers[getInputIndex(coordInfo, k)]);
-          if (!isNanCustom(candidate) && candidate ${this.op} bestValue) {
+          if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;
           }
@@ -15659,7 +15640,7 @@ var ClipVec4Program = class {
           let value = getAByOutputIndex(index);
           var clampedValue : vec4<f32>;
           for (var i = 0; i < 4; i = i + 1) {
-            if (isNanCustom(value[i])) {
+            if (isnan(value[i])) {
               clampedValue[i] = value[i];
             } else {
               clampedValue[i] = clamp(value[i], uniforms.minVal, uniforms.maxVal);
@@ -15691,7 +15672,7 @@ var ClipProgram = class {
       ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
-          if (isNanCustom(value)) {
+          if (isnan(value)) {
             setOutputAtIndex(index, value);
             return;
           }
@@ -17252,9 +17233,9 @@ var ReduceProgram = class {
     let initValue = "0.0";
     if (this.reduceType === "min" || this.reduceType === "max") {
       reduceOp = `
-         if (isNanCustom(candidate)) {
+         if (isnan(candidate)) {
           bestValue = uniforms.NAN;
-         } else if (!isNanCustom(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
+         } else if (!isnan(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
            {  bestValue = candidate; }`;
       initValue = "f32(x.numbers[offset])";
     } else if (this.reduceType === "sum" || this.reduceType === "mean") {
@@ -20309,6 +20290,23 @@ var FromPixelsImportProgram = class extends FromPixelsProgram {
 
 // src/tfjs-backend-webgpu/src/backend_webgpu.ts
 var CPU_HANDOFF_SIZE_THRESHOLD = env().getNumber("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD");
+var reshapeDispatch = (device, program) => {
+  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE = device.limits.maxComputeWorkgroupsPerDimension;
+  const layout = program["dispatchLayout"];
+  const dispatch = program["dispatch"];
+  if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
+    return dispatch;
+  }
+  util_exports.assert(dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && layout.y === void 0 && layout.z === void 0, () => "Dispatch size exceeds WebGPU limits in Y or Z dimension.");
+  let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
+  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+    dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
+    util_exports.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE, () => "Total dispatch size exceeds WebGPU maximum.");
+    return [dispatchAverage, dispatchAverage, dispatchAverage];
+  } else {
+    return [dispatchAverage, dispatchAverage, 1];
+  }
+};
 var _WebGPUBackend = class extends KernelBackend {
   constructor(device, supportTimeQuery = false) {
     super();
@@ -20748,6 +20746,7 @@ var _WebGPUBackend = class extends KernelBackend {
       }
       this.uploadToGPU(output.dataId);
     }
+    program.dispatch = reshapeDispatch(this.device, program);
     let uniformsWithType = [{ type: "float32", data: [NaN] }];
     const bufferShapes = inputs.concat(output).map((d) => d.shape);
     const uniformsType = "int32";
@@ -20824,6 +20823,7 @@ var _WebGPUBackend = class extends KernelBackend {
     return output;
   }
   runFromPixelsProgram(program, output, layout, externalResource, outputId) {
+    program.dispatch = reshapeDispatch(this.device, program);
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
       entries: [
@@ -20924,10 +20924,15 @@ if (isWebGPUSupported()) {
       powerPreference: env().get("WEBGPU_USE_LOW_POWER_GPU") ? "low-power" : "high-performance"
     };
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    let deviceDescriptor = {};
+    const adapterLimits = adapter.limits;
+    const deviceDescriptor = {};
     const supportTimeQuery = adapter.features.has("timestamp-query");
+    deviceDescriptor.requiredLimits = {
+      "maxComputeWorkgroupStorageSize": adapterLimits.maxComputeWorkgroupStorageSize,
+      "maxComputeWorkgroupsPerDimension": adapterLimits.maxComputeWorkgroupsPerDimension
+    };
     if (supportTimeQuery) {
-      deviceDescriptor = { requiredFeatures: ["timestamp-query"] };
+      deviceDescriptor.requiredFeatures = ["timestamp-query"];
     } else {
       console.warn(`This device doesn't support timestamp-query extension. Start Chrome browser with flag --disable-dawn-features=disallow_unsafe_apis then try again. Or zero will shown for the kernel time when profiling mode isenabled. Using performance.now is not workable for webgpu sinceit doesn't support synchronously to read data from GPU.`);
     }
