@@ -3161,6 +3161,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _CropAndResize = Module["_CropAndResize"] = function() {
           return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["CropAndResize"]).apply(null, arguments);
         };
+        var _Cumprod = Module["_Cumprod"] = function() {
+          return (_Cumprod = Module["_Cumprod"] = Module["asm"]["Cumprod"]).apply(null, arguments);
+        };
         var _Cumsum = Module["_Cumsum"] = function() {
           return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
         };
@@ -3437,7 +3440,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var dynCall_jiji = Module["dynCall_jiji"] = function() {
           return (dynCall_jiji = Module["dynCall_jiji"] = Module["asm"]["dynCall_jiji"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21408;
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21456;
         Module["cwrap"] = cwrap;
         Module["keepRuntimeAlive"] = keepRuntimeAlive;
         Module["PThread"] = PThread;
@@ -4397,6 +4400,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _CropAndResize = Module["_CropAndResize"] = function() {
           return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["CropAndResize"]).apply(null, arguments);
+        };
+        var _Cumprod = Module["_Cumprod"] = function() {
+          return (_Cumprod = Module["_Cumprod"] = Module["asm"]["Cumprod"]).apply(null, arguments);
         };
         var _Cumsum = Module["_Cumsum"] = function() {
           return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
@@ -5462,6 +5468,7 @@ var Conv3D = "Conv3D";
 var Conv3DBackpropInputV2 = "Conv3DBackpropInputV2";
 var Cos = "Cos";
 var Cosh = "Cosh";
+var Cumprod = "Cumprod";
 var Cumsum = "Cumsum";
 var CropAndResize = "CropAndResize";
 var DenseBincount = "DenseBincount";
@@ -7276,6 +7283,7 @@ ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
+ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -10202,6 +10210,15 @@ function cosh_(x) {
   return ENGINE.runKernel(Cosh, inputs);
 }
 var cosh = op({ cosh_ });
+
+// src/tfjs-core/src/ops/cumprod.ts
+function cumprod_(x, axis = 0, exclusive = false, reverse3 = false) {
+  const $x = convertToTensor(x, "x", "cumprod");
+  const inputs = { x: $x };
+  const attrs = { axis, exclusive, reverse: reverse3 };
+  return ENGINE.runKernel(Cumprod, inputs, attrs);
+}
+var cumprod = op({ cumprod_ });
 
 // src/tfjs-core/src/ops/cumsum.ts
 function cumsum_(x, axis = 0, exclusive = false, reverse3 = false) {
@@ -15999,9 +16016,55 @@ var cropAndResizeConfig = {
   kernelFunc: cropAndResize2
 };
 
+// src/tfjs-backend-wasm/src/kernels/Cumprod.ts
+var wasmCumprod;
+function setup12(backend) {
+  wasmCumprod = backend.wasm.cwrap(Cumprod, null, [
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number"
+  ]);
+}
+function cumprod2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse3 } = attrs;
+  const xRank = x.shape.length;
+  util_exports.assert(x.dtype === "float32" || x.dtype === "int32", () => `cumprod does not support ${x.dtype} tensors in the WASM backend`);
+  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation !== null) {
+    permutedX = transpose2({ inputs: { x }, attrs: { perm: permutation }, backend });
+  }
+  const permutedAxis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
+  backend_util_exports.assertAxesAreInnerMostDims("cumprod", [permutedAxis], xRank);
+  const permutedOut = backend.makeOutput(permutedX.shape, permutedX.dtype);
+  const finalDim = permutedX.shape[permutedAxis];
+  const permutedXId = backend.dataIdMap.get(permutedX.dataId).id;
+  const permutedOutId = backend.dataIdMap.get(permutedOut.dataId).id;
+  wasmCumprod(permutedXId, exclusive ? 1 : 0, reverse3 ? 1 : 0, finalDim, permutedOutId, CppDType[x.dtype]);
+  let out = permutedOut;
+  if (permutation !== null) {
+    const undoPermutation = backend_util_exports.getUndoAxesPermutation(permutation);
+    out = transpose2({ inputs: { x: permutedOut }, attrs: { perm: undoPermutation }, backend });
+    backend.disposeData(permutedX.dataId);
+    backend.disposeData(permutedOut.dataId);
+  }
+  return out;
+}
+var cumprodConfig = {
+  kernelName: Cumprod,
+  backendName: "wasm",
+  setupFunc: setup12,
+  kernelFunc: cumprod2
+};
+
 // src/tfjs-backend-wasm/src/kernels/Cumsum.ts
 var wasmCumsum;
-function setup12(backend) {
+function setup13(backend) {
   wasmCumsum = backend.wasm.cwrap(Cumsum, null, [
     "number",
     "number",
@@ -16041,13 +16104,13 @@ function cumsum2(args) {
 var cumsumConfig = {
   kernelName: Cumsum,
   backendName: "wasm",
-  setupFunc: setup12,
+  setupFunc: setup13,
   kernelFunc: cumsum2
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthToSpace.ts
 var wasmDepthToSpace;
-function setup13(backend) {
+function setup14(backend) {
   wasmDepthToSpace = backend.wasm.cwrap(DepthToSpace, null, [
     "number",
     "number",
@@ -16086,13 +16149,13 @@ function depthToSpace2(args) {
 var depthToSpaceConfig = {
   kernelName: DepthToSpace,
   backendName: "wasm",
-  setupFunc: setup13,
+  setupFunc: setup14,
   kernelFunc: depthToSpace2
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthwiseConv2dNative.ts
 var wasmDepthwiseConv2d;
-function setup14(backend) {
+function setup15(backend) {
   wasmDepthwiseConv2d = backend.wasm.cwrap(DepthwiseConv2dNative, null, [
     "number",
     "number",
@@ -16147,7 +16210,7 @@ function depthwiseConv2d3(args) {
 var depthwiseConv2dNativeConfig = {
   kernelName: DepthwiseConv2dNative,
   backendName: "wasm",
-  setupFunc: setup14,
+  setupFunc: setup15,
   kernelFunc: depthwiseConv2d3
 };
 
@@ -16198,7 +16261,7 @@ var fillConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/FlipLeftRight.ts
 var wasmFlipLeftRight;
-function setup15(backend) {
+function setup16(backend) {
   wasmFlipLeftRight = backend.wasm.cwrap(FlipLeftRight, null, [
     "number",
     "number",
@@ -16222,7 +16285,7 @@ var flipLeftRightConfig = {
   kernelName: FlipLeftRight,
   backendName: "wasm",
   kernelFunc: flipLeftRight2,
-  setupFunc: setup15
+  setupFunc: setup16
 };
 
 // src/tfjs-backend-wasm/src/kernels/Floor.ts
@@ -16234,7 +16297,7 @@ var floorDivConfig = createBinaryKernelConfig(FloorDiv, supportsFullBroadcast3);
 
 // src/tfjs-backend-wasm/src/kernels/FusedBatchNorm.ts
 var wasmBatchNorm;
-function setup16(backend) {
+function setup17(backend) {
   wasmBatchNorm = backend.wasm.cwrap(FusedBatchNorm, null, ["number", "number", "number", "number", "number", "number", "number"]);
 }
 function fusedBatchNorm(args) {
@@ -16257,13 +16320,13 @@ function fusedBatchNorm(args) {
 var fusedBatchNormConfig = {
   kernelName: FusedBatchNorm,
   backendName: "wasm",
-  setupFunc: setup16,
+  setupFunc: setup17,
   kernelFunc: fusedBatchNorm
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedConv2D.ts
 var wasmFusedConv2d;
-function setup17(backend) {
+function setup18(backend) {
   wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null, [
     "number",
     "number",
@@ -16348,13 +16411,13 @@ function fusedConv2d(args) {
 var fusedConv2DConfig = {
   kernelName: FusedConv2D,
   backendName: "wasm",
-  setupFunc: setup17,
+  setupFunc: setup18,
   kernelFunc: fusedConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedDepthwiseConv2D.ts
 var wasmFusedDepthwiseConv2d;
-function setup18(backend) {
+function setup19(backend) {
   wasmFusedDepthwiseConv2d = backend.wasm.cwrap(FusedDepthwiseConv2D, null, [
     "number",
     "number",
@@ -16439,13 +16502,13 @@ function fusedDepthwiseConv2d(args) {
 var fusedDepthwiseConv2DConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: "wasm",
-  setupFunc: setup18,
+  setupFunc: setup19,
   kernelFunc: fusedDepthwiseConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherNd.ts
 var wasmGatherNd;
-function setup19(backend) {
+function setup20(backend) {
   wasmGatherNd = backend.wasm.cwrap(GatherNd, null, [
     "number",
     "number",
@@ -16479,13 +16542,13 @@ function gatherNd(args) {
 var gatherNdConfig = {
   kernelName: GatherNd,
   backendName: "wasm",
-  setupFunc: setup19,
+  setupFunc: setup20,
   kernelFunc: gatherNd
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherV2.ts
 var wasmGather;
-function setup20(backend) {
+function setup21(backend) {
   wasmGather = backend.wasm.cwrap("Gather", null, [
     "number",
     "number",
@@ -16554,7 +16617,7 @@ function gatherV2(args) {
 var gatherV2Config = {
   kernelName: GatherV2,
   backendName: "wasm",
-  setupFunc: setup20,
+  setupFunc: setup21,
   kernelFunc: gatherV2
 };
 
@@ -16610,7 +16673,7 @@ var logicalAndConfig = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcas
 
 // src/tfjs-backend-wasm/src/kernels/Max.ts
 var wasmMax;
-function setup21(backend) {
+function setup22(backend) {
   wasmMax = backend.wasm.cwrap(Max, null, [
     "number",
     "number",
@@ -16652,7 +16715,7 @@ function max2(args) {
 var maxConfig = {
   kernelName: Max,
   backendName: "wasm",
-  setupFunc: setup21,
+  setupFunc: setup22,
   kernelFunc: max2
 };
 
@@ -16662,7 +16725,7 @@ var maximumConfig = createBinaryKernelConfig(Maximum, supportsFullBroadcast9);
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool.ts
 var wasmMaxPool;
-function setup22(backend) {
+function setup23(backend) {
   wasmMaxPool = backend.wasm.cwrap(MaxPool, null, [
     "number",
     "number",
@@ -16713,13 +16776,13 @@ function maxPool2(args) {
 var maxPoolConfig = {
   kernelName: MaxPool,
   backendName: "wasm",
-  setupFunc: setup22,
+  setupFunc: setup23,
   kernelFunc: maxPool2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Mean.ts
 var wasmMean;
-function setup23(backend) {
+function setup24(backend) {
   wasmMean = backend.wasm.cwrap(Mean, null, ["number, number, number"]);
 }
 function mean2(args) {
@@ -16767,13 +16830,13 @@ function mean2(args) {
 var meanConfig = {
   kernelName: Mean,
   backendName: "wasm",
-  setupFunc: setup23,
+  setupFunc: setup24,
   kernelFunc: mean2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Min.ts
 var wasmMin;
-function setup24(backend) {
+function setup25(backend) {
   wasmMin = backend.wasm.cwrap(Min, null, [
     "number",
     "number",
@@ -16817,7 +16880,7 @@ function min2(args) {
 var minConfig = {
   kernelName: Min,
   backendName: "wasm",
-  setupFunc: setup24,
+  setupFunc: setup25,
   kernelFunc: min2
 };
 
@@ -16832,7 +16895,7 @@ var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
   return MirrorPaddingMode2;
 })(MirrorPaddingMode || {});
 var wasmMirrorPad;
-function setup25(backend) {
+function setup26(backend) {
   wasmMirrorPad = backend.wasm.cwrap(MirrorPad, null, [
     "number",
     "array",
@@ -16862,7 +16925,7 @@ var mirrorPadConfig = {
   kernelName: MirrorPad,
   backendName: "wasm",
   kernelFunc: mirrorPad2,
-  setupFunc: setup25
+  setupFunc: setup26
 };
 
 // src/tfjs-backend-wasm/src/kernels/Multiply.ts
@@ -16885,7 +16948,7 @@ function parseResultStruct(backend, resOffset) {
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV3.ts
 var wasmFunc4;
-function setup26(backend) {
+function setup27(backend) {
   wasmFunc4 = backend.wasm.cwrap(NonMaxSuppressionV3, "number", [
     "number",
     "number",
@@ -16910,13 +16973,13 @@ function kernelFunc(args) {
 var nonMaxSuppressionV3Config = {
   kernelName: NonMaxSuppressionV3,
   backendName: "wasm",
-  setupFunc: setup26,
+  setupFunc: setup27,
   kernelFunc
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV4.ts
 var wasmFunc5;
-function setup27(backend) {
+function setup28(backend) {
   wasmFunc5 = backend.wasm.cwrap(NonMaxSuppressionV4, "number", [
     "number",
     "number",
@@ -16942,13 +17005,13 @@ function nonMaxSuppressionV4(args) {
 var nonMaxSuppressionV4Config = {
   kernelName: NonMaxSuppressionV4,
   backendName: "wasm",
-  setupFunc: setup27,
+  setupFunc: setup28,
   kernelFunc: nonMaxSuppressionV4
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV5.ts
 var wasmFunc6;
-function setup28(backend) {
+function setup29(backend) {
   wasmFunc6 = backend.wasm.cwrap(NonMaxSuppressionV5, "number", [
     "number",
     "number",
@@ -16974,7 +17037,7 @@ function kernelFunc2(args) {
 var nonMaxSuppressionV5Config = {
   kernelName: NonMaxSuppressionV5,
   backendName: "wasm",
-  setupFunc: setup28,
+  setupFunc: setup29,
   kernelFunc: kernelFunc2
 };
 
@@ -16984,7 +17047,7 @@ var notEqualConfig = createBinaryKernelConfig(NotEqual, supportsFullBroadcast12,
 
 // src/tfjs-backend-wasm/src/kernels/OneHot.ts
 var wasmOneHot;
-function setup29(backend) {
+function setup30(backend) {
   wasmOneHot = backend.wasm.cwrap(OneHot, null, [
     "number",
     "number",
@@ -17007,7 +17070,7 @@ function oneHot2(args) {
 var oneHotConfig = {
   kernelName: OneHot,
   backendName: "wasm",
-  setupFunc: setup29,
+  setupFunc: setup30,
   kernelFunc: oneHot2
 };
 
@@ -17056,7 +17119,7 @@ var packConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/PadV2.ts
 var wasmPadV2;
-function setup30(backend) {
+function setup31(backend) {
   wasmPadV2 = backend.wasm.cwrap(PadV2, null, [
     "number",
     "array",
@@ -17093,7 +17156,7 @@ var padV2Config = {
   kernelName: PadV2,
   backendName: "wasm",
   kernelFunc: pad2,
-  setupFunc: setup30
+  setupFunc: setup31
 };
 
 // src/tfjs-backend-wasm/src/kernels/Pow.ts
@@ -17102,7 +17165,7 @@ var powConfig = createBinaryKernelConfig(Pow, supportsFullBroadcast13);
 
 // src/tfjs-backend-wasm/src/kernels/Prelu.ts
 var wasmPrelu;
-function setup31(backend) {
+function setup32(backend) {
   wasmPrelu = backend.wasm.cwrap(Prelu, null, [
     "number",
     "number",
@@ -17132,13 +17195,13 @@ function prelu2(args) {
 var preluConfig = {
   kernelName: Prelu,
   backendName: "wasm",
-  setupFunc: setup31,
+  setupFunc: setup32,
   kernelFunc: prelu2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Prod.ts
 var wasmProd;
-function setup32(backend) {
+function setup33(backend) {
   wasmProd = backend.wasm.cwrap(Prod, null, [
     "number",
     "number",
@@ -17183,7 +17246,7 @@ function prod2(args) {
 var prodConfig = {
   kernelName: Prod,
   backendName: "wasm",
-  setupFunc: setup32,
+  setupFunc: setup33,
   kernelFunc: prod2
 };
 
@@ -17215,7 +17278,7 @@ var relu6Config = createUnaryKernelConfig(Relu6);
 
 // src/tfjs-backend-wasm/src/kernels/ResizeBilinear.ts
 var wasmResizeBilinear;
-function setup33(backend) {
+function setup34(backend) {
   wasmResizeBilinear = backend.wasm.cwrap(ResizeBilinear, null, [
     "number",
     "number",
@@ -17257,13 +17320,13 @@ function resizeBilinear2(args) {
 var resizeBilinearConfig = {
   kernelName: ResizeBilinear,
   backendName: "wasm",
-  setupFunc: setup33,
+  setupFunc: setup34,
   kernelFunc: resizeBilinear2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Reverse.ts
 var wasmReverse;
-function setup34(backend) {
+function setup35(backend) {
   wasmReverse = backend.wasm.cwrap(Reverse, null, [
     "number",
     "array",
@@ -17295,12 +17358,12 @@ var reverseConfig = {
   kernelName: Reverse,
   backendName: "wasm",
   kernelFunc: reverse2,
-  setupFunc: setup34
+  setupFunc: setup35
 };
 
 // src/tfjs-backend-wasm/src/kernels/RotateWithOffset.ts
 var wasmRotate;
-function setup35(backend) {
+function setup36(backend) {
   wasmRotate = backend.wasm.cwrap(RotateWithOffset, null, [
     "number",
     "number",
@@ -17335,7 +17398,7 @@ var rotateWithOffsetConfig = {
   kernelName: RotateWithOffset,
   backendName: "wasm",
   kernelFunc: rotateWithOffset2,
-  setupFunc: setup35
+  setupFunc: setup36
 };
 
 // src/tfjs-backend-wasm/src/kernels/Round.ts
@@ -17346,7 +17409,7 @@ var rsqrtConfig = createUnaryKernelConfig(Rsqrt);
 
 // src/tfjs-backend-wasm/src/kernels/ScatterNd.ts
 var wasmScatterNd;
-function setup36(backend) {
+function setup37(backend) {
   wasmScatterNd = backend.wasm.cwrap(ScatterNd, null, [
     "number",
     "number",
@@ -17380,13 +17443,13 @@ function scatterNd(args) {
 var scatterNdConfig = {
   kernelName: ScatterNd,
   backendName: "wasm",
-  setupFunc: setup36,
+  setupFunc: setup37,
   kernelFunc: scatterNd
 };
 
 // src/tfjs-backend-wasm/src/kernels/Select.ts
 var wasmSelect;
-function setup37(backend) {
+function setup38(backend) {
   wasmSelect = backend.wasm.cwrap("SelectV2", null, [
     "number",
     "number",
@@ -17413,12 +17476,12 @@ var selectConfig = {
   kernelName: Select,
   backendName: "wasm",
   kernelFunc: select,
-  setupFunc: setup37
+  setupFunc: setup38
 };
 
 // src/tfjs-backend-wasm/src/kernels/Sigmoid.ts
 var wasmFunc7;
-function setup38(backend) {
+function setup39(backend) {
   wasmFunc7 = backend.wasm.cwrap(Sigmoid, null, ["number", "number"]);
 }
 function sigmoid3(args) {
@@ -17435,7 +17498,7 @@ function sigmoid3(args) {
 var sigmoidConfig = {
   kernelName: "Sigmoid",
   backendName: "wasm",
-  setupFunc: setup38,
+  setupFunc: setup39,
   kernelFunc: sigmoid3
 };
 
@@ -17444,7 +17507,7 @@ var sinConfig = createUnaryKernelConfig(Sin);
 
 // src/tfjs-backend-wasm/src/kernels/Softmax.ts
 var wasmFunc8;
-function setup39(backend) {
+function setup40(backend) {
   wasmFunc8 = backend.wasm.cwrap(Softmax, null, [
     "number",
     "number",
@@ -17468,7 +17531,7 @@ function softmax2(args) {
 var softmaxConfig = {
   kernelName: Softmax,
   backendName: "wasm",
-  setupFunc: setup39,
+  setupFunc: setup40,
   kernelFunc: softmax2
 };
 
@@ -17513,7 +17576,7 @@ var spaceToBatchNDConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/SparseFillEmptyRows.ts
 var wasmSparseFillEmptyRows;
-function setup40(backend) {
+function setup41(backend) {
   wasmSparseFillEmptyRows = backend.wasm.cwrap("SparseFillEmptyRows", "number", [
     "number",
     "number",
@@ -17596,13 +17659,13 @@ function sparseFillEmptyRows2(args) {
 var sparseFillEmptyRowsConfig = {
   kernelName: SparseFillEmptyRows,
   backendName: "wasm",
-  setupFunc: setup40,
+  setupFunc: setup41,
   kernelFunc: sparseFillEmptyRows2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseReshape.ts
 var wasmSparseReshape;
-function setup41(backend) {
+function setup42(backend) {
   wasmSparseReshape = backend.wasm.cwrap(SparseReshape, null, [
     "number",
     "number",
@@ -17677,13 +17740,13 @@ function sparseReshape2(args) {
 var sparseReshapeConfig = {
   kernelName: SparseReshape,
   backendName: "wasm",
-  setupFunc: setup41,
+  setupFunc: setup42,
   kernelFunc: sparseReshape2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseSegmentReduction.ts
 var wasmSparseSegmentReduction;
-function setup42(backend) {
+function setup43(backend) {
   wasmSparseSegmentReduction = backend.wasm.cwrap("SparseSegmentReduction", null, [
     "number",
     "number",
@@ -17751,7 +17814,7 @@ function sparseSegmentMean2(args) {
 var sparseSegmentMeanConfig = {
   kernelName: SparseSegmentMean,
   backendName: "wasm",
-  setupFunc: setup42,
+  setupFunc: setup43,
   kernelFunc: sparseSegmentMean2
 };
 
@@ -17762,7 +17825,7 @@ function sparseSegmentSum2(args) {
 var sparseSegmentSumConfig = {
   kernelName: SparseSegmentSum,
   backendName: "wasm",
-  setupFunc: setup42,
+  setupFunc: setup43,
   kernelFunc: sparseSegmentSum2
 };
 
@@ -17801,7 +17864,7 @@ var squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference, suppor
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
-function setup43(backend) {
+function setup44(backend) {
   wasmStep = backend.wasm.cwrap(Step, null, [
     "number",
     "number",
@@ -17822,13 +17885,13 @@ function step2(args) {
 var stepConfig = {
   kernelName: Step,
   backendName: "wasm",
-  setupFunc: setup43,
+  setupFunc: setup44,
   kernelFunc: step2
 };
 
 // src/tfjs-backend-wasm/src/kernels/StridedSlice.ts
 var wasmStridedSlice;
-function setup44(backend) {
+function setup45(backend) {
   wasmStridedSlice = backend.wasm.cwrap(StridedSlice, null, [
     "number",
     "array",
@@ -17893,7 +17956,7 @@ function stridedSlice2(args) {
 var stridedSliceConfig = {
   kernelName: StridedSlice,
   backendName: "wasm",
-  setupFunc: setup44,
+  setupFunc: setup45,
   kernelFunc: stridedSlice2
 };
 
@@ -17903,7 +17966,7 @@ var subConfig = createBinaryKernelConfig(Sub, supportsFullBroadcast16);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
-function setup45(backend) {
+function setup46(backend) {
   wasmSum = backend.wasm.cwrap(Sum, null, [
     "number",
     "number",
@@ -17948,7 +18011,7 @@ function sum3(args) {
 var sumConfig = {
   kernelName: Sum,
   backendName: "wasm",
-  setupFunc: setup45,
+  setupFunc: setup46,
   kernelFunc: sum3
 };
 
@@ -17960,7 +18023,7 @@ var tanhConfig = createUnaryKernelConfig(Tanh);
 
 // src/tfjs-backend-wasm/src/kernels/Tile.ts
 var wasmTile;
-function setup46(backend) {
+function setup47(backend) {
   wasmTile = backend.wasm.cwrap(Tile, null, [
     "number",
     "array",
@@ -17989,13 +18052,13 @@ function tile2(args) {
 var tileConfig = {
   kernelName: Tile,
   backendName: "wasm",
-  setupFunc: setup46,
+  setupFunc: setup47,
   kernelFunc: tile2
 };
 
 // src/tfjs-backend-wasm/src/kernels/TopK.ts
 var wasmTopK;
-function setup47(backend) {
+function setup48(backend) {
   wasmTopK = backend.wasm.cwrap(TopK, null, [
     "number",
     "array",
@@ -18024,13 +18087,13 @@ var topk2 = ({ inputs, backend, attrs }) => {
 var topKConfig = {
   kernelName: TopK,
   backendName: "wasm",
-  setupFunc: setup47,
+  setupFunc: setup48,
   kernelFunc: topk2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Transform.ts
 var wasmTransform;
-function setup48(backend) {
+function setup49(backend) {
   wasmTransform = backend.wasm.cwrap(Transform, null, [
     "number",
     "number",
@@ -18093,7 +18156,7 @@ function transform2(args) {
 var transformConfig = {
   kernelName: Transform,
   backendName: "wasm",
-  setupFunc: setup48,
+  setupFunc: setup49,
   kernelFunc: transform2
 };
 
@@ -18165,6 +18228,7 @@ var kernelConfigs = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
@@ -18510,7 +18574,7 @@ async function init() {
     const factoryConfig = {};
     factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith(".worker.js")) {
-        const response = wasmWorkerContents;
+        const response = wasmWorkerContents.replace(/\n/g, "\\n");
         const blob = new Blob([response], { type: "application/javascript" });
         return URL.createObjectURL(blob);
       }
@@ -18758,6 +18822,38 @@ export {
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.

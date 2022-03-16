@@ -3167,6 +3167,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _CropAndResize = Module["_CropAndResize"] = function() {
           return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["CropAndResize"]).apply(null, arguments);
         };
+        var _Cumprod = Module["_Cumprod"] = function() {
+          return (_Cumprod = Module["_Cumprod"] = Module["asm"]["Cumprod"]).apply(null, arguments);
+        };
         var _Cumsum = Module["_Cumsum"] = function() {
           return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
         };
@@ -3443,7 +3446,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var dynCall_jiji = Module["dynCall_jiji"] = function() {
           return (dynCall_jiji = Module["dynCall_jiji"] = Module["asm"]["dynCall_jiji"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21408;
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21456;
         Module["cwrap"] = cwrap;
         Module["keepRuntimeAlive"] = keepRuntimeAlive;
         Module["PThread"] = PThread;
@@ -4403,6 +4406,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _CropAndResize = Module["_CropAndResize"] = function() {
           return (_CropAndResize = Module["_CropAndResize"] = Module["asm"]["CropAndResize"]).apply(null, arguments);
+        };
+        var _Cumprod = Module["_Cumprod"] = function() {
+          return (_Cumprod = Module["_Cumprod"] = Module["asm"]["Cumprod"]).apply(null, arguments);
         };
         var _Cumsum = Module["_Cumsum"] = function() {
           return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
@@ -5472,6 +5478,7 @@ var Conv3DBackpropFilterV2 = "Conv3DBackpropFilterV2";
 var Conv3DBackpropInputV2 = "Conv3DBackpropInputV2";
 var Cos = "Cos";
 var Cosh = "Cosh";
+var Cumprod = "Cumprod";
 var Cumsum = "Cumsum";
 var CropAndResize = "CropAndResize";
 var DenseBincount = "DenseBincount";
@@ -7384,6 +7391,7 @@ ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
+ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -11130,6 +11138,15 @@ function cosh_(x) {
   return ENGINE.runKernel(Cosh, inputs);
 }
 var cosh = op({ cosh_ });
+
+// src/tfjs-core/src/ops/cumprod.ts
+function cumprod_(x, axis = 0, exclusive = false, reverse5 = false) {
+  const $x = convertToTensor(x, "x", "cumprod");
+  const inputs = { x: $x };
+  const attrs = { axis, exclusive, reverse: reverse5 };
+  return ENGINE.runKernel(Cumprod, inputs, attrs);
+}
+var cumprod = op({ cumprod_ });
 
 // src/tfjs-core/src/ops/cumsum.ts
 function cumsum_(x, axis = 0, exclusive = false, reverse5 = false) {
@@ -33136,6 +33153,44 @@ var json10 = [
         "type": "number"
       }
     ]
+  },
+  {
+    "tfOpName": "ImageProjectiveTransformV3",
+    "category": "image",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "images",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "transforms",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "outputShape",
+        "type": "number[]"
+      },
+      {
+        "start": 3,
+        "name": "fillValue",
+        "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "interpolation",
+        "name": "interpolation",
+        "type": "string"
+      },
+      {
+        "tfName": "fill_mode",
+        "name": "fillMode",
+        "type": "string"
+      }
+    ]
   }
 ];
 
@@ -34126,6 +34181,34 @@ var json14 = [
       {
         "tfName": "keep_dims",
         "name": "keepDims",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Cumprod",
+    "category": "reduction",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "axis",
+        "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "exclusive",
+        "name": "exclusive",
+        "type": "bool"
+      },
+      {
+        "tfName": "reverse",
+        "name": "reverse",
         "type": "bool"
       }
     ]
@@ -36912,6 +36995,15 @@ var executeOp10 = (node, tensorMap, context) => {
       const extrapolationValue = getParamValue("extrapolationValue", node, tensorMap, context);
       return [image.cropAndResize(image2, boxes, boxInd, cropSize, method, extrapolationValue)];
     }
+    case "ImageProjectiveTransformV3": {
+      const images = getParamValue("images", node, tensorMap, context);
+      const transforms = getParamValue("transforms", node, tensorMap, context);
+      const outputShape = getParamValue("outputShape", node, tensorMap, context);
+      const fillValue = getParamValue("fillValue", node, tensorMap, context);
+      const interpolation = getParamValue("interpolation", node, tensorMap, context);
+      const fillMode = getParamValue("fillMode", node, tensorMap, context);
+      return [image.transform(images, transforms, interpolation.toLowerCase(), fillMode.toLowerCase(), fillValue, outputShape)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
@@ -37069,6 +37161,12 @@ var executeOp14 = (node, tensorMap, context) => {
       const axis = getParamValue("axis", node, tensorMap, context);
       const keepDims = getParamValue("keepDims", node, tensorMap, context);
       return [prod(getParamValue("x", node, tensorMap, context), axis, keepDims)];
+    }
+    case "Cumprod": {
+      const axis = getParamValue("axis", node, tensorMap, context);
+      const exclusive = getParamValue("exclusive", node, tensorMap, context);
+      const reverse5 = getParamValue("reverse", node, tensorMap, context);
+      return [cumprod(getParamValue("x", node, tensorMap, context), axis, exclusive, reverse5)];
     }
     case "Cumsum": {
       const axis = getParamValue("axis", node, tensorMap, context);
@@ -43257,6 +43355,53 @@ var cropAndResizeConfig = {
   kernelFunc: cropAndResize2
 };
 
+// src/tfjs-backend-cpu/src/kernels/Cumprod.ts
+function cumprod2(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse5 } = attrs;
+  assertNotComplex(x, "cumprod");
+  const permutation = backend_util_exports.getAxesPermutation([axis], x.shape.length);
+  let $x = x;
+  if (permutation != null) {
+    $x = transpose2({ inputs: { x }, backend: backend2, attrs: { perm: permutation } });
+  }
+  const permutedAxis = backend_util_exports.getInnerMostAxes(1, x.shape.length)[0];
+  if (permutedAxis !== $x.shape.length - 1) {
+    throw new Error(`backend.cumprod in CPU expects an inner-most axis=${$x.shape.length - 1} but got axis=${permutedAxis}`);
+  }
+  const resultDtype = upcastType($x.dtype, "int32");
+  const vals = util_exports.makeOnesTypedArray(util_exports.sizeFromShape($x.shape), resultDtype);
+  const aVals = backend2.data.get($x.dataId).values;
+  const finalDim = $x.shape[$x.shape.length - 1];
+  const indexAdjuster = reverse5 ? (i, j) => i + finalDim - j - 1 : (i, j) => i + j;
+  for (let i = 0; i < aVals.length; i += finalDim) {
+    for (let j = 0; j < finalDim; j++) {
+      const idx = indexAdjuster(i, j);
+      if (j === 0) {
+        vals[idx] = exclusive ? 1 : aVals[idx];
+      } else {
+        const prevIdx = indexAdjuster(i, j - 1);
+        vals[idx] = exclusive ? aVals[prevIdx] * vals[prevIdx] : aVals[idx] * vals[prevIdx];
+      }
+    }
+  }
+  const result = backend2.makeTensorInfo($x.shape, resultDtype, vals);
+  if (permutation != null) {
+    const reversePermutation = backend_util_exports.getUndoAxesPermutation(permutation);
+    const reverseTransposedResult = transpose2({ inputs: { x: result }, backend: backend2, attrs: { perm: reversePermutation } });
+    backend2.disposeIntermediateTensorInfo(result);
+    backend2.disposeIntermediateTensorInfo($x);
+    return reverseTransposedResult;
+  }
+  return result;
+}
+var cumprodConfig = {
+  kernelName: Cumprod,
+  backendName: "cpu",
+  kernelFunc: cumprod2
+};
+
 // src/tfjs-backend-cpu/src/kernels/Cumsum.ts
 function cumsum2(args) {
   const { inputs, backend: backend2, attrs } = args;
@@ -46467,6 +46612,7 @@ var kernelConfigs = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
   cumsumConfig,
   denseBincountConfig,
   depthToSpaceConfig,
@@ -46634,6 +46780,7 @@ __export(webgl_util_exports, {
   isWebGLFenceEnabled: () => isWebGLFenceEnabled,
   isWebGLVersionEnabled: () => isWebGLVersionEnabled,
   linkProgram: () => linkProgram,
+  logShaderSourceAndInfoLog: () => logShaderSourceAndInfoLog,
   resetMaxTextureSize: () => resetMaxTextureSize,
   resetMaxTexturesInShader: () => resetMaxTexturesInShader,
   unbindColorTextureFromFramebuffer: () => unbindColorTextureFromFramebuffer,
@@ -46837,6 +46984,9 @@ function createFragmentShader(gl, fragmentShaderSource) {
   const fragmentShader = throwIfNull(gl, () => gl.createShader(gl.FRAGMENT_SHADER), "Unable to create fragment WebGLShader.");
   callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
   callAndCheck(gl, () => gl.compileShader(fragmentShader));
+  if (env().get("ENGINE_COMPILE_ONLY")) {
+    return fragmentShader;
+  }
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
     logShaderSourceAndInfoLog(fragmentShaderSource, gl.getShaderInfoLog(fragmentShader));
     throw new Error("Failed to compile fragment shader.");
@@ -46872,6 +47022,9 @@ function createProgram(gl) {
 }
 function linkProgram(gl, program) {
   callAndCheck(gl, () => gl.linkProgram(program));
+  if (env().get("ENGINE_COMPILE_ONLY")) {
+    return;
+  }
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error("Failed to link vertex and fragment shaders.");
@@ -49099,15 +49252,51 @@ function compileProgram(gpgpu, program, inputs, output) {
   const source = makeShader(inputInfos, outShapeInfo, program);
   const fragmentShader = createFragmentShader(gpgpu.gl, source);
   const webGLProgram = gpgpu.createProgram(fragmentShader);
+  if (!env().get("ENGINE_COMPILE_ONLY")) {
+    return {
+      program,
+      fragmentShader,
+      source,
+      webGLProgram,
+      inShapeInfos,
+      outShapeInfo,
+      ...getUniformLocations(gpgpu, program, webGLProgram)
+    };
+  } else {
+    return {
+      program,
+      fragmentShader,
+      source,
+      webGLProgram,
+      inShapeInfos,
+      outShapeInfo,
+      uniformLocations: null,
+      customUniformLocations: null,
+      infLoc: null,
+      nanLoc: null,
+      inShapesLocations: null,
+      inTexShapesLocations: null,
+      outShapeLocation: null,
+      outShapeStridesLocation: null,
+      outTexShapeLocation: null
+    };
+  }
+}
+function getUniformLocations(gpgpu, program, webGLProgram) {
+  const uniformLocations = {};
+  const inShapesLocations = {};
+  const inTexShapesLocations = {};
+  const customUniformLocations = [];
+  let outShapeLocation;
+  let outTexShapeLocation;
+  let outShapeStridesLocation;
   let infLoc = null;
-  const nanLoc = gpgpu.getUniformLocation(webGLProgram, "NAN", false);
+  let nanLoc = null;
+  nanLoc = gpgpu.getUniformLocation(webGLProgram, "NAN", false);
   if (env().getNumber("WEBGL_VERSION") === 1) {
     infLoc = gpgpu.getUniformLocation(webGLProgram, "INFINITY", false);
   }
   const shouldThrow = false;
-  const uniformLocations = {};
-  const inShapesLocations = {};
-  const inTexShapesLocations = {};
   for (let i = 0; i < program.variableNames.length; i++) {
     const varName = program.variableNames[i];
     uniformLocations[varName] = gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow);
@@ -49117,29 +49306,19 @@ function compileProgram(gpgpu, program, inputs, output) {
       inTexShapesLocations[`${varName}TexShape`] = gpgpu.getUniformLocation(webGLProgram, `${varName}TexShape`, shouldThrow);
     }
   }
-  let outShapeLocation;
-  let outTexShapeLocation;
-  let outShapeStridesLocation;
   if (program.enableShapeUniforms) {
     outShapeLocation = gpgpu.getUniformLocation(webGLProgram, "outShape", shouldThrow);
     outShapeStridesLocation = gpgpu.getUniformLocation(webGLProgram, "outShapeStrides", shouldThrow);
     outTexShapeLocation = gpgpu.getUniformLocation(webGLProgram, "outTexShape", shouldThrow);
   }
-  const customUniformLocations = [];
   if (program.customUniforms) {
     program.customUniforms.forEach((d, i) => {
       customUniformLocations[i] = gpgpu.getUniformLocation(webGLProgram, d.name, shouldThrow);
     });
   }
   return {
-    program,
-    fragmentShader,
-    source,
-    webGLProgram,
     uniformLocations,
     customUniformLocations,
-    inShapeInfos,
-    outShapeInfo,
     infLoc,
     nanLoc,
     inShapesLocations,
@@ -49767,6 +49946,7 @@ var GPGPUContext = class {
     }
     let COLOR_BUFFER_FLOAT = "WEBGL_color_buffer_float";
     const COLOR_BUFFER_HALF_FLOAT = "EXT_color_buffer_half_float";
+    this.parallelCompilationExtension = this.gl.getExtension("KHR_parallel_shader_compile");
     if (env().getNumber("WEBGL_VERSION") === 1) {
       const TEXTURE_FLOAT = "OES_texture_float";
       const TEXTURE_HALF_FLOAT = "OES_texture_half_float";
@@ -50234,7 +50414,7 @@ var PackProgram = class {
       const channels = getChannels("rc", this.rank);
       const dtype = getCoordsDataType(this.rank);
       const outOfBoundsCondition = this.getOutOfBoundsCondition(channels);
-      const setup49 = this.getSetup(channels);
+      const setup50 = this.getSetup(channels);
       const output = this.getOutput(channels);
       this.userCode = `
         void main() {
@@ -50243,7 +50423,7 @@ var PackProgram = class {
           if(${outOfBoundsCondition}) {
             setOutput(vec4(0));
           } else {
-            ${setup49}
+            ${setup50}
 
             setOutput(vec4(${output}));
           }
@@ -51249,7 +51429,9 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (shouldTimeProgram) {
       query = this.startTimer();
     }
-    runProgram(this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    if (!env().get("ENGINE_COMPILE_ONLY")) {
+      runProgram(this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    }
     dataToDispose.forEach((info) => this.disposeIntermediateTensorInfo(info));
     if (shouldTimeProgram) {
       query = this.endTimer(query);
@@ -51370,13 +51552,17 @@ var _MathBackendWebGL = class extends KernelBackend {
       const preventEagerUnpacking = true;
       const encodedOutputTarget = this.runWebGLProgram(program, [tempDenseInputHandle], dtype, customValues, preventEagerUnpacking);
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);
-      texData.texture = outputTexData.texture;
       texData.texShape = outputTexData.texShape;
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
+      if (!env().get("ENGINE_COMPILE_ONLY")) {
+        texData.texture = outputTexData.texture;
+        texData.values = null;
+        this.texData.delete(encodedOutputTarget.dataId);
+      } else {
+        this.disposeData(encodedOutputTarget.dataId);
+      }
       this.disposeIntermediateTensorInfo(tempDenseInputHandle);
-      this.texData.delete(encodedOutputTarget.dataId);
-      texData.values = null;
       if (shouldTimeProgram) {
         this.uploadWaitMs += util_exports.now() - start;
       }
@@ -51405,6 +51591,76 @@ var _MathBackendWebGL = class extends KernelBackend {
   }
   computeBytes(shape, dtype) {
     return shape[0] * shape[1] * util_exports.bytesPerElement(dtype);
+  }
+  checkCompileCompletion() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      this.checkCompletion_(binary);
+    }
+  }
+  async checkCompileCompletionAsync() {
+    const ps = [];
+    if (this.gpgpu.parallelCompilationExtension) {
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        ps.push(this.checkCompletionAsync_(binary));
+      }
+      return Promise.all(ps);
+    } else {
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        const p2 = new Promise((resolve) => {
+          try {
+            this.checkCompletion_(binary);
+            resolve(true);
+          } catch (error) {
+            throw error;
+          }
+        });
+        ps.push(p2);
+      }
+      return Promise.all(ps);
+    }
+  }
+  async checkCompletionAsync_(binary) {
+    if (this.gpgpu.gl.getProgramParameter(binary.webGLProgram, this.gpgpu.parallelCompilationExtension.COMPLETION_STATUS_KHR)) {
+      return this.checkCompletion_(binary);
+    } else {
+      await nextFrame();
+      return this.checkCompletionAsync_(binary);
+    }
+  }
+  checkCompletion_(binary) {
+    if (this.gpgpu.gl.getProgramParameter(binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+      console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
+      if (this.gpgpu.gl.getShaderParameter(binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) === false) {
+        logShaderSourceAndInfoLog(binary.source, this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
+        throw new Error("Failed to compile fragment shader.");
+      }
+      throw new Error("Failed to link vertex and fragment shaders.");
+    }
+    return true;
+  }
+  getUniformLocations() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      const {
+        uniformLocations,
+        customUniformLocations,
+        infLoc,
+        nanLoc,
+        inShapesLocations,
+        inTexShapesLocations,
+        outShapeLocation,
+        outShapeStridesLocation,
+        outTexShapeLocation
+      } = getUniformLocations(this.gpgpu, binary.program, binary.webGLProgram);
+      binary.uniformLocations = uniformLocations;
+      binary.customUniformLocations = customUniformLocations;
+      binary.infLoc = infLoc;
+      binary.nanLoc = nanLoc;
+      binary.inShapesLocations = inShapesLocations;
+      binary.inTexShapesLocations = inTexShapesLocations;
+      binary.outShapeLocation = outShapeLocation;
+      binary.outShapeStridesLocation = outShapeStridesLocation;
+      binary.outTexShapeLocation = outTexShapeLocation;
+    }
   }
 };
 var MathBackendWebGL = _MathBackendWebGL;
@@ -55390,14 +55646,14 @@ var cropAndResizeConfig2 = {
   kernelFunc: cropAndResize3
 };
 
-// src/tfjs-backend-webgl/src/cumsum_gpu.ts
-var CumSumProgram = class {
+// src/tfjs-backend-webgl/src/cumprod_gpu.ts
+var CumProdProgram = class {
   constructor(shape, exclusive, reverse5) {
     this.variableNames = ["x"];
     this.customUniforms = [{ name: "index", type: "float" }];
     this.outputShape = shape;
     const rank = shape.length;
-    const val = exclusive ? "0.0" : `getX(${getCoords2(rank, "coords")})`;
+    const val = exclusive ? "1.0" : `getX(${getCoords2(rank, "coords")})`;
     const length = shape[shape.length - 1];
     let condition = "";
     let idxString = "";
@@ -55417,7 +55673,7 @@ var CumSumProgram = class {
         if (${condition}) {
           int idx = ${idxString};
           ${getFinalCoord(rank, "coords")} = idx;
-          val += getX(${getCoords2(rank, "coords")});
+          val *= getX(${getCoords2(rank, "coords")});
         }
         setOutput(val);
       }
@@ -55434,10 +55690,116 @@ function getCoords2(rank, name) {
   } else if (rank === 4) {
     return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
   } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
   }
 }
 function getFinalCoord(rank, name) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.w`;
+  } else {
+    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
+  }
+}
+
+// src/tfjs-backend-webgl/src/kernels/Cumprod.ts
+function cumprod3(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse5 } = attrs;
+  const xRank = x.shape.length;
+  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation != null) {
+    permutedX = transpose3({ inputs: { x }, backend: backend2, attrs: { perm: permutation } });
+  }
+  const permutedAxis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
+  if (permutedAxis !== xRank - 1) {
+    throw new Error(`WebGL cumprod shader expects an inner-most axis=${x.shape.length - 1} but got axis=${axis}`);
+  }
+  const size = permutedX.shape[permutedAxis];
+  let result = identity3({ inputs: { x: permutedX }, backend: backend2 });
+  for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
+    const program = new CumProdProgram(permutedX.shape, false, reverse5);
+    const customValues = [[i]];
+    const prevResult = result;
+    result = backend2.runWebGLProgram(program, [result], result.dtype, customValues);
+    backend2.disposeIntermediateTensorInfo(prevResult);
+  }
+  if (exclusive) {
+    const program = new CumProdProgram(permutedX.shape, exclusive, reverse5);
+    const prevResult = result;
+    result = backend2.runWebGLProgram(program, [result], result.dtype);
+    backend2.disposeIntermediateTensorInfo(prevResult);
+  }
+  if (permutation != null) {
+    const reversePermutation = backend_util_exports.getUndoAxesPermutation(permutation);
+    const reverseTransposedResult = transpose3({ inputs: { x: result }, backend: backend2, attrs: { perm: reversePermutation } });
+    backend2.disposeIntermediateTensorInfo(result);
+    backend2.disposeIntermediateTensorInfo(permutedX);
+    return reverseTransposedResult;
+  }
+  return result;
+}
+var cumprodConfig2 = {
+  kernelName: Cumprod,
+  backendName: "webgl",
+  kernelFunc: cumprod3
+};
+
+// src/tfjs-backend-webgl/src/cumsum_gpu.ts
+var CumSumProgram = class {
+  constructor(shape, exclusive, reverse5) {
+    this.variableNames = ["x"];
+    this.customUniforms = [{ name: "index", type: "float" }];
+    this.outputShape = shape;
+    const rank = shape.length;
+    const val = exclusive ? "0.0" : `getX(${getCoords3(rank, "coords")})`;
+    const length = shape[shape.length - 1];
+    let condition = "";
+    let idxString = "";
+    if (exclusive) {
+      condition = reverse5 ? `end != ${length - 1}` : "end != 0";
+      idxString = reverse5 ? "end + 1" : "end - 1";
+    } else {
+      condition = reverse5 ? `end + pow2 < ${length}` : "end >= pow2";
+      idxString = reverse5 ? "end + pow2" : "end - pow2";
+    }
+    this.userCode = `
+      void main() {
+        ${getCoordsDataType(rank)} coords = getOutputCoords();
+        int end = ${getFinalCoord2(rank, "coords")};
+        float val = ${val};
+        int pow2 = int(pow(2.0, index));
+        if (${condition}) {
+          int idx = ${idxString};
+          ${getFinalCoord2(rank, "coords")} = idx;
+          val += getX(${getCoords3(rank, "coords")});
+        }
+        setOutput(val);
+      }
+    `;
+  }
+};
+function getCoords3(rank, name) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.x, ${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.x, ${name}.y, ${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
+  } else {
+    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+  }
+}
+function getFinalCoord2(rank, name) {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
@@ -60916,6 +61278,7 @@ var kernelConfigs2 = [
   cosConfig2,
   coshConfig2,
   cropAndResizeConfig2,
+  cumprodConfig2,
   cumsumConfig2,
   denseBincountConfig2,
   depthToSpaceConfig2,
@@ -63712,7 +64075,7 @@ var SliceProgram2 = class {
   }
   getUserCode() {
     const dtype = getCoordsDataType2(this.rank);
-    const sourceCoords = getCoords3(this.rank);
+    const sourceCoords = getCoords4(this.rank);
     let coordSum;
     if (this.start.length === 1) {
       coordSum = this.outputShape.map((_, i) => {
@@ -63737,7 +64100,7 @@ var SliceProgram2 = class {
   }
 };
 var coords2 = ["x", "y", "z", "w", "u", "v"];
-function getCoords3(rank) {
+function getCoords4(rank) {
   if (rank === 1) {
     return "sourceLoc";
   } else if (rank <= 6) {
@@ -70193,9 +70556,55 @@ var cropAndResizeConfig4 = {
   kernelFunc: cropAndResize5
 };
 
+// src/tfjs-backend-wasm/src/kernels/Cumprod.ts
+var wasmCumprod;
+function setup12(backend2) {
+  wasmCumprod = backend2.wasm.cwrap(Cumprod, null, [
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number"
+  ]);
+}
+function cumprod4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse5 } = attrs;
+  const xRank = x.shape.length;
+  util_exports.assert(x.dtype === "float32" || x.dtype === "int32", () => `cumprod does not support ${x.dtype} tensors in the WASM backend`);
+  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation !== null) {
+    permutedX = transpose5({ inputs: { x }, attrs: { perm: permutation }, backend: backend2 });
+  }
+  const permutedAxis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
+  backend_util_exports.assertAxesAreInnerMostDims("cumprod", [permutedAxis], xRank);
+  const permutedOut = backend2.makeOutput(permutedX.shape, permutedX.dtype);
+  const finalDim = permutedX.shape[permutedAxis];
+  const permutedXId = backend2.dataIdMap.get(permutedX.dataId).id;
+  const permutedOutId = backend2.dataIdMap.get(permutedOut.dataId).id;
+  wasmCumprod(permutedXId, exclusive ? 1 : 0, reverse5 ? 1 : 0, finalDim, permutedOutId, CppDType[x.dtype]);
+  let out = permutedOut;
+  if (permutation !== null) {
+    const undoPermutation = backend_util_exports.getUndoAxesPermutation(permutation);
+    out = transpose5({ inputs: { x: permutedOut }, attrs: { perm: undoPermutation }, backend: backend2 });
+    backend2.disposeData(permutedX.dataId);
+    backend2.disposeData(permutedOut.dataId);
+  }
+  return out;
+}
+var cumprodConfig3 = {
+  kernelName: Cumprod,
+  backendName: "wasm",
+  setupFunc: setup12,
+  kernelFunc: cumprod4
+};
+
 // src/tfjs-backend-wasm/src/kernels/Cumsum.ts
 var wasmCumsum;
-function setup12(backend2) {
+function setup13(backend2) {
   wasmCumsum = backend2.wasm.cwrap(Cumsum, null, [
     "number",
     "number",
@@ -70235,13 +70644,13 @@ function cumsum4(args) {
 var cumsumConfig3 = {
   kernelName: Cumsum,
   backendName: "wasm",
-  setupFunc: setup12,
+  setupFunc: setup13,
   kernelFunc: cumsum4
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthToSpace.ts
 var wasmDepthToSpace;
-function setup13(backend2) {
+function setup14(backend2) {
   wasmDepthToSpace = backend2.wasm.cwrap(DepthToSpace, null, [
     "number",
     "number",
@@ -70280,13 +70689,13 @@ function depthToSpace5(args) {
 var depthToSpaceConfig4 = {
   kernelName: DepthToSpace,
   backendName: "wasm",
-  setupFunc: setup13,
+  setupFunc: setup14,
   kernelFunc: depthToSpace5
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthwiseConv2dNative.ts
 var wasmDepthwiseConv2d;
-function setup14(backend2) {
+function setup15(backend2) {
   wasmDepthwiseConv2d = backend2.wasm.cwrap(DepthwiseConv2dNative, null, [
     "number",
     "number",
@@ -70341,7 +70750,7 @@ function depthwiseConv2d5(args) {
 var depthwiseConv2dNativeConfig4 = {
   kernelName: DepthwiseConv2dNative,
   backendName: "wasm",
-  setupFunc: setup14,
+  setupFunc: setup15,
   kernelFunc: depthwiseConv2d5
 };
 
@@ -70392,7 +70801,7 @@ var fillConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/FlipLeftRight.ts
 var wasmFlipLeftRight;
-function setup15(backend2) {
+function setup16(backend2) {
   wasmFlipLeftRight = backend2.wasm.cwrap(FlipLeftRight, null, [
     "number",
     "number",
@@ -70416,7 +70825,7 @@ var flipLeftRightConfig4 = {
   kernelName: FlipLeftRight,
   backendName: "wasm",
   kernelFunc: flipLeftRight2,
-  setupFunc: setup15
+  setupFunc: setup16
 };
 
 // src/tfjs-backend-wasm/src/kernels/Floor.ts
@@ -70428,7 +70837,7 @@ var floorDivConfig4 = createBinaryKernelConfig(FloorDiv, supportsFullBroadcast3)
 
 // src/tfjs-backend-wasm/src/kernels/FusedBatchNorm.ts
 var wasmBatchNorm;
-function setup16(backend2) {
+function setup17(backend2) {
   wasmBatchNorm = backend2.wasm.cwrap(FusedBatchNorm, null, ["number", "number", "number", "number", "number", "number", "number"]);
 }
 function fusedBatchNorm(args) {
@@ -70451,13 +70860,13 @@ function fusedBatchNorm(args) {
 var fusedBatchNormConfig2 = {
   kernelName: FusedBatchNorm,
   backendName: "wasm",
-  setupFunc: setup16,
+  setupFunc: setup17,
   kernelFunc: fusedBatchNorm
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedConv2D.ts
 var wasmFusedConv2d;
-function setup17(backend2) {
+function setup18(backend2) {
   wasmFusedConv2d = backend2.wasm.cwrap(FusedConv2D, null, [
     "number",
     "number",
@@ -70542,13 +70951,13 @@ function fusedConv2d3(args) {
 var fusedConv2DConfig4 = {
   kernelName: FusedConv2D,
   backendName: "wasm",
-  setupFunc: setup17,
+  setupFunc: setup18,
   kernelFunc: fusedConv2d3
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedDepthwiseConv2D.ts
 var wasmFusedDepthwiseConv2d;
-function setup18(backend2) {
+function setup19(backend2) {
   wasmFusedDepthwiseConv2d = backend2.wasm.cwrap(FusedDepthwiseConv2D, null, [
     "number",
     "number",
@@ -70633,13 +71042,13 @@ function fusedDepthwiseConv2d(args) {
 var fusedDepthwiseConv2DConfig4 = {
   kernelName: FusedDepthwiseConv2D,
   backendName: "wasm",
-  setupFunc: setup18,
+  setupFunc: setup19,
   kernelFunc: fusedDepthwiseConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherNd.ts
 var wasmGatherNd;
-function setup19(backend2) {
+function setup20(backend2) {
   wasmGatherNd = backend2.wasm.cwrap(GatherNd, null, [
     "number",
     "number",
@@ -70673,13 +71082,13 @@ function gatherNd4(args) {
 var gatherNdConfig4 = {
   kernelName: GatherNd,
   backendName: "wasm",
-  setupFunc: setup19,
+  setupFunc: setup20,
   kernelFunc: gatherNd4
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherV2.ts
 var wasmGather;
-function setup20(backend2) {
+function setup21(backend2) {
   wasmGather = backend2.wasm.cwrap("Gather", null, [
     "number",
     "number",
@@ -70748,7 +71157,7 @@ function gatherV24(args) {
 var gatherV2Config4 = {
   kernelName: GatherV2,
   backendName: "wasm",
-  setupFunc: setup20,
+  setupFunc: setup21,
   kernelFunc: gatherV24
 };
 
@@ -70804,7 +71213,7 @@ var logicalAndConfig4 = createBinaryKernelConfig(LogicalAnd, supportsFullBroadca
 
 // src/tfjs-backend-wasm/src/kernels/Max.ts
 var wasmMax;
-function setup21(backend2) {
+function setup22(backend2) {
   wasmMax = backend2.wasm.cwrap(Max, null, [
     "number",
     "number",
@@ -70846,7 +71255,7 @@ function max6(args) {
 var maxConfig4 = {
   kernelName: Max,
   backendName: "wasm",
-  setupFunc: setup21,
+  setupFunc: setup22,
   kernelFunc: max6
 };
 
@@ -70856,7 +71265,7 @@ var maximumConfig4 = createBinaryKernelConfig(Maximum, supportsFullBroadcast9);
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool.ts
 var wasmMaxPool;
-function setup22(backend2) {
+function setup23(backend2) {
   wasmMaxPool = backend2.wasm.cwrap(MaxPool, null, [
     "number",
     "number",
@@ -70907,13 +71316,13 @@ function maxPool5(args) {
 var maxPoolConfig4 = {
   kernelName: MaxPool,
   backendName: "wasm",
-  setupFunc: setup22,
+  setupFunc: setup23,
   kernelFunc: maxPool5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Mean.ts
 var wasmMean;
-function setup23(backend2) {
+function setup24(backend2) {
   wasmMean = backend2.wasm.cwrap(Mean, null, ["number, number, number"]);
 }
 function mean4(args) {
@@ -70961,13 +71370,13 @@ function mean4(args) {
 var meanConfig4 = {
   kernelName: Mean,
   backendName: "wasm",
-  setupFunc: setup23,
+  setupFunc: setup24,
   kernelFunc: mean4
 };
 
 // src/tfjs-backend-wasm/src/kernels/Min.ts
 var wasmMin;
-function setup24(backend2) {
+function setup25(backend2) {
   wasmMin = backend2.wasm.cwrap(Min, null, [
     "number",
     "number",
@@ -71011,7 +71420,7 @@ function min6(args) {
 var minConfig4 = {
   kernelName: Min,
   backendName: "wasm",
-  setupFunc: setup24,
+  setupFunc: setup25,
   kernelFunc: min6
 };
 
@@ -71026,7 +71435,7 @@ var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
   return MirrorPaddingMode2;
 })(MirrorPaddingMode || {});
 var wasmMirrorPad;
-function setup25(backend2) {
+function setup26(backend2) {
   wasmMirrorPad = backend2.wasm.cwrap(MirrorPad, null, [
     "number",
     "array",
@@ -71056,7 +71465,7 @@ var mirrorPadConfig4 = {
   kernelName: MirrorPad,
   backendName: "wasm",
   kernelFunc: mirrorPad3,
-  setupFunc: setup25
+  setupFunc: setup26
 };
 
 // src/tfjs-backend-wasm/src/kernels/Multiply.ts
@@ -71079,7 +71488,7 @@ function parseResultStruct(backend2, resOffset) {
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV3.ts
 var wasmFunc4;
-function setup26(backend2) {
+function setup27(backend2) {
   wasmFunc4 = backend2.wasm.cwrap(NonMaxSuppressionV3, "number", [
     "number",
     "number",
@@ -71104,13 +71513,13 @@ function kernelFunc(args) {
 var nonMaxSuppressionV3Config4 = {
   kernelName: NonMaxSuppressionV3,
   backendName: "wasm",
-  setupFunc: setup26,
+  setupFunc: setup27,
   kernelFunc
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV4.ts
 var wasmFunc5;
-function setup27(backend2) {
+function setup28(backend2) {
   wasmFunc5 = backend2.wasm.cwrap(NonMaxSuppressionV4, "number", [
     "number",
     "number",
@@ -71136,13 +71545,13 @@ function nonMaxSuppressionV43(args) {
 var nonMaxSuppressionV4Config3 = {
   kernelName: NonMaxSuppressionV4,
   backendName: "wasm",
-  setupFunc: setup27,
+  setupFunc: setup28,
   kernelFunc: nonMaxSuppressionV43
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV5.ts
 var wasmFunc6;
-function setup28(backend2) {
+function setup29(backend2) {
   wasmFunc6 = backend2.wasm.cwrap(NonMaxSuppressionV5, "number", [
     "number",
     "number",
@@ -71168,7 +71577,7 @@ function kernelFunc2(args) {
 var nonMaxSuppressionV5Config4 = {
   kernelName: NonMaxSuppressionV5,
   backendName: "wasm",
-  setupFunc: setup28,
+  setupFunc: setup29,
   kernelFunc: kernelFunc2
 };
 
@@ -71178,7 +71587,7 @@ var notEqualConfig4 = createBinaryKernelConfig(NotEqual, supportsFullBroadcast12
 
 // src/tfjs-backend-wasm/src/kernels/OneHot.ts
 var wasmOneHot;
-function setup29(backend2) {
+function setup30(backend2) {
   wasmOneHot = backend2.wasm.cwrap(OneHot, null, [
     "number",
     "number",
@@ -71201,7 +71610,7 @@ function oneHot4(args) {
 var oneHotConfig3 = {
   kernelName: OneHot,
   backendName: "wasm",
-  setupFunc: setup29,
+  setupFunc: setup30,
   kernelFunc: oneHot4
 };
 
@@ -71250,7 +71659,7 @@ var packConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/PadV2.ts
 var wasmPadV2;
-function setup30(backend2) {
+function setup31(backend2) {
   wasmPadV2 = backend2.wasm.cwrap(PadV2, null, [
     "number",
     "array",
@@ -71287,7 +71696,7 @@ var padV2Config4 = {
   kernelName: PadV2,
   backendName: "wasm",
   kernelFunc: pad2,
-  setupFunc: setup30
+  setupFunc: setup31
 };
 
 // src/tfjs-backend-wasm/src/kernels/Pow.ts
@@ -71296,7 +71705,7 @@ var powConfig4 = createBinaryKernelConfig(Pow, supportsFullBroadcast13);
 
 // src/tfjs-backend-wasm/src/kernels/Prelu.ts
 var wasmPrelu;
-function setup31(backend2) {
+function setup32(backend2) {
   wasmPrelu = backend2.wasm.cwrap(Prelu, null, [
     "number",
     "number",
@@ -71326,13 +71735,13 @@ function prelu6(args) {
 var preluConfig4 = {
   kernelName: Prelu,
   backendName: "wasm",
-  setupFunc: setup31,
+  setupFunc: setup32,
   kernelFunc: prelu6
 };
 
 // src/tfjs-backend-wasm/src/kernels/Prod.ts
 var wasmProd;
-function setup32(backend2) {
+function setup33(backend2) {
   wasmProd = backend2.wasm.cwrap(Prod, null, [
     "number",
     "number",
@@ -71377,7 +71786,7 @@ function prod5(args) {
 var prodConfig4 = {
   kernelName: Prod,
   backendName: "wasm",
-  setupFunc: setup32,
+  setupFunc: setup33,
   kernelFunc: prod5
 };
 
@@ -71409,7 +71818,7 @@ var relu6Config4 = createUnaryKernelConfig(Relu6);
 
 // src/tfjs-backend-wasm/src/kernels/ResizeBilinear.ts
 var wasmResizeBilinear;
-function setup33(backend2) {
+function setup34(backend2) {
   wasmResizeBilinear = backend2.wasm.cwrap(ResizeBilinear, null, [
     "number",
     "number",
@@ -71451,13 +71860,13 @@ function resizeBilinear5(args) {
 var resizeBilinearConfig4 = {
   kernelName: ResizeBilinear,
   backendName: "wasm",
-  setupFunc: setup33,
+  setupFunc: setup34,
   kernelFunc: resizeBilinear5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Reverse.ts
 var wasmReverse;
-function setup34(backend2) {
+function setup35(backend2) {
   wasmReverse = backend2.wasm.cwrap(Reverse, null, [
     "number",
     "array",
@@ -71489,12 +71898,12 @@ var reverseConfig3 = {
   kernelName: Reverse,
   backendName: "wasm",
   kernelFunc: reverse4,
-  setupFunc: setup34
+  setupFunc: setup35
 };
 
 // src/tfjs-backend-wasm/src/kernels/RotateWithOffset.ts
 var wasmRotate;
-function setup35(backend2) {
+function setup36(backend2) {
   wasmRotate = backend2.wasm.cwrap(RotateWithOffset, null, [
     "number",
     "number",
@@ -71529,7 +71938,7 @@ var rotateWithOffsetConfig4 = {
   kernelName: RotateWithOffset,
   backendName: "wasm",
   kernelFunc: rotateWithOffset2,
-  setupFunc: setup35
+  setupFunc: setup36
 };
 
 // src/tfjs-backend-wasm/src/kernels/Round.ts
@@ -71540,7 +71949,7 @@ var rsqrtConfig4 = createUnaryKernelConfig(Rsqrt);
 
 // src/tfjs-backend-wasm/src/kernels/ScatterNd.ts
 var wasmScatterNd;
-function setup36(backend2) {
+function setup37(backend2) {
   wasmScatterNd = backend2.wasm.cwrap(ScatterNd, null, [
     "number",
     "number",
@@ -71574,13 +71983,13 @@ function scatterNd4(args) {
 var scatterNdConfig4 = {
   kernelName: ScatterNd,
   backendName: "wasm",
-  setupFunc: setup36,
+  setupFunc: setup37,
   kernelFunc: scatterNd4
 };
 
 // src/tfjs-backend-wasm/src/kernels/Select.ts
 var wasmSelect;
-function setup37(backend2) {
+function setup38(backend2) {
   wasmSelect = backend2.wasm.cwrap("SelectV2", null, [
     "number",
     "number",
@@ -71607,12 +72016,12 @@ var selectConfig4 = {
   kernelName: Select,
   backendName: "wasm",
   kernelFunc: select5,
-  setupFunc: setup37
+  setupFunc: setup38
 };
 
 // src/tfjs-backend-wasm/src/kernels/Sigmoid.ts
 var wasmFunc7;
-function setup38(backend2) {
+function setup39(backend2) {
   wasmFunc7 = backend2.wasm.cwrap(Sigmoid, null, ["number", "number"]);
 }
 function sigmoid5(args) {
@@ -71629,7 +72038,7 @@ function sigmoid5(args) {
 var sigmoidConfig4 = {
   kernelName: "Sigmoid",
   backendName: "wasm",
-  setupFunc: setup38,
+  setupFunc: setup39,
   kernelFunc: sigmoid5
 };
 
@@ -71638,7 +72047,7 @@ var sinConfig4 = createUnaryKernelConfig(Sin);
 
 // src/tfjs-backend-wasm/src/kernels/Softmax.ts
 var wasmFunc8;
-function setup39(backend2) {
+function setup40(backend2) {
   wasmFunc8 = backend2.wasm.cwrap(Softmax, null, [
     "number",
     "number",
@@ -71662,7 +72071,7 @@ function softmax6(args) {
 var softmaxConfig4 = {
   kernelName: Softmax,
   backendName: "wasm",
-  setupFunc: setup39,
+  setupFunc: setup40,
   kernelFunc: softmax6
 };
 
@@ -71707,7 +72116,7 @@ var spaceToBatchNDConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/SparseFillEmptyRows.ts
 var wasmSparseFillEmptyRows;
-function setup40(backend2) {
+function setup41(backend2) {
   wasmSparseFillEmptyRows = backend2.wasm.cwrap("SparseFillEmptyRows", "number", [
     "number",
     "number",
@@ -71790,13 +72199,13 @@ function sparseFillEmptyRows4(args) {
 var sparseFillEmptyRowsConfig3 = {
   kernelName: SparseFillEmptyRows,
   backendName: "wasm",
-  setupFunc: setup40,
+  setupFunc: setup41,
   kernelFunc: sparseFillEmptyRows4
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseReshape.ts
 var wasmSparseReshape;
-function setup41(backend2) {
+function setup42(backend2) {
   wasmSparseReshape = backend2.wasm.cwrap(SparseReshape, null, [
     "number",
     "number",
@@ -71871,13 +72280,13 @@ function sparseReshape4(args) {
 var sparseReshapeConfig3 = {
   kernelName: SparseReshape,
   backendName: "wasm",
-  setupFunc: setup41,
+  setupFunc: setup42,
   kernelFunc: sparseReshape4
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseSegmentReduction.ts
 var wasmSparseSegmentReduction;
-function setup42(backend2) {
+function setup43(backend2) {
   wasmSparseSegmentReduction = backend2.wasm.cwrap("SparseSegmentReduction", null, [
     "number",
     "number",
@@ -71945,7 +72354,7 @@ function sparseSegmentMean4(args) {
 var sparseSegmentMeanConfig3 = {
   kernelName: SparseSegmentMean,
   backendName: "wasm",
-  setupFunc: setup42,
+  setupFunc: setup43,
   kernelFunc: sparseSegmentMean4
 };
 
@@ -71956,7 +72365,7 @@ function sparseSegmentSum4(args) {
 var sparseSegmentSumConfig3 = {
   kernelName: SparseSegmentSum,
   backendName: "wasm",
-  setupFunc: setup42,
+  setupFunc: setup43,
   kernelFunc: sparseSegmentSum4
 };
 
@@ -71995,7 +72404,7 @@ var squaredDifferenceConfig4 = createBinaryKernelConfig(SquaredDifference, suppo
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
-function setup43(backend2) {
+function setup44(backend2) {
   wasmStep = backend2.wasm.cwrap(Step, null, [
     "number",
     "number",
@@ -72016,13 +72425,13 @@ function step4(args) {
 var stepConfig3 = {
   kernelName: Step,
   backendName: "wasm",
-  setupFunc: setup43,
+  setupFunc: setup44,
   kernelFunc: step4
 };
 
 // src/tfjs-backend-wasm/src/kernels/StridedSlice.ts
 var wasmStridedSlice;
-function setup44(backend2) {
+function setup45(backend2) {
   wasmStridedSlice = backend2.wasm.cwrap(StridedSlice, null, [
     "number",
     "array",
@@ -72087,7 +72496,7 @@ function stridedSlice5(args) {
 var stridedSliceConfig4 = {
   kernelName: StridedSlice,
   backendName: "wasm",
-  setupFunc: setup44,
+  setupFunc: setup45,
   kernelFunc: stridedSlice5
 };
 
@@ -72097,7 +72506,7 @@ var subConfig4 = createBinaryKernelConfig(Sub, supportsFullBroadcast16);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
-function setup45(backend2) {
+function setup46(backend2) {
   wasmSum = backend2.wasm.cwrap(Sum, null, [
     "number",
     "number",
@@ -72142,7 +72551,7 @@ function sum6(args) {
 var sumConfig4 = {
   kernelName: Sum,
   backendName: "wasm",
-  setupFunc: setup45,
+  setupFunc: setup46,
   kernelFunc: sum6
 };
 
@@ -72154,7 +72563,7 @@ var tanhConfig4 = createUnaryKernelConfig(Tanh);
 
 // src/tfjs-backend-wasm/src/kernels/Tile.ts
 var wasmTile;
-function setup46(backend2) {
+function setup47(backend2) {
   wasmTile = backend2.wasm.cwrap(Tile, null, [
     "number",
     "array",
@@ -72183,13 +72592,13 @@ function tile6(args) {
 var tileConfig4 = {
   kernelName: Tile,
   backendName: "wasm",
-  setupFunc: setup46,
+  setupFunc: setup47,
   kernelFunc: tile6
 };
 
 // src/tfjs-backend-wasm/src/kernels/TopK.ts
 var wasmTopK;
-function setup47(backend2) {
+function setup48(backend2) {
   wasmTopK = backend2.wasm.cwrap(TopK, null, [
     "number",
     "array",
@@ -72218,13 +72627,13 @@ var topk2 = ({ inputs, backend: backend2, attrs }) => {
 var topKConfig4 = {
   kernelName: TopK,
   backendName: "wasm",
-  setupFunc: setup47,
+  setupFunc: setup48,
   kernelFunc: topk2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Transform.ts
 var wasmTransform;
-function setup48(backend2) {
+function setup49(backend2) {
   wasmTransform = backend2.wasm.cwrap(Transform, null, [
     "number",
     "number",
@@ -72287,7 +72696,7 @@ function transform5(args) {
 var transformConfig4 = {
   kernelName: Transform,
   backendName: "wasm",
-  setupFunc: setup48,
+  setupFunc: setup49,
   kernelFunc: transform5
 };
 
@@ -72359,6 +72768,7 @@ var kernelConfigs4 = [
   cosConfig4,
   coshConfig4,
   cropAndResizeConfig4,
+  cumprodConfig3,
   cumsumConfig3,
   depthToSpaceConfig4,
   depthwiseConv2dNativeConfig4,
@@ -72704,7 +73114,7 @@ async function init() {
     const factoryConfig = {};
     factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith(".worker.js")) {
-        const response = wasmWorkerContents;
+        const response = wasmWorkerContents.replace(/\n/g, "\\n");
         const blob = new Blob([response], { type: "application/javascript" });
         return URL.createObjectURL(blob);
       }
@@ -72823,7 +73233,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.14.0-20220307";
+var externalVersion = "3.14.0-20220316";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -72880,6 +73290,7 @@ export {
   Cos,
   Cosh,
   CropAndResize,
+  Cumprod,
   Cumsum,
   CustomCallback,
   DataStorage,
@@ -73089,6 +73500,7 @@ export {
   cos,
   cosh,
   cosineWindow,
+  cumprod,
   cumsum,
   customGrad,
   src_exports2 as data,
@@ -73545,6 +73957,38 @@ export {
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.

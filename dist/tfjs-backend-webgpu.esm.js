@@ -2243,6 +2243,7 @@ var Conv3D = "Conv3D";
 var Conv3DBackpropInputV2 = "Conv3DBackpropInputV2";
 var Cos = "Cos";
 var Cosh = "Cosh";
+var Cumprod = "Cumprod";
 var Cumsum = "Cumsum";
 var CropAndResize = "CropAndResize";
 var DenseBincount = "DenseBincount";
@@ -4060,6 +4061,7 @@ ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
+ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -6976,6 +6978,15 @@ function cosh_(x) {
   return ENGINE.runKernel(Cosh, inputs);
 }
 var cosh = op({ cosh_ });
+
+// src/tfjs-core/src/ops/cumprod.ts
+function cumprod_(x, axis = 0, exclusive = false, reverse2 = false) {
+  const $x = convertToTensor(x, "x", "cumprod");
+  const inputs = { x: $x };
+  const attrs = { axis, exclusive, reverse: reverse2 };
+  return ENGINE.runKernel(Cumprod, inputs, attrs);
+}
+var cumprod = op({ cumprod_ });
 
 // src/tfjs-core/src/ops/cumsum.ts
 function cumsum_(x, axis = 0, exclusive = false, reverse2 = false) {
@@ -21098,6 +21109,22 @@ export {
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.

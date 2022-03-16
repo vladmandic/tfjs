@@ -2246,6 +2246,7 @@ var Conv3DBackpropFilterV2 = "Conv3DBackpropFilterV2";
 var Conv3DBackpropInputV2 = "Conv3DBackpropInputV2";
 var Cos = "Cos";
 var Cosh = "Cosh";
+var Cumprod = "Cumprod";
 var Cumsum = "Cumsum";
 var CropAndResize = "CropAndResize";
 var DenseBincount = "DenseBincount";
@@ -4103,6 +4104,7 @@ ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
+ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -7019,6 +7021,15 @@ function cosh_(x) {
   return ENGINE.runKernel(Cosh, inputs);
 }
 var cosh = op({ cosh_ });
+
+// src/tfjs-core/src/ops/cumprod.ts
+function cumprod_(x, axis = 0, exclusive = false, reverse3 = false) {
+  const $x = convertToTensor(x, "x", "cumprod");
+  const inputs = { x: $x };
+  const attrs = { axis, exclusive, reverse: reverse3 };
+  return ENGINE.runKernel(Cumprod, inputs, attrs);
+}
+var cumprod = op({ cumprod_ });
 
 // src/tfjs-core/src/ops/cumsum.ts
 function cumsum_(x, axis = 0, exclusive = false, reverse3 = false) {
@@ -10974,6 +10985,9 @@ var delayCallback = (() => {
   }
   return (f) => f();
 })();
+function nextFrame() {
+  return new Promise((resolve) => delayCallback(() => resolve()));
+}
 
 // src/tfjs-core/src/backends/backend_util.ts
 var backend_util_exports = {};
@@ -11594,6 +11608,7 @@ __export(webgl_util_exports, {
   isWebGLFenceEnabled: () => isWebGLFenceEnabled,
   isWebGLVersionEnabled: () => isWebGLVersionEnabled,
   linkProgram: () => linkProgram,
+  logShaderSourceAndInfoLog: () => logShaderSourceAndInfoLog,
   resetMaxTextureSize: () => resetMaxTextureSize,
   resetMaxTexturesInShader: () => resetMaxTexturesInShader,
   unbindColorTextureFromFramebuffer: () => unbindColorTextureFromFramebuffer,
@@ -11797,6 +11812,9 @@ function createFragmentShader(gl, fragmentShaderSource) {
   const fragmentShader = throwIfNull(gl, () => gl.createShader(gl.FRAGMENT_SHADER), "Unable to create fragment WebGLShader.");
   callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
   callAndCheck(gl, () => gl.compileShader(fragmentShader));
+  if (env().get("ENGINE_COMPILE_ONLY")) {
+    return fragmentShader;
+  }
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
     logShaderSourceAndInfoLog(fragmentShaderSource, gl.getShaderInfoLog(fragmentShader));
     throw new Error("Failed to compile fragment shader.");
@@ -11832,6 +11850,9 @@ function createProgram(gl) {
 }
 function linkProgram(gl, program) {
   callAndCheck(gl, () => gl.linkProgram(program));
+  if (env().get("ENGINE_COMPILE_ONLY")) {
+    return;
+  }
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error("Failed to link vertex and fragment shaders.");
@@ -14059,15 +14080,51 @@ function compileProgram(gpgpu, program, inputs, output) {
   const source = makeShader(inputInfos, outShapeInfo, program);
   const fragmentShader = createFragmentShader(gpgpu.gl, source);
   const webGLProgram = gpgpu.createProgram(fragmentShader);
+  if (!env().get("ENGINE_COMPILE_ONLY")) {
+    return {
+      program,
+      fragmentShader,
+      source,
+      webGLProgram,
+      inShapeInfos,
+      outShapeInfo,
+      ...getUniformLocations(gpgpu, program, webGLProgram)
+    };
+  } else {
+    return {
+      program,
+      fragmentShader,
+      source,
+      webGLProgram,
+      inShapeInfos,
+      outShapeInfo,
+      uniformLocations: null,
+      customUniformLocations: null,
+      infLoc: null,
+      nanLoc: null,
+      inShapesLocations: null,
+      inTexShapesLocations: null,
+      outShapeLocation: null,
+      outShapeStridesLocation: null,
+      outTexShapeLocation: null
+    };
+  }
+}
+function getUniformLocations(gpgpu, program, webGLProgram) {
+  const uniformLocations = {};
+  const inShapesLocations = {};
+  const inTexShapesLocations = {};
+  const customUniformLocations = [];
+  let outShapeLocation;
+  let outTexShapeLocation;
+  let outShapeStridesLocation;
   let infLoc = null;
-  const nanLoc = gpgpu.getUniformLocation(webGLProgram, "NAN", false);
+  let nanLoc = null;
+  nanLoc = gpgpu.getUniformLocation(webGLProgram, "NAN", false);
   if (env().getNumber("WEBGL_VERSION") === 1) {
     infLoc = gpgpu.getUniformLocation(webGLProgram, "INFINITY", false);
   }
   const shouldThrow = false;
-  const uniformLocations = {};
-  const inShapesLocations = {};
-  const inTexShapesLocations = {};
   for (let i = 0; i < program.variableNames.length; i++) {
     const varName = program.variableNames[i];
     uniformLocations[varName] = gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow);
@@ -14077,29 +14134,19 @@ function compileProgram(gpgpu, program, inputs, output) {
       inTexShapesLocations[`${varName}TexShape`] = gpgpu.getUniformLocation(webGLProgram, `${varName}TexShape`, shouldThrow);
     }
   }
-  let outShapeLocation;
-  let outTexShapeLocation;
-  let outShapeStridesLocation;
   if (program.enableShapeUniforms) {
     outShapeLocation = gpgpu.getUniformLocation(webGLProgram, "outShape", shouldThrow);
     outShapeStridesLocation = gpgpu.getUniformLocation(webGLProgram, "outShapeStrides", shouldThrow);
     outTexShapeLocation = gpgpu.getUniformLocation(webGLProgram, "outTexShape", shouldThrow);
   }
-  const customUniformLocations = [];
   if (program.customUniforms) {
     program.customUniforms.forEach((d, i) => {
       customUniformLocations[i] = gpgpu.getUniformLocation(webGLProgram, d.name, shouldThrow);
     });
   }
   return {
-    program,
-    fragmentShader,
-    source,
-    webGLProgram,
     uniformLocations,
     customUniformLocations,
-    inShapeInfos,
-    outShapeInfo,
     infLoc,
     nanLoc,
     inShapesLocations,
@@ -14727,6 +14774,7 @@ var GPGPUContext = class {
     }
     let COLOR_BUFFER_FLOAT = "WEBGL_color_buffer_float";
     const COLOR_BUFFER_HALF_FLOAT = "EXT_color_buffer_half_float";
+    this.parallelCompilationExtension = this.gl.getExtension("KHR_parallel_shader_compile");
     if (env().getNumber("WEBGL_VERSION") === 1) {
       const TEXTURE_FLOAT = "OES_texture_float";
       const TEXTURE_HALF_FLOAT = "OES_texture_half_float";
@@ -17466,7 +17514,9 @@ var _MathBackendWebGL = class extends KernelBackend {
     if (shouldTimeProgram) {
       query = this.startTimer();
     }
-    runProgram(this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    if (!env().get("ENGINE_COMPILE_ONLY")) {
+      runProgram(this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    }
     dataToDispose.forEach((info) => this.disposeIntermediateTensorInfo(info));
     if (shouldTimeProgram) {
       query = this.endTimer(query);
@@ -17587,13 +17637,17 @@ var _MathBackendWebGL = class extends KernelBackend {
       const preventEagerUnpacking = true;
       const encodedOutputTarget = this.runWebGLProgram(program, [tempDenseInputHandle], dtype, customValues, preventEagerUnpacking);
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);
-      texData.texture = outputTexData.texture;
       texData.texShape = outputTexData.texShape;
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
+      if (!env().get("ENGINE_COMPILE_ONLY")) {
+        texData.texture = outputTexData.texture;
+        texData.values = null;
+        this.texData.delete(encodedOutputTarget.dataId);
+      } else {
+        this.disposeData(encodedOutputTarget.dataId);
+      }
       this.disposeIntermediateTensorInfo(tempDenseInputHandle);
-      this.texData.delete(encodedOutputTarget.dataId);
-      texData.values = null;
       if (shouldTimeProgram) {
         this.uploadWaitMs += util_exports.now() - start;
       }
@@ -17622,6 +17676,76 @@ var _MathBackendWebGL = class extends KernelBackend {
   }
   computeBytes(shape, dtype) {
     return shape[0] * shape[1] * util_exports.bytesPerElement(dtype);
+  }
+  checkCompileCompletion() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      this.checkCompletion_(binary);
+    }
+  }
+  async checkCompileCompletionAsync() {
+    const ps = [];
+    if (this.gpgpu.parallelCompilationExtension) {
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        ps.push(this.checkCompletionAsync_(binary));
+      }
+      return Promise.all(ps);
+    } else {
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        const p = new Promise((resolve) => {
+          try {
+            this.checkCompletion_(binary);
+            resolve(true);
+          } catch (error) {
+            throw error;
+          }
+        });
+        ps.push(p);
+      }
+      return Promise.all(ps);
+    }
+  }
+  async checkCompletionAsync_(binary) {
+    if (this.gpgpu.gl.getProgramParameter(binary.webGLProgram, this.gpgpu.parallelCompilationExtension.COMPLETION_STATUS_KHR)) {
+      return this.checkCompletion_(binary);
+    } else {
+      await nextFrame();
+      return this.checkCompletionAsync_(binary);
+    }
+  }
+  checkCompletion_(binary) {
+    if (this.gpgpu.gl.getProgramParameter(binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+      console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
+      if (this.gpgpu.gl.getShaderParameter(binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) === false) {
+        logShaderSourceAndInfoLog(binary.source, this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
+        throw new Error("Failed to compile fragment shader.");
+      }
+      throw new Error("Failed to link vertex and fragment shaders.");
+    }
+    return true;
+  }
+  getUniformLocations() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      const {
+        uniformLocations,
+        customUniformLocations,
+        infLoc,
+        nanLoc,
+        inShapesLocations,
+        inTexShapesLocations,
+        outShapeLocation,
+        outShapeStridesLocation,
+        outTexShapeLocation
+      } = getUniformLocations(this.gpgpu, binary.program, binary.webGLProgram);
+      binary.uniformLocations = uniformLocations;
+      binary.customUniformLocations = customUniformLocations;
+      binary.infLoc = infLoc;
+      binary.nanLoc = nanLoc;
+      binary.inShapesLocations = inShapesLocations;
+      binary.inTexShapesLocations = inTexShapesLocations;
+      binary.outShapeLocation = outShapeLocation;
+      binary.outShapeStridesLocation = outShapeStridesLocation;
+      binary.outTexShapeLocation = outTexShapeLocation;
+    }
   }
 };
 var MathBackendWebGL = _MathBackendWebGL;
@@ -21607,14 +21731,14 @@ var cropAndResizeConfig = {
   kernelFunc: cropAndResize2
 };
 
-// src/tfjs-backend-webgl/src/cumsum_gpu.ts
-var CumSumProgram = class {
+// src/tfjs-backend-webgl/src/cumprod_gpu.ts
+var CumProdProgram = class {
   constructor(shape, exclusive, reverse3) {
     this.variableNames = ["x"];
     this.customUniforms = [{ name: "index", type: "float" }];
     this.outputShape = shape;
     const rank = shape.length;
-    const val = exclusive ? "0.0" : `getX(${getCoords2(rank, "coords")})`;
+    const val = exclusive ? "1.0" : `getX(${getCoords2(rank, "coords")})`;
     const length = shape[shape.length - 1];
     let condition = "";
     let idxString = "";
@@ -21634,7 +21758,7 @@ var CumSumProgram = class {
         if (${condition}) {
           int idx = ${idxString};
           ${getFinalCoord(rank, "coords")} = idx;
-          val += getX(${getCoords2(rank, "coords")});
+          val *= getX(${getCoords2(rank, "coords")});
         }
         setOutput(val);
       }
@@ -21651,10 +21775,116 @@ function getCoords2(rank, name) {
   } else if (rank === 4) {
     return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
   } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
   }
 }
 function getFinalCoord(rank, name) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.w`;
+  } else {
+    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
+  }
+}
+
+// src/tfjs-backend-webgl/src/kernels/Cumprod.ts
+function cumprod2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse3 } = attrs;
+  const xRank = x.shape.length;
+  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation != null) {
+    permutedX = transpose3({ inputs: { x }, backend, attrs: { perm: permutation } });
+  }
+  const permutedAxis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
+  if (permutedAxis !== xRank - 1) {
+    throw new Error(`WebGL cumprod shader expects an inner-most axis=${x.shape.length - 1} but got axis=${axis}`);
+  }
+  const size = permutedX.shape[permutedAxis];
+  let result = identity2({ inputs: { x: permutedX }, backend });
+  for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
+    const program = new CumProdProgram(permutedX.shape, false, reverse3);
+    const customValues = [[i]];
+    const prevResult = result;
+    result = backend.runWebGLProgram(program, [result], result.dtype, customValues);
+    backend.disposeIntermediateTensorInfo(prevResult);
+  }
+  if (exclusive) {
+    const program = new CumProdProgram(permutedX.shape, exclusive, reverse3);
+    const prevResult = result;
+    result = backend.runWebGLProgram(program, [result], result.dtype);
+    backend.disposeIntermediateTensorInfo(prevResult);
+  }
+  if (permutation != null) {
+    const reversePermutation = backend_util_exports.getUndoAxesPermutation(permutation);
+    const reverseTransposedResult = transpose3({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
+    backend.disposeIntermediateTensorInfo(result);
+    backend.disposeIntermediateTensorInfo(permutedX);
+    return reverseTransposedResult;
+  }
+  return result;
+}
+var cumprodConfig = {
+  kernelName: Cumprod,
+  backendName: "webgl",
+  kernelFunc: cumprod2
+};
+
+// src/tfjs-backend-webgl/src/cumsum_gpu.ts
+var CumSumProgram = class {
+  constructor(shape, exclusive, reverse3) {
+    this.variableNames = ["x"];
+    this.customUniforms = [{ name: "index", type: "float" }];
+    this.outputShape = shape;
+    const rank = shape.length;
+    const val = exclusive ? "0.0" : `getX(${getCoords3(rank, "coords")})`;
+    const length = shape[shape.length - 1];
+    let condition = "";
+    let idxString = "";
+    if (exclusive) {
+      condition = reverse3 ? `end != ${length - 1}` : "end != 0";
+      idxString = reverse3 ? "end + 1" : "end - 1";
+    } else {
+      condition = reverse3 ? `end + pow2 < ${length}` : "end >= pow2";
+      idxString = reverse3 ? "end + pow2" : "end - pow2";
+    }
+    this.userCode = `
+      void main() {
+        ${getCoordsDataType(rank)} coords = getOutputCoords();
+        int end = ${getFinalCoord2(rank, "coords")};
+        float val = ${val};
+        int pow2 = int(pow(2.0, index));
+        if (${condition}) {
+          int idx = ${idxString};
+          ${getFinalCoord2(rank, "coords")} = idx;
+          val += getX(${getCoords3(rank, "coords")});
+        }
+        setOutput(val);
+      }
+    `;
+  }
+};
+function getCoords3(rank, name) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.x, ${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.x, ${name}.y, ${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
+  } else {
+    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+  }
+}
+function getFinalCoord2(rank, name) {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
@@ -27133,6 +27363,7 @@ var kernelConfigs = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
   cumsumConfig,
   denseBincountConfig,
   depthToSpaceConfig,
@@ -27393,6 +27624,38 @@ export {
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
