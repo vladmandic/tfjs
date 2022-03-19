@@ -39601,7 +39601,7 @@ var MicrophoneIterator = class extends LazyIterator {
     return `microphone`;
   }
   static async create(microphoneConfig = {}) {
-    if (env().get("IS_NODE")) {
+    if (!env().get("IS_BROWSER")) {
       throw new Error("microphone API is only supported in browser environment.");
     }
     const microphoneIterator = new MicrophoneIterator(microphoneConfig);
@@ -39741,7 +39741,7 @@ var WebcamIterator = class extends LazyIterator {
     return `webcam`;
   }
   static async create(webcamVideoElement, webcamConfig = {}) {
-    if (env().get("IS_NODE")) {
+    if (!env().get("IS_BROWSER")) {
       throw new Error("tf.data.webcam is only supported in browser environment.");
     }
     if (!webcamVideoElement) {
@@ -73233,7 +73233,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.14.0-20220316";
+var externalVersion = "3.14.0-20220319";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
