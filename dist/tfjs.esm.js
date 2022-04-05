@@ -31338,6 +31338,22 @@ var json3 = [
         "type": "tensor"
       }
     ]
+  },
+  {
+    "tfOpName": "TensorListResize",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensorListId",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "size",
+        "type": "number"
+      }
+    ]
   }
 ];
 
@@ -36138,7 +36154,12 @@ var TensorList = class {
     if (this.maxNumElements !== -1 && size > this.maxNumElements) {
       throw new Error(`TensorListResize input size ${size} is greater maxNumElement ${this.maxNumElements}.`);
     }
-    this.tensors.length = size;
+    const destTensorList = new TensorList([], this.elementShape, this.elementDtype, this.maxNumElements);
+    destTensorList.tensors.length = size;
+    for (let i = 0; i < Math.min(this.tensors.length, size); ++i) {
+      destTensorList.tensors[i] = this.tensors[i];
+    }
+    return destTensorList;
   }
   getItem(elementIndex, elementShape, elementDtype) {
     if (elementDtype !== this.elementDtype) {
@@ -36508,6 +36529,14 @@ var executeOp3 = async (node, tensorMap, context) => {
       const idTensor = getParamValue("tensorListId", node, tensorMap, context);
       const tensorList = context.getTensorList(idTensor.id);
       return [scalar(tensorList.size(), "int32")];
+    }
+    case "TensorListResize": {
+      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
+      const size = getParamValue("size", node, tensorMap, context);
+      const srcTensorList = context.getTensorList(idTensor.id);
+      const destTensorList = srcTensorList.resize(size);
+      context.addTensorList(destTensorList);
+      return [destTensorList.idTensor];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
@@ -61636,6 +61665,10 @@ var LOG2 = `if (a < 0.0) { return 1.0/0.0; }
 var LOGICAL_NOT2 = `return f32(!(a >= 1.0));`;
 var NEG2 = `return -a;`;
 var LEAKYRELU2 = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
+var LEAKYRELU_VEC4 = `
+  let aLessThanZero = vec4<f32>(a < vec4<f32>(0.0));
+  return (aLessThanZero * (uniforms.alpha * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
+`;
 var RELU4 = `if(a < 0.0) { return 0.0; } return a;`;
 var RELU64 = "return clamp(a, 0.0, 6.0);";
 var RELU6_VEC4 = "return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));";
@@ -61698,7 +61731,7 @@ function getUnaryOpString(type, useVec4) {
     case 11 /* NEG */:
       return NEG2;
     case 14 /* LEAKYRELU */:
-      return LEAKYRELU2;
+      return useVec4 ? LEAKYRELU_VEC4 : LEAKYRELU2;
     case 12 /* RELU */:
       return useVec4 ? RELU_VEC4 : RELU4;
     case 13 /* RELU6 */:
@@ -61739,9 +61772,9 @@ function mapActivationToShaderProgram2(activation2, packed = false) {
   } else if (activation2 === "prelu") {
     return getBinaryOpString(14 /* PRELU */, packed);
   } else if (activation2 === "sigmoid") {
-    return getUnaryOpString(18 /* SIGMOID */);
+    return getUnaryOpString(18 /* SIGMOID */, packed);
   } else if (activation2 === "leakyrelu") {
-    return getUnaryOpString(14 /* LEAKYRELU */);
+    return getUnaryOpString(14 /* LEAKYRELU */, packed);
   }
   throw new Error(`Activation ${activation2} has not been implemented for the WebGPU backend.`);
 }
@@ -65118,7 +65151,7 @@ function conv2DImpl({
     });
   }
   const useNaive = env().getBool("WEBGPU_USE_NAIVE_CONV2D");
-  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels === 3 && convInfo.padInfo.type === "VALID") && convInfo.outChannels % 4 === 0 && convInfo.outChannels >= 32;
+  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels === 3 && convInfo.padInfo.type === "VALID") && convInfo.outChannels % 4 === 0;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     { type: "int32", data: [convInfo.filterHeight, convInfo.filterWidth] },
@@ -73251,7 +73284,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.15.0-20220401";
+var externalVersion = "3.15.0-20220405";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

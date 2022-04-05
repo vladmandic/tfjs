@@ -11737,6 +11737,10 @@ var LOG = `if (a < 0.0) { return 1.0/0.0; }
 var LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 var NEG = `return -a;`;
 var LEAKYRELU = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
+var LEAKYRELU_VEC4 = `
+  let aLessThanZero = vec4<f32>(a < vec4<f32>(0.0));
+  return (aLessThanZero * (uniforms.alpha * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
+`;
 var RELU = `if(a < 0.0) { return 0.0; } return a;`;
 var RELU6 = "return clamp(a, 0.0, 6.0);";
 var RELU6_VEC4 = "return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));";
@@ -11799,7 +11803,7 @@ function getUnaryOpString(type, useVec4) {
     case 11 /* NEG */:
       return NEG;
     case 14 /* LEAKYRELU */:
-      return LEAKYRELU;
+      return useVec4 ? LEAKYRELU_VEC4 : LEAKYRELU;
     case 12 /* RELU */:
       return useVec4 ? RELU_VEC4 : RELU;
     case 13 /* RELU6 */:
@@ -11840,9 +11844,9 @@ function mapActivationToShaderProgram(activation, packed = false) {
   } else if (activation === "prelu") {
     return getBinaryOpString(14 /* PRELU */, packed);
   } else if (activation === "sigmoid") {
-    return getUnaryOpString(18 /* SIGMOID */);
+    return getUnaryOpString(18 /* SIGMOID */, packed);
   } else if (activation === "leakyrelu") {
-    return getUnaryOpString(14 /* LEAKYRELU */);
+    return getUnaryOpString(14 /* LEAKYRELU */, packed);
   }
   throw new Error(`Activation ${activation} has not been implemented for the WebGPU backend.`);
 }
@@ -16476,7 +16480,7 @@ function conv2DImpl({
     });
   }
   const useNaive = env().getBool("WEBGPU_USE_NAIVE_CONV2D");
-  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels === 3 && convInfo.padInfo.type === "VALID") && convInfo.outChannels % 4 === 0 && convInfo.outChannels >= 32;
+  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels === 3 && convInfo.padInfo.type === "VALID") && convInfo.outChannels % 4 === 0;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     { type: "int32", data: [convInfo.filterHeight, convInfo.filterWidth] },
