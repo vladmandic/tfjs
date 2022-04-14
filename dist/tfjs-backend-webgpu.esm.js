@@ -16849,6 +16849,146 @@ var cropAndResizeConfig = {
   kernelFunc: cropAndResize2
 };
 
+// src/tfjs-backend-webgpu/src/cum_webgpu.ts
+var CumProgram = class {
+  constructor(op2, shape, exclusive, reverse2) {
+    this.variableNames = ["x"];
+    this.uniforms = "index : f32,";
+    this.size = true;
+    const workGroupSizeX = 128;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
+    this.outputShape = shape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.exclusive = exclusive;
+    this.reverse = reverse2;
+    this.op = op2;
+    this.shaderKey = `cum_${this.op}_${this.exclusive}_${this.reverse}`;
+  }
+  getUserCode() {
+    const rank = this.outputShape.length;
+    const initVal = this.op === "*" /* Prod */ ? "1.0" : "0.0";
+    const val = this.exclusive ? initVal : `getX(${getCoords2(rank, "coords", this.op)})`;
+    const length = this.outputShape[this.outputShape.length - 1];
+    let condition = "";
+    let idxString = "";
+    if (this.exclusive) {
+      condition = this.reverse ? `end != ${length - 1}` : "end != 0";
+      idxString = this.reverse ? "end + 1" : "end - 1";
+    } else {
+      condition = this.reverse ? `end + pow2 < ${length}` : "end >= pow2";
+      idxString = this.reverse ? "end + pow2" : "end - pow2";
+    }
+    return `
+      ${getMainHeaderAndGlobalIndexString()}
+       if (index < uniforms.size) {
+         var coords = getCoordsFromIndex(index);
+
+         let end = ${getFinalCoord(rank, "coords", this.op)};
+         var val = ${val};
+         let pow2 = i32(pow(2.0, uniforms.index));
+         if (${condition}) {
+           let idx = ${idxString};
+           ${getFinalCoord(rank, "coords", this.op)} = idx;
+           val ${this.op}= getX(${getCoords2(rank, "coords", this.op)});
+         }
+         setOutputAtIndex(index, val);
+       }
+      }
+    `;
+  }
+};
+function getCoords2(rank, name, op2) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.x, ${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.x, ${name}.y, ${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
+  } else {
+    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
+  }
+}
+function getFinalCoord(rank, name, op2) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.w`;
+  } else {
+    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
+  }
+}
+
+// src/tfjs-backend-webgpu/src/kernels/Cum_impl.ts
+function cumImpl(op2, x, backend, axis, exclusive, reverse2) {
+  const xRank = x.shape.length;
+  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation != null) {
+    permutedX = transpose3({ inputs: { x }, backend, attrs: { perm: permutation } });
+  }
+  const permutedAxis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
+  if (permutedAxis !== xRank - 1) {
+    throw new Error(`WebGPU cumprod shader expects an inner-most axis=${x.shape.length - 1} but got axis=${axis}`);
+  }
+  const size = permutedX.shape[permutedAxis];
+  let result = identity({ inputs: { x: permutedX }, backend });
+  for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
+    const program = new CumProgram(op2, permutedX.shape, false, reverse2);
+    const prevResult = result;
+    const uniformData = [{ type: "float32", data: [i] }];
+    result = backend.runWebGPUProgram(program, [result], result.dtype, uniformData);
+    backend.disposeData(prevResult.dataId);
+  }
+  if (exclusive) {
+    const program = new CumProgram(op2, permutedX.shape, exclusive, reverse2);
+    const prevResult = result;
+    const uniformData = [{ type: "float32", data: [0] }];
+    result = backend.runWebGPUProgram(program, [result], result.dtype, uniformData);
+    backend.disposeData(prevResult.dataId);
+  }
+  if (permutation != null) {
+    const reversePermutation = backend_util_exports.getUndoAxesPermutation(permutation);
+    const reverseTransposedResult = transpose3({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
+    backend.disposeData(result.dataId);
+    backend.disposeData(permutedX.dataId);
+    return reverseTransposedResult;
+  }
+  return result;
+}
+
+// src/tfjs-backend-webgpu/src/kernels/Cumprod.ts
+function cumprod2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse2 } = attrs;
+  return cumImpl("*" /* Prod */, x, backend, axis, exclusive, reverse2);
+}
+var cumprodConfig = {
+  kernelName: Cumprod,
+  backendName: "webgpu",
+  kernelFunc: cumprod2
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Cumsum.ts
+function cumsum2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse2 } = attrs;
+  return cumImpl("+" /* Sum */, x, backend, axis, exclusive, reverse2);
+}
+var cumsumConfig = {
+  kernelName: Cumsum,
+  backendName: "webgpu",
+  kernelFunc: cumsum2
+};
+
 // src/tfjs-backend-webgpu/src/depth_to_space_webgpu.ts
 var DepthToSpaceProgram = class {
   constructor(outputShape, dataFormat) {
@@ -19980,6 +20120,8 @@ var kernelConfigs = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
+  cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   einsumConfig,
@@ -20508,7 +20650,7 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   ensureComputePassEnded() {
     if (this.currentComputePass) {
-      this.currentComputePass.endPass();
+      this.currentComputePass.end();
       this.currentComputePass = null;
     }
   }
@@ -20863,19 +21005,19 @@ var _WebGPUBackend = class extends KernelBackend {
       ]
     });
     this.ensureCommandEncoderReady();
-    const passEncoder = this.getComputePass();
+    const pass = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        passEncoder.writeTimestamp(this.querySet, 0);
+        pass.writeTimestamp(this.querySet, 0);
       }
     }
-    passEncoder.setPipeline(program.pipeline);
-    passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    pass.setPipeline(program.pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        passEncoder.writeTimestamp(this.querySet, 1);
+        pass.writeTimestamp(this.querySet, 1);
       }
     }
     this.commandQueueOwnedIds.add(outputId);
@@ -21115,6 +21257,22 @@ export {
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.

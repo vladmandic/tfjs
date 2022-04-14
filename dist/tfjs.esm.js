@@ -6627,8 +6627,8 @@ var EngineState = class {
   }
 };
 var _Engine = class {
-  constructor(ENV7) {
-    this.ENV = ENV7;
+  constructor(ENV8) {
+    this.ENV = ENV8;
     this.registry = {};
     this.registryFactory = {};
     this.pendingBackendInitId = 0;
@@ -16100,6 +16100,2265 @@ __export(kernel_impls_exports, {
   whereImpl: () => whereImpl
 });
 
+// src/tfjs-layers/src/errors.ts
+var AttributeError = class extends Error {
+  constructor(message) {
+    super(message);
+    Object.setPrototypeOf(this, AttributeError.prototype);
+  }
+};
+var RuntimeError = class extends Error {
+  constructor(message) {
+    super(message);
+    Object.setPrototypeOf(this, RuntimeError.prototype);
+  }
+};
+var ValueError = class extends Error {
+  constructor(message) {
+    super(message);
+    Object.setPrototypeOf(this, ValueError.prototype);
+  }
+};
+var NotImplementedError = class extends Error {
+  constructor(message) {
+    super(message);
+    Object.setPrototypeOf(this, NotImplementedError.prototype);
+  }
+};
+var AssertionError = class extends Error {
+  constructor(message) {
+    super(message);
+    Object.setPrototypeOf(this, AssertionError.prototype);
+  }
+};
+
+// src/tfjs-layers/src/utils/executor_utils.ts
+var LruCache = class {
+  constructor(maxEntries) {
+    this.maxEntries = maxEntries || 100;
+    this.cache = /* @__PURE__ */ new Map();
+  }
+  get(key) {
+    let entry;
+    if (this.cache.has(key)) {
+      entry = this.cache.get(key);
+      this.cache.delete(key);
+      this.cache.set(key, entry);
+    }
+    return entry;
+  }
+  put(key, value) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxEntries) {
+      const keyToDelete = this.cache.keys().next().value;
+      this.cache.delete(keyToDelete);
+    }
+    this.cache.set(key, value);
+  }
+  getMaxEntries() {
+    return this.maxEntries;
+  }
+  setMaxEntries(maxEntries) {
+    if (maxEntries < 0) {
+      throw new Error(`The maxEntries of LRU caches must be at least 0, but got ${maxEntries}.`);
+    }
+    if (this.maxEntries > maxEntries) {
+      for (let i = 0; i < this.maxEntries - maxEntries; i++) {
+        const keyToDelete = this.cache.keys().next().value;
+        this.cache.delete(keyToDelete);
+      }
+    }
+    this.maxEntries = maxEntries;
+  }
+};
+
+// src/tfjs-layers/src/utils/generic_utils.ts
+function pyListRepeat(value, numValues) {
+  if (Array.isArray(value)) {
+    let newArray = [];
+    for (let i = 0; i < numValues; i++) {
+      newArray = newArray.concat(value);
+    }
+    return newArray;
+  } else {
+    const newArray = new Array(numValues);
+    newArray.fill(value);
+    return newArray;
+  }
+}
+function assert2(val, message) {
+  if (!val) {
+    throw new AssertionError(message);
+  }
+}
+function count(array2, refernce) {
+  let counter = 0;
+  for (const item of array2) {
+    if (item === refernce) {
+      counter++;
+    }
+  }
+  return counter;
+}
+function singletonOrArray(xs) {
+  if (xs.length === 1) {
+    return xs[0];
+  }
+  return xs;
+}
+function toList(x) {
+  if (Array.isArray(x)) {
+    return x;
+  }
+  return [x];
+}
+function toSnakeCase(name) {
+  const intermediate = name.replace(/(.)([A-Z][a-z0-9]+)/g, "$1_$2");
+  const insecure = intermediate.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
+  if (insecure[0] !== "_") {
+    return insecure;
+  }
+  return "private" + insecure;
+}
+function toCamelCase(identifier) {
+  if (identifier.length <= 1) {
+    return identifier;
+  }
+  if (identifier.indexOf("_") === -1) {
+    return identifier;
+  }
+  return identifier.replace(/[_]+(\w|$)/g, (m, p1) => p1.toUpperCase());
+}
+var _GLOBAL_CUSTOM_OBJECTS = {};
+function serializeKerasObject(instance) {
+  if (instance === null || instance === void 0) {
+    return null;
+  }
+  const dict = {};
+  dict["className"] = instance.getClassName();
+  dict["config"] = instance.getConfig();
+  return dict;
+}
+function convertNDArrayScalarsInConfig(config) {
+  if (config == null || typeof config !== "object") {
+    return;
+  } else if (Array.isArray(config)) {
+    config.forEach((configItem) => convertNDArrayScalarsInConfig(configItem));
+  } else {
+    const fields = Object.keys(config);
+    for (const field of fields) {
+      const value = config[field];
+      if (value != null && typeof value === "object") {
+        if (!Array.isArray(value) && value["type"] === "ndarray" && typeof value["value"] === "number") {
+          config[field] = value["value"];
+        } else {
+          convertNDArrayScalarsInConfig(value);
+        }
+      }
+    }
+  }
+}
+function deserializeKerasObject(identifier, moduleObjects = {}, customObjects = {}, printableModuleName = "object", fastWeightInit = false) {
+  if (typeof identifier === "string") {
+    const functionName = identifier;
+    let fn;
+    if (functionName in customObjects) {
+      fn = customObjects[functionName];
+    } else if (functionName in _GLOBAL_CUSTOM_OBJECTS) {
+      fn = _GLOBAL_CUSTOM_OBJECTS[functionName];
+    } else {
+      fn = moduleObjects[functionName];
+      if (fn == null) {
+        throw new ValueError(`Unknown ${printableModuleName}: ${identifier}. This may be due to one of the following reasons:
+1. The ${printableModuleName} is defined in Python, in which case it needs to be ported to TensorFlow.js or your JavaScript code.
+2. The custom ${printableModuleName} is defined in JavaScript, but is not registered properly with tf.serialization.registerClass().`);
+      }
+    }
+    return fn;
+  } else {
+    const config = identifier;
+    if (config["className"] == null || config["config"] == null) {
+      throw new ValueError(`${printableModuleName}: Improper config format: ${JSON.stringify(config)}.
+'className' and 'config' must set.`);
+    }
+    const className = config["className"];
+    let cls, fromConfig;
+    if (className in customObjects) {
+      [cls, fromConfig] = customObjects[className];
+    } else if (className in _GLOBAL_CUSTOM_OBJECTS) {
+      [cls, fromConfig] = _GLOBAL_CUSTOM_OBJECTS["className"];
+    } else if (className in moduleObjects) {
+      [cls, fromConfig] = moduleObjects[className];
+    }
+    if (cls == null) {
+      throw new ValueError(`Unknown ${printableModuleName}: ${className}. This may be due to one of the following reasons:
+1. The ${printableModuleName} is defined in Python, in which case it needs to be ported to TensorFlow.js or your JavaScript code.
+2. The custom ${printableModuleName} is defined in JavaScript, but is not registered properly with tf.serialization.registerClass().`);
+    }
+    if (fromConfig != null) {
+      const customObjectsCombined = {};
+      for (const key of Object.keys(_GLOBAL_CUSTOM_OBJECTS)) {
+        customObjectsCombined[key] = _GLOBAL_CUSTOM_OBJECTS[key];
+      }
+      for (const key of Object.keys(customObjects)) {
+        customObjectsCombined[key] = customObjects[key];
+      }
+      const nestedConfig = config["config"];
+      nestedConfig["customObjects"] = customObjectsCombined;
+      const backupCustomObjects = { ..._GLOBAL_CUSTOM_OBJECTS };
+      for (const key of Object.keys(customObjects)) {
+        _GLOBAL_CUSTOM_OBJECTS[key] = customObjects[key];
+      }
+      convertNDArrayScalarsInConfig(config["config"]);
+      const returnObj = fromConfig(cls, config["config"], customObjects, fastWeightInit);
+      _GLOBAL_CUSTOM_OBJECTS = { ...backupCustomObjects };
+      return returnObj;
+    } else {
+      const backupCustomObjects = { ..._GLOBAL_CUSTOM_OBJECTS };
+      for (const key of Object.keys(customObjects)) {
+        _GLOBAL_CUSTOM_OBJECTS[key] = customObjects[key];
+      }
+      const returnObj = new cls(config["config"]);
+      _GLOBAL_CUSTOM_OBJECTS = { ...backupCustomObjects };
+      return returnObj;
+    }
+  }
+}
+function numberCompare(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+function reverseNumberCompare(a, b) {
+  return -1 * numberCompare(a, b);
+}
+function unique2(xs) {
+  if (xs == null) {
+    return xs;
+  }
+  const out = [];
+  for (const x of xs) {
+    if (out.indexOf(x) === -1) {
+      out.push(x);
+    }
+  }
+  return out;
+}
+function isObjectEmpty(obj) {
+  if (obj == null) {
+    throw new ValueError(`Invalid value in obj: ${JSON.stringify(obj)}`);
+  }
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      return false;
+    }
+  }
+  return true;
+}
+function checkStringTypeUnionValue(values, label, value) {
+  if (value == null) {
+    return;
+  }
+  if (values.indexOf(value) < 0) {
+    throw new ValueError(`${value} is not a valid ${label}.  Valid values are ${values} or null/undefined.`);
+  }
+}
+function checkArrayTypeAndLength(x, expectedType, minLength = 0, maxLength = Infinity) {
+  assert2(minLength >= 0);
+  assert2(maxLength >= minLength);
+  return Array.isArray(x) && x.length >= minLength && x.length <= maxLength && x.every((e) => typeof e === expectedType);
+}
+function assertPositiveInteger(value, name) {
+  if (Array.isArray(value)) {
+    util_exports.assert(value.length > 0, () => `${name} is unexpectedly an empty array.`);
+    value.forEach((v, i) => assertPositiveInteger(v, `element ${i + 1} of ${name}`));
+  } else {
+    util_exports.assert(Number.isInteger(value) && value > 0, () => `Expected ${name} to be a positive integer, but got ${formatAsFriendlyString(value)}.`);
+  }
+}
+function formatAsFriendlyString(value) {
+  if (value === null) {
+    return "null";
+  } else if (Array.isArray(value)) {
+    return "[" + value.map((v) => formatAsFriendlyString(v)).join(",") + "]";
+  } else if (typeof value === "string") {
+    return `"${value}"`;
+  } else {
+    return `${value}`;
+  }
+}
+function debounce(f, waitMs, nowFunc) {
+  let lastTime = nowFunc != null ? nowFunc() : util_exports.now();
+  let lastResult;
+  const f2 = (...args) => {
+    const now2 = nowFunc != null ? nowFunc() : util_exports.now();
+    if (now2 - lastTime < waitMs) {
+      return lastResult;
+    }
+    lastTime = now2;
+    lastResult = f(...args);
+    return lastResult;
+  };
+  return f2;
+}
+function mapActivationToFusedKernel(activationName) {
+  if (activationName === "relu") {
+    return "relu";
+  }
+  if (activationName === "linear") {
+    return "linear";
+  }
+  if (activationName === "elu") {
+    return "elu";
+  }
+  return null;
+}
+
+// src/tfjs-layers/src/backend/state.ts
+var _nextUniqueTensorId = 0;
+function getNextUniqueTensorId() {
+  return _nextUniqueTensorId++;
+}
+var _uidPrefixes = {};
+function getUid(prefix = "") {
+  if (!(prefix in _uidPrefixes)) {
+    _uidPrefixes[prefix] = 0;
+  }
+  _uidPrefixes[prefix] += 1;
+  return prefix + _uidPrefixes[prefix].toString();
+}
+
+// src/tfjs-layers/src/keras_format/common.ts
+var VALID_DATA_FORMAT_VALUES = ["channelsFirst", "channelsLast"];
+var VALID_INTERPOLATION_FORMAT_VALUES = ["nearest", "bilinear"];
+var VALID_PADDING_MODE_VALUES = ["valid", "same", "causal"];
+var VALID_POOL_MODE_VALUES = ["max", "avg"];
+var VALID_BIDIRECTIONAL_MERGE_MODES = ["sum", "mul", "concat", "ave"];
+
+// src/tfjs-layers/src/common.ts
+var nameMap = /* @__PURE__ */ new Map();
+function checkDataFormat(value) {
+  checkStringTypeUnionValue(VALID_DATA_FORMAT_VALUES, "DataFormat", value);
+}
+function checkInterpolationFormat(value) {
+  checkStringTypeUnionValue(VALID_INTERPOLATION_FORMAT_VALUES, "InterpolationFormat", value);
+}
+function checkPaddingMode(value) {
+  checkStringTypeUnionValue(VALID_PADDING_MODE_VALUES, "PaddingMode", value);
+}
+function checkPoolMode(value) {
+  checkStringTypeUnionValue(VALID_POOL_MODE_VALUES, "PoolMode", value);
+}
+var _nameScopeStack = [];
+var _nameScopeDivider = "/";
+function nameScope(name, fn) {
+  _nameScopeStack.push(name);
+  try {
+    const val = fn();
+    _nameScopeStack.pop();
+    return val;
+  } catch (e) {
+    _nameScopeStack.pop();
+    throw e;
+  }
+}
+function currentNameScopePrefix() {
+  if (_nameScopeStack.length === 0) {
+    return "";
+  } else {
+    return _nameScopeStack.join(_nameScopeDivider) + _nameScopeDivider;
+  }
+}
+function getScopedTensorName(tensorName) {
+  if (!isValidTensorName(tensorName)) {
+    throw new Error("Not a valid tensor name: '" + tensorName + "'");
+  }
+  return currentNameScopePrefix() + tensorName;
+}
+function getUniqueTensorName(scopedName) {
+  if (!isValidTensorName(scopedName)) {
+    throw new Error("Not a valid tensor name: '" + scopedName + "'");
+  }
+  if (!nameMap.has(scopedName)) {
+    nameMap.set(scopedName, 0);
+  }
+  const index = nameMap.get(scopedName);
+  nameMap.set(scopedName, nameMap.get(scopedName) + 1);
+  if (index > 0) {
+    const result = `${scopedName}_${index}`;
+    nameMap.set(result, 1);
+    return result;
+  } else {
+    return scopedName;
+  }
+}
+var tensorNameRegex = new RegExp(/^[A-Za-z0-9][-A-Za-z0-9\._\/]*$/);
+function isValidTensorName(name) {
+  return !!name.match(tensorNameRegex);
+}
+
+// src/tfjs-layers/src/utils/math_utils.ts
+function isInteger(x) {
+  return x === parseInt(x.toString(), 10);
+}
+function arrayProd(array2, begin, end) {
+  if (begin == null) {
+    begin = 0;
+  }
+  if (end == null) {
+    end = array2.length;
+  }
+  let prod6 = 1;
+  for (let i = begin; i < end; ++i) {
+    prod6 *= array2[i];
+  }
+  return prod6;
+}
+function min2(array2) {
+  if (array2.length === 0) {
+    return Number.NaN;
+  }
+  let min7 = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < array2.length; i++) {
+    const value = array2[i];
+    if (value < min7) {
+      min7 = value;
+    }
+  }
+  return min7;
+}
+function max2(array2) {
+  if (array2.length === 0) {
+    return Number.NaN;
+  }
+  let max7 = Number.NEGATIVE_INFINITY;
+  for (let i = 0; i < array2.length; i++) {
+    const value = array2[i];
+    if (value > max7) {
+      max7 = value;
+    }
+  }
+  return max7;
+}
+function range2(begin, end) {
+  if (end < begin) {
+    throw new ValueError(`end (${end}) < begin (${begin}) is forbidden.`);
+  }
+  const out = [];
+  for (let i = begin; i < end; ++i) {
+    out.push(i);
+  }
+  return out;
+}
+
+// src/tfjs-layers/src/backend/common.ts
+var _epsilon;
+function epsilon() {
+  if (_epsilon == null) {
+    _epsilon = backend().epsilon();
+  }
+  return _epsilon;
+}
+function imageDataFormat() {
+  return "channelsLast";
+}
+
+// src/tfjs-layers/src/backend/tfjs_backend.ts
+function cast2(x, dtype) {
+  return cast(x, dtype);
+}
+function expandDims2(x, axis = -1) {
+  const outShape = x.shape.slice();
+  if (axis < 0) {
+    axis = outShape.length + axis + 1;
+  }
+  outShape.splice(axis, 0, 1);
+  return reshape(x, outShape);
+}
+function repeat(x, n) {
+  return tidy(() => {
+    if (x.shape.length !== 2) {
+      throw new ValueError(`repeat() expects a rank-2 tensor, but received a rank-${x.shape.length} tensor.`);
+    }
+    const y = expandDims2(x, 1);
+    return tile2(y, [1, n, 1]);
+  });
+}
+function flatten2(x) {
+  const newShape = [arrayProd(x.shape)];
+  return reshape(x, newShape);
+}
+function batchFlatten(x) {
+  if (x.rank <= 1) {
+    throw new ValueError(`batchFlatten requires a minimum rank of 2. Got rank: ${x.rank}.`);
+  }
+  const newShape = [x.shape[0], arrayProd(x.shape, 1)];
+  return reshape(x, newShape);
+}
+function sliceAlongFirstAxis(array2, start, size) {
+  return tidy(() => {
+    switch (array2.rank) {
+      case 1:
+        return slice1d(array2, start, size);
+      case 2:
+        return slice2d(array2, [start, 0], [size, array2.shape[1]]);
+      case 3:
+        return slice3d(array2, [start, 0, 0], [size, array2.shape[1], array2.shape[2]]);
+      case 4:
+        return slice4d(array2, [start, 0, 0, 0], [size, array2.shape[1], array2.shape[2], array2.shape[3]]);
+      case 5:
+        return slice(array2, [start, 0, 0, 0, 0], [
+          size,
+          array2.shape[1],
+          array2.shape[2],
+          array2.shape[3],
+          array2.shape[4]
+        ]);
+      case 6:
+        return slice(array2, [start, 0, 0, 0, 0, 0], [
+          size,
+          array2.shape[1],
+          array2.shape[2],
+          array2.shape[3],
+          array2.shape[4],
+          array2.shape[5]
+        ]);
+      default:
+        throw new ValueError(`sliceAlongFirstAxis() received an unsupported tensor rank: ${array2.rank}`);
+    }
+  });
+}
+function sliceAlongLastAxis(array2, start, size) {
+  return tidy(() => {
+    switch (array2.rank) {
+      case 1:
+        return slice1d(array2, start, size);
+      case 2:
+        return slice2d(array2, [0, start], [array2.shape[0], size]);
+      case 3:
+        return slice3d(array2, [0, 0, start], [array2.shape[0], array2.shape[1], size]);
+      case 4:
+        return slice4d(array2, [0, 0, 0, start], [array2.shape[0], array2.shape[1], array2.shape[2], size]);
+      default:
+        throw new ValueError(`sliceAlongLastAxis() received an unsupported tensor rank: ${array2.rank}`);
+    }
+  });
+}
+function sliceAlongAxis(array2, start, size, axis) {
+  return tidy(() => {
+    switch (array2.rank) {
+      case 1:
+        return slice1d(array2, start, size);
+      case 2:
+        switch (axis) {
+          case 1:
+            return sliceAlongFirstAxis(array2, start, size);
+          case 2:
+            return sliceAlongLastAxis(array2, start, size);
+          default:
+            throw new ValueError(`The axis is not within the rank of the tensor ${axis}`);
+        }
+      case 3:
+        switch (axis) {
+          case 1:
+            return sliceAlongFirstAxis(array2, start, size);
+          case 2:
+            return slice3d(array2, [0, start, 0], [array2.shape[0], size, array2.shape[2]]);
+          case 3:
+            return sliceAlongLastAxis(array2, start, size);
+          default:
+            throw new ValueError(`The axis is not within the rank of the tensor ${axis}`);
+        }
+      case 4:
+        switch (axis) {
+          case 1:
+            return sliceAlongFirstAxis(array2, start, size);
+          case 2:
+            return slice4d(array2, [0, start, 0, 0], [array2.shape[0], size, array2.shape[2], array2.shape[3]]);
+          case 3:
+            return slice4d(array2, [0, 0, start, 0], [array2.shape[0], array2.shape[1], size, array2.shape[3]]);
+          case 4:
+            return sliceAlongLastAxis(array2, start, size);
+          default:
+            throw new ValueError(`The axis is not within the rank of the tensor ${axis}`);
+        }
+      default:
+        throw new ValueError(`sliceAlongLastAxis() received an unsupported tensor rank: ${array2.rank}`);
+    }
+  });
+}
+function concatenate(tensors, axis = -1) {
+  let rank;
+  if (axis < 0) {
+    rank = tensors[0].rank;
+    if (rank !== 0) {
+      axis = rank;
+    } else {
+      axis = 0;
+    }
+  }
+  if (axis === tensors[0].rank) {
+    axis = -1;
+  }
+  return concat(tensors, axis);
+}
+function concatAlongFirstAxis(a, b) {
+  switch (a.rank) {
+    case 1:
+      return concat1d([a, b]);
+    case 2:
+      return concat2d([a, b], 0);
+    case 3:
+      return concat3d([a, b], 0);
+    case 4:
+      return concat4d([a, b], 0);
+    default:
+      throw new ValueError(`concatAlongFirstAxis() received an unsupported tensor rank: ${a.rank}`);
+  }
+}
+function tile2(x, n) {
+  if (!Array.isArray(n)) {
+    n = [n];
+  }
+  if (x.rank !== n.length) {
+    throw new ValueError(`The length of input n (${n.length}) does not match the number of dimensions in input x (${x.rank})`);
+  }
+  return tile(x, n);
+}
+function randomNormal2(shape, mean5 = 0, stddev = 1, dtype, seed) {
+  return randomNormal(shape, mean5, stddev, dtype, seed);
+}
+function dot2(a, b, activation2, bias) {
+  if (a.rank < 2 || b.rank < 2) {
+    throw new NotImplementedError(`dot requires both inputs to be rank >= 2 but got x shape = ${a.shape} and y shape = ${b.shape}`);
+  }
+  if (b.rank >= 3) {
+    const xLastDim = a.shape.slice(-1)[0];
+    const ySecondLastDim = b.shape.slice(-2)[0];
+    if (xLastDim !== ySecondLastDim) {
+      throw new NotImplementedError(`If rank y >= 3, then the second last dim of y must equal the last dim of x but got x shape = ${a.shape} and  y shape = ${b.shape}`);
+    }
+  }
+  if (a.rank === 2 && b.rank === 2) {
+    const transposeA = false;
+    const transposeB = false;
+    return fused_ops_exports.matMul({
+      a,
+      b,
+      transposeA,
+      transposeB,
+      bias: bias ? reshapeBias(a.rank, bias, imageDataFormat()) : null,
+      activation: activation2
+    });
+  } else {
+    const aFirstDims = a.shape.slice();
+    const aLastDim = aFirstDims.pop();
+    a = reshape(a, [-1, aLastDim]);
+    const bShape = b.shape.slice();
+    const bLastDim = bShape.pop();
+    const ySecondLastDim = bShape.pop();
+    const yOtherDims = [...bShape, bLastDim];
+    const perm = Array.from({ length: b.rank }, (_, i) => {
+      if (i === 0) {
+        return b.rank - 2;
+      } else if (i <= b.rank - 2) {
+        return i - 1;
+      }
+      return i;
+    });
+    b = reshape(transpose(b, perm), [ySecondLastDim, -1]);
+    const outputShape = [...aFirstDims, ...yOtherDims];
+    const transposeA = false;
+    const transposeB = false;
+    return reshape(fused_ops_exports.matMul({
+      a,
+      b,
+      transposeA,
+      transposeB,
+      bias: bias ? reshapeBias(a.rank, bias, imageDataFormat()) : null,
+      activation: activation2
+    }), outputShape);
+  }
+}
+function gather2(reference, indices, axis) {
+  return tidy(() => {
+    if (Array.isArray(indices)) {
+      indices = tensor1d(indices, "int32");
+    } else {
+      indices = cast(indices, "int32");
+    }
+    return gather(reference, indices, axis);
+  });
+}
+function square2(x) {
+  return mul(x, x);
+}
+function reshapeBias(xRank, bias, dataFormat) {
+  const biasShape = bias.shape;
+  if (bias.rank !== 1 && bias.rank !== xRank) {
+    throw new ValueError(`Unexpected bias dimensions: ${bias.rank}; expected it to be 1 or ${xRank}`);
+  }
+  if (xRank === 5) {
+    if (dataFormat === "channelsFirst") {
+      if (biasShape.length === 1) {
+        return reshape(bias, [1, biasShape[0], 1, 1, 1]);
+      } else {
+        return reshape(bias, [1, biasShape[3], biasShape[0], biasShape[1], biasShape[2]]);
+      }
+    } else if (dataFormat === "channelsLast") {
+      if (biasShape.length === 1) {
+        return reshape(bias, [1, 1, 1, 1, biasShape[0]]);
+      } else {
+        return reshape(bias, [1].concat(biasShape));
+      }
+    }
+  } else if (xRank === 4) {
+    if (dataFormat === "channelsFirst") {
+      if (biasShape.length === 1) {
+        return reshape(bias, [1, biasShape[0], 1, 1]);
+      } else {
+        return reshape(bias, [1, biasShape[2], biasShape[0], biasShape[1]]);
+      }
+    } else if (dataFormat === "channelsLast") {
+      if (biasShape.length === 1) {
+        return reshape(bias, [1, 1, 1, biasShape[0]]);
+      } else {
+        return reshape(bias, [1].concat(biasShape));
+      }
+    }
+  } else if (xRank === 3) {
+    if (dataFormat === "channelsFirst") {
+      if (biasShape.length === 1) {
+        return reshape(bias, [1, biasShape[0], 1]);
+      } else {
+        return reshape(bias, [1, biasShape[1], biasShape[0]]);
+      }
+    } else if (dataFormat === "channelsLast") {
+      if (biasShape.length === 1) {
+        return reshape(bias, [1, 1, biasShape[0]]);
+      } else {
+        return reshape(bias, [1].concat(biasShape));
+      }
+    }
+  } else if (xRank < 3) {
+    return bias;
+  }
+  throw new ValueError(`Unsupported input rank by biasAdd: ${bias.rank}`);
+}
+function biasAdd(x, bias, dataFormat) {
+  return tidy(() => {
+    if (dataFormat == null) {
+      dataFormat = imageDataFormat();
+    }
+    checkDataFormat(dataFormat);
+    return add2(x, reshapeBias(x.rank, bias, dataFormat));
+  });
+}
+function elu2(x, alpha = 1) {
+  if (alpha !== 1) {
+    throw new NotImplementedError(`Support for alpha values other than 1 (${alpha}) is not implemented yet.`);
+  }
+  return elu(x);
+}
+function softsign(x) {
+  return tidy(() => div(x, add2(abs(x), 1)));
+}
+function dropout2(x, level, noiseShape, seed) {
+  return tidy(() => dropout(x, level, noiseShape, seed));
+}
+function hardSigmoid(x) {
+  return tidy(() => {
+    const y = add2(0.5, mul(0.2, x));
+    return clipByValue(y, 0, 1);
+  });
+}
+function inTrainPhase(x, alt, training = false) {
+  return training ? x() : alt();
+}
+
+// src/tfjs-layers/src/keras_format/initializer_config.ts
+var VALID_FAN_MODE_VALUES = ["fanIn", "fanOut", "fanAvg"];
+var VALID_DISTRIBUTION_VALUES = ["normal", "uniform", "truncatedNormal"];
+
+// src/tfjs-layers/src/initializers.ts
+function checkFanMode(value) {
+  checkStringTypeUnionValue(VALID_FAN_MODE_VALUES, "FanMode", value);
+}
+function checkDistribution(value) {
+  checkStringTypeUnionValue(VALID_DISTRIBUTION_VALUES, "Distribution", value);
+}
+var Initializer = class extends serialization_exports.Serializable {
+  fromConfigUsesCustomObjects() {
+    return false;
+  }
+  getConfig() {
+    return {};
+  }
+};
+var Zeros = class extends Initializer {
+  apply(shape, dtype) {
+    return zeros(shape, dtype);
+  }
+};
+Zeros.className = "Zeros";
+serialization_exports.registerClass(Zeros);
+var Ones = class extends Initializer {
+  apply(shape, dtype) {
+    return ones2(shape, dtype);
+  }
+};
+Ones.className = "Ones";
+serialization_exports.registerClass(Ones);
+var Constant = class extends Initializer {
+  constructor(args) {
+    super();
+    if (typeof args !== "object") {
+      throw new ValueError(`Expected argument of type ConstantConfig but got ${args}`);
+    }
+    if (args.value === void 0) {
+      throw new ValueError(`config must have value set but got ${args}`);
+    }
+    this.value = args.value;
+  }
+  apply(shape, dtype) {
+    return tidy(() => mul(scalar(this.value), ones2(shape, dtype)));
+  }
+  getConfig() {
+    return {
+      value: this.value
+    };
+  }
+};
+Constant.className = "Constant";
+serialization_exports.registerClass(Constant);
+var RandomUniform = class extends Initializer {
+  constructor(args) {
+    super();
+    this.DEFAULT_MINVAL = -0.05;
+    this.DEFAULT_MAXVAL = 0.05;
+    this.minval = args.minval || this.DEFAULT_MINVAL;
+    this.maxval = args.maxval || this.DEFAULT_MAXVAL;
+    this.seed = args.seed;
+  }
+  apply(shape, dtype) {
+    return randomUniform(shape, this.minval, this.maxval, dtype);
+  }
+  getConfig() {
+    return { minval: this.minval, maxval: this.maxval, seed: this.seed };
+  }
+};
+RandomUniform.className = "RandomUniform";
+serialization_exports.registerClass(RandomUniform);
+var RandomNormal = class extends Initializer {
+  constructor(args) {
+    super();
+    this.DEFAULT_MEAN = 0;
+    this.DEFAULT_STDDEV = 0.05;
+    this.mean = args.mean || this.DEFAULT_MEAN;
+    this.stddev = args.stddev || this.DEFAULT_STDDEV;
+    this.seed = args.seed;
+  }
+  apply(shape, dtype) {
+    dtype = dtype || "float32";
+    if (dtype !== "float32" && dtype !== "int32") {
+      throw new NotImplementedError(`randomNormal does not support dType ${dtype}.`);
+    }
+    return randomNormal2(shape, this.mean, this.stddev, dtype, this.seed);
+  }
+  getConfig() {
+    return { mean: this.mean, stddev: this.stddev, seed: this.seed };
+  }
+};
+RandomNormal.className = "RandomNormal";
+serialization_exports.registerClass(RandomNormal);
+var TruncatedNormal = class extends Initializer {
+  constructor(args) {
+    super();
+    this.DEFAULT_MEAN = 0;
+    this.DEFAULT_STDDEV = 0.05;
+    this.mean = args.mean || this.DEFAULT_MEAN;
+    this.stddev = args.stddev || this.DEFAULT_STDDEV;
+    this.seed = args.seed;
+  }
+  apply(shape, dtype) {
+    dtype = dtype || "float32";
+    if (dtype !== "float32" && dtype !== "int32") {
+      throw new NotImplementedError(`truncatedNormal does not support dType ${dtype}.`);
+    }
+    return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
+  }
+  getConfig() {
+    return { mean: this.mean, stddev: this.stddev, seed: this.seed };
+  }
+};
+TruncatedNormal.className = "TruncatedNormal";
+serialization_exports.registerClass(TruncatedNormal);
+var Identity2 = class extends Initializer {
+  constructor(args) {
+    super();
+    this.gain = args.gain != null ? args.gain : 1;
+  }
+  apply(shape, dtype) {
+    return tidy(() => {
+      if (shape.length !== 2 || shape[0] !== shape[1]) {
+        throw new ValueError("Identity matrix initializer can only be used for 2D square matrices.");
+      } else {
+        return mul(this.gain, eye(shape[0]));
+      }
+    });
+  }
+  getConfig() {
+    return { gain: this.gain };
+  }
+};
+Identity2.className = "Identity";
+serialization_exports.registerClass(Identity2);
+function computeFans(shape, dataFormat = "channelsLast") {
+  let fanIn;
+  let fanOut;
+  checkDataFormat(dataFormat);
+  if (shape.length === 2) {
+    fanIn = shape[0];
+    fanOut = shape[1];
+  } else if ([3, 4, 5].indexOf(shape.length) !== -1) {
+    if (dataFormat === "channelsFirst") {
+      const receptiveFieldSize = arrayProd(shape, 2);
+      fanIn = shape[1] * receptiveFieldSize;
+      fanOut = shape[0] * receptiveFieldSize;
+    } else if (dataFormat === "channelsLast") {
+      const receptiveFieldSize = arrayProd(shape, 0, shape.length - 2);
+      fanIn = shape[shape.length - 2] * receptiveFieldSize;
+      fanOut = shape[shape.length - 1] * receptiveFieldSize;
+    }
+  } else {
+    const shapeProd = arrayProd(shape);
+    fanIn = Math.sqrt(shapeProd);
+    fanOut = Math.sqrt(shapeProd);
+  }
+  return [fanIn, fanOut];
+}
+var VarianceScaling = class extends Initializer {
+  constructor(args) {
+    super();
+    if (args.scale < 0) {
+      throw new ValueError(`scale must be a positive float. Got: ${args.scale}`);
+    }
+    this.scale = args.scale == null ? 1 : args.scale;
+    this.mode = args.mode == null ? "fanIn" : args.mode;
+    checkFanMode(this.mode);
+    this.distribution = args.distribution == null ? "normal" : args.distribution;
+    checkDistribution(this.distribution);
+    this.seed = args.seed;
+  }
+  apply(shape, dtype) {
+    const fans = computeFans(shape);
+    const fanIn = fans[0];
+    const fanOut = fans[1];
+    let scale2 = this.scale;
+    if (this.mode === "fanIn") {
+      scale2 /= Math.max(1, fanIn);
+    } else if (this.mode === "fanOut") {
+      scale2 /= Math.max(1, fanOut);
+    } else {
+      scale2 /= Math.max(1, (fanIn + fanOut) / 2);
+    }
+    if (this.distribution === "normal") {
+      const stddev = Math.sqrt(scale2);
+      dtype = dtype || "float32";
+      if (dtype !== "float32" && dtype !== "int32") {
+        throw new NotImplementedError(`${this.getClassName()} does not support dType ${dtype}.`);
+      }
+      return truncatedNormal(shape, 0, stddev, dtype, this.seed);
+    } else {
+      const limit = Math.sqrt(3 * scale2);
+      return randomUniform(shape, -limit, limit, dtype);
+    }
+  }
+  getConfig() {
+    return {
+      scale: this.scale,
+      mode: this.mode,
+      distribution: this.distribution,
+      seed: this.seed
+    };
+  }
+};
+VarianceScaling.className = "VarianceScaling";
+serialization_exports.registerClass(VarianceScaling);
+var GlorotUniform = class extends VarianceScaling {
+  constructor(args) {
+    super({
+      scale: 1,
+      mode: "fanAvg",
+      distribution: "uniform",
+      seed: args == null ? null : args.seed
+    });
+  }
+  getClassName() {
+    return VarianceScaling.className;
+  }
+};
+GlorotUniform.className = "GlorotUniform";
+serialization_exports.registerClass(GlorotUniform);
+var GlorotNormal = class extends VarianceScaling {
+  constructor(args) {
+    super({
+      scale: 1,
+      mode: "fanAvg",
+      distribution: "normal",
+      seed: args == null ? null : args.seed
+    });
+  }
+  getClassName() {
+    return VarianceScaling.className;
+  }
+};
+GlorotNormal.className = "GlorotNormal";
+serialization_exports.registerClass(GlorotNormal);
+var HeNormal = class extends VarianceScaling {
+  constructor(args) {
+    super({
+      scale: 2,
+      mode: "fanIn",
+      distribution: "normal",
+      seed: args == null ? null : args.seed
+    });
+  }
+  getClassName() {
+    return VarianceScaling.className;
+  }
+};
+HeNormal.className = "HeNormal";
+serialization_exports.registerClass(HeNormal);
+var HeUniform = class extends VarianceScaling {
+  constructor(args) {
+    super({
+      scale: 2,
+      mode: "fanIn",
+      distribution: "uniform",
+      seed: args == null ? null : args.seed
+    });
+  }
+  getClassName() {
+    return VarianceScaling.className;
+  }
+};
+HeUniform.className = "HeUniform";
+serialization_exports.registerClass(HeUniform);
+var LeCunNormal = class extends VarianceScaling {
+  constructor(args) {
+    super({
+      scale: 1,
+      mode: "fanIn",
+      distribution: "normal",
+      seed: args == null ? null : args.seed
+    });
+  }
+  getClassName() {
+    return VarianceScaling.className;
+  }
+};
+LeCunNormal.className = "LeCunNormal";
+serialization_exports.registerClass(LeCunNormal);
+var LeCunUniform = class extends VarianceScaling {
+  constructor(args) {
+    super({
+      scale: 1,
+      mode: "fanIn",
+      distribution: "uniform",
+      seed: args == null ? null : args.seed
+    });
+  }
+  getClassName() {
+    return VarianceScaling.className;
+  }
+};
+LeCunUniform.className = "LeCunNormal";
+serialization_exports.registerClass(LeCunUniform);
+var Orthogonal = class extends Initializer {
+  constructor(args) {
+    super();
+    this.DEFAULT_GAIN = 1;
+    this.gain = args.gain == null ? this.DEFAULT_GAIN : args.gain;
+    this.seed = args.seed;
+    if (this.seed != null) {
+      throw new NotImplementedError("Random seed is not implemented for Orthogonal Initializer yet.");
+    }
+  }
+  apply(shape, dtype) {
+    return tidy(() => {
+      if (shape.length < 2) {
+        throw new NotImplementedError("Shape must be at least 2D.");
+      }
+      if (shape[0] * shape[1] > 2e3) {
+        console.warn(`Orthogonal initializer is being called on a matrix with more than 2000 (${shape[0] * shape[1]}) elements: Slowness may result.`);
+      }
+      const normalizedShape = shape[0] > shape[1] ? [shape[1], shape[0]] : shape;
+      const a = randomNormal2(normalizedShape, 0, 1, "float32");
+      let q = linalg.gramSchmidt(a);
+      if (shape[0] > shape[1]) {
+        q = transpose(q);
+      }
+      return mul(this.gain, q);
+    });
+  }
+  getConfig() {
+    return {
+      gain: this.gain,
+      seed: this.seed
+    };
+  }
+};
+Orthogonal.className = "Orthogonal";
+serialization_exports.registerClass(Orthogonal);
+var INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP = {
+  "constant": "Constant",
+  "glorotNormal": "GlorotNormal",
+  "glorotUniform": "GlorotUniform",
+  "heNormal": "HeNormal",
+  "heUniform": "HeUniform",
+  "identity": "Identity",
+  "leCunNormal": "LeCunNormal",
+  "leCunUniform": "LeCunUniform",
+  "ones": "Ones",
+  "orthogonal": "Orthogonal",
+  "randomNormal": "RandomNormal",
+  "randomUniform": "RandomUniform",
+  "truncatedNormal": "TruncatedNormal",
+  "varianceScaling": "VarianceScaling",
+  "zeros": "Zeros"
+};
+function deserializeInitializer(config, customObjects = {}) {
+  return deserializeKerasObject(config, serialization_exports.SerializationMap.getMap().classNameMap, customObjects, "initializer");
+}
+function serializeInitializer(initializer) {
+  return serializeKerasObject(initializer);
+}
+function getInitializer(identifier) {
+  if (typeof identifier === "string") {
+    const className = identifier in INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP ? INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP[identifier] : identifier;
+    if (className === "GlorotNormal") {
+      return new GlorotNormal();
+    } else if (className === "GlorotUniform") {
+      return new GlorotUniform();
+    } else if (className === "HeNormal") {
+      return new HeNormal();
+    } else if (className === "HeUniform") {
+      return new HeUniform();
+    } else if (className === "LeCunNormal") {
+      return new LeCunNormal();
+    } else if (className === "LeCunUniform") {
+      return new LeCunUniform();
+    } else {
+      const config = {};
+      config["className"] = className;
+      config["config"] = {};
+      return deserializeInitializer(config);
+    }
+  } else if (identifier instanceof Initializer) {
+    return identifier;
+  } else {
+    return deserializeInitializer(identifier);
+  }
+}
+
+// src/tfjs-layers/src/utils/types_utils.ts
+function isArrayOfShapes(x) {
+  return Array.isArray(x) && Array.isArray(x[0]);
+}
+function normalizeShapeList(x) {
+  if (x.length === 0) {
+    return [];
+  }
+  if (!Array.isArray(x[0])) {
+    return [x];
+  }
+  return x;
+}
+function getExactlyOneTensor(xs) {
+  let x;
+  if (Array.isArray(xs)) {
+    if (xs.length !== 1) {
+      throw new ValueError(`Expected Tensor length to be 1; got ${xs.length}`);
+    }
+    x = xs[0];
+  } else {
+    x = xs;
+  }
+  return x;
+}
+function getExactlyOneShape(shapes) {
+  if (Array.isArray(shapes) && Array.isArray(shapes[0])) {
+    if (shapes.length === 1) {
+      shapes = shapes;
+      return shapes[0];
+    } else {
+      throw new ValueError(`Expected exactly 1 Shape; got ${shapes.length}`);
+    }
+  } else {
+    return shapes;
+  }
+}
+
+// src/tfjs-layers/src/utils/variable_utils.ts
+function countParamsInWeights(weights) {
+  let count2 = 0;
+  for (const weight of weights) {
+    if (weight.shape.length === 0) {
+      count2 += 1;
+    } else {
+      count2 += weight.shape.reduce((a, b) => a * b);
+    }
+  }
+  return count2;
+}
+
+// src/tfjs-layers/src/variables.ts
+var DEFAULT_VARIABLE_NAME_PREFIX = "Variable";
+var LayerVariable = class {
+  constructor(val, dtype = "float32", name = DEFAULT_VARIABLE_NAME_PREFIX, trainable = true, constraint = null) {
+    this.dtype = dtype == null ? "float32" : dtype;
+    this.shape = val.shape;
+    this.id = getNextUniqueTensorId();
+    name = name == null ? DEFAULT_VARIABLE_NAME_PREFIX : name;
+    this.originalName = getScopedTensorName(name);
+    this.name = getUniqueTensorName(this.originalName);
+    this.trainable_ = trainable;
+    this.constraint = constraint;
+    this.val = variable(val, this.trainable_, this.name, this.dtype);
+  }
+  read() {
+    this.assertNotDisposed();
+    return this.val;
+  }
+  write(newVal) {
+    this.assertNotDisposed();
+    checkShapesMatch(this.val, newVal);
+    if (this.val.id !== newVal.id) {
+      this.val.assign(newVal);
+      if (this.constraint != null) {
+        this.val.assign(this.constraint.apply(this.val));
+      }
+    }
+    return this;
+  }
+  dispose() {
+    this.assertNotDisposed();
+    this.val.dispose();
+  }
+  assertNotDisposed() {
+    if (this.val.isDisposed) {
+      throw new Error(`LayersVariable ${this.name} is already disposed.`);
+    }
+  }
+  get trainable() {
+    return this.trainable_;
+  }
+  set trainable(trainable) {
+    this.trainable_ = trainable;
+    this.val.trainable = trainable;
+  }
+};
+function checkShapesMatch(x, y) {
+  if (x.shape.toString() !== y.shape.toString()) {
+    throw new Error("Shape mismatch: " + JSON.stringify(x.shape) + " vs. " + JSON.stringify(y.shape));
+  }
+}
+function batchGetValue(xs) {
+  return xs.map((x) => x.read());
+}
+function batchSetValue(variablesAndValues) {
+  variablesAndValues.forEach((variableAndValue) => {
+    const variable2 = variableAndValue[0];
+    variable2.write(variableAndValue[1]);
+  });
+}
+
+// src/tfjs-layers/src/engine/topology.ts
+var InputSpec = class {
+  constructor(args) {
+    this.dtype = args.dtype;
+    this.shape = args.shape;
+    if (args.shape != null) {
+      this.ndim = args.shape.length;
+    } else {
+      this.ndim = args.ndim;
+    }
+    this.maxNDim = args.maxNDim;
+    this.minNDim = args.minNDim;
+    this.axes = args.axes || {};
+  }
+};
+var SymbolicTensor = class {
+  constructor(dtype, shape, sourceLayer, inputs, callArgs, name, outputTensorIndex) {
+    this.dtype = dtype;
+    this.shape = shape;
+    this.sourceLayer = sourceLayer;
+    this.inputs = inputs;
+    this.callArgs = callArgs;
+    this.outputTensorIndex = outputTensorIndex;
+    this.id = getNextUniqueTensorId();
+    if (name != null) {
+      this.originalName = getScopedTensorName(name);
+      this.name = getUniqueTensorName(this.originalName);
+    }
+    this.rank = shape.length;
+  }
+};
+var _nextNodeID = 0;
+var Node = class {
+  constructor(args, callArgs) {
+    this.callArgs = callArgs;
+    this.id = _nextNodeID++;
+    this.outboundLayer = args.outboundLayer;
+    this.inboundLayers = args.inboundLayers;
+    this.nodeIndices = args.nodeIndices;
+    this.tensorIndices = args.tensorIndices;
+    this.inputTensors = args.inputTensors;
+    this.outputTensors = args.outputTensors;
+    this.inputMasks = args.inputMasks;
+    this.outputMasks = args.outputMasks;
+    this.inputShapes = args.inputShapes;
+    this.outputShapes = args.outputShapes;
+    for (const layer of args.inboundLayers) {
+      if (layer != null) {
+        layer.outboundNodes.push(this);
+      }
+    }
+    args.outboundLayer.inboundNodes.push(this);
+  }
+  getConfig() {
+    const inboundNames = [];
+    for (const layer of this.inboundLayers) {
+      if (layer != null) {
+        inboundNames.push(layer.name);
+      } else {
+        inboundNames.push(null);
+      }
+    }
+    return {
+      outboundLayer: this.outboundLayer ? this.outboundLayer.name : null,
+      inboundLayers: inboundNames,
+      nodeIndices: this.nodeIndices,
+      tensorIndices: this.tensorIndices
+    };
+  }
+};
+var _nextLayerID = 0;
+var Layer = class extends serialization_exports.Serializable {
+  constructor(args = {}) {
+    super();
+    this._callHook = null;
+    this._addedWeightNames = [];
+    this._stateful = false;
+    this.id = _nextLayerID++;
+    this.activityRegularizer = null;
+    this.inputSpec = null;
+    this.supportsMasking = false;
+    this._trainableWeights = [];
+    this._nonTrainableWeights = [];
+    this._losses = [];
+    this._updates = [];
+    this._built = false;
+    this.inboundNodes = [];
+    this.outboundNodes = [];
+    let name = args.name;
+    if (!name) {
+      const prefix = this.getClassName();
+      name = toSnakeCase(prefix) + "_" + getUid(prefix);
+    }
+    this.name = name;
+    this.trainable_ = args.trainable == null ? true : args.trainable;
+    if (args.inputShape != null || args.batchInputShape != null) {
+      let batchInputShape;
+      if (args.batchInputShape != null) {
+        batchInputShape = args.batchInputShape;
+      } else if (args.inputShape != null) {
+        let batchSize = null;
+        if (args.batchSize != null) {
+          batchSize = args.batchSize;
+        }
+        batchInputShape = [batchSize].concat(args.inputShape);
+      }
+      this.batchInputShape = batchInputShape;
+      let dtype = args.dtype;
+      if (dtype == null) {
+        dtype = args.inputDType;
+      }
+      if (dtype == null) {
+        dtype = "float32";
+      }
+      this.dtype = dtype;
+    }
+    if (args.weights != null) {
+      this.initialWeights = args.weights;
+    } else {
+      this.initialWeights = null;
+    }
+    this._refCount = null;
+    this.fastWeightInitDuringBuild = false;
+  }
+  static nodeKey(layer, nodeIndex) {
+    return layer.name + "_ib-" + nodeIndex.toString();
+  }
+  getNodeAtIndex(nodeIndex, attrName) {
+    if (this.inboundNodes.length === 0) {
+      throw new RuntimeError(`The layer has never been called and thus has no defined ${attrName}.`);
+    }
+    if (this.inboundNodes.length <= nodeIndex) {
+      throw new ValueError(`Asked to get ${attrName} at node ${nodeIndex}, but the layer has only ${this.inboundNodes.length} inbound nodes.`);
+    }
+    return this.inboundNodes[nodeIndex];
+  }
+  getInputAt(nodeIndex) {
+    return singletonOrArray(this.getNodeAtIndex(nodeIndex, "input").inputTensors);
+  }
+  getOutputAt(nodeIndex) {
+    return singletonOrArray(this.getNodeAtIndex(nodeIndex, "output").outputTensors);
+  }
+  get input() {
+    if (this.inboundNodes.length > 1) {
+      throw new AttributeError(`Layer ${this.name} has multiple inbound nodes, hence the notion of "layer input" is ill-defined. Use \`getInputAt(nodeIndex)\` instead.`);
+    } else if (this.inboundNodes.length === 0) {
+      throw new AttributeError(`Layer ${this.name} is not connected, no input to return.`);
+    }
+    return singletonOrArray(this.getNodeAtIndex(0, "input").inputTensors);
+  }
+  get output() {
+    if (this.inboundNodes.length === 0) {
+      throw new AttributeError(`Layer ${this.name} has no inbound nodes.`);
+    }
+    if (this.inboundNodes.length > 1) {
+      throw new AttributeError(`Layer ${this.name} has multiple inbound nodes, hence the notion of "layer output" is ill-defined. Use \`getOutputAt(nodeIndex)\` instead.`);
+    }
+    return singletonOrArray(this.getNodeAtIndex(0, "output").outputTensors);
+  }
+  get losses() {
+    return this._losses;
+  }
+  calculateLosses() {
+    return this.losses.map((lossFn) => lossFn());
+  }
+  get updates() {
+    return this._updates;
+  }
+  get built() {
+    return this._built;
+  }
+  set built(built) {
+    this._built = built;
+  }
+  get trainable() {
+    return this.trainable_;
+  }
+  set trainable(trainable) {
+    this._trainableWeights.forEach((w) => w.trainable = trainable);
+    this.trainable_ = trainable;
+  }
+  get trainableWeights() {
+    if (this.trainable_) {
+      return this._trainableWeights.filter((w) => w.trainable);
+    } else {
+      return [];
+    }
+  }
+  set trainableWeights(weights) {
+    this._trainableWeights = weights;
+  }
+  get nonTrainableWeights() {
+    if (this.trainable) {
+      return this._trainableWeights.filter((w) => !w.trainable).concat(this._nonTrainableWeights);
+    } else {
+      return this._trainableWeights.concat(this._nonTrainableWeights);
+    }
+  }
+  set nonTrainableWeights(weights) {
+    this._nonTrainableWeights = weights;
+  }
+  get weights() {
+    return this.trainableWeights.concat(this.nonTrainableWeights);
+  }
+  get stateful() {
+    return this._stateful;
+  }
+  resetStates() {
+    if (!this.stateful) {
+      throw new Error("Cannot call the resetStates() method of a non-stateful Layer object.");
+    }
+  }
+  assertInputCompatibility(inputs) {
+    inputs = toList(inputs);
+    if (this.inputSpec == null || this.inputSpec.length === 0) {
+      return;
+    }
+    const inputSpec = toList(this.inputSpec);
+    if (inputs.length !== inputSpec.length) {
+      throw new ValueError(`Layer ${this.name} expects ${inputSpec.length} inputs, but it received ${inputs.length} input tensors. Input received: ${inputs}`);
+    }
+    for (let inputIndex = 0; inputIndex < inputs.length; inputIndex++) {
+      const x = inputs[inputIndex];
+      const spec = inputSpec[inputIndex];
+      if (spec == null) {
+        continue;
+      }
+      const ndim = x.rank;
+      if (spec.ndim != null) {
+        if (ndim !== spec.ndim) {
+          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected ndim=${spec.ndim}, found ndim=${ndim}`);
+        }
+      }
+      if (spec.maxNDim != null) {
+        if (ndim > spec.maxNDim) {
+          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected max_ndim=${spec.maxNDim}, found ndim=${ndim}`);
+        }
+      }
+      if (spec.minNDim != null) {
+        if (ndim < spec.minNDim) {
+          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected min_ndim=${spec.minNDim}, found ndim=${ndim}.`);
+        }
+      }
+      if (spec.dtype != null) {
+        if (x.dtype !== spec.dtype) {
+          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name} : expected dtype=${spec.dtype}, found dtype=${x.dtype}.`);
+        }
+      }
+      if (spec.axes) {
+        const xShape = x.shape;
+        for (const key in spec.axes) {
+          const axis = Number(key);
+          const value = spec.axes[key];
+          const xShapeAtAxis = axis >= 0 ? xShape[axis] : xShape[xShape.length + axis];
+          if (value != null && [value, null].indexOf(xShapeAtAxis) === -1) {
+            throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected axis ${axis} of input shape to have value ${value} but got shape ${xShape}.`);
+          }
+        }
+      }
+      if (spec.shape != null) {
+        for (let i = 0; i < spec.shape.length; ++i) {
+          const specDim = spec.shape[i];
+          const dim = x.shape[i];
+          if (specDim != null && dim != null) {
+            if (specDim !== dim) {
+              throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected shape=${spec.shape}, found shape=${x.shape}.`);
+            }
+          }
+        }
+      }
+    }
+  }
+  call(inputs, kwargs) {
+    return inputs;
+  }
+  invokeCallHook(inputs, kwargs) {
+    if (this._callHook != null) {
+      this._callHook(inputs, kwargs);
+    }
+  }
+  setCallHook(callHook) {
+    this._callHook = callHook;
+  }
+  clearCallHook() {
+    this._callHook = null;
+  }
+  apply(inputs, kwargs) {
+    kwargs = kwargs || {};
+    this.assertNotDisposed();
+    const inputsList = toList(inputs);
+    let allAreSymbolic = true;
+    for (const input2 of inputsList) {
+      if (!(input2 instanceof SymbolicTensor)) {
+        allAreSymbolic = false;
+        break;
+      }
+    }
+    let noneAreSymbolic = true;
+    for (const input2 of inputsList) {
+      if (input2 instanceof SymbolicTensor) {
+        noneAreSymbolic = false;
+        break;
+      }
+    }
+    if (allAreSymbolic === noneAreSymbolic) {
+      throw new ValueError("Arguments to apply() must be all SymbolicTensors or all Tensors");
+    }
+    return nameScope(this.name, () => {
+      if (!this.built) {
+        this.assertInputCompatibility(inputs);
+        const inputShapes = [];
+        for (const xElem of toList(inputs)) {
+          inputShapes.push(xElem.shape);
+        }
+        this.build(singletonOrArray(inputShapes));
+        this.built = true;
+        if (this.initialWeights) {
+          this.setWeights(this.initialWeights);
+        }
+        if (this._refCount === null && noneAreSymbolic) {
+          this._refCount = 1;
+        }
+      }
+      this.assertInputCompatibility(inputs);
+      if (noneAreSymbolic) {
+        let output = this.call(inputs, kwargs);
+        const outputList = toList(output);
+        const outputListCopy = [];
+        for (let x of outputList) {
+          if (inputsList.indexOf(x) !== -1) {
+            x = x.clone();
+          }
+          outputListCopy.push(x);
+        }
+        output = singletonOrArray(outputListCopy);
+        if (this.activityRegularizer != null) {
+          throw new NotImplementedError("Layer invocation in the presence of activity regularizer(s) is not supported yet.");
+        }
+        return output;
+      } else {
+        const inputShape = collectInputShape(inputs);
+        const outputShape = this.computeOutputShape(inputShape);
+        let output;
+        const outputDType = guessOutputDType(inputs);
+        this.warnOnIncompatibleInputShape(Array.isArray(inputs) ? inputShape[0] : inputShape);
+        if (outputShape != null && outputShape.length > 0 && Array.isArray(outputShape[0])) {
+          output = outputShape.map((shape, index) => new SymbolicTensor(outputDType, shape, this, toList(inputs), kwargs, this.name, index));
+        } else {
+          output = new SymbolicTensor(outputDType, outputShape, this, toList(inputs), kwargs, this.name);
+        }
+        this.addInboundNode(inputs, output, null, null, inputShape, outputShape, kwargs);
+        this._refCount++;
+        if (this.activityRegularizer != null) {
+          throw new NotImplementedError("Layer invocation in the presence of activity regularizer(s) is not supported yet.");
+        }
+        return output;
+      }
+    });
+  }
+  warnOnIncompatibleInputShape(inputShape) {
+    if (this.batchInputShape == null) {
+      return;
+    } else if (inputShape.length !== this.batchInputShape.length) {
+      console.warn(`The rank of the input tensor provided (shape: ${JSON.stringify(inputShape)}) does not match that of the batchInputShape (${JSON.stringify(this.batchInputShape)}) of the layer ${this.name}`);
+    } else {
+      let dimMismatch = false;
+      this.batchInputShape.forEach((dimension, i) => {
+        if (dimension != null && inputShape[i] != null && inputShape[i] !== dimension) {
+          dimMismatch = true;
+        }
+      });
+      if (dimMismatch) {
+        console.warn(`The shape of the input tensor (${JSON.stringify(inputShape)}) does not match the expectation of layer ${this.name}: ${JSON.stringify(this.batchInputShape)}`);
+      }
+    }
+  }
+  get outputShape() {
+    if (this.inboundNodes == null || this.inboundNodes.length === 0) {
+      throw new AttributeError(`The layer ${this.name} has never been called and thus has no defined output shape.`);
+    }
+    const allOutputShapes = [];
+    for (const node of this.inboundNodes) {
+      const shapeString = JSON.stringify(node.outputShapes);
+      if (allOutputShapes.indexOf(shapeString) === -1) {
+        allOutputShapes.push(shapeString);
+      }
+    }
+    if (allOutputShapes.length === 1) {
+      const outputShapes = this.inboundNodes[0].outputShapes;
+      if (Array.isArray(outputShapes) && Array.isArray(outputShapes[0]) && outputShapes.length === 1) {
+        return outputShapes[0];
+      } else {
+        return outputShapes;
+      }
+    } else {
+      throw new AttributeError(`The layer ${this.name} has multiple inbound nodes with different output shapes. Hence the notion of "output shape" is ill-defined for the layer.`);
+    }
+  }
+  countParams() {
+    if (!this.built) {
+      throw new RuntimeError(`You tried to call countParams() on ${this.name}, but the layer is not built yet. Build it first by calling build(batchInputShape).`);
+    }
+    return countParamsInWeights(this.weights);
+  }
+  build(inputShape) {
+    this.built = true;
+  }
+  getWeights(trainableOnly = false) {
+    return batchGetValue(trainableOnly ? this.trainableWeights : this.weights);
+  }
+  setWeights(weights) {
+    tidy(() => {
+      const params = this.weights;
+      if (params.length !== weights.length) {
+        throw new ValueError(`You called setWeights(weights) on layer "${this.name}" with a weight list of length ${weights.length}, but the layer was expecting ${params.length} weights. Provided weights: ${weights}...`);
+      }
+      if (params.length === 0) {
+        return;
+      }
+      const weightValueTuples = [];
+      const paramValues = batchGetValue(params);
+      for (let i = 0; i < paramValues.length; ++i) {
+        const pv = paramValues[i];
+        const p2 = params[i];
+        const w = weights[i];
+        if (!util_exports.arraysEqual(pv.shape, w.shape)) {
+          throw new ValueError(`Layer weight shape ${pv.shape} not compatible with provided weight shape ${w.shape}`);
+        }
+        weightValueTuples.push([p2, w]);
+      }
+      batchSetValue(weightValueTuples);
+    });
+  }
+  addWeight(name, shape, dtype, initializer, regularizer, trainable, constraint, getInitializerFunc) {
+    if (this._addedWeightNames.indexOf(name) !== -1) {
+      throw new ValueError(`Duplicate weight name ${name} for layer ${this.name}`);
+    }
+    this._addedWeightNames.push(name);
+    if (dtype == null) {
+      dtype = "float32";
+    }
+    if (this.fastWeightInitDuringBuild) {
+      initializer = getInitializerFunc != null ? getInitializerFunc() : getInitializer("zeros");
+    }
+    const initValue = initializer.apply(shape, dtype);
+    const weight = new LayerVariable(initValue, dtype, name, trainable, constraint);
+    initValue.dispose();
+    if (regularizer != null) {
+      this.addLoss(() => regularizer.apply(weight.read()));
+    }
+    if (trainable == null) {
+      trainable = true;
+    }
+    if (trainable) {
+      this._trainableWeights.push(weight);
+    } else {
+      this._nonTrainableWeights.push(weight);
+    }
+    return weight;
+  }
+  setFastWeightInitDuringBuild(value) {
+    this.fastWeightInitDuringBuild = value;
+  }
+  addLoss(losses2) {
+    if (losses2 == null || Array.isArray(losses2) && losses2.length === 0) {
+      return;
+    }
+    losses2 = toList(losses2);
+    if (this._losses !== void 0 && this._losses !== null) {
+      this.losses.push(...losses2);
+    }
+  }
+  computeOutputShape(inputShape) {
+    return inputShape;
+  }
+  computeMask(inputs, mask) {
+    if (!this.supportsMasking) {
+      if (mask != null) {
+        if (Array.isArray(mask)) {
+          mask.forEach((maskElement) => {
+            if (maskElement != null) {
+              throw new TypeError(`Layer ${this.name} does not support masking, but was passed an inputMask.`);
+            }
+          });
+        } else {
+          throw new TypeError(`Layer ${this.name} does not support masking, but was passed an inputMask.`);
+        }
+      }
+      return null;
+    }
+    return mask;
+  }
+  addInboundNode(inputTensors, outputTensors, inputMasks, outputMasks, inputShapes, outputShapes, kwargs = null) {
+    const inputTensorList = toList(inputTensors);
+    outputTensors = toList(outputTensors);
+    inputMasks = toList(inputMasks);
+    outputMasks = toList(outputMasks);
+    inputShapes = normalizeShapeList(inputShapes);
+    outputShapes = normalizeShapeList(outputShapes);
+    const inboundLayers = [];
+    const nodeIndices = [];
+    const tensorIndices = [];
+    for (const x of inputTensorList) {
+      inboundLayers.push(x.sourceLayer);
+      nodeIndices.push(x.nodeIndex);
+      tensorIndices.push(x.tensorIndex);
+    }
+    new Node({
+      outboundLayer: this,
+      inboundLayers,
+      nodeIndices,
+      tensorIndices,
+      inputTensors: inputTensorList,
+      outputTensors,
+      inputMasks,
+      outputMasks,
+      inputShapes,
+      outputShapes
+    }, kwargs);
+    for (let i = 0; i < outputTensors.length; i++) {
+      outputTensors[i].sourceLayer = this;
+      outputTensors[i].nodeIndex = this.inboundNodes.length - 1;
+      outputTensors[i].tensorIndex = i;
+    }
+  }
+  getConfig() {
+    const config = { name: this.name, trainable: this.trainable };
+    if (this.batchInputShape != null) {
+      config["batchInputShape"] = this.batchInputShape;
+    }
+    if (this.dtype != null) {
+      config["dtype"] = this.dtype;
+    }
+    return config;
+  }
+  disposeWeights() {
+    this.weights.forEach((weight) => weight.dispose());
+    return this.weights.length;
+  }
+  assertNotDisposed() {
+    if (this._refCount === 0) {
+      throw new Error(`Layer '${this.name}' is already disposed.`);
+    }
+  }
+  dispose() {
+    if (!this.built) {
+      throw new Error(`Cannot dispose Layer ${this.name} because it has not been built yet.`);
+    }
+    if (this._refCount === null) {
+      throw new Error(`Cannot dispose Layer ${this.name} because it has not been used yet.`);
+    }
+    this.assertNotDisposed();
+    let numDisposedVariables = 0;
+    if (--this._refCount === 0) {
+      numDisposedVariables = this.disposeWeights();
+    }
+    return { refCountAfterDispose: this._refCount, numDisposedVariables };
+  }
+};
+function collectInputShape(inputTensors) {
+  inputTensors = toList(inputTensors);
+  const shapes = [];
+  for (const x of inputTensors) {
+    shapes.push(x.shape);
+  }
+  return singletonOrArray(shapes);
+}
+function guessOutputDType(inputTensors) {
+  return "float32";
+}
+function getSourceInputs(tensor2, layer, nodeIndex) {
+  if (layer == null || nodeIndex != null && nodeIndex > 0) {
+    layer = tensor2.sourceLayer;
+    nodeIndex = tensor2.nodeIndex;
+  }
+  if (layer.inboundNodes.length === 0) {
+    return [tensor2];
+  } else {
+    const node = layer.inboundNodes[nodeIndex];
+    if (node.inboundLayers.length === 0) {
+      return node.inputTensors;
+    } else {
+      const sourceTensors = [];
+      for (let i = 0; i < node.inboundLayers.length; i++) {
+        const x = node.inputTensors[i];
+        const layer2 = node.inboundLayers[i];
+        const nodeIndex2 = node.nodeIndices[i];
+        const previousSources = getSourceInputs(x, layer2, nodeIndex2);
+        for (const x2 of previousSources) {
+          if (sourceTensors.indexOf(x2) === -1) {
+            sourceTensors.push(x2);
+          }
+        }
+      }
+      return sourceTensors;
+    }
+  }
+}
+
+// src/tfjs-layers/src/engine/input_layer.ts
+var InputLayer = class extends Layer {
+  constructor(args) {
+    super({
+      dtype: args.dtype,
+      name: args.name != null ? args.name : getUid("input").toString()
+    });
+    if (args.batchSize == null) {
+      args.batchSize = null;
+    }
+    if (args.sparse == null) {
+      args.sparse = false;
+    }
+    this.trainable = false;
+    this.built = true;
+    this.sparse = args.sparse;
+    if (args.inputShape != null && args.batchInputShape != null) {
+      throw new ValueError("Only provide the inputShape OR batchInputShape argument to inputLayer, not both at the same time.");
+    }
+    let batchInputShape = args.batchInputShape;
+    if (batchInputShape == null) {
+      if (args.inputShape == null) {
+        throw new ValueError("An InputLayer should be passed either a `batchInputShape` or an `inputShape`.");
+      } else {
+        batchInputShape = [args.batchSize].concat(args.inputShape);
+      }
+    } else {
+      if (args.batchSize != null) {
+        throw new ValueError("Cannot specify batchSize if batchInputShape is specified when creating an InputLayer.");
+      }
+    }
+    const dtype = args.dtype || "float32";
+    this.batchInputShape = batchInputShape;
+    this.dtype = dtype;
+    this.inputSpec = [{ shape: batchInputShape }];
+    const inputTensor = new SymbolicTensor(this.dtype, this.batchInputShape, this, [], {}, this.name);
+    inputTensor.nodeIndex = 0;
+    inputTensor.tensorIndex = 0;
+    new Node({
+      outboundLayer: this,
+      inboundLayers: [],
+      nodeIndices: [],
+      tensorIndices: [],
+      inputTensors: [inputTensor],
+      outputTensors: [inputTensor],
+      inputMasks: [null],
+      outputMasks: [null],
+      inputShapes: [batchInputShape],
+      outputShapes: [batchInputShape]
+    });
+  }
+  apply(inputs, kwargs) {
+    throw new ValueError(`Cannot pass any input to an InputLayer's apply() method. InputLayer name: ${this.name}`);
+  }
+  dispose() {
+    return { refCountAfterDispose: this._refCount, numDisposedVariables: 0 };
+  }
+  getConfig() {
+    return {
+      batchInputShape: this.batchInputShape,
+      dtype: this.dtype,
+      sparse: this.sparse,
+      name: this.name
+    };
+  }
+};
+InputLayer.className = "InputLayer";
+serialization_exports.registerClass(InputLayer);
+function Input(config) {
+  if (config.batchShape == null && config.shape == null) {
+    throw new Error("Please provide to Input either a `shape` or a `batchShape` argument. Note that `shape` does not include the batch dimension.");
+  }
+  if (config.batchShape != null && config.shape != null) {
+    throw new ValueError("Please provide either a `shape` or `batchShape` argument to Input, but not both.");
+  }
+  let batchShape = config.batchShape;
+  if (config.shape != null && batchShape == null) {
+    batchShape = [null].concat(config.shape);
+  }
+  let dtype = config.dtype;
+  if (dtype == null) {
+    dtype = "float32";
+  }
+  const inputLayer2 = new InputLayer({
+    batchInputShape: batchShape,
+    name: config.name,
+    dtype,
+    sparse: config.sparse
+  });
+  const outputs = inputLayer2.inboundNodes[0].outputTensors;
+  return outputs[0];
+}
+
+// src/tfjs-layers/src/engine/executor.ts
+function assertFeedCompatibility(key, val) {
+  if (key.dtype == null || key.dtype === val.dtype) {
+    return val;
+  }
+  try {
+    return cast(val, key.dtype);
+  } catch (err) {
+    throw new ValueError(`The dtype of the feed (${val.dtype}) can not be cast to the dtype of the key '${key.name}' (${key.dtype}).`);
+  }
+}
+var FeedDict = class {
+  constructor(feeds) {
+    this.id2Value = {};
+    this.id2Mask = {};
+    this.name2Id = {};
+    if (feeds instanceof FeedDict) {
+      for (const id in feeds.id2Value) {
+        this.id2Value[id] = feeds.id2Value[id];
+        if (id in feeds.id2Mask) {
+          this.id2Mask[id] = feeds.id2Mask[id];
+        }
+      }
+    } else {
+      if (feeds == null) {
+        return;
+      }
+      for (const feed of feeds) {
+        this.add(feed.key, feed.value);
+      }
+    }
+  }
+  add(key, value, mask) {
+    if (this.id2Value[key.id] == null) {
+      this.id2Value[key.id] = assertFeedCompatibility(key, value);
+      this.name2Id[key.name] = key.id;
+      if (mask != null) {
+        this.id2Mask[key.id] = mask;
+      }
+    } else {
+      throw new ValueError(`Duplicate key: name=${key.name}, id=${key.id}`);
+    }
+    return this;
+  }
+  addFeed(feed) {
+    this.add(feed.key, feed.value);
+  }
+  hasKey(key) {
+    return this.id2Value[key.id] != null;
+  }
+  names() {
+    return Object.keys(this.name2Id);
+  }
+  getValue(key) {
+    if (key instanceof SymbolicTensor) {
+      if (this.id2Value[key.id] == null) {
+        throw new ValueError(`Nonexistent key: ${key.name}`);
+      } else {
+        return this.id2Value[key.id];
+      }
+    } else {
+      const id = this.name2Id[key];
+      if (id == null) {
+        throw new ValueError(`Feed dict has no SymbolicTensor name: ${key}`);
+      }
+      return this.id2Value[id];
+    }
+  }
+  getMask(key) {
+    if (key instanceof SymbolicTensor) {
+      if (this.id2Value[key.id] == null) {
+        throw new ValueError(`Nonexistent key: ${key.name}`);
+      } else {
+        return this.id2Mask[key.id];
+      }
+    } else {
+      const id = this.name2Id[key];
+      if (id == null) {
+        throw new ValueError(`Feed dict has no SymbolicTensor name: ${key}`);
+      }
+      return this.id2Mask[id];
+    }
+  }
+  disposeMasks() {
+    if (this.id2Mask != null) {
+      dispose(this.id2Mask);
+    }
+  }
+};
+var cachedSorted = new LruCache();
+var cachedRecipientCounts = new LruCache();
+function updateCacheMaxEntries(maxEntries) {
+  if (cachedSorted != null) {
+    cachedSorted.setMaxEntries(maxEntries);
+  }
+  if (cachedRecipientCounts != null) {
+    cachedRecipientCounts.setMaxEntries(maxEntries);
+  }
+}
+function execute(fetches, feedDict, kwargs, probe) {
+  const training = kwargs == null ? false : kwargs["training"];
+  const arrayFetches = Array.isArray(fetches);
+  const fetchArray = arrayFetches ? fetches : [fetches];
+  const outputNames = fetchArray.map((t) => t.name);
+  const finalOutputs = [];
+  const feedNames = feedDict.names();
+  for (const outputName of outputNames) {
+    if (feedNames.indexOf(outputName) !== -1) {
+      finalOutputs.push(feedDict.getValue(outputName));
+    } else {
+      finalOutputs.push(null);
+    }
+  }
+  if (probe != null) {
+    probe.maxNumTensors = -Infinity;
+    probe.minNumTensors = Infinity;
+  }
+  const fetchAndFeedKey = outputNames.join(",") + "|" + feedDict.names().join(",");
+  let sorted = cachedSorted.get(fetchAndFeedKey);
+  let recipientCounts;
+  if (sorted == null) {
+    const out = getTopologicalSortAndRecipientCounts(fetchArray, feedDict);
+    sorted = out.sorted;
+    recipientCounts = out.recipientCounts;
+    cachedSorted.put(fetchAndFeedKey, sorted);
+    cachedRecipientCounts.put(fetchAndFeedKey, recipientCounts);
+  }
+  recipientCounts = {};
+  if (!training) {
+    Object.assign(recipientCounts, cachedRecipientCounts.get(fetchAndFeedKey));
+  }
+  const internalFeedDict = new FeedDict(feedDict);
+  for (let i = 0; i < sorted.length; ++i) {
+    if (probe != null) {
+      const numTensors = memory().numTensors;
+      if (numTensors > probe.maxNumTensors) {
+        probe.maxNumTensors = numTensors;
+      }
+      if (numTensors < probe.minNumTensors) {
+        probe.minNumTensors = numTensors;
+      }
+    }
+    const symbolic = sorted[i];
+    const srcLayer = symbolic.sourceLayer;
+    if (srcLayer instanceof InputLayer) {
+      continue;
+    }
+    const inputValues = [];
+    const inputMasks = [];
+    const tensorsToDispose = [];
+    let maskExists = false;
+    for (const input2 of symbolic.inputs) {
+      const value = internalFeedDict.getValue(input2);
+      const mask = internalFeedDict.getMask(input2);
+      inputValues.push(value);
+      inputMasks.push(mask);
+      if (mask != null) {
+        maskExists = true;
+      }
+      if (!training) {
+        recipientCounts[input2.name]--;
+        if (recipientCounts[input2.name] === 0 && !feedDict.hasKey(input2) && outputNames.indexOf(input2.name) === -1 && !value.isDisposed && input2.sourceLayer.stateful !== true) {
+          tensorsToDispose.push(value);
+        }
+      }
+    }
+    if (maskExists) {
+      kwargs = kwargs || {};
+      kwargs["mask"] = inputMasks[0];
+    }
+    const outputTensors = toList(srcLayer.apply(inputValues, kwargs));
+    let outputMask = null;
+    if (srcLayer.supportsMasking) {
+      outputMask = srcLayer.computeMask(inputValues, inputMasks);
+    }
+    const layerOutputs = getNodeOutputs(symbolic);
+    const outputSymbolicTensors = Array.isArray(layerOutputs) ? layerOutputs : [layerOutputs];
+    for (let i2 = 0; i2 < outputSymbolicTensors.length; ++i2) {
+      if (!internalFeedDict.hasKey(outputSymbolicTensors[i2])) {
+        internalFeedDict.add(outputSymbolicTensors[i2], outputTensors[i2], Array.isArray(outputMask) ? outputMask[0] : outputMask);
+      }
+      const index = outputNames.indexOf(outputSymbolicTensors[i2].name);
+      if (index !== -1) {
+        finalOutputs[index] = outputTensors[i2];
+      }
+    }
+    if (!training) {
+      dispose(tensorsToDispose);
+    }
+  }
+  internalFeedDict.disposeMasks();
+  return arrayFetches ? finalOutputs : finalOutputs[0];
+}
+function getTopologicalSortAndRecipientCounts(fetches, feedDict) {
+  util_exports.assert(fetches != null && fetches.length > 0, () => `Expected at least one fetch, got none`);
+  let finalSorted = [];
+  let finalRecipientMap = {};
+  if (fetches.length === 1) {
+    const out = getTopologicalSortAndRecipientCountsForOneFetch(fetches[0], feedDict);
+    finalSorted = out.sorted;
+    finalRecipientMap = out.recipientMap;
+  } else {
+    const visited = /* @__PURE__ */ new Set();
+    for (const fetch4 of fetches) {
+      const { sorted, recipientMap } = getTopologicalSortAndRecipientCountsForOneFetch(fetch4, feedDict);
+      for (const symbolicTensor of sorted) {
+        if (!visited.has(symbolicTensor.name)) {
+          finalSorted.push(symbolicTensor);
+          visited.add(symbolicTensor.name);
+        }
+      }
+      for (const name in recipientMap) {
+        if (finalRecipientMap[name] == null) {
+          finalRecipientMap[name] = /* @__PURE__ */ new Set();
+        }
+        recipientMap[name].forEach((recipient) => finalRecipientMap[name].add(recipient));
+      }
+    }
+  }
+  return {
+    sorted: finalSorted,
+    recipientCounts: recipientMap2Counts(finalRecipientMap)
+  };
+}
+function recipientMap2Counts(recipientMap) {
+  const recipientCounts = {};
+  for (const name in recipientMap) {
+    recipientCounts[name] = recipientMap[name].size;
+  }
+  return recipientCounts;
+}
+function getTopologicalSortAndRecipientCountsForOneFetch(fetch4, feedDict) {
+  const visited = /* @__PURE__ */ new Set();
+  const sorted = [];
+  const recipientMap = {};
+  for (const key of feedDict.names()) {
+    visited.add(key);
+  }
+  const stack2 = [];
+  const marks = [];
+  stack2.push(fetch4);
+  while (stack2.length > 0) {
+    const top = stack2[stack2.length - 1];
+    if (visited.has(top.name)) {
+      stack2.pop();
+      continue;
+    }
+    const topIsMarked = marks[marks.length - 1] === stack2.length - 1;
+    if (top.inputs.length === 0 || topIsMarked) {
+      stack2.pop();
+      sorted.push(top);
+      visited.add(top.name);
+      if (topIsMarked) {
+        marks.pop();
+      }
+    } else {
+      marks.push(stack2.length - 1);
+      for (const input2 of top.inputs) {
+        if (recipientMap[input2.name] == null) {
+          recipientMap[input2.name] = /* @__PURE__ */ new Set();
+        }
+        recipientMap[input2.name].add(top.name);
+        if (visited.has(input2.name)) {
+          continue;
+        }
+        stack2.push(input2);
+      }
+    }
+  }
+  return { sorted, recipientMap };
+}
+function getNodeOutputs(fetch4) {
+  let layerOutputs;
+  if (fetch4.sourceLayer.inboundNodes.length === 1) {
+    layerOutputs = fetch4.sourceLayer.output;
+  } else {
+    let nodeIndex = null;
+    for (let i = 0; i < fetch4.sourceLayer.inboundNodes.length; ++i) {
+      for (const outputTensor of fetch4.sourceLayer.inboundNodes[i].outputTensors) {
+        if (outputTensor.id === fetch4.id) {
+          nodeIndex = i;
+          break;
+        }
+      }
+    }
+    layerOutputs = fetch4.sourceLayer.getOutputAt(nodeIndex);
+  }
+  return layerOutputs;
+}
+
+// src/tfjs-layers/src/flags_layers.ts
+var ENV3 = env();
+ENV3.registerFlag("TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES", () => 100, updateCacheMaxEntries);
+
 // src/tfjs-core/src/gradients/Abs_grad.ts
 var absGradConfig = {
   kernelName: Abs,
@@ -17281,6 +19540,55 @@ var preluGradConfig = {
   }
 };
 
+// src/tfjs-core/src/gradients/Prod_grad.ts
+function prodGradFn_(x, dy, axis) {
+  const expandedYShape = x.shape.slice();
+  expandedYShape[axis] = 1;
+  const expandedDy = reshape(dy, expandedYShape);
+  const xCumProd = cumprod(x, axis, true, false);
+  const xCumRevProd = cumprod(x, axis, true, true);
+  const dx = mul(xCumProd, xCumRevProd);
+  return mul(expandedDy, dx);
+}
+function prodsGradFn_(x, dy, axis) {
+  const xRank = x.shape.length;
+  const finalProdAxis = xRank - axis.length;
+  const xPermutation = backend_util_exports.getAxesPermutation(axis, xRank);
+  let permutedX = x;
+  if (xPermutation != null) {
+    permutedX = transpose(x, xPermutation);
+  }
+  const newShape = permutedX.shape.slice();
+  const removedShape = newShape.splice(xRank - axis.length, axis.length);
+  const endPartShape = removedShape.reduce((p2, c) => p2 * c, 1);
+  newShape.push(endPartShape);
+  const reshapedPermutedX = permutedX.reshape(newShape);
+  let prodGrad = prodGradFn_(reshapedPermutedX, dy, finalProdAxis);
+  prodGrad = prodGrad.reshape(permutedX.shape);
+  if (xPermutation != null) {
+    const undoPermutation = backend_util_exports.getUndoAxesPermutation(xPermutation);
+    prodGrad = transpose(prodGrad, undoPermutation);
+  }
+  return prodGrad;
+}
+var prodGradConfig = {
+  kernelName: Prod,
+  inputsToSave: ["x"],
+  gradFunc: (dy, saved, attrs) => {
+    const [x] = saved;
+    const { axis } = attrs;
+    let axisArr = [];
+    if (axis === void 0 || axis === null) {
+      axisArr = x.shape.map((_, i) => i);
+    } else if (typeof axis === "number") {
+      axisArr = [axis];
+    } else {
+      axisArr = axis;
+    }
+    return { x: () => prodsGradFn_(x, dy, axisArr) };
+  }
+};
+
 // src/tfjs-core/src/gradients/RealDiv_grad.ts
 var divGradConfig = {
   kernelName: RealDiv,
@@ -17818,6 +20126,7 @@ var gradConfigs = [
   padV2GradConfig,
   powGradConfig,
   preluGradConfig,
+  prodGradConfig,
   reciprocalGradConfig,
   relu6GradConfig,
   reluGradConfig,
@@ -17866,290 +20175,6 @@ __export(exports_constraints_exports, {
   nonNeg: () => nonNeg,
   unitNorm: () => unitNorm
 });
-
-// src/tfjs-layers/src/backend/common.ts
-var _epsilon;
-function epsilon() {
-  if (_epsilon == null) {
-    _epsilon = backend().epsilon();
-  }
-  return _epsilon;
-}
-function imageDataFormat() {
-  return "channelsLast";
-}
-
-// src/tfjs-layers/src/errors.ts
-var AttributeError = class extends Error {
-  constructor(message) {
-    super(message);
-    Object.setPrototypeOf(this, AttributeError.prototype);
-  }
-};
-var RuntimeError = class extends Error {
-  constructor(message) {
-    super(message);
-    Object.setPrototypeOf(this, RuntimeError.prototype);
-  }
-};
-var ValueError = class extends Error {
-  constructor(message) {
-    super(message);
-    Object.setPrototypeOf(this, ValueError.prototype);
-  }
-};
-var NotImplementedError = class extends Error {
-  constructor(message) {
-    super(message);
-    Object.setPrototypeOf(this, NotImplementedError.prototype);
-  }
-};
-var AssertionError = class extends Error {
-  constructor(message) {
-    super(message);
-    Object.setPrototypeOf(this, AssertionError.prototype);
-  }
-};
-
-// src/tfjs-layers/src/utils/generic_utils.ts
-function pyListRepeat(value, numValues) {
-  if (Array.isArray(value)) {
-    let newArray = [];
-    for (let i = 0; i < numValues; i++) {
-      newArray = newArray.concat(value);
-    }
-    return newArray;
-  } else {
-    const newArray = new Array(numValues);
-    newArray.fill(value);
-    return newArray;
-  }
-}
-function assert2(val, message) {
-  if (!val) {
-    throw new AssertionError(message);
-  }
-}
-function count(array2, refernce) {
-  let counter = 0;
-  for (const item of array2) {
-    if (item === refernce) {
-      counter++;
-    }
-  }
-  return counter;
-}
-function singletonOrArray(xs) {
-  if (xs.length === 1) {
-    return xs[0];
-  }
-  return xs;
-}
-function toList(x) {
-  if (Array.isArray(x)) {
-    return x;
-  }
-  return [x];
-}
-function toSnakeCase(name) {
-  const intermediate = name.replace(/(.)([A-Z][a-z0-9]+)/g, "$1_$2");
-  const insecure = intermediate.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
-  if (insecure[0] !== "_") {
-    return insecure;
-  }
-  return "private" + insecure;
-}
-function toCamelCase(identifier) {
-  if (identifier.length <= 1) {
-    return identifier;
-  }
-  if (identifier.indexOf("_") === -1) {
-    return identifier;
-  }
-  return identifier.replace(/[_]+(\w|$)/g, (m, p1) => p1.toUpperCase());
-}
-var _GLOBAL_CUSTOM_OBJECTS = {};
-function serializeKerasObject(instance) {
-  if (instance === null || instance === void 0) {
-    return null;
-  }
-  const dict = {};
-  dict["className"] = instance.getClassName();
-  dict["config"] = instance.getConfig();
-  return dict;
-}
-function convertNDArrayScalarsInConfig(config) {
-  if (config == null || typeof config !== "object") {
-    return;
-  } else if (Array.isArray(config)) {
-    config.forEach((configItem) => convertNDArrayScalarsInConfig(configItem));
-  } else {
-    const fields = Object.keys(config);
-    for (const field of fields) {
-      const value = config[field];
-      if (value != null && typeof value === "object") {
-        if (!Array.isArray(value) && value["type"] === "ndarray" && typeof value["value"] === "number") {
-          config[field] = value["value"];
-        } else {
-          convertNDArrayScalarsInConfig(value);
-        }
-      }
-    }
-  }
-}
-function deserializeKerasObject(identifier, moduleObjects = {}, customObjects = {}, printableModuleName = "object", fastWeightInit = false) {
-  if (typeof identifier === "string") {
-    const functionName = identifier;
-    let fn;
-    if (functionName in customObjects) {
-      fn = customObjects[functionName];
-    } else if (functionName in _GLOBAL_CUSTOM_OBJECTS) {
-      fn = _GLOBAL_CUSTOM_OBJECTS[functionName];
-    } else {
-      fn = moduleObjects[functionName];
-      if (fn == null) {
-        throw new ValueError(`Unknown ${printableModuleName}: ${identifier}. This may be due to one of the following reasons:
-1. The ${printableModuleName} is defined in Python, in which case it needs to be ported to TensorFlow.js or your JavaScript code.
-2. The custom ${printableModuleName} is defined in JavaScript, but is not registered properly with tf.serialization.registerClass().`);
-      }
-    }
-    return fn;
-  } else {
-    const config = identifier;
-    if (config["className"] == null || config["config"] == null) {
-      throw new ValueError(`${printableModuleName}: Improper config format: ${JSON.stringify(config)}.
-'className' and 'config' must set.`);
-    }
-    const className = config["className"];
-    let cls, fromConfig;
-    if (className in customObjects) {
-      [cls, fromConfig] = customObjects[className];
-    } else if (className in _GLOBAL_CUSTOM_OBJECTS) {
-      [cls, fromConfig] = _GLOBAL_CUSTOM_OBJECTS["className"];
-    } else if (className in moduleObjects) {
-      [cls, fromConfig] = moduleObjects[className];
-    }
-    if (cls == null) {
-      throw new ValueError(`Unknown ${printableModuleName}: ${className}. This may be due to one of the following reasons:
-1. The ${printableModuleName} is defined in Python, in which case it needs to be ported to TensorFlow.js or your JavaScript code.
-2. The custom ${printableModuleName} is defined in JavaScript, but is not registered properly with tf.serialization.registerClass().`);
-    }
-    if (fromConfig != null) {
-      const customObjectsCombined = {};
-      for (const key of Object.keys(_GLOBAL_CUSTOM_OBJECTS)) {
-        customObjectsCombined[key] = _GLOBAL_CUSTOM_OBJECTS[key];
-      }
-      for (const key of Object.keys(customObjects)) {
-        customObjectsCombined[key] = customObjects[key];
-      }
-      const nestedConfig = config["config"];
-      nestedConfig["customObjects"] = customObjectsCombined;
-      const backupCustomObjects = { ..._GLOBAL_CUSTOM_OBJECTS };
-      for (const key of Object.keys(customObjects)) {
-        _GLOBAL_CUSTOM_OBJECTS[key] = customObjects[key];
-      }
-      convertNDArrayScalarsInConfig(config["config"]);
-      const returnObj = fromConfig(cls, config["config"], customObjects, fastWeightInit);
-      _GLOBAL_CUSTOM_OBJECTS = { ...backupCustomObjects };
-      return returnObj;
-    } else {
-      const backupCustomObjects = { ..._GLOBAL_CUSTOM_OBJECTS };
-      for (const key of Object.keys(customObjects)) {
-        _GLOBAL_CUSTOM_OBJECTS[key] = customObjects[key];
-      }
-      const returnObj = new cls(config["config"]);
-      _GLOBAL_CUSTOM_OBJECTS = { ...backupCustomObjects };
-      return returnObj;
-    }
-  }
-}
-function numberCompare(a, b) {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-function reverseNumberCompare(a, b) {
-  return -1 * numberCompare(a, b);
-}
-function unique2(xs) {
-  if (xs == null) {
-    return xs;
-  }
-  const out = [];
-  for (const x of xs) {
-    if (out.indexOf(x) === -1) {
-      out.push(x);
-    }
-  }
-  return out;
-}
-function isObjectEmpty(obj) {
-  if (obj == null) {
-    throw new ValueError(`Invalid value in obj: ${JSON.stringify(obj)}`);
-  }
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      return false;
-    }
-  }
-  return true;
-}
-function checkStringTypeUnionValue(values, label, value) {
-  if (value == null) {
-    return;
-  }
-  if (values.indexOf(value) < 0) {
-    throw new ValueError(`${value} is not a valid ${label}.  Valid values are ${values} or null/undefined.`);
-  }
-}
-function checkArrayTypeAndLength(x, expectedType, minLength = 0, maxLength = Infinity) {
-  assert2(minLength >= 0);
-  assert2(maxLength >= minLength);
-  return Array.isArray(x) && x.length >= minLength && x.length <= maxLength && x.every((e) => typeof e === expectedType);
-}
-function assertPositiveInteger(value, name) {
-  if (Array.isArray(value)) {
-    util_exports.assert(value.length > 0, () => `${name} is unexpectedly an empty array.`);
-    value.forEach((v, i) => assertPositiveInteger(v, `element ${i + 1} of ${name}`));
-  } else {
-    util_exports.assert(Number.isInteger(value) && value > 0, () => `Expected ${name} to be a positive integer, but got ${formatAsFriendlyString(value)}.`);
-  }
-}
-function formatAsFriendlyString(value) {
-  if (value === null) {
-    return "null";
-  } else if (Array.isArray(value)) {
-    return "[" + value.map((v) => formatAsFriendlyString(v)).join(",") + "]";
-  } else if (typeof value === "string") {
-    return `"${value}"`;
-  } else {
-    return `${value}`;
-  }
-}
-function debounce(f, waitMs, nowFunc) {
-  let lastTime = nowFunc != null ? nowFunc() : util_exports.now();
-  let lastResult;
-  const f2 = (...args) => {
-    const now2 = nowFunc != null ? nowFunc() : util_exports.now();
-    if (now2 - lastTime < waitMs) {
-      return lastResult;
-    }
-    lastTime = now2;
-    lastResult = f(...args);
-    return lastResult;
-  };
-  return f2;
-}
-function mapActivationToFusedKernel(activationName) {
-  if (activationName === "relu") {
-    return "relu";
-  }
-  if (activationName === "linear") {
-    return "linear";
-  }
-  if (activationName === "elu") {
-    return "elu";
-  }
-  return null;
-}
 
 // src/tfjs-layers/src/constraints.ts
 function calcL2Norms(w, axis) {
@@ -18293,830 +20318,6 @@ __export(exports_initializers_exports, {
   varianceScaling: () => varianceScaling,
   zeros: () => zeros2
 });
-
-// src/tfjs-layers/src/keras_format/common.ts
-var VALID_DATA_FORMAT_VALUES = ["channelsFirst", "channelsLast"];
-var VALID_INTERPOLATION_FORMAT_VALUES = ["nearest", "bilinear"];
-var VALID_PADDING_MODE_VALUES = ["valid", "same", "causal"];
-var VALID_POOL_MODE_VALUES = ["max", "avg"];
-var VALID_BIDIRECTIONAL_MERGE_MODES = ["sum", "mul", "concat", "ave"];
-
-// src/tfjs-layers/src/common.ts
-var nameMap = /* @__PURE__ */ new Map();
-function checkDataFormat(value) {
-  checkStringTypeUnionValue(VALID_DATA_FORMAT_VALUES, "DataFormat", value);
-}
-function checkInterpolationFormat(value) {
-  checkStringTypeUnionValue(VALID_INTERPOLATION_FORMAT_VALUES, "InterpolationFormat", value);
-}
-function checkPaddingMode(value) {
-  checkStringTypeUnionValue(VALID_PADDING_MODE_VALUES, "PaddingMode", value);
-}
-function checkPoolMode(value) {
-  checkStringTypeUnionValue(VALID_POOL_MODE_VALUES, "PoolMode", value);
-}
-var _nameScopeStack = [];
-var _nameScopeDivider = "/";
-function nameScope(name, fn) {
-  _nameScopeStack.push(name);
-  try {
-    const val = fn();
-    _nameScopeStack.pop();
-    return val;
-  } catch (e) {
-    _nameScopeStack.pop();
-    throw e;
-  }
-}
-function currentNameScopePrefix() {
-  if (_nameScopeStack.length === 0) {
-    return "";
-  } else {
-    return _nameScopeStack.join(_nameScopeDivider) + _nameScopeDivider;
-  }
-}
-function getScopedTensorName(tensorName) {
-  if (!isValidTensorName(tensorName)) {
-    throw new Error("Not a valid tensor name: '" + tensorName + "'");
-  }
-  return currentNameScopePrefix() + tensorName;
-}
-function getUniqueTensorName(scopedName) {
-  if (!isValidTensorName(scopedName)) {
-    throw new Error("Not a valid tensor name: '" + scopedName + "'");
-  }
-  if (!nameMap.has(scopedName)) {
-    nameMap.set(scopedName, 0);
-  }
-  const index = nameMap.get(scopedName);
-  nameMap.set(scopedName, nameMap.get(scopedName) + 1);
-  if (index > 0) {
-    const result = `${scopedName}_${index}`;
-    nameMap.set(result, 1);
-    return result;
-  } else {
-    return scopedName;
-  }
-}
-var tensorNameRegex = new RegExp(/^[A-Za-z0-9][-A-Za-z0-9\._\/]*$/);
-function isValidTensorName(name) {
-  return !!name.match(tensorNameRegex);
-}
-
-// src/tfjs-layers/src/utils/math_utils.ts
-function isInteger(x) {
-  return x === parseInt(x.toString(), 10);
-}
-function arrayProd(array2, begin, end) {
-  if (begin == null) {
-    begin = 0;
-  }
-  if (end == null) {
-    end = array2.length;
-  }
-  let prod6 = 1;
-  for (let i = begin; i < end; ++i) {
-    prod6 *= array2[i];
-  }
-  return prod6;
-}
-function min2(array2) {
-  if (array2.length === 0) {
-    return Number.NaN;
-  }
-  let min7 = Number.POSITIVE_INFINITY;
-  for (let i = 0; i < array2.length; i++) {
-    const value = array2[i];
-    if (value < min7) {
-      min7 = value;
-    }
-  }
-  return min7;
-}
-function max2(array2) {
-  if (array2.length === 0) {
-    return Number.NaN;
-  }
-  let max7 = Number.NEGATIVE_INFINITY;
-  for (let i = 0; i < array2.length; i++) {
-    const value = array2[i];
-    if (value > max7) {
-      max7 = value;
-    }
-  }
-  return max7;
-}
-function range2(begin, end) {
-  if (end < begin) {
-    throw new ValueError(`end (${end}) < begin (${begin}) is forbidden.`);
-  }
-  const out = [];
-  for (let i = begin; i < end; ++i) {
-    out.push(i);
-  }
-  return out;
-}
-
-// src/tfjs-layers/src/backend/tfjs_backend.ts
-function cast2(x, dtype) {
-  return cast(x, dtype);
-}
-function expandDims2(x, axis = -1) {
-  const outShape = x.shape.slice();
-  if (axis < 0) {
-    axis = outShape.length + axis + 1;
-  }
-  outShape.splice(axis, 0, 1);
-  return reshape(x, outShape);
-}
-function repeat(x, n) {
-  return tidy(() => {
-    if (x.shape.length !== 2) {
-      throw new ValueError(`repeat() expects a rank-2 tensor, but received a rank-${x.shape.length} tensor.`);
-    }
-    const y = expandDims2(x, 1);
-    return tile2(y, [1, n, 1]);
-  });
-}
-function flatten2(x) {
-  const newShape = [arrayProd(x.shape)];
-  return reshape(x, newShape);
-}
-function batchFlatten(x) {
-  if (x.rank <= 1) {
-    throw new ValueError(`batchFlatten requires a minimum rank of 2. Got rank: ${x.rank}.`);
-  }
-  const newShape = [x.shape[0], arrayProd(x.shape, 1)];
-  return reshape(x, newShape);
-}
-function sliceAlongFirstAxis(array2, start, size) {
-  return tidy(() => {
-    switch (array2.rank) {
-      case 1:
-        return slice1d(array2, start, size);
-      case 2:
-        return slice2d(array2, [start, 0], [size, array2.shape[1]]);
-      case 3:
-        return slice3d(array2, [start, 0, 0], [size, array2.shape[1], array2.shape[2]]);
-      case 4:
-        return slice4d(array2, [start, 0, 0, 0], [size, array2.shape[1], array2.shape[2], array2.shape[3]]);
-      case 5:
-        return slice(array2, [start, 0, 0, 0, 0], [
-          size,
-          array2.shape[1],
-          array2.shape[2],
-          array2.shape[3],
-          array2.shape[4]
-        ]);
-      case 6:
-        return slice(array2, [start, 0, 0, 0, 0, 0], [
-          size,
-          array2.shape[1],
-          array2.shape[2],
-          array2.shape[3],
-          array2.shape[4],
-          array2.shape[5]
-        ]);
-      default:
-        throw new ValueError(`sliceAlongFirstAxis() received an unsupported tensor rank: ${array2.rank}`);
-    }
-  });
-}
-function sliceAlongLastAxis(array2, start, size) {
-  return tidy(() => {
-    switch (array2.rank) {
-      case 1:
-        return slice1d(array2, start, size);
-      case 2:
-        return slice2d(array2, [0, start], [array2.shape[0], size]);
-      case 3:
-        return slice3d(array2, [0, 0, start], [array2.shape[0], array2.shape[1], size]);
-      case 4:
-        return slice4d(array2, [0, 0, 0, start], [array2.shape[0], array2.shape[1], array2.shape[2], size]);
-      default:
-        throw new ValueError(`sliceAlongLastAxis() received an unsupported tensor rank: ${array2.rank}`);
-    }
-  });
-}
-function sliceAlongAxis(array2, start, size, axis) {
-  return tidy(() => {
-    switch (array2.rank) {
-      case 1:
-        return slice1d(array2, start, size);
-      case 2:
-        switch (axis) {
-          case 1:
-            return sliceAlongFirstAxis(array2, start, size);
-          case 2:
-            return sliceAlongLastAxis(array2, start, size);
-          default:
-            throw new ValueError(`The axis is not within the rank of the tensor ${axis}`);
-        }
-      case 3:
-        switch (axis) {
-          case 1:
-            return sliceAlongFirstAxis(array2, start, size);
-          case 2:
-            return slice3d(array2, [0, start, 0], [array2.shape[0], size, array2.shape[2]]);
-          case 3:
-            return sliceAlongLastAxis(array2, start, size);
-          default:
-            throw new ValueError(`The axis is not within the rank of the tensor ${axis}`);
-        }
-      case 4:
-        switch (axis) {
-          case 1:
-            return sliceAlongFirstAxis(array2, start, size);
-          case 2:
-            return slice4d(array2, [0, start, 0, 0], [array2.shape[0], size, array2.shape[2], array2.shape[3]]);
-          case 3:
-            return slice4d(array2, [0, 0, start, 0], [array2.shape[0], array2.shape[1], size, array2.shape[3]]);
-          case 4:
-            return sliceAlongLastAxis(array2, start, size);
-          default:
-            throw new ValueError(`The axis is not within the rank of the tensor ${axis}`);
-        }
-      default:
-        throw new ValueError(`sliceAlongLastAxis() received an unsupported tensor rank: ${array2.rank}`);
-    }
-  });
-}
-function concatenate(tensors, axis = -1) {
-  let rank;
-  if (axis < 0) {
-    rank = tensors[0].rank;
-    if (rank !== 0) {
-      axis = rank;
-    } else {
-      axis = 0;
-    }
-  }
-  if (axis === tensors[0].rank) {
-    axis = -1;
-  }
-  return concat(tensors, axis);
-}
-function concatAlongFirstAxis(a, b) {
-  switch (a.rank) {
-    case 1:
-      return concat1d([a, b]);
-    case 2:
-      return concat2d([a, b], 0);
-    case 3:
-      return concat3d([a, b], 0);
-    case 4:
-      return concat4d([a, b], 0);
-    default:
-      throw new ValueError(`concatAlongFirstAxis() received an unsupported tensor rank: ${a.rank}`);
-  }
-}
-function tile2(x, n) {
-  if (!Array.isArray(n)) {
-    n = [n];
-  }
-  if (x.rank !== n.length) {
-    throw new ValueError(`The length of input n (${n.length}) does not match the number of dimensions in input x (${x.rank})`);
-  }
-  return tile(x, n);
-}
-function randomNormal2(shape, mean5 = 0, stddev = 1, dtype, seed) {
-  return randomNormal(shape, mean5, stddev, dtype, seed);
-}
-function dot2(a, b, activation2, bias) {
-  if (a.rank < 2 || b.rank < 2) {
-    throw new NotImplementedError(`dot requires both inputs to be rank >= 2 but got x shape = ${a.shape} and y shape = ${b.shape}`);
-  }
-  if (b.rank >= 3) {
-    const xLastDim = a.shape.slice(-1)[0];
-    const ySecondLastDim = b.shape.slice(-2)[0];
-    if (xLastDim !== ySecondLastDim) {
-      throw new NotImplementedError(`If rank y >= 3, then the second last dim of y must equal the last dim of x but got x shape = ${a.shape} and  y shape = ${b.shape}`);
-    }
-  }
-  if (a.rank === 2 && b.rank === 2) {
-    const transposeA = false;
-    const transposeB = false;
-    return fused_ops_exports.matMul({
-      a,
-      b,
-      transposeA,
-      transposeB,
-      bias: bias ? reshapeBias(a.rank, bias, imageDataFormat()) : null,
-      activation: activation2
-    });
-  } else {
-    const aFirstDims = a.shape.slice();
-    const aLastDim = aFirstDims.pop();
-    a = reshape(a, [-1, aLastDim]);
-    const bShape = b.shape.slice();
-    const bLastDim = bShape.pop();
-    const ySecondLastDim = bShape.pop();
-    const yOtherDims = [...bShape, bLastDim];
-    const perm = Array.from({ length: b.rank }, (_, i) => {
-      if (i === 0) {
-        return b.rank - 2;
-      } else if (i <= b.rank - 2) {
-        return i - 1;
-      }
-      return i;
-    });
-    b = reshape(transpose(b, perm), [ySecondLastDim, -1]);
-    const outputShape = [...aFirstDims, ...yOtherDims];
-    const transposeA = false;
-    const transposeB = false;
-    return reshape(fused_ops_exports.matMul({
-      a,
-      b,
-      transposeA,
-      transposeB,
-      bias: bias ? reshapeBias(a.rank, bias, imageDataFormat()) : null,
-      activation: activation2
-    }), outputShape);
-  }
-}
-function gather2(reference, indices, axis) {
-  return tidy(() => {
-    if (Array.isArray(indices)) {
-      indices = tensor1d(indices, "int32");
-    } else {
-      indices = cast(indices, "int32");
-    }
-    return gather(reference, indices, axis);
-  });
-}
-function square2(x) {
-  return mul(x, x);
-}
-function reshapeBias(xRank, bias, dataFormat) {
-  const biasShape = bias.shape;
-  if (bias.rank !== 1 && bias.rank !== xRank) {
-    throw new ValueError(`Unexpected bias dimensions: ${bias.rank}; expected it to be 1 or ${xRank}`);
-  }
-  if (xRank === 5) {
-    if (dataFormat === "channelsFirst") {
-      if (biasShape.length === 1) {
-        return reshape(bias, [1, biasShape[0], 1, 1, 1]);
-      } else {
-        return reshape(bias, [1, biasShape[3], biasShape[0], biasShape[1], biasShape[2]]);
-      }
-    } else if (dataFormat === "channelsLast") {
-      if (biasShape.length === 1) {
-        return reshape(bias, [1, 1, 1, 1, biasShape[0]]);
-      } else {
-        return reshape(bias, [1].concat(biasShape));
-      }
-    }
-  } else if (xRank === 4) {
-    if (dataFormat === "channelsFirst") {
-      if (biasShape.length === 1) {
-        return reshape(bias, [1, biasShape[0], 1, 1]);
-      } else {
-        return reshape(bias, [1, biasShape[2], biasShape[0], biasShape[1]]);
-      }
-    } else if (dataFormat === "channelsLast") {
-      if (biasShape.length === 1) {
-        return reshape(bias, [1, 1, 1, biasShape[0]]);
-      } else {
-        return reshape(bias, [1].concat(biasShape));
-      }
-    }
-  } else if (xRank === 3) {
-    if (dataFormat === "channelsFirst") {
-      if (biasShape.length === 1) {
-        return reshape(bias, [1, biasShape[0], 1]);
-      } else {
-        return reshape(bias, [1, biasShape[1], biasShape[0]]);
-      }
-    } else if (dataFormat === "channelsLast") {
-      if (biasShape.length === 1) {
-        return reshape(bias, [1, 1, biasShape[0]]);
-      } else {
-        return reshape(bias, [1].concat(biasShape));
-      }
-    }
-  } else if (xRank < 3) {
-    return bias;
-  }
-  throw new ValueError(`Unsupported input rank by biasAdd: ${bias.rank}`);
-}
-function biasAdd(x, bias, dataFormat) {
-  return tidy(() => {
-    if (dataFormat == null) {
-      dataFormat = imageDataFormat();
-    }
-    checkDataFormat(dataFormat);
-    return add2(x, reshapeBias(x.rank, bias, dataFormat));
-  });
-}
-function elu2(x, alpha = 1) {
-  if (alpha !== 1) {
-    throw new NotImplementedError(`Support for alpha values other than 1 (${alpha}) is not implemented yet.`);
-  }
-  return elu(x);
-}
-function softsign(x) {
-  return tidy(() => div(x, add2(abs(x), 1)));
-}
-function dropout2(x, level, noiseShape, seed) {
-  return tidy(() => dropout(x, level, noiseShape, seed));
-}
-function hardSigmoid(x) {
-  return tidy(() => {
-    const y = add2(0.5, mul(0.2, x));
-    return clipByValue(y, 0, 1);
-  });
-}
-function inTrainPhase(x, alt, training = false) {
-  return training ? x() : alt();
-}
-
-// src/tfjs-layers/src/keras_format/initializer_config.ts
-var VALID_FAN_MODE_VALUES = ["fanIn", "fanOut", "fanAvg"];
-var VALID_DISTRIBUTION_VALUES = ["normal", "uniform", "truncatedNormal"];
-
-// src/tfjs-layers/src/initializers.ts
-function checkFanMode(value) {
-  checkStringTypeUnionValue(VALID_FAN_MODE_VALUES, "FanMode", value);
-}
-function checkDistribution(value) {
-  checkStringTypeUnionValue(VALID_DISTRIBUTION_VALUES, "Distribution", value);
-}
-var Initializer = class extends serialization_exports.Serializable {
-  fromConfigUsesCustomObjects() {
-    return false;
-  }
-  getConfig() {
-    return {};
-  }
-};
-var Zeros = class extends Initializer {
-  apply(shape, dtype) {
-    return zeros(shape, dtype);
-  }
-};
-Zeros.className = "Zeros";
-serialization_exports.registerClass(Zeros);
-var Ones = class extends Initializer {
-  apply(shape, dtype) {
-    return ones2(shape, dtype);
-  }
-};
-Ones.className = "Ones";
-serialization_exports.registerClass(Ones);
-var Constant = class extends Initializer {
-  constructor(args) {
-    super();
-    if (typeof args !== "object") {
-      throw new ValueError(`Expected argument of type ConstantConfig but got ${args}`);
-    }
-    if (args.value === void 0) {
-      throw new ValueError(`config must have value set but got ${args}`);
-    }
-    this.value = args.value;
-  }
-  apply(shape, dtype) {
-    return tidy(() => mul(scalar(this.value), ones2(shape, dtype)));
-  }
-  getConfig() {
-    return {
-      value: this.value
-    };
-  }
-};
-Constant.className = "Constant";
-serialization_exports.registerClass(Constant);
-var RandomUniform = class extends Initializer {
-  constructor(args) {
-    super();
-    this.DEFAULT_MINVAL = -0.05;
-    this.DEFAULT_MAXVAL = 0.05;
-    this.minval = args.minval || this.DEFAULT_MINVAL;
-    this.maxval = args.maxval || this.DEFAULT_MAXVAL;
-    this.seed = args.seed;
-  }
-  apply(shape, dtype) {
-    return randomUniform(shape, this.minval, this.maxval, dtype);
-  }
-  getConfig() {
-    return { minval: this.minval, maxval: this.maxval, seed: this.seed };
-  }
-};
-RandomUniform.className = "RandomUniform";
-serialization_exports.registerClass(RandomUniform);
-var RandomNormal = class extends Initializer {
-  constructor(args) {
-    super();
-    this.DEFAULT_MEAN = 0;
-    this.DEFAULT_STDDEV = 0.05;
-    this.mean = args.mean || this.DEFAULT_MEAN;
-    this.stddev = args.stddev || this.DEFAULT_STDDEV;
-    this.seed = args.seed;
-  }
-  apply(shape, dtype) {
-    dtype = dtype || "float32";
-    if (dtype !== "float32" && dtype !== "int32") {
-      throw new NotImplementedError(`randomNormal does not support dType ${dtype}.`);
-    }
-    return randomNormal2(shape, this.mean, this.stddev, dtype, this.seed);
-  }
-  getConfig() {
-    return { mean: this.mean, stddev: this.stddev, seed: this.seed };
-  }
-};
-RandomNormal.className = "RandomNormal";
-serialization_exports.registerClass(RandomNormal);
-var TruncatedNormal = class extends Initializer {
-  constructor(args) {
-    super();
-    this.DEFAULT_MEAN = 0;
-    this.DEFAULT_STDDEV = 0.05;
-    this.mean = args.mean || this.DEFAULT_MEAN;
-    this.stddev = args.stddev || this.DEFAULT_STDDEV;
-    this.seed = args.seed;
-  }
-  apply(shape, dtype) {
-    dtype = dtype || "float32";
-    if (dtype !== "float32" && dtype !== "int32") {
-      throw new NotImplementedError(`truncatedNormal does not support dType ${dtype}.`);
-    }
-    return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
-  }
-  getConfig() {
-    return { mean: this.mean, stddev: this.stddev, seed: this.seed };
-  }
-};
-TruncatedNormal.className = "TruncatedNormal";
-serialization_exports.registerClass(TruncatedNormal);
-var Identity2 = class extends Initializer {
-  constructor(args) {
-    super();
-    this.gain = args.gain != null ? args.gain : 1;
-  }
-  apply(shape, dtype) {
-    return tidy(() => {
-      if (shape.length !== 2 || shape[0] !== shape[1]) {
-        throw new ValueError("Identity matrix initializer can only be used for 2D square matrices.");
-      } else {
-        return mul(this.gain, eye(shape[0]));
-      }
-    });
-  }
-  getConfig() {
-    return { gain: this.gain };
-  }
-};
-Identity2.className = "Identity";
-serialization_exports.registerClass(Identity2);
-function computeFans(shape, dataFormat = "channelsLast") {
-  let fanIn;
-  let fanOut;
-  checkDataFormat(dataFormat);
-  if (shape.length === 2) {
-    fanIn = shape[0];
-    fanOut = shape[1];
-  } else if ([3, 4, 5].indexOf(shape.length) !== -1) {
-    if (dataFormat === "channelsFirst") {
-      const receptiveFieldSize = arrayProd(shape, 2);
-      fanIn = shape[1] * receptiveFieldSize;
-      fanOut = shape[0] * receptiveFieldSize;
-    } else if (dataFormat === "channelsLast") {
-      const receptiveFieldSize = arrayProd(shape, 0, shape.length - 2);
-      fanIn = shape[shape.length - 2] * receptiveFieldSize;
-      fanOut = shape[shape.length - 1] * receptiveFieldSize;
-    }
-  } else {
-    const shapeProd = arrayProd(shape);
-    fanIn = Math.sqrt(shapeProd);
-    fanOut = Math.sqrt(shapeProd);
-  }
-  return [fanIn, fanOut];
-}
-var VarianceScaling = class extends Initializer {
-  constructor(args) {
-    super();
-    if (args.scale < 0) {
-      throw new ValueError(`scale must be a positive float. Got: ${args.scale}`);
-    }
-    this.scale = args.scale == null ? 1 : args.scale;
-    this.mode = args.mode == null ? "fanIn" : args.mode;
-    checkFanMode(this.mode);
-    this.distribution = args.distribution == null ? "normal" : args.distribution;
-    checkDistribution(this.distribution);
-    this.seed = args.seed;
-  }
-  apply(shape, dtype) {
-    const fans = computeFans(shape);
-    const fanIn = fans[0];
-    const fanOut = fans[1];
-    let scale2 = this.scale;
-    if (this.mode === "fanIn") {
-      scale2 /= Math.max(1, fanIn);
-    } else if (this.mode === "fanOut") {
-      scale2 /= Math.max(1, fanOut);
-    } else {
-      scale2 /= Math.max(1, (fanIn + fanOut) / 2);
-    }
-    if (this.distribution === "normal") {
-      const stddev = Math.sqrt(scale2);
-      dtype = dtype || "float32";
-      if (dtype !== "float32" && dtype !== "int32") {
-        throw new NotImplementedError(`${this.getClassName()} does not support dType ${dtype}.`);
-      }
-      return truncatedNormal(shape, 0, stddev, dtype, this.seed);
-    } else {
-      const limit = Math.sqrt(3 * scale2);
-      return randomUniform(shape, -limit, limit, dtype);
-    }
-  }
-  getConfig() {
-    return {
-      scale: this.scale,
-      mode: this.mode,
-      distribution: this.distribution,
-      seed: this.seed
-    };
-  }
-};
-VarianceScaling.className = "VarianceScaling";
-serialization_exports.registerClass(VarianceScaling);
-var GlorotUniform = class extends VarianceScaling {
-  constructor(args) {
-    super({
-      scale: 1,
-      mode: "fanAvg",
-      distribution: "uniform",
-      seed: args == null ? null : args.seed
-    });
-  }
-  getClassName() {
-    return VarianceScaling.className;
-  }
-};
-GlorotUniform.className = "GlorotUniform";
-serialization_exports.registerClass(GlorotUniform);
-var GlorotNormal = class extends VarianceScaling {
-  constructor(args) {
-    super({
-      scale: 1,
-      mode: "fanAvg",
-      distribution: "normal",
-      seed: args == null ? null : args.seed
-    });
-  }
-  getClassName() {
-    return VarianceScaling.className;
-  }
-};
-GlorotNormal.className = "GlorotNormal";
-serialization_exports.registerClass(GlorotNormal);
-var HeNormal = class extends VarianceScaling {
-  constructor(args) {
-    super({
-      scale: 2,
-      mode: "fanIn",
-      distribution: "normal",
-      seed: args == null ? null : args.seed
-    });
-  }
-  getClassName() {
-    return VarianceScaling.className;
-  }
-};
-HeNormal.className = "HeNormal";
-serialization_exports.registerClass(HeNormal);
-var HeUniform = class extends VarianceScaling {
-  constructor(args) {
-    super({
-      scale: 2,
-      mode: "fanIn",
-      distribution: "uniform",
-      seed: args == null ? null : args.seed
-    });
-  }
-  getClassName() {
-    return VarianceScaling.className;
-  }
-};
-HeUniform.className = "HeUniform";
-serialization_exports.registerClass(HeUniform);
-var LeCunNormal = class extends VarianceScaling {
-  constructor(args) {
-    super({
-      scale: 1,
-      mode: "fanIn",
-      distribution: "normal",
-      seed: args == null ? null : args.seed
-    });
-  }
-  getClassName() {
-    return VarianceScaling.className;
-  }
-};
-LeCunNormal.className = "LeCunNormal";
-serialization_exports.registerClass(LeCunNormal);
-var LeCunUniform = class extends VarianceScaling {
-  constructor(args) {
-    super({
-      scale: 1,
-      mode: "fanIn",
-      distribution: "uniform",
-      seed: args == null ? null : args.seed
-    });
-  }
-  getClassName() {
-    return VarianceScaling.className;
-  }
-};
-LeCunUniform.className = "LeCunNormal";
-serialization_exports.registerClass(LeCunUniform);
-var Orthogonal = class extends Initializer {
-  constructor(args) {
-    super();
-    this.DEFAULT_GAIN = 1;
-    this.gain = args.gain == null ? this.DEFAULT_GAIN : args.gain;
-    this.seed = args.seed;
-    if (this.seed != null) {
-      throw new NotImplementedError("Random seed is not implemented for Orthogonal Initializer yet.");
-    }
-  }
-  apply(shape, dtype) {
-    return tidy(() => {
-      if (shape.length < 2) {
-        throw new NotImplementedError("Shape must be at least 2D.");
-      }
-      if (shape[0] * shape[1] > 2e3) {
-        console.warn(`Orthogonal initializer is being called on a matrix with more than 2000 (${shape[0] * shape[1]}) elements: Slowness may result.`);
-      }
-      const normalizedShape = shape[0] > shape[1] ? [shape[1], shape[0]] : shape;
-      const a = randomNormal2(normalizedShape, 0, 1, "float32");
-      let q = linalg.gramSchmidt(a);
-      if (shape[0] > shape[1]) {
-        q = transpose(q);
-      }
-      return mul(this.gain, q);
-    });
-  }
-  getConfig() {
-    return {
-      gain: this.gain,
-      seed: this.seed
-    };
-  }
-};
-Orthogonal.className = "Orthogonal";
-serialization_exports.registerClass(Orthogonal);
-var INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP = {
-  "constant": "Constant",
-  "glorotNormal": "GlorotNormal",
-  "glorotUniform": "GlorotUniform",
-  "heNormal": "HeNormal",
-  "heUniform": "HeUniform",
-  "identity": "Identity",
-  "leCunNormal": "LeCunNormal",
-  "leCunUniform": "LeCunUniform",
-  "ones": "Ones",
-  "orthogonal": "Orthogonal",
-  "randomNormal": "RandomNormal",
-  "randomUniform": "RandomUniform",
-  "truncatedNormal": "TruncatedNormal",
-  "varianceScaling": "VarianceScaling",
-  "zeros": "Zeros"
-};
-function deserializeInitializer(config, customObjects = {}) {
-  return deserializeKerasObject(config, serialization_exports.SerializationMap.getMap().classNameMap, customObjects, "initializer");
-}
-function serializeInitializer(initializer) {
-  return serializeKerasObject(initializer);
-}
-function getInitializer(identifier) {
-  if (typeof identifier === "string") {
-    const className = identifier in INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP ? INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP[identifier] : identifier;
-    if (className === "GlorotNormal") {
-      return new GlorotNormal();
-    } else if (className === "GlorotUniform") {
-      return new GlorotUniform();
-    } else if (className === "HeNormal") {
-      return new HeNormal();
-    } else if (className === "HeUniform") {
-      return new HeUniform();
-    } else if (className === "LeCunNormal") {
-      return new LeCunNormal();
-    } else if (className === "LeCunUniform") {
-      return new LeCunUniform();
-    } else {
-      const config = {};
-      config["className"] = className;
-      config["config"] = {};
-      return deserializeInitializer(config);
-    }
-  } else if (identifier instanceof Initializer) {
-    return identifier;
-  } else {
-    return deserializeInitializer(identifier);
-  }
-}
-
-// src/tfjs-layers/src/exports_initializers.ts
 function zeros2() {
   return new Zeros();
 }
@@ -19242,824 +20443,6 @@ __export(exports_layers_exports, {
   upSampling2d: () => upSampling2d,
   zeroPadding2d: () => zeroPadding2d
 });
-
-// src/tfjs-layers/src/backend/state.ts
-var _nextUniqueTensorId = 0;
-function getNextUniqueTensorId() {
-  return _nextUniqueTensorId++;
-}
-var _uidPrefixes = {};
-function getUid(prefix = "") {
-  if (!(prefix in _uidPrefixes)) {
-    _uidPrefixes[prefix] = 0;
-  }
-  _uidPrefixes[prefix] += 1;
-  return prefix + _uidPrefixes[prefix].toString();
-}
-
-// src/tfjs-layers/src/utils/types_utils.ts
-function isArrayOfShapes(x) {
-  return Array.isArray(x) && Array.isArray(x[0]);
-}
-function normalizeShapeList(x) {
-  if (x.length === 0) {
-    return [];
-  }
-  if (!Array.isArray(x[0])) {
-    return [x];
-  }
-  return x;
-}
-function getExactlyOneTensor(xs) {
-  let x;
-  if (Array.isArray(xs)) {
-    if (xs.length !== 1) {
-      throw new ValueError(`Expected Tensor length to be 1; got ${xs.length}`);
-    }
-    x = xs[0];
-  } else {
-    x = xs;
-  }
-  return x;
-}
-function getExactlyOneShape(shapes) {
-  if (Array.isArray(shapes) && Array.isArray(shapes[0])) {
-    if (shapes.length === 1) {
-      shapes = shapes;
-      return shapes[0];
-    } else {
-      throw new ValueError(`Expected exactly 1 Shape; got ${shapes.length}`);
-    }
-  } else {
-    return shapes;
-  }
-}
-
-// src/tfjs-layers/src/utils/variable_utils.ts
-function countParamsInWeights(weights) {
-  let count2 = 0;
-  for (const weight of weights) {
-    if (weight.shape.length === 0) {
-      count2 += 1;
-    } else {
-      count2 += weight.shape.reduce((a, b) => a * b);
-    }
-  }
-  return count2;
-}
-
-// src/tfjs-layers/src/variables.ts
-var DEFAULT_VARIABLE_NAME_PREFIX = "Variable";
-var LayerVariable = class {
-  constructor(val, dtype = "float32", name = DEFAULT_VARIABLE_NAME_PREFIX, trainable = true, constraint = null) {
-    this.dtype = dtype == null ? "float32" : dtype;
-    this.shape = val.shape;
-    this.id = getNextUniqueTensorId();
-    name = name == null ? DEFAULT_VARIABLE_NAME_PREFIX : name;
-    this.originalName = getScopedTensorName(name);
-    this.name = getUniqueTensorName(this.originalName);
-    this.trainable_ = trainable;
-    this.constraint = constraint;
-    this.val = variable(val, this.trainable_, this.name, this.dtype);
-  }
-  read() {
-    this.assertNotDisposed();
-    return this.val;
-  }
-  write(newVal) {
-    this.assertNotDisposed();
-    checkShapesMatch(this.val, newVal);
-    if (this.val.id !== newVal.id) {
-      this.val.assign(newVal);
-      if (this.constraint != null) {
-        this.val.assign(this.constraint.apply(this.val));
-      }
-    }
-    return this;
-  }
-  dispose() {
-    this.assertNotDisposed();
-    this.val.dispose();
-  }
-  assertNotDisposed() {
-    if (this.val.isDisposed) {
-      throw new Error(`LayersVariable ${this.name} is already disposed.`);
-    }
-  }
-  get trainable() {
-    return this.trainable_;
-  }
-  set trainable(trainable) {
-    this.trainable_ = trainable;
-    this.val.trainable = trainable;
-  }
-};
-function checkShapesMatch(x, y) {
-  if (x.shape.toString() !== y.shape.toString()) {
-    throw new Error("Shape mismatch: " + JSON.stringify(x.shape) + " vs. " + JSON.stringify(y.shape));
-  }
-}
-function batchGetValue(xs) {
-  return xs.map((x) => x.read());
-}
-function batchSetValue(variablesAndValues) {
-  variablesAndValues.forEach((variableAndValue) => {
-    const variable2 = variableAndValue[0];
-    variable2.write(variableAndValue[1]);
-  });
-}
-
-// src/tfjs-layers/src/engine/topology.ts
-var InputSpec = class {
-  constructor(args) {
-    this.dtype = args.dtype;
-    this.shape = args.shape;
-    if (args.shape != null) {
-      this.ndim = args.shape.length;
-    } else {
-      this.ndim = args.ndim;
-    }
-    this.maxNDim = args.maxNDim;
-    this.minNDim = args.minNDim;
-    this.axes = args.axes || {};
-  }
-};
-var SymbolicTensor = class {
-  constructor(dtype, shape, sourceLayer, inputs, callArgs, name, outputTensorIndex) {
-    this.dtype = dtype;
-    this.shape = shape;
-    this.sourceLayer = sourceLayer;
-    this.inputs = inputs;
-    this.callArgs = callArgs;
-    this.outputTensorIndex = outputTensorIndex;
-    this.id = getNextUniqueTensorId();
-    if (name != null) {
-      this.originalName = getScopedTensorName(name);
-      this.name = getUniqueTensorName(this.originalName);
-    }
-    this.rank = shape.length;
-  }
-};
-var _nextNodeID = 0;
-var Node = class {
-  constructor(args, callArgs) {
-    this.callArgs = callArgs;
-    this.id = _nextNodeID++;
-    this.outboundLayer = args.outboundLayer;
-    this.inboundLayers = args.inboundLayers;
-    this.nodeIndices = args.nodeIndices;
-    this.tensorIndices = args.tensorIndices;
-    this.inputTensors = args.inputTensors;
-    this.outputTensors = args.outputTensors;
-    this.inputMasks = args.inputMasks;
-    this.outputMasks = args.outputMasks;
-    this.inputShapes = args.inputShapes;
-    this.outputShapes = args.outputShapes;
-    for (const layer of args.inboundLayers) {
-      if (layer != null) {
-        layer.outboundNodes.push(this);
-      }
-    }
-    args.outboundLayer.inboundNodes.push(this);
-  }
-  getConfig() {
-    const inboundNames = [];
-    for (const layer of this.inboundLayers) {
-      if (layer != null) {
-        inboundNames.push(layer.name);
-      } else {
-        inboundNames.push(null);
-      }
-    }
-    return {
-      outboundLayer: this.outboundLayer ? this.outboundLayer.name : null,
-      inboundLayers: inboundNames,
-      nodeIndices: this.nodeIndices,
-      tensorIndices: this.tensorIndices
-    };
-  }
-};
-var _nextLayerID = 0;
-var Layer = class extends serialization_exports.Serializable {
-  constructor(args = {}) {
-    super();
-    this._callHook = null;
-    this._addedWeightNames = [];
-    this._stateful = false;
-    this.id = _nextLayerID++;
-    this.activityRegularizer = null;
-    this.inputSpec = null;
-    this.supportsMasking = false;
-    this._trainableWeights = [];
-    this._nonTrainableWeights = [];
-    this._losses = [];
-    this._updates = [];
-    this._built = false;
-    this.inboundNodes = [];
-    this.outboundNodes = [];
-    let name = args.name;
-    if (!name) {
-      const prefix = this.getClassName();
-      name = toSnakeCase(prefix) + "_" + getUid(prefix);
-    }
-    this.name = name;
-    this.trainable_ = args.trainable == null ? true : args.trainable;
-    if (args.inputShape != null || args.batchInputShape != null) {
-      let batchInputShape;
-      if (args.batchInputShape != null) {
-        batchInputShape = args.batchInputShape;
-      } else if (args.inputShape != null) {
-        let batchSize = null;
-        if (args.batchSize != null) {
-          batchSize = args.batchSize;
-        }
-        batchInputShape = [batchSize].concat(args.inputShape);
-      }
-      this.batchInputShape = batchInputShape;
-      let dtype = args.dtype;
-      if (dtype == null) {
-        dtype = args.inputDType;
-      }
-      if (dtype == null) {
-        dtype = "float32";
-      }
-      this.dtype = dtype;
-    }
-    if (args.weights != null) {
-      this.initialWeights = args.weights;
-    } else {
-      this.initialWeights = null;
-    }
-    this._refCount = null;
-    this.fastWeightInitDuringBuild = false;
-  }
-  static nodeKey(layer, nodeIndex) {
-    return layer.name + "_ib-" + nodeIndex.toString();
-  }
-  getNodeAtIndex(nodeIndex, attrName) {
-    if (this.inboundNodes.length === 0) {
-      throw new RuntimeError(`The layer has never been called and thus has no defined ${attrName}.`);
-    }
-    if (this.inboundNodes.length <= nodeIndex) {
-      throw new ValueError(`Asked to get ${attrName} at node ${nodeIndex}, but the layer has only ${this.inboundNodes.length} inbound nodes.`);
-    }
-    return this.inboundNodes[nodeIndex];
-  }
-  getInputAt(nodeIndex) {
-    return singletonOrArray(this.getNodeAtIndex(nodeIndex, "input").inputTensors);
-  }
-  getOutputAt(nodeIndex) {
-    return singletonOrArray(this.getNodeAtIndex(nodeIndex, "output").outputTensors);
-  }
-  get input() {
-    if (this.inboundNodes.length > 1) {
-      throw new AttributeError(`Layer ${this.name} has multiple inbound nodes, hence the notion of "layer input" is ill-defined. Use \`getInputAt(nodeIndex)\` instead.`);
-    } else if (this.inboundNodes.length === 0) {
-      throw new AttributeError(`Layer ${this.name} is not connected, no input to return.`);
-    }
-    return singletonOrArray(this.getNodeAtIndex(0, "input").inputTensors);
-  }
-  get output() {
-    if (this.inboundNodes.length === 0) {
-      throw new AttributeError(`Layer ${this.name} has no inbound nodes.`);
-    }
-    if (this.inboundNodes.length > 1) {
-      throw new AttributeError(`Layer ${this.name} has multiple inbound nodes, hence the notion of "layer output" is ill-defined. Use \`getOutputAt(nodeIndex)\` instead.`);
-    }
-    return singletonOrArray(this.getNodeAtIndex(0, "output").outputTensors);
-  }
-  get losses() {
-    return this._losses;
-  }
-  calculateLosses() {
-    return this.losses.map((lossFn) => lossFn());
-  }
-  get updates() {
-    return this._updates;
-  }
-  get built() {
-    return this._built;
-  }
-  set built(built) {
-    this._built = built;
-  }
-  get trainable() {
-    return this.trainable_;
-  }
-  set trainable(trainable) {
-    this._trainableWeights.forEach((w) => w.trainable = trainable);
-    this.trainable_ = trainable;
-  }
-  get trainableWeights() {
-    if (this.trainable_) {
-      return this._trainableWeights.filter((w) => w.trainable);
-    } else {
-      return [];
-    }
-  }
-  set trainableWeights(weights) {
-    this._trainableWeights = weights;
-  }
-  get nonTrainableWeights() {
-    if (this.trainable) {
-      return this._trainableWeights.filter((w) => !w.trainable).concat(this._nonTrainableWeights);
-    } else {
-      return this._trainableWeights.concat(this._nonTrainableWeights);
-    }
-  }
-  set nonTrainableWeights(weights) {
-    this._nonTrainableWeights = weights;
-  }
-  get weights() {
-    return this.trainableWeights.concat(this.nonTrainableWeights);
-  }
-  get stateful() {
-    return this._stateful;
-  }
-  resetStates() {
-    if (!this.stateful) {
-      throw new Error("Cannot call the resetStates() method of a non-stateful Layer object.");
-    }
-  }
-  assertInputCompatibility(inputs) {
-    inputs = toList(inputs);
-    if (this.inputSpec == null || this.inputSpec.length === 0) {
-      return;
-    }
-    const inputSpec = toList(this.inputSpec);
-    if (inputs.length !== inputSpec.length) {
-      throw new ValueError(`Layer ${this.name} expects ${inputSpec.length} inputs, but it received ${inputs.length} input tensors. Input received: ${inputs}`);
-    }
-    for (let inputIndex = 0; inputIndex < inputs.length; inputIndex++) {
-      const x = inputs[inputIndex];
-      const spec = inputSpec[inputIndex];
-      if (spec == null) {
-        continue;
-      }
-      const ndim = x.rank;
-      if (spec.ndim != null) {
-        if (ndim !== spec.ndim) {
-          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected ndim=${spec.ndim}, found ndim=${ndim}`);
-        }
-      }
-      if (spec.maxNDim != null) {
-        if (ndim > spec.maxNDim) {
-          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected max_ndim=${spec.maxNDim}, found ndim=${ndim}`);
-        }
-      }
-      if (spec.minNDim != null) {
-        if (ndim < spec.minNDim) {
-          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected min_ndim=${spec.minNDim}, found ndim=${ndim}.`);
-        }
-      }
-      if (spec.dtype != null) {
-        if (x.dtype !== spec.dtype) {
-          throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name} : expected dtype=${spec.dtype}, found dtype=${x.dtype}.`);
-        }
-      }
-      if (spec.axes) {
-        const xShape = x.shape;
-        for (const key in spec.axes) {
-          const axis = Number(key);
-          const value = spec.axes[key];
-          const xShapeAtAxis = axis >= 0 ? xShape[axis] : xShape[xShape.length + axis];
-          if (value != null && [value, null].indexOf(xShapeAtAxis) === -1) {
-            throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected axis ${axis} of input shape to have value ${value} but got shape ${xShape}.`);
-          }
-        }
-      }
-      if (spec.shape != null) {
-        for (let i = 0; i < spec.shape.length; ++i) {
-          const specDim = spec.shape[i];
-          const dim = x.shape[i];
-          if (specDim != null && dim != null) {
-            if (specDim !== dim) {
-              throw new ValueError(`Input ${inputIndex} is incompatible with layer ${this.name}: expected shape=${spec.shape}, found shape=${x.shape}.`);
-            }
-          }
-        }
-      }
-    }
-  }
-  call(inputs, kwargs) {
-    return inputs;
-  }
-  invokeCallHook(inputs, kwargs) {
-    if (this._callHook != null) {
-      this._callHook(inputs, kwargs);
-    }
-  }
-  setCallHook(callHook) {
-    this._callHook = callHook;
-  }
-  clearCallHook() {
-    this._callHook = null;
-  }
-  apply(inputs, kwargs) {
-    kwargs = kwargs || {};
-    this.assertNotDisposed();
-    const inputsList = toList(inputs);
-    let allAreSymbolic = true;
-    for (const input2 of inputsList) {
-      if (!(input2 instanceof SymbolicTensor)) {
-        allAreSymbolic = false;
-        break;
-      }
-    }
-    let noneAreSymbolic = true;
-    for (const input2 of inputsList) {
-      if (input2 instanceof SymbolicTensor) {
-        noneAreSymbolic = false;
-        break;
-      }
-    }
-    if (allAreSymbolic === noneAreSymbolic) {
-      throw new ValueError("Arguments to apply() must be all SymbolicTensors or all Tensors");
-    }
-    return nameScope(this.name, () => {
-      if (!this.built) {
-        this.assertInputCompatibility(inputs);
-        const inputShapes = [];
-        for (const xElem of toList(inputs)) {
-          inputShapes.push(xElem.shape);
-        }
-        this.build(singletonOrArray(inputShapes));
-        this.built = true;
-        if (this.initialWeights) {
-          this.setWeights(this.initialWeights);
-        }
-        if (this._refCount === null && noneAreSymbolic) {
-          this._refCount = 1;
-        }
-      }
-      this.assertInputCompatibility(inputs);
-      if (noneAreSymbolic) {
-        let output = this.call(inputs, kwargs);
-        const outputList = toList(output);
-        const outputListCopy = [];
-        for (let x of outputList) {
-          if (inputsList.indexOf(x) !== -1) {
-            x = x.clone();
-          }
-          outputListCopy.push(x);
-        }
-        output = singletonOrArray(outputListCopy);
-        if (this.activityRegularizer != null) {
-          throw new NotImplementedError("Layer invocation in the presence of activity regularizer(s) is not supported yet.");
-        }
-        return output;
-      } else {
-        const inputShape = collectInputShape(inputs);
-        const outputShape = this.computeOutputShape(inputShape);
-        let output;
-        const outputDType = guessOutputDType(inputs);
-        this.warnOnIncompatibleInputShape(Array.isArray(inputs) ? inputShape[0] : inputShape);
-        if (outputShape != null && outputShape.length > 0 && Array.isArray(outputShape[0])) {
-          output = outputShape.map((shape, index) => new SymbolicTensor(outputDType, shape, this, toList(inputs), kwargs, this.name, index));
-        } else {
-          output = new SymbolicTensor(outputDType, outputShape, this, toList(inputs), kwargs, this.name);
-        }
-        this.addInboundNode(inputs, output, null, null, inputShape, outputShape, kwargs);
-        this._refCount++;
-        if (this.activityRegularizer != null) {
-          throw new NotImplementedError("Layer invocation in the presence of activity regularizer(s) is not supported yet.");
-        }
-        return output;
-      }
-    });
-  }
-  warnOnIncompatibleInputShape(inputShape) {
-    if (this.batchInputShape == null) {
-      return;
-    } else if (inputShape.length !== this.batchInputShape.length) {
-      console.warn(`The rank of the input tensor provided (shape: ${JSON.stringify(inputShape)}) does not match that of the batchInputShape (${JSON.stringify(this.batchInputShape)}) of the layer ${this.name}`);
-    } else {
-      let dimMismatch = false;
-      this.batchInputShape.forEach((dimension, i) => {
-        if (dimension != null && inputShape[i] != null && inputShape[i] !== dimension) {
-          dimMismatch = true;
-        }
-      });
-      if (dimMismatch) {
-        console.warn(`The shape of the input tensor (${JSON.stringify(inputShape)}) does not match the expectation of layer ${this.name}: ${JSON.stringify(this.batchInputShape)}`);
-      }
-    }
-  }
-  get outputShape() {
-    if (this.inboundNodes == null || this.inboundNodes.length === 0) {
-      throw new AttributeError(`The layer ${this.name} has never been called and thus has no defined output shape.`);
-    }
-    const allOutputShapes = [];
-    for (const node of this.inboundNodes) {
-      const shapeString = JSON.stringify(node.outputShapes);
-      if (allOutputShapes.indexOf(shapeString) === -1) {
-        allOutputShapes.push(shapeString);
-      }
-    }
-    if (allOutputShapes.length === 1) {
-      const outputShapes = this.inboundNodes[0].outputShapes;
-      if (Array.isArray(outputShapes) && Array.isArray(outputShapes[0]) && outputShapes.length === 1) {
-        return outputShapes[0];
-      } else {
-        return outputShapes;
-      }
-    } else {
-      throw new AttributeError(`The layer ${this.name} has multiple inbound nodes with different output shapes. Hence the notion of "output shape" is ill-defined for the layer.`);
-    }
-  }
-  countParams() {
-    if (!this.built) {
-      throw new RuntimeError(`You tried to call countParams() on ${this.name}, but the layer is not built yet. Build it first by calling build(batchInputShape).`);
-    }
-    return countParamsInWeights(this.weights);
-  }
-  build(inputShape) {
-    this.built = true;
-  }
-  getWeights(trainableOnly = false) {
-    return batchGetValue(trainableOnly ? this.trainableWeights : this.weights);
-  }
-  setWeights(weights) {
-    tidy(() => {
-      const params = this.weights;
-      if (params.length !== weights.length) {
-        throw new ValueError(`You called setWeights(weights) on layer "${this.name}" with a weight list of length ${weights.length}, but the layer was expecting ${params.length} weights. Provided weights: ${weights}...`);
-      }
-      if (params.length === 0) {
-        return;
-      }
-      const weightValueTuples = [];
-      const paramValues = batchGetValue(params);
-      for (let i = 0; i < paramValues.length; ++i) {
-        const pv = paramValues[i];
-        const p2 = params[i];
-        const w = weights[i];
-        if (!util_exports.arraysEqual(pv.shape, w.shape)) {
-          throw new ValueError(`Layer weight shape ${pv.shape} not compatible with provided weight shape ${w.shape}`);
-        }
-        weightValueTuples.push([p2, w]);
-      }
-      batchSetValue(weightValueTuples);
-    });
-  }
-  addWeight(name, shape, dtype, initializer, regularizer, trainable, constraint, getInitializerFunc) {
-    if (this._addedWeightNames.indexOf(name) !== -1) {
-      throw new ValueError(`Duplicate weight name ${name} for layer ${this.name}`);
-    }
-    this._addedWeightNames.push(name);
-    if (dtype == null) {
-      dtype = "float32";
-    }
-    if (this.fastWeightInitDuringBuild) {
-      initializer = getInitializerFunc != null ? getInitializerFunc() : getInitializer("zeros");
-    }
-    const initValue = initializer.apply(shape, dtype);
-    const weight = new LayerVariable(initValue, dtype, name, trainable, constraint);
-    initValue.dispose();
-    if (regularizer != null) {
-      this.addLoss(() => regularizer.apply(weight.read()));
-    }
-    if (trainable == null) {
-      trainable = true;
-    }
-    if (trainable) {
-      this._trainableWeights.push(weight);
-    } else {
-      this._nonTrainableWeights.push(weight);
-    }
-    return weight;
-  }
-  setFastWeightInitDuringBuild(value) {
-    this.fastWeightInitDuringBuild = value;
-  }
-  addLoss(losses2) {
-    if (losses2 == null || Array.isArray(losses2) && losses2.length === 0) {
-      return;
-    }
-    losses2 = toList(losses2);
-    if (this._losses !== void 0 && this._losses !== null) {
-      this.losses.push(...losses2);
-    }
-  }
-  computeOutputShape(inputShape) {
-    return inputShape;
-  }
-  computeMask(inputs, mask) {
-    if (!this.supportsMasking) {
-      if (mask != null) {
-        if (Array.isArray(mask)) {
-          mask.forEach((maskElement) => {
-            if (maskElement != null) {
-              throw new TypeError(`Layer ${this.name} does not support masking, but was passed an inputMask.`);
-            }
-          });
-        } else {
-          throw new TypeError(`Layer ${this.name} does not support masking, but was passed an inputMask.`);
-        }
-      }
-      return null;
-    }
-    return mask;
-  }
-  addInboundNode(inputTensors, outputTensors, inputMasks, outputMasks, inputShapes, outputShapes, kwargs = null) {
-    const inputTensorList = toList(inputTensors);
-    outputTensors = toList(outputTensors);
-    inputMasks = toList(inputMasks);
-    outputMasks = toList(outputMasks);
-    inputShapes = normalizeShapeList(inputShapes);
-    outputShapes = normalizeShapeList(outputShapes);
-    const inboundLayers = [];
-    const nodeIndices = [];
-    const tensorIndices = [];
-    for (const x of inputTensorList) {
-      inboundLayers.push(x.sourceLayer);
-      nodeIndices.push(x.nodeIndex);
-      tensorIndices.push(x.tensorIndex);
-    }
-    new Node({
-      outboundLayer: this,
-      inboundLayers,
-      nodeIndices,
-      tensorIndices,
-      inputTensors: inputTensorList,
-      outputTensors,
-      inputMasks,
-      outputMasks,
-      inputShapes,
-      outputShapes
-    }, kwargs);
-    for (let i = 0; i < outputTensors.length; i++) {
-      outputTensors[i].sourceLayer = this;
-      outputTensors[i].nodeIndex = this.inboundNodes.length - 1;
-      outputTensors[i].tensorIndex = i;
-    }
-  }
-  getConfig() {
-    const config = { name: this.name, trainable: this.trainable };
-    if (this.batchInputShape != null) {
-      config["batchInputShape"] = this.batchInputShape;
-    }
-    if (this.dtype != null) {
-      config["dtype"] = this.dtype;
-    }
-    return config;
-  }
-  disposeWeights() {
-    this.weights.forEach((weight) => weight.dispose());
-    return this.weights.length;
-  }
-  assertNotDisposed() {
-    if (this._refCount === 0) {
-      throw new Error(`Layer '${this.name}' is already disposed.`);
-    }
-  }
-  dispose() {
-    if (!this.built) {
-      throw new Error(`Cannot dispose Layer ${this.name} because it has not been built yet.`);
-    }
-    if (this._refCount === null) {
-      throw new Error(`Cannot dispose Layer ${this.name} because it has not been used yet.`);
-    }
-    this.assertNotDisposed();
-    let numDisposedVariables = 0;
-    if (--this._refCount === 0) {
-      numDisposedVariables = this.disposeWeights();
-    }
-    return { refCountAfterDispose: this._refCount, numDisposedVariables };
-  }
-};
-function collectInputShape(inputTensors) {
-  inputTensors = toList(inputTensors);
-  const shapes = [];
-  for (const x of inputTensors) {
-    shapes.push(x.shape);
-  }
-  return singletonOrArray(shapes);
-}
-function guessOutputDType(inputTensors) {
-  return "float32";
-}
-function getSourceInputs(tensor2, layer, nodeIndex) {
-  if (layer == null || nodeIndex != null && nodeIndex > 0) {
-    layer = tensor2.sourceLayer;
-    nodeIndex = tensor2.nodeIndex;
-  }
-  if (layer.inboundNodes.length === 0) {
-    return [tensor2];
-  } else {
-    const node = layer.inboundNodes[nodeIndex];
-    if (node.inboundLayers.length === 0) {
-      return node.inputTensors;
-    } else {
-      const sourceTensors = [];
-      for (let i = 0; i < node.inboundLayers.length; i++) {
-        const x = node.inputTensors[i];
-        const layer2 = node.inboundLayers[i];
-        const nodeIndex2 = node.nodeIndices[i];
-        const previousSources = getSourceInputs(x, layer2, nodeIndex2);
-        for (const x2 of previousSources) {
-          if (sourceTensors.indexOf(x2) === -1) {
-            sourceTensors.push(x2);
-          }
-        }
-      }
-      return sourceTensors;
-    }
-  }
-}
-
-// src/tfjs-layers/src/engine/input_layer.ts
-var InputLayer = class extends Layer {
-  constructor(args) {
-    super({
-      dtype: args.dtype,
-      name: args.name != null ? args.name : getUid("input").toString()
-    });
-    if (args.batchSize == null) {
-      args.batchSize = null;
-    }
-    if (args.sparse == null) {
-      args.sparse = false;
-    }
-    this.trainable = false;
-    this.built = true;
-    this.sparse = args.sparse;
-    if (args.inputShape != null && args.batchInputShape != null) {
-      throw new ValueError("Only provide the inputShape OR batchInputShape argument to inputLayer, not both at the same time.");
-    }
-    let batchInputShape = args.batchInputShape;
-    if (batchInputShape == null) {
-      if (args.inputShape == null) {
-        throw new ValueError("An InputLayer should be passed either a `batchInputShape` or an `inputShape`.");
-      } else {
-        batchInputShape = [args.batchSize].concat(args.inputShape);
-      }
-    } else {
-      if (args.batchSize != null) {
-        throw new ValueError("Cannot specify batchSize if batchInputShape is specified when creating an InputLayer.");
-      }
-    }
-    const dtype = args.dtype || "float32";
-    this.batchInputShape = batchInputShape;
-    this.dtype = dtype;
-    this.inputSpec = [{ shape: batchInputShape }];
-    const inputTensor = new SymbolicTensor(this.dtype, this.batchInputShape, this, [], {}, this.name);
-    inputTensor.nodeIndex = 0;
-    inputTensor.tensorIndex = 0;
-    new Node({
-      outboundLayer: this,
-      inboundLayers: [],
-      nodeIndices: [],
-      tensorIndices: [],
-      inputTensors: [inputTensor],
-      outputTensors: [inputTensor],
-      inputMasks: [null],
-      outputMasks: [null],
-      inputShapes: [batchInputShape],
-      outputShapes: [batchInputShape]
-    });
-  }
-  apply(inputs, kwargs) {
-    throw new ValueError(`Cannot pass any input to an InputLayer's apply() method. InputLayer name: ${this.name}`);
-  }
-  dispose() {
-    return { refCountAfterDispose: this._refCount, numDisposedVariables: 0 };
-  }
-  getConfig() {
-    return {
-      batchInputShape: this.batchInputShape,
-      dtype: this.dtype,
-      sparse: this.sparse,
-      name: this.name
-    };
-  }
-};
-InputLayer.className = "InputLayer";
-serialization_exports.registerClass(InputLayer);
-function Input(config) {
-  if (config.batchShape == null && config.shape == null) {
-    throw new Error("Please provide to Input either a `shape` or a `batchShape` argument. Note that `shape` does not include the batch dimension.");
-  }
-  if (config.batchShape != null && config.shape != null) {
-    throw new ValueError("Please provide either a `shape` or `batchShape` argument to Input, but not both.");
-  }
-  let batchShape = config.batchShape;
-  if (config.shape != null && batchShape == null) {
-    batchShape = [null].concat(config.shape);
-  }
-  let dtype = config.dtype;
-  if (dtype == null) {
-    dtype = "float32";
-  }
-  const inputLayer2 = new InputLayer({
-    batchInputShape: batchShape,
-    name: config.name,
-    dtype,
-    sparse: config.sparse
-  });
-  const outputs = inputLayer2.inboundNodes[0].outputTensors;
-  return outputs[0];
-}
 
 // src/tfjs-layers/src/logs.ts
 async function resolveScalarsInLogs(logs) {
@@ -21020,289 +21403,6 @@ function convertTsToPythonic(tsConfig, key) {
 
 // src/tfjs-layers/src/version.ts
 var version2 = "0.0.0";
-
-// src/tfjs-layers/src/engine/executor.ts
-function assertFeedCompatibility(key, val) {
-  if (key.dtype == null || key.dtype === val.dtype) {
-    return val;
-  }
-  try {
-    return cast(val, key.dtype);
-  } catch (err) {
-    throw new ValueError(`The dtype of the feed (${val.dtype}) can not be cast to the dtype of the key '${key.name}' (${key.dtype}).`);
-  }
-}
-var FeedDict = class {
-  constructor(feeds) {
-    this.id2Value = {};
-    this.id2Mask = {};
-    this.name2Id = {};
-    if (feeds instanceof FeedDict) {
-      for (const id in feeds.id2Value) {
-        this.id2Value[id] = feeds.id2Value[id];
-        if (id in feeds.id2Mask) {
-          this.id2Mask[id] = feeds.id2Mask[id];
-        }
-      }
-    } else {
-      if (feeds == null) {
-        return;
-      }
-      for (const feed of feeds) {
-        this.add(feed.key, feed.value);
-      }
-    }
-  }
-  add(key, value, mask) {
-    if (this.id2Value[key.id] == null) {
-      this.id2Value[key.id] = assertFeedCompatibility(key, value);
-      this.name2Id[key.name] = key.id;
-      if (mask != null) {
-        this.id2Mask[key.id] = mask;
-      }
-    } else {
-      throw new ValueError(`Duplicate key: name=${key.name}, id=${key.id}`);
-    }
-    return this;
-  }
-  addFeed(feed) {
-    this.add(feed.key, feed.value);
-  }
-  hasKey(key) {
-    return this.id2Value[key.id] != null;
-  }
-  names() {
-    return Object.keys(this.name2Id);
-  }
-  getValue(key) {
-    if (key instanceof SymbolicTensor) {
-      if (this.id2Value[key.id] == null) {
-        throw new ValueError(`Nonexistent key: ${key.name}`);
-      } else {
-        return this.id2Value[key.id];
-      }
-    } else {
-      const id = this.name2Id[key];
-      if (id == null) {
-        throw new ValueError(`Feed dict has no SymbolicTensor name: ${key}`);
-      }
-      return this.id2Value[id];
-    }
-  }
-  getMask(key) {
-    if (key instanceof SymbolicTensor) {
-      if (this.id2Value[key.id] == null) {
-        throw new ValueError(`Nonexistent key: ${key.name}`);
-      } else {
-        return this.id2Mask[key.id];
-      }
-    } else {
-      const id = this.name2Id[key];
-      if (id == null) {
-        throw new ValueError(`Feed dict has no SymbolicTensor name: ${key}`);
-      }
-      return this.id2Mask[id];
-    }
-  }
-  disposeMasks() {
-    if (this.id2Mask != null) {
-      dispose(this.id2Mask);
-    }
-  }
-};
-var cachedSorted = {};
-var cachedRecipientCounts = {};
-function execute(fetches, feedDict, kwargs, probe) {
-  const training = kwargs == null ? false : kwargs["training"];
-  const arrayFetches = Array.isArray(fetches);
-  const fetchArray = arrayFetches ? fetches : [fetches];
-  const outputNames = fetchArray.map((t) => t.name);
-  const finalOutputs = [];
-  const feedNames = feedDict.names();
-  for (const outputName of outputNames) {
-    if (feedNames.indexOf(outputName) !== -1) {
-      finalOutputs.push(feedDict.getValue(outputName));
-    } else {
-      finalOutputs.push(null);
-    }
-  }
-  if (probe != null) {
-    probe.maxNumTensors = -Infinity;
-    probe.minNumTensors = Infinity;
-  }
-  const fetchAndFeedKey = outputNames.join(",") + "|" + feedDict.names().join(",");
-  let sorted;
-  let recipientCounts;
-  if (cachedSorted[fetchAndFeedKey] == null) {
-    const out = getTopologicalSortAndRecipientCounts(fetchArray, feedDict);
-    sorted = out.sorted;
-    recipientCounts = out.recipientCounts;
-    cachedSorted[fetchAndFeedKey] = sorted;
-    cachedRecipientCounts[fetchAndFeedKey] = recipientCounts;
-  }
-  sorted = cachedSorted[fetchAndFeedKey];
-  recipientCounts = {};
-  if (!training) {
-    Object.assign(recipientCounts, cachedRecipientCounts[fetchAndFeedKey]);
-  }
-  const internalFeedDict = new FeedDict(feedDict);
-  for (let i = 0; i < sorted.length; ++i) {
-    if (probe != null) {
-      const numTensors = memory().numTensors;
-      if (numTensors > probe.maxNumTensors) {
-        probe.maxNumTensors = numTensors;
-      }
-      if (numTensors < probe.minNumTensors) {
-        probe.minNumTensors = numTensors;
-      }
-    }
-    const symbolic = sorted[i];
-    const srcLayer = symbolic.sourceLayer;
-    if (srcLayer instanceof InputLayer) {
-      continue;
-    }
-    const inputValues = [];
-    const inputMasks = [];
-    const tensorsToDispose = [];
-    let maskExists = false;
-    for (const input2 of symbolic.inputs) {
-      const value = internalFeedDict.getValue(input2);
-      const mask = internalFeedDict.getMask(input2);
-      inputValues.push(value);
-      inputMasks.push(mask);
-      if (mask != null) {
-        maskExists = true;
-      }
-      if (!training) {
-        recipientCounts[input2.name]--;
-        if (recipientCounts[input2.name] === 0 && !feedDict.hasKey(input2) && outputNames.indexOf(input2.name) === -1 && !value.isDisposed && input2.sourceLayer.stateful !== true) {
-          tensorsToDispose.push(value);
-        }
-      }
-    }
-    if (maskExists) {
-      kwargs = kwargs || {};
-      kwargs["mask"] = inputMasks[0];
-    }
-    const outputTensors = toList(srcLayer.apply(inputValues, kwargs));
-    let outputMask = null;
-    if (srcLayer.supportsMasking) {
-      outputMask = srcLayer.computeMask(inputValues, inputMasks);
-    }
-    const layerOutputs = getNodeOutputs(symbolic);
-    const outputSymbolicTensors = Array.isArray(layerOutputs) ? layerOutputs : [layerOutputs];
-    for (let i2 = 0; i2 < outputSymbolicTensors.length; ++i2) {
-      if (!internalFeedDict.hasKey(outputSymbolicTensors[i2])) {
-        internalFeedDict.add(outputSymbolicTensors[i2], outputTensors[i2], Array.isArray(outputMask) ? outputMask[0] : outputMask);
-      }
-      const index = outputNames.indexOf(outputSymbolicTensors[i2].name);
-      if (index !== -1) {
-        finalOutputs[index] = outputTensors[i2];
-      }
-    }
-    if (!training) {
-      dispose(tensorsToDispose);
-    }
-  }
-  internalFeedDict.disposeMasks();
-  return arrayFetches ? finalOutputs : finalOutputs[0];
-}
-function getTopologicalSortAndRecipientCounts(fetches, feedDict) {
-  util_exports.assert(fetches != null && fetches.length > 0, () => `Expected at least one fetch, got none`);
-  let finalSorted = [];
-  let finalRecipientMap = {};
-  if (fetches.length === 1) {
-    const out = getTopologicalSortAndRecipientCountsForOneFetch(fetches[0], feedDict);
-    finalSorted = out.sorted;
-    finalRecipientMap = out.recipientMap;
-  } else {
-    const visited = /* @__PURE__ */ new Set();
-    for (const fetch4 of fetches) {
-      const { sorted, recipientMap } = getTopologicalSortAndRecipientCountsForOneFetch(fetch4, feedDict);
-      for (const symbolicTensor of sorted) {
-        if (!visited.has(symbolicTensor.name)) {
-          finalSorted.push(symbolicTensor);
-          visited.add(symbolicTensor.name);
-        }
-      }
-      for (const name in recipientMap) {
-        if (finalRecipientMap[name] == null) {
-          finalRecipientMap[name] = /* @__PURE__ */ new Set();
-        }
-        recipientMap[name].forEach((recipient) => finalRecipientMap[name].add(recipient));
-      }
-    }
-  }
-  return {
-    sorted: finalSorted,
-    recipientCounts: recipientMap2Counts(finalRecipientMap)
-  };
-}
-function recipientMap2Counts(recipientMap) {
-  const recipientCounts = {};
-  for (const name in recipientMap) {
-    recipientCounts[name] = recipientMap[name].size;
-  }
-  return recipientCounts;
-}
-function getTopologicalSortAndRecipientCountsForOneFetch(fetch4, feedDict) {
-  const visited = /* @__PURE__ */ new Set();
-  const sorted = [];
-  const recipientMap = {};
-  for (const key of feedDict.names()) {
-    visited.add(key);
-  }
-  const stack2 = [];
-  const marks = [];
-  stack2.push(fetch4);
-  while (stack2.length > 0) {
-    const top = stack2[stack2.length - 1];
-    if (visited.has(top.name)) {
-      stack2.pop();
-      continue;
-    }
-    const topIsMarked = marks[marks.length - 1] === stack2.length - 1;
-    if (top.inputs.length === 0 || topIsMarked) {
-      stack2.pop();
-      sorted.push(top);
-      visited.add(top.name);
-      if (topIsMarked) {
-        marks.pop();
-      }
-    } else {
-      marks.push(stack2.length - 1);
-      for (const input2 of top.inputs) {
-        if (recipientMap[input2.name] == null) {
-          recipientMap[input2.name] = /* @__PURE__ */ new Set();
-        }
-        recipientMap[input2.name].add(top.name);
-        if (visited.has(input2.name)) {
-          continue;
-        }
-        stack2.push(input2);
-      }
-    }
-  }
-  return { sorted, recipientMap };
-}
-function getNodeOutputs(fetch4) {
-  let layerOutputs;
-  if (fetch4.sourceLayer.inboundNodes.length === 1) {
-    layerOutputs = fetch4.sourceLayer.output;
-  } else {
-    let nodeIndex = null;
-    for (let i = 0; i < fetch4.sourceLayer.inboundNodes.length; ++i) {
-      for (const outputTensor of fetch4.sourceLayer.inboundNodes[i].outputTensors) {
-        if (outputTensor.id === fetch4.id) {
-          nodeIndex = i;
-          break;
-        }
-      }
-    }
-    layerOutputs = fetch4.sourceLayer.getOutputAt(nodeIndex);
-  }
-  return layerOutputs;
-}
 
 // src/tfjs-layers/src/engine/container.ts
 var Container = class extends Layer {
@@ -29084,8 +29184,8 @@ function earlyStopping(args) {
 var callbacks = { earlyStopping };
 
 // src/tfjs-converter/src/flags.ts
-var ENV3 = env();
-ENV3.registerFlag("KEEP_INTERMEDIATE_TENSORS", () => false, (debugValue) => {
+var ENV4 = env();
+ENV4.registerFlag("KEEP_INTERMEDIATE_TENSORS", () => false, (debugValue) => {
   if (debugValue) {
     console.warn("Keep intermediate tensors is ON. This will print the values of all intermediate tensors during model inference. Not all models support this mode. For details, check e2e/benchmarks/ model_config.js. This significantly impacts performance.");
   }
@@ -47432,9 +47532,9 @@ function assertNotComplex2(tensor2, opName) {
 }
 
 // src/tfjs-backend-webgl/src/flags_webgl.ts
-var ENV4 = env();
-ENV4.registerFlag("HAS_WEBGL", () => ENV4.getNumber("WEBGL_VERSION") > 0);
-ENV4.registerFlag("WEBGL_VERSION", () => {
+var ENV5 = env();
+ENV5.registerFlag("HAS_WEBGL", () => ENV5.getNumber("WEBGL_VERSION") > 0);
+ENV5.registerFlag("WEBGL_VERSION", () => {
   if (isWebGLVersionEnabled(2)) {
     return 2;
   } else if (isWebGLVersionEnabled(1)) {
@@ -47442,59 +47542,59 @@ ENV4.registerFlag("WEBGL_VERSION", () => {
   }
   return 0;
 });
-ENV4.registerFlag("WEBGL_CHECK_NUMERICAL_PROBLEMS", () => false);
-ENV4.registerFlag("WEBGL_BUFFER_SUPPORTED", () => ENV4.get("WEBGL_VERSION") === 2);
-ENV4.registerFlag("WEBGL_CPU_FORWARD", () => true);
-ENV4.registerFlag("WEBGL_FORCE_F16_TEXTURES", () => false);
-ENV4.registerFlag("WEBGL_PACK", () => ENV4.getBool("HAS_WEBGL"));
-ENV4.registerFlag("WEBGL_PACK_NORMALIZATION", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_PACK_CLIP", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_PACK_DEPTHWISECONV", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_PACK_BINARY_OPERATIONS", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_PACK_UNARY_OPERATIONS", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_PACK_ARRAY_OPERATIONS", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_PACK_IMAGE_OPERATIONS", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_PACK_REDUCE", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_LAZILY_UNPACK", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_CONV_IM2COL", () => ENV4.getBool("WEBGL_PACK"));
-ENV4.registerFlag("WEBGL_MAX_TEXTURE_SIZE", () => getWebGLMaxTextureSize(ENV4.getNumber("WEBGL_VERSION")));
-ENV4.registerFlag("WEBGL_MAX_TEXTURES_IN_SHADER", () => getMaxTexturesInShader(ENV4.getNumber("WEBGL_VERSION")));
-ENV4.registerFlag("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION", () => {
-  const webGLVersion = ENV4.getNumber("WEBGL_VERSION");
+ENV5.registerFlag("WEBGL_CHECK_NUMERICAL_PROBLEMS", () => false);
+ENV5.registerFlag("WEBGL_BUFFER_SUPPORTED", () => ENV5.get("WEBGL_VERSION") === 2);
+ENV5.registerFlag("WEBGL_CPU_FORWARD", () => true);
+ENV5.registerFlag("WEBGL_FORCE_F16_TEXTURES", () => false);
+ENV5.registerFlag("WEBGL_PACK", () => ENV5.getBool("HAS_WEBGL"));
+ENV5.registerFlag("WEBGL_PACK_NORMALIZATION", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_PACK_CLIP", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_PACK_DEPTHWISECONV", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_PACK_BINARY_OPERATIONS", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_PACK_UNARY_OPERATIONS", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_PACK_ARRAY_OPERATIONS", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_PACK_IMAGE_OPERATIONS", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_PACK_REDUCE", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_LAZILY_UNPACK", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_CONV_IM2COL", () => ENV5.getBool("WEBGL_PACK"));
+ENV5.registerFlag("WEBGL_MAX_TEXTURE_SIZE", () => getWebGLMaxTextureSize(ENV5.getNumber("WEBGL_VERSION")));
+ENV5.registerFlag("WEBGL_MAX_TEXTURES_IN_SHADER", () => getMaxTexturesInShader(ENV5.getNumber("WEBGL_VERSION")));
+ENV5.registerFlag("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION", () => {
+  const webGLVersion = ENV5.getNumber("WEBGL_VERSION");
   if (webGLVersion === 0) {
     return 0;
   }
   return getWebGLDisjointQueryTimerVersion(webGLVersion);
 });
-ENV4.registerFlag("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE", () => ENV4.getNumber("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION") > 0 && !device_util_exports.isMobile());
-ENV4.registerFlag("WEBGL_RENDER_FLOAT32_CAPABLE", () => isCapableOfRenderingToFloatTexture(ENV4.getNumber("WEBGL_VERSION")));
-ENV4.registerFlag("WEBGL_RENDER_FLOAT32_ENABLED", () => {
-  return ENV4.getBool("WEBGL_FORCE_F16_TEXTURES") ? false : ENV4.getBool("WEBGL_RENDER_FLOAT32_CAPABLE");
+ENV5.registerFlag("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE", () => ENV5.getNumber("WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION") > 0 && !device_util_exports.isMobile());
+ENV5.registerFlag("WEBGL_RENDER_FLOAT32_CAPABLE", () => isCapableOfRenderingToFloatTexture(ENV5.getNumber("WEBGL_VERSION")));
+ENV5.registerFlag("WEBGL_RENDER_FLOAT32_ENABLED", () => {
+  return ENV5.getBool("WEBGL_FORCE_F16_TEXTURES") ? false : ENV5.getBool("WEBGL_RENDER_FLOAT32_CAPABLE");
 });
-ENV4.registerFlag("WEBGL_DOWNLOAD_FLOAT_ENABLED", () => isDownloadFloatTextureEnabled(ENV4.getNumber("WEBGL_VERSION")));
-ENV4.registerFlag("WEBGL_FENCE_API_ENABLED", () => isWebGLFenceEnabled(ENV4.getNumber("WEBGL_VERSION")));
-ENV4.registerFlag("WEBGL_SIZE_UPLOAD_UNIFORM", () => {
-  const useUniforms = ENV4.getBool("WEBGL_RENDER_FLOAT32_ENABLED");
+ENV5.registerFlag("WEBGL_DOWNLOAD_FLOAT_ENABLED", () => isDownloadFloatTextureEnabled(ENV5.getNumber("WEBGL_VERSION")));
+ENV5.registerFlag("WEBGL_FENCE_API_ENABLED", () => isWebGLFenceEnabled(ENV5.getNumber("WEBGL_VERSION")));
+ENV5.registerFlag("WEBGL_SIZE_UPLOAD_UNIFORM", () => {
+  const useUniforms = ENV5.getBool("WEBGL_RENDER_FLOAT32_ENABLED");
   return useUniforms ? 4 : 0;
 });
-ENV4.registerFlag("WEBGL_DELETE_TEXTURE_THRESHOLD", () => {
+ENV5.registerFlag("WEBGL_DELETE_TEXTURE_THRESHOLD", () => {
   return -1;
 }, (threshold3) => {
   if (threshold3 < 0 && threshold3 !== -1) {
     throw new Error(`WEBGL_DELETE_TEXTURE_THRESHOLD must be -1 (indicating never delete) or at least 0, but got ${threshold3}.`);
   }
 });
-ENV4.registerFlag("WEBGL_FLUSH_THRESHOLD", () => {
+ENV5.registerFlag("WEBGL_FLUSH_THRESHOLD", () => {
   return device_util_exports.isMobile() ? 1 : -1;
 }, (threshold3) => {
   if (threshold3 < 0 && threshold3 !== -1) {
     throw new Error(`WEBGL_FLUSH_THRESHOLD must be -1 (indicating never manual flush) or at least 0, but got ${threshold3}.`);
   }
 });
-ENV4.registerFlag("CPU_HANDOFF_SIZE_THRESHOLD", () => 128);
-ENV4.registerFlag("WEBGL_USE_SHAPES_UNIFORMS", () => false);
-ENV4.registerFlag("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e5);
-ENV4.registerFlag("TOPK_K_CPU_HANDOFF_THRESHOLD", () => 128);
+ENV5.registerFlag("CPU_HANDOFF_SIZE_THRESHOLD", () => 128);
+ENV5.registerFlag("WEBGL_USE_SHAPES_UNIFORMS", () => false);
+ENV5.registerFlag("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e5);
+ENV5.registerFlag("TOPK_K_CPU_HANDOFF_THRESHOLD", () => 128);
 
 // src/tfjs-backend-webgl/src/glsl_version.ts
 function getGlslDifferences() {
@@ -61453,17 +61553,17 @@ for (const kernelConfig of kernelConfigs2) {
 }
 
 // src/tfjs-backend-webgpu/src/flags_webgpu.ts
-var ENV5 = env();
-ENV5.registerFlag("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE", () => 15);
-ENV5.registerFlag("WEBGPU_CPU_FORWARD", () => true);
-ENV5.registerFlag("WEBGPU_MATMUL_WORK_PER_THREAD", () => 4);
-ENV5.registerFlag("WEBGPU_USE_NAIVE_CONV2D", () => false);
-ENV5.registerFlag("WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE", () => false);
-ENV5.registerFlag("WEBGPU_CONV_SEPARATE_IM2COL_SHADER", () => false);
-ENV5.registerFlag("WEBGPU_USE_LOW_POWER_GPU", () => false);
-ENV5.registerFlag("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e3);
-ENV5.registerFlag("WEBGPU_USE_PROFILE_TOOL", () => false);
-ENV5.registerFlag("WEBGPU_USE_IMPORT", () => false);
+var ENV6 = env();
+ENV6.registerFlag("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE", () => 15);
+ENV6.registerFlag("WEBGPU_CPU_FORWARD", () => true);
+ENV6.registerFlag("WEBGPU_MATMUL_WORK_PER_THREAD", () => 4);
+ENV6.registerFlag("WEBGPU_USE_NAIVE_CONV2D", () => false);
+ENV6.registerFlag("WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE", () => false);
+ENV6.registerFlag("WEBGPU_CONV_SEPARATE_IM2COL_SHADER", () => false);
+ENV6.registerFlag("WEBGPU_USE_LOW_POWER_GPU", () => false);
+ENV6.registerFlag("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e3);
+ENV6.registerFlag("WEBGPU_USE_PROFILE_TOOL", () => false);
+ENV6.registerFlag("WEBGPU_USE_IMPORT", () => false);
 
 // src/tfjs-backend-webgpu/src/binary_op_util.ts
 var ADD2 = "return a + b;";
@@ -65520,6 +65620,146 @@ var cropAndResizeConfig3 = {
   kernelFunc: cropAndResize4
 };
 
+// src/tfjs-backend-webgpu/src/cum_webgpu.ts
+var CumProgram = class {
+  constructor(op2, shape, exclusive, reverse5) {
+    this.variableNames = ["x"];
+    this.uniforms = "index : f32,";
+    this.size = true;
+    const workGroupSizeX = 128;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
+    this.outputShape = shape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.exclusive = exclusive;
+    this.reverse = reverse5;
+    this.op = op2;
+    this.shaderKey = `cum_${this.op}_${this.exclusive}_${this.reverse}`;
+  }
+  getUserCode() {
+    const rank = this.outputShape.length;
+    const initVal = this.op === "*" /* Prod */ ? "1.0" : "0.0";
+    const val = this.exclusive ? initVal : `getX(${getCoords5(rank, "coords", this.op)})`;
+    const length = this.outputShape[this.outputShape.length - 1];
+    let condition = "";
+    let idxString = "";
+    if (this.exclusive) {
+      condition = this.reverse ? `end != ${length - 1}` : "end != 0";
+      idxString = this.reverse ? "end + 1" : "end - 1";
+    } else {
+      condition = this.reverse ? `end + pow2 < ${length}` : "end >= pow2";
+      idxString = this.reverse ? "end + pow2" : "end - pow2";
+    }
+    return `
+      ${getMainHeaderAndGlobalIndexString()}
+       if (index < uniforms.size) {
+         var coords = getCoordsFromIndex(index);
+
+         let end = ${getFinalCoord3(rank, "coords", this.op)};
+         var val = ${val};
+         let pow2 = i32(pow(2.0, uniforms.index));
+         if (${condition}) {
+           let idx = ${idxString};
+           ${getFinalCoord3(rank, "coords", this.op)} = idx;
+           val ${this.op}= getX(${getCoords5(rank, "coords", this.op)});
+         }
+         setOutputAtIndex(index, val);
+       }
+      }
+    `;
+  }
+};
+function getCoords5(rank, name, op2) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.x, ${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.x, ${name}.y, ${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
+  } else {
+    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
+  }
+}
+function getFinalCoord3(rank, name, op2) {
+  if (rank === 1) {
+    return `${name}`;
+  } else if (rank === 2) {
+    return `${name}.y`;
+  } else if (rank === 3) {
+    return `${name}.z`;
+  } else if (rank === 4) {
+    return `${name}.w`;
+  } else {
+    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
+  }
+}
+
+// src/tfjs-backend-webgpu/src/kernels/Cum_impl.ts
+function cumImpl(op2, x, backend2, axis, exclusive, reverse5) {
+  const xRank = x.shape.length;
+  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation != null) {
+    permutedX = transpose4({ inputs: { x }, backend: backend2, attrs: { perm: permutation } });
+  }
+  const permutedAxis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
+  if (permutedAxis !== xRank - 1) {
+    throw new Error(`WebGPU cumprod shader expects an inner-most axis=${x.shape.length - 1} but got axis=${axis}`);
+  }
+  const size = permutedX.shape[permutedAxis];
+  let result = identity4({ inputs: { x: permutedX }, backend: backend2 });
+  for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
+    const program = new CumProgram(op2, permutedX.shape, false, reverse5);
+    const prevResult = result;
+    const uniformData = [{ type: "float32", data: [i] }];
+    result = backend2.runWebGPUProgram(program, [result], result.dtype, uniformData);
+    backend2.disposeData(prevResult.dataId);
+  }
+  if (exclusive) {
+    const program = new CumProgram(op2, permutedX.shape, exclusive, reverse5);
+    const prevResult = result;
+    const uniformData = [{ type: "float32", data: [0] }];
+    result = backend2.runWebGPUProgram(program, [result], result.dtype, uniformData);
+    backend2.disposeData(prevResult.dataId);
+  }
+  if (permutation != null) {
+    const reversePermutation = backend_util_exports.getUndoAxesPermutation(permutation);
+    const reverseTransposedResult = transpose4({ inputs: { x: result }, backend: backend2, attrs: { perm: reversePermutation } });
+    backend2.disposeData(result.dataId);
+    backend2.disposeData(permutedX.dataId);
+    return reverseTransposedResult;
+  }
+  return result;
+}
+
+// src/tfjs-backend-webgpu/src/kernels/Cumprod.ts
+function cumprod4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse5 } = attrs;
+  return cumImpl("*" /* Prod */, x, backend2, axis, exclusive, reverse5);
+}
+var cumprodConfig3 = {
+  kernelName: Cumprod,
+  backendName: "webgpu",
+  kernelFunc: cumprod4
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Cumsum.ts
+function cumsum4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse5 } = attrs;
+  return cumImpl("+" /* Sum */, x, backend2, axis, exclusive, reverse5);
+}
+var cumsumConfig3 = {
+  kernelName: Cumsum,
+  backendName: "webgpu",
+  kernelFunc: cumsum4
+};
+
 // src/tfjs-backend-webgpu/src/depth_to_space_webgpu.ts
 var DepthToSpaceProgram2 = class {
   constructor(outputShape, dataFormat) {
@@ -68651,6 +68891,8 @@ var kernelConfigs3 = [
   cosConfig3,
   coshConfig3,
   cropAndResizeConfig3,
+  cumprodConfig3,
+  cumsumConfig3,
   depthToSpaceConfig3,
   depthwiseConv2dNativeConfig3,
   einsumConfig3,
@@ -69179,7 +69421,7 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   ensureComputePassEnded() {
     if (this.currentComputePass) {
-      this.currentComputePass.endPass();
+      this.currentComputePass.end();
       this.currentComputePass = null;
     }
   }
@@ -69534,19 +69776,19 @@ var _WebGPUBackend = class extends KernelBackend {
       ]
     });
     this.ensureCommandEncoderReady();
-    const passEncoder = this.getComputePass();
+    const pass = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        passEncoder.writeTimestamp(this.querySet, 0);
+        pass.writeTimestamp(this.querySet, 0);
       }
     }
-    passEncoder.setPipeline(program.pipeline);
-    passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    pass.setPipeline(program.pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        passEncoder.writeTimestamp(this.querySet, 1);
+        pass.writeTimestamp(this.querySet, 1);
       }
     }
     this.commandQueueOwnedIds.add(outputId);
@@ -70619,7 +70861,7 @@ function setup12(backend2) {
     "number"
   ]);
 }
-function cumprod4(args) {
+function cumprod5(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
   const { axis, exclusive, reverse: reverse5 } = attrs;
@@ -70646,11 +70888,11 @@ function cumprod4(args) {
   }
   return out;
 }
-var cumprodConfig3 = {
+var cumprodConfig4 = {
   kernelName: Cumprod,
   backendName: "wasm",
   setupFunc: setup12,
-  kernelFunc: cumprod4
+  kernelFunc: cumprod5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cumsum.ts
@@ -70665,7 +70907,7 @@ function setup13(backend2) {
     "number"
   ]);
 }
-function cumsum4(args) {
+function cumsum5(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
   const { axis, exclusive, reverse: reverse5 } = attrs;
@@ -70692,11 +70934,11 @@ function cumsum4(args) {
   }
   return out;
 }
-var cumsumConfig3 = {
+var cumsumConfig4 = {
   kernelName: Cumsum,
   backendName: "wasm",
   setupFunc: setup13,
-  kernelFunc: cumsum4
+  kernelFunc: cumsum5
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthToSpace.ts
@@ -72819,8 +73061,8 @@ var kernelConfigs4 = [
   cosConfig4,
   coshConfig4,
   cropAndResizeConfig4,
-  cumprodConfig3,
-  cumsumConfig3,
+  cumprodConfig4,
+  cumsumConfig4,
   depthToSpaceConfig4,
   depthwiseConv2dNativeConfig4,
   eluConfig4,
@@ -72907,8 +73149,8 @@ for (const kernelConfig of kernelConfigs4) {
 }
 
 // src/tfjs-backend-wasm/src/flags_wasm.ts
-var ENV6 = env();
-ENV6.registerFlag("WASM_HAS_SIMD_SUPPORT", async () => WebAssembly.validate(new Uint8Array([
+var ENV7 = env();
+ENV7.registerFlag("WASM_HAS_SIMD_SUPPORT", async () => WebAssembly.validate(new Uint8Array([
   0,
   97,
   115,
@@ -72939,8 +73181,8 @@ ENV6.registerFlag("WASM_HAS_SIMD_SUPPORT", async () => WebAssembly.validate(new 
   26,
   11
 ])));
-ENV6.registerFlag("WASM_HAS_MULTITHREAD_SUPPORT", async () => {
-  if (ENV6.get("IS_NODE")) {
+ENV7.registerFlag("WASM_HAS_MULTITHREAD_SUPPORT", async () => {
+  if (ENV7.get("IS_NODE")) {
     return false;
   }
   try {
@@ -73284,7 +73526,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.15.0-20220405";
+var externalVersion = "3.15.0-20220414";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -74011,6 +74253,31 @@ export {
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
  * =============================================================================
  */
 /**
