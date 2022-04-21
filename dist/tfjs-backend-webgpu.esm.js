@@ -12546,7 +12546,7 @@ function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileI
   }`;
 }
 var MatMulPackedVec4Program = class {
-  constructor(aShape, outputShape, rowPerThread, bias = null, activation = null, preluActivationWeights = null) {
+  constructor(aShape, outputShape, rowPerThread, batchAEqualOne, batchBEqualOne, bias = null, activation = null, preluActivationWeights = null) {
     this.variableNames = ["A", "B"];
     this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.workGroupSize = [8, 8, 1];
@@ -12574,8 +12574,10 @@ var MatMulPackedVec4Program = class {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
     [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}`;
+    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
   getShapeFit() {
     const dimInner = this.aShape[2];
@@ -12617,14 +12619,25 @@ var MatMulPackedVec4Program = class {
     const userCode = `
       ${activationSnippet}
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
-        let batch = i32(globalId.z);
+        ${this.batchAEqualOne ? `
+          let batchASize = 0;
+          let batch = 0;
+        ` : `
+          let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
+          let batch = i32(globalId.z);
+        `}
+
         ${sampleA};
       }
 
       fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
-        let batch = i32(globalId.z);
+        ${this.batchBEqualOne ? `
+          let batchBSize = 0;
+          let batch = 0;
+          ` : `
+          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
+          let batch = i32(globalId.z);
+       `}
         ${sampleB};
       }
 
@@ -12783,7 +12796,7 @@ function makeMatMulVectorSource(workGroupSize) {
   `;
 }
 var MatMulPackedProgram = class {
-  constructor(aShape, outputShape, workPerThread, transposeA = false, transposeB = false, bias = null, activation = null, preluActivationWeights = null) {
+  constructor(aShape, outputShape, workPerThread, batchAEqualOne, batchBEqualOne, transposeA = false, transposeB = false, bias = null, activation = null, preluActivationWeights = null) {
     this.variableNames = ["A", "B"];
     this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.workGroupSize = [16, 16, 1];
@@ -12814,10 +12827,12 @@ var MatMulPackedProgram = class {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
     const dimBOuter = this.outputShape[2];
     const bShape = this.transposeB ? [this.outputShape[0], dimBOuter, dimInner] : [this.outputShape[0], dimInner, dimBOuter];
     [this.fitA, this.fitB] = this.getShapeFit(bShape);
-    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${transposeB}_${this.activation}_${this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
+    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${transposeB}_${this.activation}_${this.fitA}_${this.fitB}_${this.outputShape[1] > 1}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
   getShapeFit(bShape) {
     const tileAOuter = this.workGroupSize[1] * this.workPerThread;
@@ -12881,14 +12896,24 @@ var MatMulPackedProgram = class {
       ${activationSnippet}
 
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+        ${this.batchAEqualOne ? `
+        let batch = 0;
+        let batchASize = 0;
+        ` : `
         let batch = i32(globalId.z);
+        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+        `}
         ${sampleA}
       }
 
       fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
+        ${this.batchBEqualOne ? `
+        let batch = 0;
+        let batchBSize = 0;
+        ` : `
         let batch = i32(globalId.z);
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+        `}
         ${sampleB}
       }
 
@@ -12942,7 +12967,7 @@ function makeMatMulReduceSource() {
   `;
 }
 var MatMulReduceProgram = class {
-  constructor(outputShape, transposeA = false, transposeB = false, bias = null, activation = null, preluActivationWeights = null) {
+  constructor(outputShape, batchAEqualOne, batchBEqualOne, transposeA = false, transposeB = false, bias = null, activation = null, preluActivationWeights = null) {
     this.variableNames = ["A", "B"];
     this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.workGroupSize = [256, 1, 1];
@@ -12962,7 +12987,9 @@ var MatMulReduceProgram = class {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulReduce_${this.activation}_${transposeA}_${transposeB}`;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
+    this.shaderKey = `matMulReduce_${this.activation}_${transposeA}_${transposeB}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
   getUserCode() {
     let sampleA;
@@ -12998,13 +13025,25 @@ var MatMulReduceProgram = class {
     const userCode = `
       ${activationSnippet}
 
-      fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+      fn mm_readA(batchIn: i32, row : i32, col : i32) -> f32 {
+        ${this.batchAEqualOne ? `
+          let batchASize = 0;
+          let batch = 0;
+          ` : `
+          let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+          let batch = batchIn;
+          `}
         ${sampleA}
       }
 
-      fn mm_readB(batch: i32, row : i32, col : i32) -> f32 {
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+      fn mm_readB(batchIn: i32, row : i32, col : i32) -> f32 {
+        ${this.batchBEqualOne ? `
+          let batch = 0;
+          let batchBSize = 0;
+          ` : `
+          let batch = batchIn;
+          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+          `}
         ${sampleB}
       }
 
@@ -13139,7 +13178,9 @@ var MatMulSmallOutputSizeProgram = class {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulSmallOutputSize_${this.activation}`;
+    this.batchAEqualOne = aShape[0] === 0;
+    this.batchBEqualOne = bShape[0] === 0;
+    this.shaderKey = `matMulSmallOutputSize_${this.activation}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
   getUserCode() {
     const sampleA = `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
@@ -13170,13 +13211,23 @@ var MatMulSmallOutputSizeProgram = class {
       ${activationSnippet}
 
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-        let batch = i32(globalId.z);
+        ${this.batchAEqualOne ? `
+          let batch = 0;
+          let batchASize = 0;
+          ` : `
+          let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+          let batch = i32(globalId.z);
+          `}
         ${sampleA}
       }
       fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        let batch = i32(globalId.z);
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+        ${this.batchBEqualOne ? `
+          let batch = 0;
+          let batchBSize = 0;
+          ` : `
+          let batch = i32(globalId.z);
+          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+          `}
         ${sampleB}
       }
       fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
@@ -13244,16 +13295,18 @@ function batchMatMulImpl({
   const b3d = reshape2({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
   const intermediates = [a3d, b3d];
   const batchDim = Math.max(batchDimA, batchDimB);
-  const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 && !transposeA && !transposeB && outerShapeB >= 32;
+  const batchAEqualOne = batchDimA === 1;
+  const batchBEqualOne = batchDimB === 1;
+  const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 && !transposeA && !transposeB;
   let program;
   if (outerShapeA * outerShapeB <= 32) {
-    program = new MatMulReduceProgram([batchDim, outerShapeA, outerShapeB], transposeA, transposeB, bias, activation, preluActivationWeights);
+    program = new MatMulReduceProgram([batchDim, outerShapeA, outerShapeB], batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation, preluActivationWeights);
   } else if (!transposeA && !transposeB && (outerShapeA <= 16 && (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB) || outerShapeB <= 16 && (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
     program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias, activation, preluActivationWeights);
   } else if (useVec4) {
-    program = new MatMulPackedVec4Program(a3dShape, [batchDim, outerShapeA, outerShapeB], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), bias, activation, preluActivationWeights);
+    program = new MatMulPackedVec4Program(a3dShape, [batchDim, outerShapeA, outerShapeB], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), batchAEqualOne, batchBEqualOne, bias, activation, preluActivationWeights);
   } else {
-    program = new MatMulPackedProgram(a3dShape, [batchDim, outerShapeA, outerShapeB], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), transposeA, transposeB, bias, activation, preluActivationWeights);
+    program = new MatMulPackedProgram(a3dShape, [batchDim, outerShapeA, outerShapeB], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation, preluActivationWeights);
   }
   const inputs = [a3d, b3d];
   if (bias) {
@@ -16045,8 +16098,8 @@ var Conv2DMMProgram = class {
     this.variableNames = ["x", "W"];
     this.uniforms = `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.outputShape = convInfo.outShape;
-    util_exports.assert(convInfo.dataFormat === "channelsLast", () => "TODO: NCHW is unimplemented");
-    this.dispatchLayout = { x: [3], y: [1, 2], z: [0] };
+    this.isChannelsLast = convInfo.dataFormat === "channelsLast";
+    this.dispatchLayout = this.isChannelsLast ? { x: [3], y: [1, 2], z: [0] } : { x: [1], y: [2, 3], z: [0] };
     this.workGroupSize = computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
     this.elementsPerThread = computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
@@ -16061,7 +16114,7 @@ var Conv2DMMProgram = class {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}_${this.fitA}_${this.fitB}`;
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}_${this.fitA}_${this.fitB}_${this.isChannelsLast}`;
   }
   getShapeFit() {
     const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
@@ -16070,8 +16123,8 @@ var Conv2DMMProgram = class {
     util_exports.assert(tileInner % this.workGroupSize[0] === 0 && tileInner % this.workGroupSize[1] === 0, () => "tileInner must be multiple of workgroupsize.x and workgroupsize.y");
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
-    const dimAOuter = this.outputShape[1] * this.outputShape[2];
-    const dimBOuter = this.outputShape[3];
+    const dimAOuter = this.convInfo.outHeight * this.convInfo.outWidth;
+    const dimBOuter = this.convInfo.outChannels;
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth * this.convInfo.inChannels;
     return [
       tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
@@ -16079,18 +16132,36 @@ var Conv2DMMProgram = class {
     ];
   }
   getUserCode() {
+    const coordASnippet = this.isChannelsLast ? `
+    let coord = vec4<i32>(batch, xRow, xCol, col % inChannels);
+    ` : `
+    let coord = vec4<i32>(batch, col % inChannels, xRow, xCol);
+    `;
+    const coordResSnippet = this.isChannelsLast ? `
+    let outCoord = vec4<i32>(
+      batch,
+      row / outWidth,
+      row % outWidth,
+      col);
+    ` : `
+    let outCoord = vec4<i32>(
+      batch,
+      col,
+      row / outWidth,
+      row % outWidth);
+    `;
     const matMulSource = makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize);
     const readASnippet = `
-    let outRow = row / uniforms.outShape[2];
-    let outCol = row % uniforms.outShape[2];
+    let inChannels = uniforms.wShape[2];
+    let outWidth = ${this.isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
+    let outRow = row / outWidth;
+    let outCol = row % outWidth;
 
-    let WRow = col / (uniforms.filterDims[1] * uniforms.xShape[3]);
-    let WCol = col / uniforms.xShape[3] % uniforms.filterDims[1];
-    let coord = vec4<i32>(
-        batch,
-        outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
-        outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
-        col % uniforms.xShape[3]);
+    let WRow = col / (uniforms.filterDims[1] * inChannels);
+    let WCol = col / inChannels % uniforms.filterDims[1];
+    let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
+    let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
+    ${coordASnippet}
     // The bounds checking is always needed since we use it to pad zero for the
     // 'same' padding type.
     if(coordsInBounds4D(coord, uniforms.xShape)) {
@@ -16139,11 +16210,8 @@ var Conv2DMMProgram = class {
     fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
       var batch = i32(globalId.z);
       var value = valueInput;
-      let outCoord = vec4<i32>(
-          batch,
-          row / uniforms.outShape[2],
-          row % uniforms.outShape[2],
-          col);
+      let outWidth = ${this.isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
+      ${coordResSnippet}
       ${addBiasSnippet}
       ${applyActivationSnippet}
       result[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
@@ -16311,11 +16379,10 @@ function conv2dByMatMul({
   leakyreluAlpha = 0,
   activation = null
 }) {
-  const xShape = x.shape;
   const isChannelsLast = convInfo.dataFormat === "channelsLast";
-  const transposeA = false;
+  const transposeA = isChannelsLast ? false : true;
   const transposeB = false;
-  const sameSize = convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
+  const sameSize = isChannelsLast && convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
   let xReshaped;
   let filterReshaped;
   if (sameSize) {
@@ -16331,11 +16398,20 @@ function conv2dByMatMul({
       attrs: { shape: [1, sharedDim, convInfo.outChannels] }
     });
   } else {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] : xShape[0] * xShape[2] * xShape[3];
     xReshaped = reshape2({
       inputs: { x },
       backend,
-      attrs: { shape: [1, targetShape, convInfo.inChannels] }
+      attrs: {
+        shape: isChannelsLast ? [
+          convInfo.batchSize,
+          convInfo.inHeight * convInfo.inWidth,
+          convInfo.inChannels
+        ] : [
+          convInfo.batchSize,
+          convInfo.inChannels,
+          convInfo.inHeight * convInfo.inWidth
+        ]
+      }
     });
     filterReshaped = reshape2({
       inputs: { x: filter },
@@ -16344,8 +16420,8 @@ function conv2dByMatMul({
     });
   }
   const result = batchMatMulImpl({
-    a: xReshaped,
-    b: filterReshaped,
+    a: isChannelsLast ? xReshaped : filterReshaped,
+    b: isChannelsLast ? filterReshaped : xReshaped,
     transposeA,
     transposeB,
     backend,
@@ -16412,7 +16488,7 @@ function conv2dWithIm2Col({
   intermediates.push(im2Col);
   intermediates.push(im2Col3D);
   const a3dShape = [1, x2ColShape[0], x2ColShape[1]];
-  const matMulProgram = new MatMulPackedProgram(a3dShape, [1, numCols, convInfo.outChannels], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), transposeA, transposeB, bias, activation, preluActivationWeights);
+  const matMulProgram = new MatMulPackedProgram(a3dShape, [1, numCols, convInfo.outChannels], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), true, true, transposeA, transposeB, bias, activation, preluActivationWeights);
   const dimAOuter = a3dShape[1];
   const dimInner = a3dShape[2];
   const dimBOuter = convInfo.outChannels;
@@ -16453,8 +16529,9 @@ function conv2DImpl({
 }) {
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
+  const isChannelsLast = convInfo.dataFormat === "channelsLast";
   let program;
-  const sameSize = convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
+  const sameSize = isChannelsLast && convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
   if (sameSize || convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID")) {
     return conv2dByMatMul({
       x,
@@ -16468,6 +16545,7 @@ function conv2DImpl({
     });
   }
   if (env().getBool("WEBGPU_CONV_SEPARATE_IM2COL_SHADER") && x.shape[0] === 1) {
+    util_exports.assert(isChannelsLast, () => "TODO: NCHW is unimplemented");
     return conv2dWithIm2Col({
       x,
       filter,
@@ -16480,7 +16558,7 @@ function conv2DImpl({
     });
   }
   const useNaive = env().getBool("WEBGPU_USE_NAIVE_CONV2D");
-  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels === 3 && convInfo.padInfo.type === "VALID") && convInfo.outChannels % 4 === 0;
+  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels === 3 && convInfo.padInfo.type === "VALID") && convInfo.outChannels % 4 === 0 && isChannelsLast;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     { type: "int32", data: [convInfo.filterHeight, convInfo.filterWidth] },
@@ -16489,6 +16567,7 @@ function conv2DImpl({
     { type: "int32", data: [convInfo.dilationHeight, convInfo.dilationWidth] }
   ];
   if (useNaive) {
+    util_exports.assert(isChannelsLast, () => "TODO: NCHW is unimplemented");
     program = new Conv2DNaiveProgram(convInfo, hasBias, activation, hasPreluActivationWeights);
   } else {
     if (useVec4) {
@@ -16496,9 +16575,9 @@ function conv2DImpl({
     } else {
       program = new Conv2DMMProgram(convInfo, hasBias, activation, hasPreluActivationWeights);
     }
-    const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
-    const dimBOuter = convInfo.outShape[3];
-    const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
+    const dimAOuter = convInfo.outHeight * convInfo.outWidth;
+    const dimBOuter = convInfo.outChannels;
+    const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
     dimensions.push({ type: "int32", data: [dimAOuter] }, { type: "int32", data: [dimBOuter] }, { type: "int32", data: [dimInner] });
   }
   const inputVar = [x, filter];
@@ -17737,71 +17816,38 @@ var floorDivConfig = {
   kernelFunc: floorDiv2
 };
 
-// src/tfjs-backend-webgpu/src/webgpu_program.ts
-var makeBindGroup = (device, bindGroupLayout, inputs, output, uniforms) => {
-  const bindings = [output, ...inputs];
-  if (uniforms) {
-    bindings.push(uniforms);
+// src/tfjs-backend-webgpu/src/from_pixels_webgpu.ts
+var FromPixelsProgram = class {
+  constructor(outputShape, useImport = false) {
+    this.outputShape = [0];
+    this.variableNames = [];
+    this.workGroupSize = [256, 1, 1];
+    this.outputShape = outputShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.useImport = useImport;
+    this.shaderKey = `fromPixels_${this.useImport}`;
   }
-  return device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: bindings.map((b, i) => ({ binding: i, resource: b }))
-  });
-};
-var compileProgram = (device, program, pipelineLayout, inputsData, output, isFromPixel = false) => {
-  const outputData = { dtype: output.dtype, shape: output.shape };
-  const source = makeShader(inputsData, outputData, program, isFromPixel);
-  const module = device.createShaderModule({ code: source, label: program.constructor.name });
-  const pipeline = device.createComputePipeline({
-    layout: pipelineLayout,
-    compute: { module, entryPoint: "main" },
-    label: program.constructor.name
-  });
-  return pipeline;
-};
-function makeShaderKey(program, shapes, types, broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
-  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape;
-  return key;
-}
+  getUserCode() {
+    const textureLoad = this.useImport ? "textureLoad(src, vec2<i32>(coords.yx));" : "textureLoad(src, vec2<i32>(coords.yx), 0)";
+    const textureType = this.useImport ? "texture_external" : "texture_2d<f32>";
+    return `
+      @binding(1) @group(0) var src: ${textureType};
 
-// src/tfjs-backend-webgpu/src/FromPixelsExternalImage.ts
-function fromPixelsExternalImage(args) {
-  const { externalImage, backend, attrs, outShape, useImport } = args;
-  const { numChannels } = attrs;
-  const size = util_exports.sizeFromShape(outShape);
-  const strides = util_exports.computeStrides(outShape);
-  const output = backend.makeTensorInfo(outShape, "int32");
-  const program = backend.getFromPixelsProgram(useImport ? "import" : "copyExternal");
-  program.updateOutputShape(outShape);
-  const outputShapes = [output.shape];
-  const outputTypes = [output.dtype, useImport ? "import" : "copyExternal"];
-  const key = makeShaderKey(program, outputShapes, outputTypes);
-  const layout = program.getLayout(backend.device);
-  const pipeline = backend.getAndSavePipeline(key, () => {
-    return compileProgram(backend.device, program, layout.pipelineLayout, [], output, true);
-  });
-  program.setPipeline(pipeline);
-  if (!useImport) {
-    backend.queue.copyExternalImageToTexture({ source: externalImage, origin: { x: 0, y: 0 } }, {
-      texture: program.makeInputTexture(backend.device, outShape[1], outShape[0])
-    }, [outShape[1], outShape[0]]);
+      ${getMainHeaderAndGlobalIndexString()}
+        let flatIndexBase = index * uniforms.numChannels;
+        for (var i = 0; i < uniforms.numChannels; i = i + 1) {
+          let flatIndex = flatIndexBase + i;
+          if (flatIndex < uniforms.size) {
+            let coords = getCoordsFromIndex(flatIndexBase);
+            let values = ${textureLoad};
+            result[flatIndex] = i32(floor(255.0 * values[i]));
+          }
+        }
+      }
+  `;
   }
-  const info = backend.tensorMap.get(output.dataId);
-  info.bufferInfo.buffer = backend.acquireBuffer(info.bufferInfo.byteSize);
-  const uniformData = [size, numChannels, ...strides, ...program.dispatch];
-  program.setUniform(backend.device, uniformData);
-  let externalResource;
-  if (useImport) {
-    const externalTextureDescriptor = {
-      source: externalImage
-    };
-    externalResource = backend.device.importExternalTexture(externalTextureDescriptor);
-  } else {
-    externalResource = program.inputTexture.createView();
-  }
-  backend.runFromPixelsProgram(program, info.bufferInfo.buffer, layout, externalResource, output.dataId);
-  return output;
-}
+};
 
 // src/tfjs-backend-webgpu/src/kernels/FromPixels.ts
 var fromPixelsConfig = {
@@ -17872,6 +17918,21 @@ function fromPixels2(args) {
   info.values = new Int32Array(pixelArray);
   backend.maybeReleaseBuffer(output.dataId);
   backend.uploadToGPU(output.dataId);
+  return output;
+}
+function fromPixelsExternalImage(args) {
+  const { externalImage, backend, attrs, outShape, useImport } = args;
+  const { numChannels } = attrs;
+  const size = util_exports.sizeFromShape(outShape);
+  const strides = util_exports.computeStrides(outShape);
+  const program = new FromPixelsProgram(outShape, useImport);
+  const uniformData = [
+    { type: "uint32", data: [size] },
+    { type: "uint32", data: [numChannels] },
+    { type: "uint32", data: [...strides] },
+    { type: "uint32", data: [...program.dispatch] }
+  ];
+  const output = backend.runFromPixelsProgram(program, outShape, uniformData, useImport, externalImage);
   return output;
 }
 
@@ -20296,156 +20357,127 @@ function getBufferKey(byteSize, usage) {
   return `${byteSize}_${usage}`;
 }
 
-// src/tfjs-backend-webgpu/src/kernels/FromPixels_utils/from_pixels_webgpu.ts
-var FromPixelsProgram = class {
-  constructor() {
-    this.outputShape = [0];
-    this.variableNames = [];
-    this.workGroupSize = [256, 1, 1];
-    this.lastUniformData = [];
-    this.inputTexture = null;
-    this.layout = null;
-    this.lastPixelSize = { width: 0, height: 0 };
-    this.disposed = false;
-    this.shaderKey = "fromPixels";
-    this.useImport = false;
+// src/tfjs-backend-webgpu/src/texture_manager.ts
+var TextureManager = class {
+  constructor(device) {
+    this.device = device;
+    this.numUsedTextures = 0;
+    this.numFreeTextures = 0;
+    this.freeTextures = /* @__PURE__ */ new Map();
+    this.usedTextures = /* @__PURE__ */ new Map();
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
-  updateOutputShape(outputShape) {
-    if (util_exports.arraysEqual(this.outputShape, outputShape)) {
+  acquireTexture(width, height, format, usage) {
+    const bytesPerElement2 = getBytesPerElement(format);
+    const byteSize = width * height * bytesPerElement2;
+    const key = getTextureKey(width, height, format, usage);
+    if (!this.freeTextures.has(key)) {
+      this.freeTextures.set(key, []);
+    }
+    if (!this.usedTextures.has(key)) {
+      this.usedTextures.set(key, []);
+    }
+    this.numBytesUsed += byteSize;
+    this.numUsedTextures++;
+    if (this.freeTextures.get(key).length > 0) {
+      this.numFreeTextures--;
+      const newTexture2 = this.freeTextures.get(key).shift();
+      this.usedTextures.get(key).push(newTexture2);
+      return newTexture2;
+    }
+    this.numBytesAllocated += byteSize;
+    const newTexture = this.device.createTexture({
+      size: [width, height],
+      format,
+      usage
+    });
+    this.usedTextures.get(key).push(newTexture);
+    return newTexture;
+  }
+  releaseTexture(texture, width, height, format, usage) {
+    if (this.freeTextures.size === 0) {
       return;
     }
-    this.outputShape = outputShape;
-    this.workPerThread = outputShape[2];
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, [this.workPerThread, 1, 1]);
-  }
-  makeFromPixelsSource() {
-    const textureLoad = this.useImport ? "textureLoad(src, vec2<i32>(coords.yx));" : "textureLoad(src, vec2<i32>(coords.yx), 0)";
-    const textureType = this.useImport ? "texture_external" : "texture_2d<f32>";
-    return `
-      @binding(1) @group(0) var src: ${textureType};
-
-      ${getMainHeaderAndGlobalIndexString()}
-        let flatIndexBase = index * uniforms.numChannels;
-        for (var i = 0; i < uniforms.numChannels; i = i + 1) {
-          let flatIndex = flatIndexBase + i;
-          if (flatIndex < uniforms.size) {
-            let coords = getCoordsFromIndex(flatIndexBase);
-            let values = ${textureLoad};
-            result[flatIndex] = i32(floor(255.0 * values[i]));
-          }
-        }
-      }
-  `;
-  }
-  getUserCode() {
-    return this.makeFromPixelsSource();
-  }
-  setPipeline(pipeline) {
-    this.pipeline = pipeline;
-  }
-  setUniform(device, uniformData) {
-    if (!this.uniform) {
-      const uniformBuffer = device.createBuffer({
-        size: uniformData.length * 4,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-      });
-      this.uniform = uniformBuffer;
+    const key = getTextureKey(width, height, format, usage);
+    if (!this.freeTextures.has(key)) {
+      this.freeTextures.set(key, []);
     }
-    if (!uniformData || uniformData.length === this.lastUniformData.length && uniformData.every((v, i) => v === this.lastUniformData[i])) {
-      return;
+    this.freeTextures.get(key).push(texture);
+    this.numFreeTextures++;
+    this.numUsedTextures--;
+    const textureList = this.usedTextures.get(key);
+    const textureIndex = textureList.indexOf(texture);
+    if (textureIndex < 0) {
+      throw new Error("Cannot release a texture that was never provided by this texture manager");
     }
-    device.queue.writeBuffer(this.uniform, 0, new Uint32Array(uniformData));
-    this.lastUniformData = uniformData;
+    textureList.splice(textureIndex, 1);
+    const bytesPerElement2 = getBytesPerElement(format);
+    const byteSize = width * height * bytesPerElement2;
+    this.numBytesUsed -= byteSize;
   }
-  makeInputTexture(device, pixelWidth, pixelHeight) {
-    if (!this.inputTexture || this.lastPixelSize.width !== pixelWidth || this.lastPixelSize.height !== pixelHeight) {
-      if (this.inputTexture) {
-        this.inputTexture.destroy();
-      }
-      this.inputTexture = device.createTexture({
-        size: [pixelWidth, pixelHeight],
-        format: "rgba8unorm",
-        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
-      });
-      this.lastPixelSize.width = pixelWidth;
-      this.lastPixelSize.height = pixelHeight;
-    }
-    return this.inputTexture;
+  getNumUsedTextures() {
+    return this.numUsedTextures;
+  }
+  getNumFreeTextures() {
+    return this.numFreeTextures;
   }
   dispose() {
-    if (this.disposed) {
-      return;
-    }
-    if (this.uniform) {
-      this.uniform.destroy();
-    }
-    if (this.inputTexture) {
-      this.inputTexture.destroy();
-    }
-    this.disposed = true;
-  }
-  getLayout(device) {
-    if (this.layout === null) {
-      this.layout = this.createTextureLayout(device);
-    }
-    return this.layout;
-  }
-  createTextureLayout(device) {
-    const bindGroupLayoutEntries = [];
-    bindGroupLayoutEntries.push({
-      binding: 0,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: { type: "storage" }
+    this.freeTextures.forEach((textures, key) => {
+      textures.forEach((texture) => {
+        texture.destroy();
+      });
     });
-    bindGroupLayoutEntries.push({ binding: 1, visibility: GPUShaderStage.COMPUTE, texture: {} });
-    bindGroupLayoutEntries.push({ binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {} });
-    const fromPixelBindGroupLayout = device.createBindGroupLayout({ entries: bindGroupLayoutEntries });
-    const fromPixelPipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [fromPixelBindGroupLayout] });
-    return {
-      bindGroupLayout: fromPixelBindGroupLayout,
-      pipelineLayout: fromPixelPipelineLayout
-    };
+    this.usedTextures.forEach((textures, key) => {
+      textures.forEach((texture) => {
+        texture.destroy();
+      });
+    });
+    this.freeTextures = /* @__PURE__ */ new Map();
+    this.usedTextures = /* @__PURE__ */ new Map();
+    this.numUsedTextures = 0;
+    this.numFreeTextures = 0;
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
 };
+function getTextureKey(width, height, format, usage) {
+  return `${width}_${height}_${format}_${usage}`;
+}
+function getBytesPerElement(format) {
+  if (format === "rgba8unorm") {
+    return 16;
+  } else {
+    throw new Error(`${format} is not supported!`);
+  }
+}
 
-// src/tfjs-backend-webgpu/src/kernels/FromPixels_utils/from_pixels_import_webgpu.ts
-var FromPixelsImportProgram = class extends FromPixelsProgram {
-  constructor() {
-    super(...arguments);
-    this.layout = null;
-    this.useImport = true;
+// src/tfjs-backend-webgpu/src/webgpu_program.ts
+var makeBindGroup = (device, bindGroupLayout, inputs, output, uniforms) => {
+  const bindings = [output, ...inputs];
+  if (uniforms) {
+    bindings.push(uniforms);
   }
-  getUserCode() {
-    return this.makeFromPixelsSource();
-  }
-  getLayout(device) {
-    if (this.layout === null) {
-      this.layout = this.createTextureImportLayout(device);
-    }
-    return this.layout;
-  }
-  createTextureImportLayout(device) {
-    const bindGroupLayoutEntries = [];
-    bindGroupLayoutEntries.push({
-      binding: 0,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: { type: "storage" }
-    });
-    bindGroupLayoutEntries.push({
-      binding: 1,
-      visibility: GPUShaderStage.COMPUTE,
-      externalTexture: {}
-    });
-    bindGroupLayoutEntries.push({ binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {} });
-    const fromPixelImportBindGroupLayout = device.createBindGroupLayout({ entries: bindGroupLayoutEntries });
-    const fromPixelImportPipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [fromPixelImportBindGroupLayout] });
-    return {
-      bindGroupLayout: fromPixelImportBindGroupLayout,
-      pipelineLayout: fromPixelImportPipelineLayout
-    };
-  }
+  return device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: bindings.map((b, i) => ({ binding: i, resource: b }))
+  });
 };
+var compileProgram = (device, program, pipelineLayout, inputsData, output, isFromPixel = false) => {
+  const outputData = { dtype: output.dtype, shape: output.shape };
+  const source = makeShader(inputsData, outputData, program, isFromPixel);
+  const module = device.createShaderModule({ code: source, label: program.constructor.name });
+  const pipeline = device.createComputePipeline({
+    layout: pipelineLayout,
+    compute: { module, entryPoint: "main" },
+    label: program.constructor.name
+  });
+  return pipeline;
+};
+function makeShaderKey(program, shapes, types = [], broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
+  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape;
+  return key;
+}
 
 // src/tfjs-backend-webgpu/src/backend_webgpu.ts
 var CPU_HANDOFF_SIZE_THRESHOLD = env().getNumber("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD");
@@ -20473,10 +20505,13 @@ var _WebGPUBackend = class extends KernelBackend {
     this.tensorDisposalQueue = [];
     this.uniformDisposalQueue = [];
     this.stagingDisposalQueue = [];
+    this.textureDisposalQueue = [];
     this.disposed = false;
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     this.dispatchNumberInEncoder = 0;
+    this.fromPixelTextureLayout = null;
+    this.fromPixelImportTextureLayout = null;
     if (!isWebGPUSupported()) {
       throw new Error("WebGPU is not supported on this device");
     }
@@ -20488,6 +20523,7 @@ var _WebGPUBackend = class extends KernelBackend {
     this.currentComputePass = null;
     this.supportTimeQuery = supportTimeQuery;
     this.bufferManager = new BufferManager(this.device);
+    this.textureManager = new TextureManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
     if (this.supportTimeQuery) {
       this.querySet = this.device.createQuerySet({
@@ -20523,9 +20559,11 @@ var _WebGPUBackend = class extends KernelBackend {
     });
     this.uniformDisposalQueue.forEach((d) => this.bufferManager.releaseBuffer(d.buffer, d.byteSize, d.usage));
     this.stagingDisposalQueue.forEach((d) => this.bufferManager.releaseUploadBuffer(d.buffer, d.byteSize, d.usage));
+    this.textureDisposalQueue.forEach((d) => this.textureManager.releaseTexture(d.texture, d.width, d.height, d.format, d.usage));
     this.tensorDisposalQueue = [];
     this.uniformDisposalQueue = [];
     this.stagingDisposalQueue = [];
+    this.textureDisposalQueue = [];
   }
   disposeData(dataId, force = false) {
     if (this.tensorMap.has(dataId)) {
@@ -20558,6 +20596,9 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   getBufferManager() {
     return this.bufferManager;
+  }
+  getTextureManager() {
+    return this.textureManager;
   }
   acquireBuffer(byteSize, usage = this.defaultGpuBufferUsage()) {
     return this.bufferManager.acquireBuffer(byteSize, usage);
@@ -20623,25 +20664,6 @@ var _WebGPUBackend = class extends KernelBackend {
   getBuffer(dataId) {
     this.uploadToGPU(dataId);
     return this.tensorMap.get(dataId).bufferInfo.buffer;
-  }
-  getFromPixelsProgram(type) {
-    switch (type) {
-      case "copyExternal": {
-        if (!this.fromPixelProgram) {
-          this.fromPixelProgram = new FromPixelsProgram();
-        }
-        return this.fromPixelProgram;
-      }
-      case "import": {
-        if (!this.fromPixelImportProgram) {
-          this.fromPixelImportProgram = new FromPixelsImportProgram();
-        }
-        return this.fromPixelImportProgram;
-      }
-      default:
-        util_exports.assert(false, () => `Unsupported fromPixels shape`);
-        return void 0;
-    }
   }
   ensureCommandEncoderReady() {
     if (!this.currentCommandEncoder) {
@@ -20864,6 +20886,12 @@ var _WebGPUBackend = class extends KernelBackend {
     });
     const uniformBuffer = this.acquireBuffer(currentOffset, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(uniformBuffer, 0, arrayBuffer, 0, currentOffset);
+    const uniformInfo = {
+      byteSize: currentOffset,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+      buffer: uniformBuffer
+    };
+    this.uniformDisposalQueue.push(uniformInfo);
     return { offset: 0, size: currentOffset, buffer: uniformBuffer };
   }
   createLayout(inputEntrySize) {
@@ -20964,12 +20992,6 @@ var _WebGPUBackend = class extends KernelBackend {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
-    const uniformInfo = {
-      byteSize: uniforms.size,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-      buffer: uniforms.buffer
-    };
-    this.uniformDisposalQueue.push(uniformInfo);
     if (env().get("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE") <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
@@ -20981,15 +21003,90 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     return output;
   }
-  runFromPixelsProgram(program, output, layout, externalResource, outputId) {
+  getFromPixelTextureLayout(useImport) {
+    if (useImport) {
+      if (this.fromPixelImportTextureLayout === null) {
+        this.fromPixelImportTextureLayout = this.createFromPixelTextureLayout(true);
+      }
+      return this.fromPixelImportTextureLayout;
+    }
+    if (this.fromPixelTextureLayout === null) {
+      this.fromPixelTextureLayout = this.createFromPixelTextureLayout(false);
+    }
+    return this.fromPixelTextureLayout;
+  }
+  createFromPixelTextureLayout(useImport) {
+    const bindGroupLayoutEntries = [];
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: { type: "storage" }
+    });
+    if (useImport) {
+      bindGroupLayoutEntries.push({
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        externalTexture: {}
+      });
+    } else {
+      bindGroupLayoutEntries.push({ binding: 1, visibility: GPUShaderStage.COMPUTE, texture: {} });
+    }
+    bindGroupLayoutEntries.push({ binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {} });
+    const fromPixelBindGroupLayout = this.device.createBindGroupLayout({ entries: bindGroupLayoutEntries });
+    const fromPixelPipelineLayout = this.device.createPipelineLayout({ bindGroupLayouts: [fromPixelBindGroupLayout] });
+    return {
+      bindGroupLayout: fromPixelBindGroupLayout,
+      pipelineLayout: fromPixelPipelineLayout
+    };
+  }
+  copyExternalImageToTexture(externalImage, outShape) {
+    const textureUsage = GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
+    const textureFormat = "rgba8unorm";
+    const texture = this.textureManager.acquireTexture(outShape[1], outShape[0], textureFormat, textureUsage);
+    const externalResource = texture.createView();
+    this.queue.copyExternalImageToTexture({ source: externalImage }, { texture }, [outShape[1], outShape[0]]);
+    const textureInfo = {
+      width: outShape[1],
+      height: outShape[0],
+      format: textureFormat,
+      usage: textureUsage,
+      texture
+    };
+    this.textureDisposalQueue.push(textureInfo);
+    return externalResource;
+  }
+  runFromPixelsProgram(program, outShape, programUniforms, useImport, externalImage) {
     program.dispatch = reshapeDispatch(this.device, program);
+    const output = this.makeTensorInfo(outShape, "int32");
+    if (util_exports.sizeFromShape(output.shape) === 0) {
+      const outData = this.tensorMap.get(output.dataId);
+      outData.values = util_exports.getTypedArrayFromDType(output.dtype, 0);
+      return output;
+    }
+    this.uploadToGPU(output.dataId);
+    const key = makeShaderKey(program, [output.shape]);
+    const layout = this.getFromPixelTextureLayout(useImport);
+    const pipeline = this.getAndSavePipeline(key, () => {
+      return compileProgram(this.device, program, layout.pipelineLayout, [], output, true);
+    });
+    let externalResource;
+    if (useImport) {
+      const externalTextureDescriptor = {
+        source: externalImage
+      };
+      externalResource = this.device.importExternalTexture(externalTextureDescriptor);
+    } else {
+      externalResource = this.copyExternalImageToTexture(externalImage, output.shape);
+    }
+    const binding = this.tensorToBinding(output);
+    const uniforms = this.makeUniforms(programUniforms);
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
       entries: [
         {
           binding: 0,
           resource: {
-            buffer: output
+            buffer: binding.buffer
           }
         },
         {
@@ -20999,7 +21096,7 @@ var _WebGPUBackend = class extends KernelBackend {
         {
           binding: 2,
           resource: {
-            buffer: program.uniform
+            buffer: uniforms.buffer
           }
         }
       ]
@@ -21012,7 +21109,7 @@ var _WebGPUBackend = class extends KernelBackend {
         pass.writeTimestamp(this.querySet, 0);
       }
     }
-    pass.setPipeline(program.pipeline);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
     pass.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
@@ -21020,14 +21117,18 @@ var _WebGPUBackend = class extends KernelBackend {
         pass.writeTimestamp(this.querySet, 1);
       }
     }
-    this.commandQueueOwnedIds.add(outputId);
-    this.submitQueue();
+    this.commandQueueOwnedIds.add(output.dataId);
+    this.dispatchNumberInEncoder++;
+    if (env().get("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE") <= this.dispatchNumberInEncoder) {
+      this.submitQueue();
+    }
     if (shouldTimeProgram) {
       this.activeTimers.push({
         name: program.constructor.name,
         query: this.getQueryTime(this.querySet)
       });
     }
+    return output;
   }
   async getTimeFromQuerySet(querySet) {
     const queryBuffer = this.acquireBuffer(16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
@@ -21056,12 +21157,7 @@ var _WebGPUBackend = class extends KernelBackend {
       return;
     }
     this.bufferManager.dispose();
-    if (this.fromPixelProgram) {
-      this.fromPixelProgram.dispose();
-    }
-    if (this.fromPixelImportProgram) {
-      this.fromPixelImportProgram.dispose();
-    }
+    this.textureManager.dispose();
     this.disposed = true;
   }
 };

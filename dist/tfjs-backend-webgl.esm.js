@@ -21731,14 +21731,16 @@ var cropAndResizeConfig = {
   kernelFunc: cropAndResize2
 };
 
-// src/tfjs-backend-webgl/src/cumprod_gpu.ts
-var CumProdProgram = class {
-  constructor(shape, exclusive, reverse3) {
+// src/tfjs-backend-webgl/src/cum_gpu.ts
+var CumProgram = class {
+  constructor(op2, shape, exclusive, reverse3) {
     this.variableNames = ["x"];
     this.customUniforms = [{ name: "index", type: "float" }];
+    this.op = op2;
     this.outputShape = shape;
     const rank = shape.length;
-    const val = exclusive ? "1.0" : `getX(${getCoords2(rank, "coords")})`;
+    const initVal = this.op === "*" /* Prod */ ? "1.0" : "0.0";
+    const val = exclusive ? initVal : `getX(${getCoords2(rank, "coords", this.op)})`;
     const length = shape[shape.length - 1];
     let condition = "";
     let idxString = "";
@@ -21752,20 +21754,20 @@ var CumProdProgram = class {
     this.userCode = `
       void main() {
         ${getCoordsDataType(rank)} coords = getOutputCoords();
-        int end = ${getFinalCoord(rank, "coords")};
+        int end = ${getFinalCoord(rank, "coords", this.op)};
         float val = ${val};
         int pow2 = int(pow(2.0, index));
         if (${condition}) {
           int idx = ${idxString};
-          ${getFinalCoord(rank, "coords")} = idx;
-          val *= getX(${getCoords2(rank, "coords")});
+          ${getFinalCoord(rank, "coords", this.op)} = idx;
+          val ${this.op}= getX(${getCoords2(rank, "coords", this.op)});
         }
         setOutput(val);
       }
     `;
   }
 };
-function getCoords2(rank, name) {
+function getCoords2(rank, name, op2) {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
@@ -21775,10 +21777,10 @@ function getCoords2(rank, name) {
   } else if (rank === 4) {
     return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
   } else {
-    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
   }
 }
-function getFinalCoord(rank, name) {
+function getFinalCoord(rank, name, op2) {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
@@ -21788,15 +21790,12 @@ function getFinalCoord(rank, name) {
   } else if (rank === 4) {
     return `${name}.w`;
   } else {
-    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
   }
 }
 
-// src/tfjs-backend-webgl/src/kernels/Cumprod.ts
-function cumprod2(args) {
-  const { inputs, backend, attrs } = args;
-  const { x } = inputs;
-  const { axis, exclusive, reverse: reverse3 } = attrs;
+// src/tfjs-backend-webgl/src/kernels/Cum_impl.ts
+function cumImpl(op2, x, backend, axis, exclusive, reverse3) {
   const xRank = x.shape.length;
   const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
   let permutedX = x;
@@ -21810,14 +21809,14 @@ function cumprod2(args) {
   const size = permutedX.shape[permutedAxis];
   let result = identity2({ inputs: { x: permutedX }, backend });
   for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
-    const program = new CumProdProgram(permutedX.shape, false, reverse3);
+    const program = new CumProgram(op2, permutedX.shape, false, reverse3);
     const customValues = [[i]];
     const prevResult = result;
     result = backend.runWebGLProgram(program, [result], result.dtype, customValues);
     backend.disposeIntermediateTensorInfo(prevResult);
   }
   if (exclusive) {
-    const program = new CumProdProgram(permutedX.shape, exclusive, reverse3);
+    const program = new CumProgram(op2, permutedX.shape, exclusive, reverse3);
     const prevResult = result;
     result = backend.runWebGLProgram(program, [result], result.dtype);
     backend.disposeIntermediateTensorInfo(prevResult);
@@ -21830,6 +21829,14 @@ function cumprod2(args) {
     return reverseTransposedResult;
   }
   return result;
+}
+
+// src/tfjs-backend-webgl/src/kernels/Cumprod.ts
+function cumprod2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { axis, exclusive, reverse: reverse3 } = attrs;
+  return cumImpl("*" /* Prod */, x, backend, axis, exclusive, reverse3);
 }
 var cumprodConfig = {
   kernelName: Cumprod,
@@ -21837,105 +21844,12 @@ var cumprodConfig = {
   kernelFunc: cumprod2
 };
 
-// src/tfjs-backend-webgl/src/cumsum_gpu.ts
-var CumSumProgram = class {
-  constructor(shape, exclusive, reverse3) {
-    this.variableNames = ["x"];
-    this.customUniforms = [{ name: "index", type: "float" }];
-    this.outputShape = shape;
-    const rank = shape.length;
-    const val = exclusive ? "0.0" : `getX(${getCoords3(rank, "coords")})`;
-    const length = shape[shape.length - 1];
-    let condition = "";
-    let idxString = "";
-    if (exclusive) {
-      condition = reverse3 ? `end != ${length - 1}` : "end != 0";
-      idxString = reverse3 ? "end + 1" : "end - 1";
-    } else {
-      condition = reverse3 ? `end + pow2 < ${length}` : "end >= pow2";
-      idxString = reverse3 ? "end + pow2" : "end - pow2";
-    }
-    this.userCode = `
-      void main() {
-        ${getCoordsDataType(rank)} coords = getOutputCoords();
-        int end = ${getFinalCoord2(rank, "coords")};
-        float val = ${val};
-        int pow2 = int(pow(2.0, index));
-        if (${condition}) {
-          int idx = ${idxString};
-          ${getFinalCoord2(rank, "coords")} = idx;
-          val += getX(${getCoords3(rank, "coords")});
-        }
-        setOutput(val);
-      }
-    `;
-  }
-};
-function getCoords3(rank, name) {
-  if (rank === 1) {
-    return `${name}`;
-  } else if (rank === 2) {
-    return `${name}.x, ${name}.y`;
-  } else if (rank === 3) {
-    return `${name}.x, ${name}.y, ${name}.z`;
-  } else if (rank === 4) {
-    return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
-  } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
-  }
-}
-function getFinalCoord2(rank, name) {
-  if (rank === 1) {
-    return `${name}`;
-  } else if (rank === 2) {
-    return `${name}.y`;
-  } else if (rank === 3) {
-    return `${name}.z`;
-  } else if (rank === 4) {
-    return `${name}.w`;
-  } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
-  }
-}
-
 // src/tfjs-backend-webgl/src/kernels/Cumsum.ts
 function cumsum2(args) {
   const { inputs, backend, attrs } = args;
   const { x } = inputs;
   const { axis, exclusive, reverse: reverse3 } = attrs;
-  const xRank = x.shape.length;
-  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
-  let permutedX = x;
-  if (permutation != null) {
-    permutedX = transpose3({ inputs: { x }, backend, attrs: { perm: permutation } });
-  }
-  const permutedAxis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
-  if (permutedAxis !== xRank - 1) {
-    throw new Error(`WebGL cumsum shader expects an inner-most axis=${x.shape.length - 1} but got axis=${axis}`);
-  }
-  const size = permutedX.shape[permutedAxis];
-  let result = identity2({ inputs: { x: permutedX }, backend });
-  for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
-    const program = new CumSumProgram(permutedX.shape, false, reverse3);
-    const customValues = [[i]];
-    const prevResult = result;
-    result = backend.runWebGLProgram(program, [result], result.dtype, customValues);
-    backend.disposeIntermediateTensorInfo(prevResult);
-  }
-  if (exclusive) {
-    const program = new CumSumProgram(permutedX.shape, exclusive, reverse3);
-    const prevResult = result;
-    result = backend.runWebGLProgram(program, [result], result.dtype);
-    backend.disposeIntermediateTensorInfo(prevResult);
-  }
-  if (permutation != null) {
-    const reversePermutation = backend_util_exports.getUndoAxesPermutation(permutation);
-    const reverseTransposedResult = transpose3({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
-    backend.disposeIntermediateTensorInfo(result);
-    backend.disposeIntermediateTensorInfo(permutedX);
-    return reverseTransposedResult;
-  }
-  return result;
+  return cumImpl("+" /* Sum */, x, backend, axis, exclusive, reverse3);
 }
 var cumsumConfig = {
   kernelName: Cumsum,
