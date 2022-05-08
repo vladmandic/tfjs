@@ -2332,6 +2332,7 @@ var Reverse = "Reverse";
 var Round = "Round";
 var Rsqrt = "Rsqrt";
 var ScatterNd = "ScatterNd";
+var SearchSorted = "SearchSorted";
 var Select = "Select";
 var Selu = "Selu";
 var Slice = "Slice";
@@ -3645,8 +3646,7 @@ var _Engine = class {
           if (outInfo.rank != null) {
             return outInfo;
           }
-          const { dataId, shape, dtype } = outInfo;
-          return this.makeTensorFromDataId(dataId, shape, dtype);
+          return this.makeTensorFromTensorInfo(outInfo);
         });
         if (isTapeOn) {
           const tensorsToSave = this.getTensorsForGradient(kernelName, inputs2, outTensors);
@@ -3746,8 +3746,8 @@ var _Engine = class {
     }
     return t;
   }
-  makeTensorFromDataId(dataId, shape, dtype, backend) {
-    dtype = dtype || "float32";
+  makeTensorFromTensorInfo(tensorInfo, backend) {
+    const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend);
     return t;
@@ -7695,6 +7695,36 @@ function logicalXor_(a, b) {
   return logicalAnd(logicalOr(a, b), logicalNot(logicalAnd(a, b)));
 }
 var logicalXor = op({ logicalXor_ });
+
+// src/tfjs-core/src/ops/search_sorted.ts
+var INT32_MAX = 2147483648;
+function searchSorted_(sortedSequence, values, side = "left") {
+  const $sortedSequence = convertToTensor(sortedSequence, "sortedSequence", "searchSorted");
+  const $values = convertToTensor(values, "values", "searchSorted");
+  const sequenceSize = $sortedSequence.shape[$sortedSequence.shape.length - 1];
+  const valuesSize = $values.shape[$values.shape.length - 1];
+  const $sortedSequence2D = reshape($sortedSequence, [-1, sequenceSize]);
+  const $values2D = reshape($values, [-1, valuesSize]);
+  if ($sortedSequence2D.rank < 2) {
+    throw new Error(`Sorted input argument must be at least 2-dimensional`);
+  }
+  if ($sortedSequence2D.shape[0] !== $values2D.shape[0]) {
+    throw new Error(`Leading dimension of 'sortedSequence' and 'values' must match.`);
+  }
+  if (sizeFromShape($values2D.shape) >= INT32_MAX) {
+    throw new Error(`values tensor size must less than ${INT32_MAX}`);
+  }
+  if ($sortedSequence2D.shape[1] >= INT32_MAX) {
+    throw new Error(`trailing dim_size must less than ${INT32_MAX} for int32 output type, was ${$sortedSequence2D.shape[1]}`);
+  }
+  const inputs = {
+    sortedSequence: $sortedSequence2D,
+    values: $values2D
+  };
+  const attrs = { side };
+  return ENGINE.runKernel(SearchSorted, inputs, attrs);
+}
+var searchSorted = op({ searchSorted_ });
 
 // src/tfjs-core/src/ops/max_pool.ts
 function maxPool_(x, filterSize, strides, pad2, dimRoundingMode) {
@@ -17183,7 +17213,7 @@ var _MathBackendWebGL = class extends KernelBackend {
       }
     }
     const tmpTarget = this.decode(dataId, options.customTexShape);
-    const tensorRef = engine().makeTensorFromDataId(tmpTarget.dataId, tmpTarget.shape, tmpTarget.dtype);
+    const tensorRef = engine().makeTensorFromTensorInfo(tmpTarget);
     const tmpData = this.texData.get(tmpTarget.dataId);
     return { tensorRef, ...tmpData.texture };
   }
@@ -17372,7 +17402,7 @@ var _MathBackendWebGL = class extends KernelBackend {
   packedUnaryOp(x, op2, dtype) {
     const program = new UnaryOpPackedProgram(x.shape, op2);
     const outInfo = this.compileAndRun(program, [x], dtype);
-    return engine().makeTensorFromDataId(outInfo.dataId, outInfo.shape, outInfo.dtype);
+    return engine().makeTensorFromTensorInfo(outInfo);
   }
   abs(x) {
     if (this.shouldExecuteOnCPU([x]) && x.dtype !== "complex64") {
@@ -17384,7 +17414,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     }
     const program = new UnaryOpProgram(x.shape, ABS);
     const outInfo = this.compileAndRun(program, [x]);
-    return engine().makeTensorFromDataId(outInfo.dataId, outInfo.shape, outInfo.dtype);
+    return engine().makeTensorFromTensorInfo(outInfo);
   }
   makeTensorInfo(shape, dtype, values) {
     let dataId;
@@ -17398,8 +17428,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     return { dataId, shape, dtype };
   }
   makeOutput(shape, dtype, values) {
-    const { dataId } = this.makeTensorInfo(shape, dtype, values);
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this);
+    return engine().makeTensorFromTensorInfo(this.makeTensorInfo(shape, dtype, values), this);
   }
   unpackTensor(input) {
     const program = new UnpackProgram(input.shape);
@@ -21075,6 +21104,25 @@ var Im2ColPackedProgram = class {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Conv2D_impl.ts
+function fitPreluActivationWeightsIntoNhwcFormat(alpha, outputShape, isChannelsLast, backend) {
+  const alphaShape = alpha.shape;
+  util_exports.assert(alphaShape.length <= 1 || alphaShape.length === 3, () => `WebGL conv2d only supports scalar, 1-D Tensor or 3-D Tensor PReLU activation weights but got a tensor of rank-${alphaShape.length}.`);
+  if (alphaShape.length === 1) {
+    const outputChannels = isChannelsLast ? outputShape[3] : outputShape[1];
+    util_exports.assert(alphaShape[0] === 1 || alphaShape[0] === outputChannels, () => `WebGL conv2d PReLU activation weights (${alphaShape}) is not compatible with the number of output channels (${outputChannels}).`);
+  } else if (alphaShape.length === 3) {
+    try {
+      broadcast_util_exports.assertAndGetBroadcastShape(alphaShape, outputShape);
+    } catch (e) {
+      const errMsg = `WebGL conv2d PReLU activation weights (${alphaShape}) is not compatible with the output shape of the conv2d (${outputShape}).`;
+      throw Error(errMsg);
+    }
+    if (!isChannelsLast) {
+      return transpose3({ inputs: { x: alpha }, backend, attrs: { perm: [1, 2, 0] } });
+    }
+  }
+  return alpha;
+}
 function conv2dByMatMul({
   x,
   filter,
@@ -21095,6 +21143,17 @@ function conv2dByMatMul({
   const transposeB = false;
   let out;
   const intermediates = [];
+  if (bias != null) {
+    util_exports.assert(bias.shape.length <= 1, () => `WebGL conv2dByMatMul only supports 1-D Tensor bias but got the bias of rank-${bias.shape.length}.`);
+    util_exports.assert(bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels, () => `WebGL conv2dByMatMul bias shape (${bias.shape}) is not compatible with the number of output channels (${convInfo.outChannels})`);
+  }
+  if (preluActivationWeights != null) {
+    const preluActivationWeightsInNhwcFormat = fitPreluActivationWeightsIntoNhwcFormat(preluActivationWeights, convInfo.outShape, isChannelsLast, backend);
+    if (preluActivationWeightsInNhwcFormat.dataId !== preluActivationWeights.dataId) {
+      intermediates.push(preluActivationWeightsInNhwcFormat);
+      preluActivationWeights = preluActivationWeightsInNhwcFormat;
+    }
+  }
   const batchMatMulWillBeUnpacked = (outerShapeX === 1 || outerShapeFilter === 1) && sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
   const canOptimize = !batchMatMulWillBeUnpacked && xTexData.isPacked && isChannelsLast && xTexData.texture != null && xShape[2] % 2 !== 0 && util_exports.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3));
   if (canOptimize) {
@@ -21133,9 +21192,11 @@ function conv2dByMatMul({
     out.shape = convInfo.outShape;
     intermediates.push(pointwiseConv);
   } else {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] : xShape[0] * xShape[2] * xShape[3];
+    const xInNhwcFormat = isChannelsLast ? x : transpose3({ inputs: { x }, backend, attrs: { perm: [0, 2, 3, 1] } });
+    const xInNhwcFormatShape = xInNhwcFormat.shape;
+    const targetShape = xInNhwcFormatShape[0] * xInNhwcFormatShape[1] * xInNhwcFormatShape[2];
     const xReshaped = reshape2({
-      inputs: { x },
+      inputs: { x: xInNhwcFormat },
       backend,
       attrs: { shape: [1, targetShape, convInfo.inChannels] }
     });
@@ -21155,7 +21216,22 @@ function conv2dByMatMul({
       preluActivationWeights,
       leakyreluAlpha
     });
-    out = reshape2({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
+    const outInNHWCFormatShape = [
+      convInfo.batchSize,
+      convInfo.outHeight,
+      convInfo.outWidth,
+      convInfo.outChannels
+    ];
+    const outInNHWCFormat = reshape2({ inputs: { x: result }, backend, attrs: { shape: outInNHWCFormatShape } });
+    out = isChannelsLast ? outInNHWCFormat : transpose3({
+      inputs: { x: outInNHWCFormat },
+      backend,
+      attrs: { perm: [0, 3, 1, 2] }
+    });
+    if (!isChannelsLast) {
+      intermediates.push(xInNhwcFormat);
+      intermediates.push(outInNHWCFormat);
+    }
     intermediates.push(xReshaped);
     intermediates.push(filterReshaped);
     intermediates.push(result);
@@ -21190,6 +21266,17 @@ function conv2dWithIm2Row({
   const transposeA = true;
   const transposeB = false;
   const intermediates = [];
+  if (bias != null) {
+    util_exports.assert(bias.shape.length <= 1, () => `WebGL conv2dWithIm2Row only supports 1-D Tensor bias but got the bias of rank-${bias.shape.length}.`);
+    util_exports.assert(bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels, () => `WebGL conv2dWithIm2Row bias shape (${bias.shape}) is not compatible with the number of output channels (${convInfo.outChannels})`);
+  }
+  if (preluActivationWeights != null) {
+    const preluActivationWeightsInNhwcFormat = fitPreluActivationWeightsIntoNhwcFormat(preluActivationWeights, convInfo.outShape, isChannelsLast, backend);
+    if (preluActivationWeightsInNhwcFormat.dataId !== preluActivationWeights.dataId) {
+      intermediates.push(preluActivationWeightsInNhwcFormat);
+      preluActivationWeights = preluActivationWeightsInNhwcFormat;
+    }
+  }
   const xSqueezed = reshape2({ inputs: { x }, backend, attrs: { shape: x.shape.slice(1) } });
   const w2Row = reshape2({
     inputs: { x: filter },
@@ -21234,8 +21321,12 @@ function conv2dWithIm2Row({
     intermediates.push($leakyreluAlpha);
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, "float32");
-  const outShape = isChannelsLast ? [1, outHeight, outWidth, convInfo.outChannels] : [1, convInfo.outChannels, outHeight, outWidth];
-  const out = reshape2({ inputs: { x: product }, backend, attrs: { shape: outShape } });
+  const outInNHWCFormatShape = [1, outHeight, outWidth, convInfo.outChannels];
+  const outInNHWCFormat = reshape2({ inputs: { x: product }, backend, attrs: { shape: outInNHWCFormatShape } });
+  const out = isChannelsLast ? outInNHWCFormat : transpose3({ inputs: { x: outInNHWCFormat }, backend, attrs: { perm: [0, 3, 1, 2] } });
+  if (!isChannelsLast) {
+    intermediates.push(outInNHWCFormat);
+  }
   intermediates.push(product);
   for (const i of intermediates) {
     backend.disposeIntermediateTensorInfo(i);
@@ -25962,6 +26053,60 @@ var scatterNdConfig = {
   kernelFunc: scatterNd
 };
 
+// src/tfjs-backend-webgl/src/search_sorted_gpu.ts
+var SearchSortedProgram = class {
+  constructor(batchSize, numInputs, numValues, side) {
+    this.variableNames = ["sortedSequence", "values"];
+    this.customUniforms = [{ name: "numInputs", type: "int" }];
+    this.outputShape = [batchSize, numValues];
+    const webGL2LoopHead = "while (left < right) {";
+    const webGL1LoopHead = `for (int i = 0; i < ${Math.ceil(Math.log2(numInputs + 1))}; ++i) { if (left >= right) break;`;
+    const loopHead = env().getNumber("WEBGL_VERSION") === 2 ? webGL2LoopHead : webGL1LoopHead;
+    const boundComparator = side === "left" ? "<" : "<=";
+    this.userCode = `
+       int findBound(int batch, float value) {
+         int left = 0;
+         int right = numInputs;
+         int mid;
+         ${loopHead}
+           mid = (left + right) / 2;
+           if (getSortedSequence(batch, mid) ${boundComparator} value) {
+             left = mid + 1;
+           } else {
+             right = mid;
+           }
+         }
+         return right;
+       }
+
+       void main() {
+         ivec2 coords = getOutputCoords();
+         int batch = coords[0];
+         int valueIndex = coords[1];
+
+         float value = getValues(batch, valueIndex);
+
+         setOutput(float(findBound(batch, value)));
+       }
+     `;
+  }
+};
+
+// src/tfjs-backend-webgl/src/kernels/SearchSorted.ts
+function searchSorted2(args) {
+  const { inputs, backend, attrs } = args;
+  const { sortedSequence, values } = inputs;
+  const { side } = attrs;
+  const program = new SearchSortedProgram(sortedSequence.shape[0], sortedSequence.shape[1], values.shape[1], side);
+  const customValues = [[sortedSequence.shape[1]]];
+  return backend.runWebGLProgram(program, [sortedSequence, values], "int32", customValues);
+}
+var searchSortedConfig = {
+  kernelName: SearchSorted,
+  backendName: "webgl",
+  kernelFunc: searchSorted2
+};
+
 // src/tfjs-backend-webgl/src/select_gpu.ts
 var SelectProgram = class {
   constructor(cRank, shape, rank) {
@@ -27365,6 +27510,7 @@ var kernelConfigs = [
   roundConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
   seluConfig,
   sigmoidConfig,

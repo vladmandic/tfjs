@@ -2334,6 +2334,7 @@ var Reverse = "Reverse";
 var Round = "Round";
 var Rsqrt = "Rsqrt";
 var ScatterNd = "ScatterNd";
+var SearchSorted = "SearchSorted";
 var Select = "Select";
 var Selu = "Selu";
 var Slice = "Slice";
@@ -3644,8 +3645,7 @@ var _Engine = class {
           if (outInfo.rank != null) {
             return outInfo;
           }
-          const { dataId, shape, dtype } = outInfo;
-          return this.makeTensorFromDataId(dataId, shape, dtype);
+          return this.makeTensorFromTensorInfo(outInfo);
         });
         if (isTapeOn) {
           const tensorsToSave = this.getTensorsForGradient(kernelName, inputs2, outTensors);
@@ -3745,8 +3745,8 @@ var _Engine = class {
     }
     return t;
   }
-  makeTensorFromDataId(dataId, shape, dtype, backend) {
-    dtype = dtype || "float32";
+  makeTensorFromTensorInfo(tensorInfo, backend) {
+    const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend);
     return t;
@@ -7661,6 +7661,36 @@ function logicalXor_(a, b) {
   return logicalAnd(logicalOr(a, b), logicalNot(logicalAnd(a, b)));
 }
 var logicalXor = op({ logicalXor_ });
+
+// src/tfjs-core/src/ops/search_sorted.ts
+var INT32_MAX = 2147483648;
+function searchSorted_(sortedSequence, values, side = "left") {
+  const $sortedSequence = convertToTensor(sortedSequence, "sortedSequence", "searchSorted");
+  const $values = convertToTensor(values, "values", "searchSorted");
+  const sequenceSize = $sortedSequence.shape[$sortedSequence.shape.length - 1];
+  const valuesSize = $values.shape[$values.shape.length - 1];
+  const $sortedSequence2D = reshape($sortedSequence, [-1, sequenceSize]);
+  const $values2D = reshape($values, [-1, valuesSize]);
+  if ($sortedSequence2D.rank < 2) {
+    throw new Error(`Sorted input argument must be at least 2-dimensional`);
+  }
+  if ($sortedSequence2D.shape[0] !== $values2D.shape[0]) {
+    throw new Error(`Leading dimension of 'sortedSequence' and 'values' must match.`);
+  }
+  if (sizeFromShape($values2D.shape) >= INT32_MAX) {
+    throw new Error(`values tensor size must less than ${INT32_MAX}`);
+  }
+  if ($sortedSequence2D.shape[1] >= INT32_MAX) {
+    throw new Error(`trailing dim_size must less than ${INT32_MAX} for int32 output type, was ${$sortedSequence2D.shape[1]}`);
+  }
+  const inputs = {
+    sortedSequence: $sortedSequence2D,
+    values: $values2D
+  };
+  const attrs = { side };
+  return ENGINE.runKernel(SearchSorted, inputs, attrs);
+}
+var searchSorted = op({ searchSorted_ });
 
 // src/tfjs-core/src/ops/max_pool.ts
 function maxPool_(x, filterSize, strides, pad2, dimRoundingMode) {
@@ -11626,8 +11656,7 @@ var _MathBackendCPU = class extends KernelBackend {
     return buffer(t.shape, t.dtype, decodedData);
   }
   makeOutput(values, shape, dtype) {
-    const dataId = this.write(values, shape, dtype);
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this);
+    return engine().makeTensorFromTensorInfo(this.makeTensorInfo(shape, dtype, values), this);
   }
   disposeData(dataId, force = false) {
     if (this.data.has(dataId)) {
@@ -17250,6 +17279,63 @@ var scatterNdConfig = {
   kernelFunc: scatterNd
 };
 
+// src/tfjs-backend-cpu/src/kernels/SearchSorted_impl.ts
+function lowerBound2(array, value) {
+  let left = 0;
+  let right = array.length;
+  let mid = 0;
+  while (left < right) {
+    mid = Math.floor((left + right) / 2);
+    if (array[mid] < value) {
+      left = mid + 1;
+    } else {
+      right = mid;
+    }
+  }
+  return right;
+}
+function upperBound2(array, value) {
+  let left = 0;
+  let right = array.length;
+  let mid = 0;
+  while (left < right) {
+    mid = Math.floor((left + right) / 2);
+    if (array[mid] <= value) {
+      left = mid + 1;
+    } else {
+      right = mid;
+    }
+  }
+  return right;
+}
+function searchSortedImpl(sortedInputs, values, batchSize, numInputs, numValues, side) {
+  const output = util_exports.getArrayFromDType("int32", batchSize * numValues);
+  for (let b = 0; b < batchSize; ++b) {
+    const sortedInputsSlice = sortedInputs.slice(b * numInputs, (b + 1) * numInputs);
+    const outputOffset = b * numValues;
+    for (let i = 0; i < numValues; ++i) {
+      output[outputOffset + i] = side === "left" ? lowerBound2(sortedInputsSlice, values[i + outputOffset]) : upperBound2(sortedInputsSlice, values[i + outputOffset]);
+    }
+  }
+  return output;
+}
+
+// src/tfjs-backend-cpu/src/kernels/SearchSorted.ts
+function searchSorted2(args) {
+  const { inputs, backend, attrs } = args;
+  const { sortedSequence, values } = inputs;
+  const { side } = attrs;
+  const $sortedSequence = backend.data.get(sortedSequence.dataId).values;
+  const $values = backend.data.get(values.dataId).values;
+  const output = searchSortedImpl($sortedSequence, $values, sortedSequence.shape[0], sortedSequence.shape[1], values.shape[1], side);
+  return backend.makeTensorInfo(values.shape, "int32", output);
+}
+var searchSortedConfig = {
+  kernelName: SearchSorted,
+  backendName: "cpu",
+  kernelFunc: searchSorted2
+};
+
 // src/tfjs-backend-cpu/src/kernels/Select.ts
 function select2(args) {
   const { inputs, backend } = args;
@@ -18141,6 +18227,7 @@ var kernelConfigs = [
   roundConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
   seluConfig,
   sigmoidConfig,

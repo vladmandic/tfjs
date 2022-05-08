@@ -2294,6 +2294,7 @@ var LogicalAnd = "LogicalAnd";
 var LogicalNot = "LogicalNot";
 var LogicalOr = "LogicalOr";
 var LogSoftmax = "LogSoftmax";
+var LowerBound = "LowerBound";
 var LRN = "LRN";
 var LRNGrad = "LRNGrad";
 var Max = "Max";
@@ -2337,6 +2338,7 @@ var Reverse = "Reverse";
 var Round = "Round";
 var Rsqrt = "Rsqrt";
 var ScatterNd = "ScatterNd";
+var SearchSorted = "SearchSorted";
 var Select = "Select";
 var Selu = "Selu";
 var Slice = "Slice";
@@ -2371,6 +2373,7 @@ var Transpose = "Transpose";
 var Unique = "Unique";
 var Unpack = "Unpack";
 var UnsortedSegmentSum = "UnsortedSegmentSum";
+var UpperBound = "UpperBound";
 var ZerosLike = "ZerosLike";
 var Step = "Step";
 var FromPixels = "FromPixels";
@@ -3701,8 +3704,7 @@ var _Engine = class {
           if (outInfo.rank != null) {
             return outInfo;
           }
-          const { dataId, shape, dtype } = outInfo;
-          return this.makeTensorFromDataId(dataId, shape, dtype);
+          return this.makeTensorFromTensorInfo(outInfo);
         });
         if (isTapeOn) {
           const tensorsToSave = this.getTensorsForGradient(kernelName, inputs2, outTensors);
@@ -3802,8 +3804,8 @@ var _Engine = class {
     }
     return t;
   }
-  makeTensorFromDataId(dataId, shape, dtype, backend2) {
-    dtype = dtype || "float32";
+  makeTensorFromTensorInfo(tensorInfo, backend2) {
+    const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend2);
     return t;
@@ -8652,6 +8654,41 @@ function logicalXor_(a, b) {
 }
 var logicalXor = op({ logicalXor_ });
 
+// src/tfjs-core/src/ops/search_sorted.ts
+var INT32_MAX = 2147483648;
+function searchSorted_(sortedSequence, values, side = "left") {
+  const $sortedSequence = convertToTensor(sortedSequence, "sortedSequence", "searchSorted");
+  const $values = convertToTensor(values, "values", "searchSorted");
+  const sequenceSize = $sortedSequence.shape[$sortedSequence.shape.length - 1];
+  const valuesSize = $values.shape[$values.shape.length - 1];
+  const $sortedSequence2D = reshape($sortedSequence, [-1, sequenceSize]);
+  const $values2D = reshape($values, [-1, valuesSize]);
+  if ($sortedSequence2D.rank < 2) {
+    throw new Error(`Sorted input argument must be at least 2-dimensional`);
+  }
+  if ($sortedSequence2D.shape[0] !== $values2D.shape[0]) {
+    throw new Error(`Leading dimension of 'sortedSequence' and 'values' must match.`);
+  }
+  if (sizeFromShape($values2D.shape) >= INT32_MAX) {
+    throw new Error(`values tensor size must less than ${INT32_MAX}`);
+  }
+  if ($sortedSequence2D.shape[1] >= INT32_MAX) {
+    throw new Error(`trailing dim_size must less than ${INT32_MAX} for int32 output type, was ${$sortedSequence2D.shape[1]}`);
+  }
+  const inputs = {
+    sortedSequence: $sortedSequence2D,
+    values: $values2D
+  };
+  const attrs = { side };
+  return ENGINE.runKernel(SearchSorted, inputs, attrs);
+}
+var searchSorted = op({ searchSorted_ });
+
+// src/tfjs-core/src/ops/lower_bound.ts
+function lowerBound(sortedSequence, values) {
+  return searchSorted(sortedSequence, values, "left");
+}
+
 // src/tfjs-core/src/ops/max_pool.ts
 function maxPool_(x, filterSize, strides, pad2, dimRoundingMode) {
   const $x = convertToTensor(x, "x", "maxPool");
@@ -9829,6 +9866,11 @@ function unstack_(x, axis = 0) {
   return ENGINE.runKernel(Unpack, inputs, attrs);
 }
 var unstack = op({ unstack_ });
+
+// src/tfjs-core/src/ops/upper_bound.ts
+function upperBound(sortedSequence, values) {
+  return searchSorted(sortedSequence, values, "right");
+}
 
 // src/tfjs-core/src/ops/variable.ts
 function variable(initialValue, trainable = true, name, dtype) {
@@ -12965,6 +13007,7 @@ export {
   LogicalAnd,
   LogicalNot,
   LogicalOr,
+  LowerBound,
   Max,
   MaxPool,
   MaxPool3D,
@@ -13016,6 +13059,7 @@ export {
   Rsqrt,
   SGDOptimizer,
   ScatterNd,
+  SearchSorted,
   Select,
   Selu,
   Sigmoid,
@@ -13053,6 +13097,7 @@ export {
   Unique,
   Unpack,
   UnsortedSegmentSum,
+  UpperBound,
   Variable,
   ZerosLike,
   _FusedMatMul,
@@ -13181,6 +13226,7 @@ export {
   logicalOr,
   logicalXor,
   losses,
+  lowerBound,
   matMul,
   math_exports as math,
   max,
@@ -13246,6 +13292,7 @@ export {
   scalar,
   scatterND,
   scatter_nd_util_exports as scatter_util,
+  searchSorted,
   selu,
   separableConv2d,
   serialization_exports as serialization,
@@ -13305,6 +13352,7 @@ export {
   unsortedSegmentSum,
   unstack,
   upcastType,
+  upperBound,
   util_exports as util,
   valueAndGrad,
   valueAndGrads,
@@ -13420,6 +13468,22 @@ export {
  * You may obtain a copy of the License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,

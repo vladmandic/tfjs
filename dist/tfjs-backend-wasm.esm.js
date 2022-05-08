@@ -5547,6 +5547,7 @@ var Reverse = "Reverse";
 var Round = "Round";
 var Rsqrt = "Rsqrt";
 var ScatterNd = "ScatterNd";
+var SearchSorted = "SearchSorted";
 var Select = "Select";
 var Selu = "Selu";
 var Slice = "Slice";
@@ -6857,8 +6858,7 @@ var _Engine = class {
           if (outInfo.rank != null) {
             return outInfo;
           }
-          const { dataId, shape, dtype } = outInfo;
-          return this.makeTensorFromDataId(dataId, shape, dtype);
+          return this.makeTensorFromTensorInfo(outInfo);
         });
         if (isTapeOn) {
           const tensorsToSave = this.getTensorsForGradient(kernelName, inputs2, outTensors);
@@ -6958,8 +6958,8 @@ var _Engine = class {
     }
     return t;
   }
-  makeTensorFromDataId(dataId, shape, dtype, backend) {
-    dtype = dtype || "float32";
+  makeTensorFromTensorInfo(tensorInfo, backend) {
+    const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend);
     return t;
@@ -10884,6 +10884,36 @@ function logicalXor_(a, b) {
   return logicalAnd(logicalOr(a, b), logicalNot(logicalAnd(a, b)));
 }
 var logicalXor = op({ logicalXor_ });
+
+// src/tfjs-core/src/ops/search_sorted.ts
+var INT32_MAX = 2147483648;
+function searchSorted_(sortedSequence, values, side = "left") {
+  const $sortedSequence = convertToTensor(sortedSequence, "sortedSequence", "searchSorted");
+  const $values = convertToTensor(values, "values", "searchSorted");
+  const sequenceSize = $sortedSequence.shape[$sortedSequence.shape.length - 1];
+  const valuesSize = $values.shape[$values.shape.length - 1];
+  const $sortedSequence2D = reshape($sortedSequence, [-1, sequenceSize]);
+  const $values2D = reshape($values, [-1, valuesSize]);
+  if ($sortedSequence2D.rank < 2) {
+    throw new Error(`Sorted input argument must be at least 2-dimensional`);
+  }
+  if ($sortedSequence2D.shape[0] !== $values2D.shape[0]) {
+    throw new Error(`Leading dimension of 'sortedSequence' and 'values' must match.`);
+  }
+  if (sizeFromShape($values2D.shape) >= INT32_MAX) {
+    throw new Error(`values tensor size must less than ${INT32_MAX}`);
+  }
+  if ($sortedSequence2D.shape[1] >= INT32_MAX) {
+    throw new Error(`trailing dim_size must less than ${INT32_MAX} for int32 output type, was ${$sortedSequence2D.shape[1]}`);
+  }
+  const inputs = {
+    sortedSequence: $sortedSequence2D,
+    values: $values2D
+  };
+  const attrs = { side };
+  return ENGINE.runKernel(SearchSorted, inputs, attrs);
+}
+var searchSorted = op({ searchSorted_ });
 
 // src/tfjs-core/src/ops/max_pool.ts
 function maxPool_(x, filterSize, strides, pad3, dimRoundingMode) {
