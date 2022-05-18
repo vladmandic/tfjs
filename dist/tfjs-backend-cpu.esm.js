@@ -7202,6 +7202,198 @@ function erf_(x) {
 }
 var erf = op({ erf_ });
 
+// src/tfjs-core/src/ops/axis_util.ts
+function axesAreInnerMostDims(axes, rank) {
+  for (let i = 0; i < axes.length; ++i) {
+    if (axes[axes.length - i - 1] !== rank - 1 - i) {
+      return false;
+    }
+  }
+  return true;
+}
+function combineLocations(outputLoc, reduceLoc, axes) {
+  const rank = outputLoc.length + reduceLoc.length;
+  const loc = [];
+  let outIdx = 0;
+  let reduceIdx = 0;
+  for (let dim = 0; dim < rank; dim++) {
+    if (axes.indexOf(dim) === -1) {
+      loc.push(outputLoc[outIdx++]);
+    } else {
+      loc.push(reduceLoc[reduceIdx++]);
+    }
+  }
+  return loc;
+}
+function computeOutAndReduceShapes(aShape, axes) {
+  const outShape = [];
+  const rank = aShape.length;
+  for (let dim = 0; dim < rank; dim++) {
+    if (axes.indexOf(dim) === -1) {
+      outShape.push(aShape[dim]);
+    }
+  }
+  const reduceShape = axes.map((dim) => aShape[dim]);
+  return [outShape, reduceShape];
+}
+function expandShapeToKeepDim(shape, axes) {
+  const reduceSubShape = axes.map((x) => 1);
+  return combineLocations(shape, reduceSubShape, axes);
+}
+function assertAxesAreInnerMostDims(msg, axes, rank) {
+  assert(axesAreInnerMostDims(axes, rank), () => `${msg} supports only inner-most axes for now. Got axes ${axes} and rank-${rank} input.`);
+}
+function getAxesPermutation(axes, rank) {
+  if (axesAreInnerMostDims(axes, rank)) {
+    return null;
+  }
+  const result = [];
+  for (let i = 0; i < rank; ++i) {
+    if (axes.indexOf(i) === -1) {
+      result.push(i);
+    }
+  }
+  axes.forEach((axis) => result.push(axis));
+  return result;
+}
+function getUndoAxesPermutation(axes) {
+  return axes.map((axis, i) => [i, axis]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
+}
+function getInnerMostAxes(numAxes, rank) {
+  const res = [];
+  for (let i = rank - numAxes; i < rank; ++i) {
+    res.push(i);
+  }
+  return res;
+}
+
+// src/tfjs-core/src/ops/max.ts
+function max_(x, axis = null, keepDims = false) {
+  const $x = convertToTensor(x, "x", "max");
+  const inputs = { x: $x };
+  const attrs = { reductionIndices: axis, keepDims };
+  return ENGINE.runKernel(Max, inputs, attrs);
+}
+var max = op({ max_ });
+
+// src/tfjs-core/src/ops/min.ts
+function min_(x, axis = null, keepDims = false) {
+  const $x = convertToTensor(x, "x", "min");
+  const inputs = { x: $x };
+  const attrs = { axis, keepDims };
+  return ENGINE.runKernel(Min, inputs, attrs);
+}
+var min = op({ min_ });
+
+// src/tfjs-core/src/ops/pow.ts
+function pow_(base, exp3) {
+  let $base = convertToTensor(base, "base", "pow");
+  let $exp = convertToTensor(exp3, "exp", "pow");
+  [$base, $exp] = makeTypesMatch($base, $exp);
+  const inputs = { a: $base, b: $exp };
+  return ENGINE.runKernel(Pow, inputs);
+}
+var pow = op({ pow_ });
+
+// src/tfjs-core/src/ops/scalar.ts
+function scalar(value, dtype) {
+  if ((isTypedArray(value) && dtype !== "string" || Array.isArray(value)) && dtype !== "complex64") {
+    throw new Error("Error creating a new Scalar: value must be a primitive (number|boolean|string)");
+  }
+  if (dtype === "string" && isTypedArray(value) && !(value instanceof Uint8Array)) {
+    throw new Error("When making a scalar from encoded string, the value must be `Uint8Array`.");
+  }
+  const shape = [];
+  const inferredShape = [];
+  return makeTensor(value, shape, inferredShape, dtype);
+}
+
+// src/tfjs-core/src/ops/sqrt.ts
+function sqrt_(x) {
+  const $x = convertToTensor(x, "x", "sqrt", "float32");
+  const inputs = { x: $x };
+  return ENGINE.runKernel(Sqrt, inputs);
+}
+var sqrt = op({ sqrt_ });
+
+// src/tfjs-core/src/ops/square.ts
+function square_(x) {
+  const $x = convertToTensor(x, "x", "square");
+  const attrs = {};
+  return ENGINE.runKernel("Square", { x: $x }, attrs);
+}
+var square = op({ square_ });
+
+// src/tfjs-core/src/ops/sum.ts
+function sum_(x, axis = null, keepDims = false) {
+  let $x = convertToTensor(x, "x", "sum");
+  if ($x.dtype === "bool") {
+    $x = cast($x, "int32");
+  }
+  const inputs = { x: $x };
+  const attrs = { axis, keepDims };
+  return ENGINE.runKernel(Sum, inputs, attrs);
+}
+var sum2 = op({ sum_ });
+
+// src/tfjs-core/src/ops/norm.ts
+function norm_(x, ord = "euclidean", axis = null, keepDims = false) {
+  x = convertToTensor(x, "x", "norm");
+  const norm2 = normImpl(x, ord, axis);
+  let keepDimsShape = norm2.shape;
+  if (keepDims) {
+    const axes = parseAxisParam(axis, x.shape);
+    keepDimsShape = expandShapeToKeepDim(norm2.shape, axes);
+  }
+  return reshape(norm2, keepDimsShape);
+}
+function normImpl(x, p2, axis = null) {
+  if (x.rank === 0) {
+    return abs(x);
+  }
+  if (x.rank !== 1 && axis === null) {
+    return normImpl(reshape(x, [-1]), p2, axis);
+  }
+  if (x.rank === 1 || typeof axis === "number" || Array.isArray(axis) && axis.length === 1) {
+    if (p2 === 1) {
+      return sum2(abs(x), axis);
+    }
+    if (p2 === Infinity) {
+      return max(abs(x), axis);
+    }
+    if (p2 === -Infinity) {
+      return min(abs(x), axis);
+    }
+    if (p2 === "euclidean" || p2 === 2) {
+      return sqrt(sum2(pow(abs(x), scalar(2, "int32")), axis));
+    }
+    throw new Error(`Error in norm: invalid ord value: ${p2}`);
+  }
+  if (Array.isArray(axis) && axis.length === 2) {
+    if (p2 === 1) {
+      return max(sum2(abs(x), axis[0]), axis[1] - 1);
+    }
+    if (p2 === Infinity) {
+      return max(sum2(abs(x), axis[1]), axis[0]);
+    }
+    if (p2 === -Infinity) {
+      return min(sum2(abs(x), axis[1]), axis[0]);
+    }
+    if (p2 === "fro" || p2 === "euclidean") {
+      return sqrt(sum2(square(x), axis));
+    }
+    throw new Error(`Error in norm: invalid ord value: ${p2}`);
+  }
+  throw new Error(`Error in norm: invalid axis: ${axis}`);
+}
+var norm = op({ norm_ });
+
+// src/tfjs-core/src/ops/euclidean_norm.ts
+function euclideanNorm_(x, axis = null, keepDims = false) {
+  return norm(x, "euclidean", axis, keepDims);
+}
+var euclideanNorm = op({ euclideanNorm_ });
+
 // src/tfjs-core/src/ops/exp.ts
 function exp_(x) {
   const $x = convertToTensor(x, "x", "exp");
@@ -7484,15 +7676,6 @@ function logSigmoid_(x) {
 }
 var logSigmoid = op({ logSigmoid_ });
 
-// src/tfjs-core/src/ops/max.ts
-function max_(x, axis = null, keepDims = false) {
-  const $x = convertToTensor(x, "x", "max");
-  const inputs = { x: $x };
-  const attrs = { reductionIndices: axis, keepDims };
-  return ENGINE.runKernel(Max, inputs, attrs);
-}
-var max = op({ max_ });
-
 // src/tfjs-core/src/ops/sub.ts
 function sub_(a, b) {
   let $a = convertToTensor(a, "a", "sub");
@@ -7502,18 +7685,6 @@ function sub_(a, b) {
   return ENGINE.runKernel(Sub, inputs);
 }
 var sub = op({ sub_ });
-
-// src/tfjs-core/src/ops/sum.ts
-function sum_(x, axis = null, keepDims = false) {
-  let $x = convertToTensor(x, "x", "sum");
-  if ($x.dtype === "bool") {
-    $x = cast($x, "int32");
-  }
-  const inputs = { x: $x };
-  const attrs = { axis, keepDims };
-  return ENGINE.runKernel(Sum, inputs, attrs);
-}
-var sum2 = op({ sum_ });
 
 // src/tfjs-core/src/ops/log_softmax.ts
 function logSoftmax_(logits, axis = -1) {
@@ -7541,71 +7712,6 @@ function logSoftmax_(logits, axis = -1) {
   return customOp($logits);
 }
 var logSoftmax = op({ logSoftmax_ });
-
-// src/tfjs-core/src/ops/axis_util.ts
-function axesAreInnerMostDims(axes, rank) {
-  for (let i = 0; i < axes.length; ++i) {
-    if (axes[axes.length - i - 1] !== rank - 1 - i) {
-      return false;
-    }
-  }
-  return true;
-}
-function combineLocations(outputLoc, reduceLoc, axes) {
-  const rank = outputLoc.length + reduceLoc.length;
-  const loc = [];
-  let outIdx = 0;
-  let reduceIdx = 0;
-  for (let dim = 0; dim < rank; dim++) {
-    if (axes.indexOf(dim) === -1) {
-      loc.push(outputLoc[outIdx++]);
-    } else {
-      loc.push(reduceLoc[reduceIdx++]);
-    }
-  }
-  return loc;
-}
-function computeOutAndReduceShapes(aShape, axes) {
-  const outShape = [];
-  const rank = aShape.length;
-  for (let dim = 0; dim < rank; dim++) {
-    if (axes.indexOf(dim) === -1) {
-      outShape.push(aShape[dim]);
-    }
-  }
-  const reduceShape = axes.map((dim) => aShape[dim]);
-  return [outShape, reduceShape];
-}
-function expandShapeToKeepDim(shape, axes) {
-  const reduceSubShape = axes.map((x) => 1);
-  return combineLocations(shape, reduceSubShape, axes);
-}
-function assertAxesAreInnerMostDims(msg, axes, rank) {
-  assert(axesAreInnerMostDims(axes, rank), () => `${msg} supports only inner-most axes for now. Got axes ${axes} and rank-${rank} input.`);
-}
-function getAxesPermutation(axes, rank) {
-  if (axesAreInnerMostDims(axes, rank)) {
-    return null;
-  }
-  const result = [];
-  for (let i = 0; i < rank; ++i) {
-    if (axes.indexOf(i) === -1) {
-      result.push(i);
-    }
-  }
-  axes.forEach((axis) => result.push(axis));
-  return result;
-}
-function getUndoAxesPermutation(axes) {
-  return axes.map((axis, i) => [i, axis]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
-}
-function getInnerMostAxes(numAxes, rank) {
-  const res = [];
-  for (let i = rank - numAxes; i < rank; ++i) {
-    res.push(i);
-  }
-  return res;
-}
 
 // src/tfjs-core/src/ops/log_sum_exp.ts
 function logSumExp_(x, axis = null, keepDims = false) {
@@ -7793,15 +7899,6 @@ function ones2(shape, dtype = "float32") {
   return ENGINE.makeTensor(values, shape, dtype);
 }
 
-// src/tfjs-core/src/ops/min.ts
-function min_(x, axis = null, keepDims = false) {
-  const $x = convertToTensor(x, "x", "min");
-  const inputs = { x: $x };
-  const attrs = { axis, keepDims };
-  return ENGINE.runKernel(Min, inputs, attrs);
-}
-var min = op({ min_ });
-
 // src/tfjs-core/src/ops/minimum.ts
 function minimum_(a, b) {
   let $a = convertToTensor(a, "a", "minimum");
@@ -7845,14 +7942,6 @@ function mod_(a, b) {
   return ENGINE.runKernel(Mod, inputs);
 }
 var mod = op({ mod_ });
-
-// src/tfjs-core/src/ops/square.ts
-function square_(x) {
-  const $x = convertToTensor(x, "x", "square");
-  const attrs = {};
-  return ENGINE.runKernel("Square", { x: $x }, attrs);
-}
-var square = op({ square_ });
 
 // src/tfjs-core/src/ops/moments.ts
 function moments_(x, axis = null, keepDims = false) {
@@ -8060,16 +8149,6 @@ function withSpaceToBatchBasePaddings(filterShape, dilation) {
   });
 }
 var pool = op({ pool_ });
-
-// src/tfjs-core/src/ops/pow.ts
-function pow_(base, exp3) {
-  let $base = convertToTensor(base, "base", "pow");
-  let $exp = convertToTensor(exp3, "exp", "pow");
-  [$base, $exp] = makeTypesMatch($base, $exp);
-  const inputs = { a: $base, b: $exp };
-  return ENGINE.runKernel(Pow, inputs);
-}
-var pow = op({ pow_ });
 
 // src/tfjs-core/src/ops/prelu.ts
 function prelu_(x, alpha) {
@@ -8380,19 +8459,6 @@ function rsqrt_(x) {
 }
 var rsqrt = op({ rsqrt_ });
 
-// src/tfjs-core/src/ops/scalar.ts
-function scalar(value, dtype) {
-  if ((isTypedArray(value) && dtype !== "string" || Array.isArray(value)) && dtype !== "complex64") {
-    throw new Error("Error creating a new Scalar: value must be a primitive (number|boolean|string)");
-  }
-  if (dtype === "string" && isTypedArray(value) && !(value instanceof Uint8Array)) {
-    throw new Error("When making a scalar from encoded string, the value must be `Uint8Array`.");
-  }
-  const shape = [];
-  const inferredShape = [];
-  return makeTensor(value, shape, inferredShape, dtype);
-}
-
 // src/tfjs-core/src/ops/selu.ts
 function selu_(x) {
   const $x = convertToTensor(x, "x", "selu");
@@ -8593,14 +8659,6 @@ function rfft_(input, fftLength) {
 }
 var rfft = op({ rfft_ });
 
-// src/tfjs-core/src/ops/sqrt.ts
-function sqrt_(x) {
-  const $x = convertToTensor(x, "x", "sqrt", "float32");
-  const inputs = { x: $x };
-  return ENGINE.runKernel(Sqrt, inputs);
-}
-var sqrt = op({ sqrt_ });
-
 // src/tfjs-core/src/ops/squared_difference.ts
 function squaredDifference_(a, b) {
   let $a = convertToTensor(a, "a", "squaredDifference");
@@ -8779,58 +8837,6 @@ function whereImpl(condShape, condVals) {
   return out.toTensor();
 }
 
-// src/tfjs-core/src/ops/norm.ts
-function norm_(x, ord = "euclidean", axis = null, keepDims = false) {
-  x = convertToTensor(x, "x", "norm");
-  const norm2 = normImpl(x, ord, axis);
-  let keepDimsShape = norm2.shape;
-  if (keepDims) {
-    const axes = parseAxisParam(axis, x.shape);
-    keepDimsShape = expandShapeToKeepDim(norm2.shape, axes);
-  }
-  return reshape(norm2, keepDimsShape);
-}
-function normImpl(x, p2, axis = null) {
-  if (x.rank === 0) {
-    return abs(x);
-  }
-  if (x.rank !== 1 && axis === null) {
-    return normImpl(reshape(x, [-1]), p2, axis);
-  }
-  if (x.rank === 1 || typeof axis === "number" || Array.isArray(axis) && axis.length === 1) {
-    if (p2 === 1) {
-      return sum2(abs(x), axis);
-    }
-    if (p2 === Infinity) {
-      return max(abs(x), axis);
-    }
-    if (p2 === -Infinity) {
-      return min(abs(x), axis);
-    }
-    if (p2 === "euclidean" || p2 === 2) {
-      return sqrt(sum2(pow(abs(x), scalar(2, "int32")), axis));
-    }
-    throw new Error(`Error in norm: invalid ord value: ${p2}`);
-  }
-  if (Array.isArray(axis) && axis.length === 2) {
-    if (p2 === 1) {
-      return max(sum2(abs(x), axis[0]), axis[1] - 1);
-    }
-    if (p2 === Infinity) {
-      return max(sum2(abs(x), axis[1]), axis[0]);
-    }
-    if (p2 === -Infinity) {
-      return min(sum2(abs(x), axis[1]), axis[0]);
-    }
-    if (p2 === "fro" || p2 === "euclidean") {
-      return sqrt(sum2(square(x), axis));
-    }
-    throw new Error(`Error in norm: invalid ord value: ${p2}`);
-  }
-  throw new Error(`Error in norm: invalid axis: ${axis}`);
-}
-var norm = op({ norm_ });
-
 // src/tfjs-core/src/ops/moving_average.ts
 function movingAverage_(v, x, decay, step3, zeroDebias = true) {
   const $v = convertToTensor(v, "v", "movingAverage");
@@ -8886,7 +8892,7 @@ function validateInput2(sparseIndices, sparseValues, outputShape, defaultValues)
 // src/tfjs-core/src/ops/sparse_to_dense.ts
 function sparseToDense_(sparseIndices, sparseValues, outputShape, defaultValue = 0) {
   const $sparseIndices = convertToTensor(sparseIndices, "sparseIndices", "sparseToDense", "int32");
-  const $sparseValues = convertToTensor(sparseValues, "sparseValues", "sparseToDense");
+  const $sparseValues = convertToTensor(sparseValues, "sparseValues", "sparseToDense", "string_or_numeric");
   const $defaultValue = convertToTensor(defaultValue, "defaultValue", "sparseToDense", $sparseValues.dtype);
   validateInput2($sparseIndices, $sparseValues, outputShape, $defaultValue);
   const inputs = {
@@ -9040,6 +9046,7 @@ function fusedConv2d_({
 }) {
   activation = activation || "linear";
   if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+    assert(dataFormat === "NHWC", () => `Error in fused conv2d: got dataFormat of ${dataFormat} but only NHWC is currently supported for the case of gradient depth is 0 and the activation is not linear.`);
     let result = conv2d(x, filter, strides, pad2, dataFormat, dilations, dimRoundingMode);
     if (bias != null) {
       result = add2(result, bias);
@@ -9057,21 +9064,39 @@ function fusedConv2d_({
   assert(x4D.rank === 4, () => `Error in fused conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in fused conv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
   checkPadOnDimRoundingMode("fused conv2d", pad2, dimRoundingMode);
-  assert(x4D.shape[3] === $filter.shape[2], () => `Error in conv2d: depth of input (${x4D.shape[3]}) must match input depth for filter ${$filter.shape[2]}.`);
+  const inputChannels = dataFormat === "NHWC" ? x4D.shape[3] : x4D.shape[1];
+  assert($filter.shape[2] === inputChannels, () => `Error in conv2d: depth of input (${inputChannels}) must match input depth for filter ${$filter.shape[2]}.`);
   assert(eitherStridesOrDilationsAreOne(strides, dilations), () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`);
-  assert(dataFormat === "NHWC", () => `Error in conv2d: got dataFormat of ${dataFormat} but only NHWC is currently supported.`);
   const convInfo = computeConv2DInfo(x4D.shape, $filter.shape, strides, dilations, pad2, dimRoundingMode);
   let $bias;
   if (bias != null) {
     $bias = convertToTensor(bias, "bias", "fused conv2d");
     [$bias] = makeTypesMatch($bias, $x);
-    assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
+    if (dataFormat === "NHWC") {
+      assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
+    } else {
+      assert($bias.shape.length <= 1, () => `Error in fused conv2d: only supports scalar or 1-D Tensor bias for NCHW format but got the bias of rank-${$bias.shape.length}.`);
+      assert($bias.shape.length === 0 || $bias.shape[0] === convInfo.outChannels || $bias.shape[0] === 1, () => `Error in fused conv2d: bias shape (${$bias.shape}) is not compatible with the number of output channels (${convInfo.outChannels})`);
+    }
   }
   let $preluActivationWeights;
   if (preluActivationWeights != null) {
+    const alphaShape = preluActivationWeights.shape;
+    assert(alphaShape.length <= 1 || alphaShape.length === 3, () => `Error in fused conv2d: only supports scalar, 1-D Tensor or 3-D Tensor PReLU activation weights but got a tensor of rank-${alphaShape.length}.`);
+    if (alphaShape.length === 1) {
+      assert(alphaShape[0] === 1 || alphaShape[0] === convInfo.outChannels, () => `Error in fused conv2d: PReLU activation weights (${alphaShape}) is not compatible with the number of output channels (${convInfo.outChannels}).`);
+    } else if (alphaShape.length === 3) {
+      try {
+        assertAndGetBroadcastShape(alphaShape, convInfo.outShape);
+      } catch (e) {
+        const errMsg = `Error in fused conv2d: PReLU activation weights (${alphaShape}) is not compatible with the output shape of the conv2d (${convInfo.outShape}).`;
+        throw Error(errMsg);
+      }
+    }
     $preluActivationWeights = convertToTensor(preluActivationWeights, "prelu weights", "fused conv2d");
   }
   const grad2 = (dy, saved) => {
+    assert(dataFormat === "NHWC", () => `Error in gradient of fused conv2D: got dataFormat of ${dataFormat} but only NHWC is currently supported.`);
     const [$filter2, x4D2, y, $bias2] = saved;
     const dyActivation = getFusedDyActivation(dy, y, activation);
     assert(tupleValuesAreOne(dilations), () => `Error in gradient of fused conv2D: dilation rates greater than 1 are not yet supported in gradients. Got dilations '${dilations}'`);
@@ -11591,7 +11616,7 @@ var _MathBackendCPU = class extends KernelBackend {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get("IS_NODE")) {
-        backend_util_exports.warn("\n============================\nHi there \u{1F44B}. Looks like you are running TensorFlow.js in Node.js. To speed things up dramatically, install our node backend, which binds to TensorFlow C++, by running npm i @tensorflow/tfjs-node, or npm i @tensorflow/tfjs-node-gpu if you have CUDA. Then call require('@tensorflow/tfjs-node'); (-gpu suffix for CUDA) at the start of your program. Visit https://github.com/tensorflow/tfjs-node for more details.\n============================");
+        backend_util_exports.warn("\n============================\nHi, looks like you are running TensorFlow.js in Node.js. To speed things up dramatically, install our node backend, visit https://github.com/tensorflow/tfjs-node for more details. \n============================");
       }
     }
     const dataId = { id: this.nextDataId() };
@@ -11645,15 +11670,15 @@ var _MathBackendCPU = class extends KernelBackend {
   }
   bufferSync(t) {
     const data = this.readSync(t.dataId);
-    let decodedData = data;
     if (t.dtype === "string") {
       try {
-        decodedData = data.map((d) => util_exports.decodeString(d));
+        const strings = data.map((d) => util_exports.decodeString(d));
+        return buffer(t.shape, t.dtype, strings);
       } catch {
         throw new Error("Failed to decode encoded string bytes into utf-8");
       }
     }
-    return buffer(t.shape, t.dtype, decodedData);
+    return buffer(t.shape, t.dtype, data);
   }
   makeOutput(values, shape, dtype) {
     return engine().makeTensorFromTensorInfo(this.makeTensorInfo(shape, dtype, values), this);
@@ -11734,6 +11759,7 @@ __export(shared_exports, {
   prodImpl: () => prodImpl,
   rangeImpl: () => rangeImpl,
   rsqrtImpl: () => rsqrtImpl,
+  scatterImpl: () => scatterImpl,
   sigmoidImpl: () => sigmoidImpl,
   simpleAbsImpl: () => simpleAbsImpl,
   sliceImpl: () => sliceImpl,
@@ -12470,6 +12496,44 @@ var rsqrtConfig = {
   backendName: "cpu",
   kernelFunc: rsqrt2
 };
+
+// src/tfjs-backend-cpu/src/kernels/Scatter_impl.ts
+function scatterImpl(indices, updates, shape, outputSize, sliceSize, numUpdates, sliceRank, strides, defaultValue, sumDupeIndices) {
+  const flattenShape = [outputSize / sliceSize, sliceSize];
+  const indicesData = indices.values;
+  const updatesData = updates.values;
+  if (outputSize === 0) {
+    return buffer(shape, updates.dtype);
+  }
+  const outBuf = buffer(flattenShape, updates.dtype);
+  if (typeof defaultValue === "string") {
+    outBuf.values.fill(defaultValue);
+  } else if (typeof defaultValue === "number") {
+    outBuf.values.fill(defaultValue);
+  } else if (typeof defaultValue === "boolean") {
+    outBuf.values.fill(+defaultValue);
+  }
+  for (let i = 0; i < numUpdates; i++) {
+    const index = [];
+    let flattenIndex = 0;
+    for (let j = 0; j < sliceRank; j++) {
+      const dim = indicesData[i * sliceRank + j];
+      index.push(dim);
+      flattenIndex += dim * strides[j];
+    }
+    if (flattenIndex < 0 || flattenIndex >= outputSize / sliceSize) {
+      throw new Error(`Invalid indices: ${index} does not index into ${shape}`);
+    }
+    for (let k = 0; k < sliceSize; k++) {
+      if (sumDupeIndices) {
+        outBuf.values[flattenIndex * sliceSize + k] += updatesData[i * sliceSize + k];
+      } else {
+        outBuf.values[flattenIndex * sliceSize + k] = updates.rank === 0 ? updatesData[0] : updatesData[i * sliceSize + k];
+      }
+    }
+  }
+  return outBuf;
+}
 
 // src/tfjs-backend-cpu/src/kernels/Sigmoid.ts
 var sigmoidImpl = createSimpleUnaryImpl((xi) => 1 / (1 + Math.exp(-xi)));
@@ -15873,12 +15937,28 @@ function fusedConv2D(args) {
   });
   if (bias) {
     const resultOld = result;
-    result = add3({ inputs: { a: result, b: bias }, backend });
+    if (dataFormat === "NCHW" && bias.shape.length === 1 && bias.shape[0] !== 1) {
+      const reshapedBias = reshape2({ inputs: { x: bias }, backend, attrs: { shape: [bias.shape[0], 1, 1] } });
+      result = add3({ inputs: { a: result, b: reshapedBias }, backend });
+      backend.disposeIntermediateTensorInfo(reshapedBias);
+    } else {
+      result = add3({ inputs: { a: result, b: bias }, backend });
+    }
     backend.disposeIntermediateTensorInfo(resultOld);
   }
   if (activation) {
     const resultOld = result;
-    result = applyActivation2(backend, result, activation, preluActivationWeights, leakyreluAlpha);
+    if (dataFormat === "NCHW" && activation === "prelu" && preluActivationWeights.shape.length === 1 && preluActivationWeights.shape[0] !== 1) {
+      const reshapedAlpha = reshape2({
+        inputs: { x: preluActivationWeights },
+        backend,
+        attrs: { shape: [preluActivationWeights.shape[0], 1, 1] }
+      });
+      result = applyActivation2(backend, result, activation, reshapedAlpha, leakyreluAlpha);
+      backend.disposeIntermediateTensorInfo(reshapedAlpha);
+    } else {
+      result = applyActivation2(backend, result, activation, preluActivationWeights, leakyreluAlpha);
+    }
     backend.disposeIntermediateTensorInfo(resultOld);
   }
   return result;
@@ -17229,38 +17309,6 @@ var roundConfig = {
   kernelFunc: round3
 };
 
-// src/tfjs-backend-cpu/src/kernels/Scatter_impl.ts
-function scatterImpl(indices, updates, shape, outputSize, sliceSize, numUpdates, sliceRank, strides, defaultValue, sumDupeIndices) {
-  const flattenShape = [outputSize / sliceSize, sliceSize];
-  const indicesData = indices.values;
-  const updatesData = updates.values;
-  if (outputSize === 0) {
-    return buffer(shape, updates.dtype);
-  }
-  const outBuf = buffer(flattenShape, updates.dtype);
-  outBuf.values.fill(defaultValue);
-  for (let i = 0; i < numUpdates; i++) {
-    const index = [];
-    let flattenIndex = 0;
-    for (let j = 0; j < sliceRank; j++) {
-      const dim = indicesData[i * sliceRank + j];
-      index.push(dim);
-      flattenIndex += dim * strides[j];
-    }
-    if (flattenIndex < 0 || flattenIndex >= outputSize / sliceSize) {
-      throw new Error(`Invalid indices: ${index} does not index into ${shape}`);
-    }
-    for (let k = 0; k < sliceSize; k++) {
-      if (sumDupeIndices) {
-        outBuf.values[flattenIndex * sliceSize + k] += updatesData[i * sliceSize + k];
-      } else {
-        outBuf.values[flattenIndex * sliceSize + k] = updates.rank === 0 ? updatesData[0] : updatesData[i * sliceSize + k];
-      }
-    }
-  }
-  return outBuf;
-}
-
 // src/tfjs-backend-cpu/src/kernels/ScatterNd.ts
 function scatterNd(args) {
   const { inputs, backend, attrs } = args;
@@ -17619,9 +17667,35 @@ function sparseToDense2(args) {
   const { sliceRank, numUpdates, sliceSize, strides, outputSize } = backend_util_exports.calculateShapes(sparseValues, sparseIndices, outputShape);
   const sumDupeIndices = false;
   const indicesBuf = backend.bufferSync(sparseIndices);
-  const updatesBuf = backend.bufferSync(sparseValues);
-  const $defaultValue = backend.data.get(defaultValue.dataId).values[0];
-  const outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+  let outBuf;
+  switch (sparseValues.dtype) {
+    case "bool": {
+      const updatesBuf = backend.bufferSync(sparseValues);
+      const $defaultValue = Boolean(backend.data.get(defaultValue.dataId).values[0]);
+      outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+      break;
+    }
+    case "float32": {
+      const updatesBuf = backend.bufferSync(sparseValues);
+      const $defaultValue = backend.data.get(defaultValue.dataId).values[0];
+      outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+      break;
+    }
+    case "int32": {
+      const updatesBuf = backend.bufferSync(sparseValues);
+      const $defaultValue = backend.data.get(defaultValue.dataId).values[0];
+      outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+      break;
+    }
+    case "string": {
+      const updatesBuf = backend.bufferSync(sparseValues);
+      const $defaultValue = util_exports.decodeString(backend.data.get(defaultValue.dataId).values[0]);
+      outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+      break;
+    }
+    default:
+      throw new Error(`Unsupported type ${sparseValues.dtype}`);
+  }
   return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
 }
 var sparseToDenseConfig = {
