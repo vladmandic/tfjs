@@ -3804,6 +3804,11 @@ var _Engine = class {
     }
     return t;
   }
+  makeTensorFromDataId(dataId, shape, dtype, backend2) {
+    dtype = dtype || "float32";
+    const tensorInfo = { dataId, shape, dtype };
+    return this.makeTensorFromTensorInfo(tensorInfo, backend2);
+  }
   makeTensorFromTensorInfo(tensorInfo, backend2) {
     const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
@@ -5290,6 +5295,7 @@ __export(io_exports, {
   decodeWeights: () => decodeWeights,
   encodeWeights: () => encodeWeights,
   fromMemory: () => fromMemory,
+  fromMemorySync: () => fromMemorySync,
   getLoadHandlers: () => getLoadHandlers,
   getModelArtifactsForJSON: () => getModelArtifactsForJSON,
   getModelArtifactsInfoForJSON: () => getModelArtifactsInfoForJSON,
@@ -5303,7 +5309,8 @@ __export(io_exports, {
   registerSaveRouter: () => registerSaveRouter,
   removeModel: () => removeModel,
   weightsLoaderFactory: () => weightsLoaderFactory,
-  withSaveHandler: () => withSaveHandler
+  withSaveHandler: () => withSaveHandler,
+  withSaveHandlerSync: () => withSaveHandlerSync
 });
 
 // src/tfjs-core/src/io/browser_files.ts
@@ -5736,7 +5743,7 @@ var PassthroughLoader = class {
   constructor(modelArtifacts) {
     this.modelArtifacts = modelArtifacts;
   }
-  async load() {
+  load() {
     return this.modelArtifacts;
   }
 };
@@ -5744,11 +5751,25 @@ var PassthroughSaver = class {
   constructor(saveHandler) {
     this.saveHandler = saveHandler;
   }
-  async save(modelArtifacts) {
+  save(modelArtifacts) {
     return this.saveHandler(modelArtifacts);
   }
 };
+var PassthroughAsync = class {
+  constructor(handler) {
+    if (handler.load) {
+      this.load = () => Promise.resolve(handler.load());
+    }
+    if (handler.save) {
+      this.save = (modelArtifacts) => Promise.resolve(handler.save(modelArtifacts));
+    }
+  }
+};
 function fromMemory(modelArtifacts, weightSpecs, weightData, trainingConfig) {
+  const args = arguments;
+  return new PassthroughAsync(fromMemorySync(...args));
+}
+function fromMemorySync(modelArtifacts, weightSpecs, weightData, trainingConfig) {
   if (arguments.length === 1) {
     const isModelArtifacts = modelArtifacts.modelTopology != null || modelArtifacts.weightSpecs != null;
     if (isModelArtifacts) {
@@ -5768,6 +5789,9 @@ function fromMemory(modelArtifacts, weightSpecs, weightData, trainingConfig) {
   }
 }
 function withSaveHandler(saveHandler) {
+  return new PassthroughSaver(saveHandler);
+}
+function withSaveHandlerSync(saveHandler) {
   return new PassthroughSaver(saveHandler);
 }
 
@@ -5800,8 +5824,102 @@ function oneHot_(indices, depth, onValue = 1, offValue = 0) {
 }
 var oneHot = op({ oneHot_ });
 
+// src/tfjs-core/src/globals.ts
+function enableProdMode() {
+  env().set("PROD", true);
+}
+function enableDebugMode() {
+  env().set("DEBUG", true);
+}
+function disableDeprecationWarnings() {
+  env().set("DEPRECATION_WARNINGS_ENABLED", false);
+  console.warn(`TensorFlow.js deprecation warnings have been disabled.`);
+}
+function deprecationWarn(msg) {
+  if (env().getBool("DEPRECATION_WARNINGS_ENABLED")) {
+    console.warn(msg + " You can disable deprecation warnings with tf.disableDeprecationWarnings().");
+  }
+}
+setDeprecationWarningFn(deprecationWarn);
+function disposeVariables() {
+  ENGINE.disposeVariables();
+}
+function engine() {
+  return ENGINE;
+}
+function memory() {
+  return ENGINE.memory();
+}
+function profile(f) {
+  return ENGINE.profile(f);
+}
+function tidy(nameOrFn, fn) {
+  return ENGINE.tidy(nameOrFn, fn);
+}
+function dispose(container) {
+  const tensors = getTensorsInContainer(container);
+  tensors.forEach((tensor2) => tensor2.dispose());
+}
+function keep(result) {
+  return ENGINE.keep(result);
+}
+function time(f) {
+  return ENGINE.time(f);
+}
+function setBackend(backendName) {
+  return ENGINE.setBackend(backendName);
+}
+function ready() {
+  return ENGINE.ready();
+}
+function getBackend() {
+  return ENGINE.backendName;
+}
+function removeBackend(name) {
+  ENGINE.removeBackend(name);
+}
+function findBackend(name) {
+  return ENGINE.findBackend(name);
+}
+function findBackendFactory(name) {
+  return ENGINE.findBackendFactory(name);
+}
+function registerBackend(name, factory, priority = 1) {
+  return ENGINE.registerBackend(name, factory, priority);
+}
+function backend() {
+  return ENGINE.backend;
+}
+function setPlatform(platformName, platform) {
+  env().setPlatform(platformName, platform);
+}
+
+// src/tfjs-core/src/ops/imag.ts
+function imag_(input) {
+  const $input = convertToTensor(input, "input", "imag");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Imag, inputs);
+}
+var imag = op({ imag_ });
+
+// src/tfjs-core/src/ops/neg.ts
+function neg_(x) {
+  const $x = convertToTensor(x, "x", "neg");
+  const inputs = { x: $x };
+  return ENGINE.runKernel(Neg, inputs);
+}
+var neg = op({ neg_ });
+
+// src/tfjs-core/src/ops/real.ts
+function real_(input) {
+  const $input = convertToTensor(input, "input", "real");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Real, inputs);
+}
+var real = op({ real_ });
+
 // src/tfjs-core/src/ops/transpose.ts
-function transpose_(x, perm) {
+function transpose_(x, perm, conjugate) {
   const $x = convertToTensor(x, "x", "transpose");
   if (perm == null) {
     perm = $x.shape.map((s, i) => i).reverse();
@@ -5815,6 +5933,18 @@ function transpose_(x, perm) {
   }
   const inputs = { x: $x };
   const attrs = { perm };
+  if ($x.dtype === "complex64") {
+    return tidy(() => {
+      let $real = real($x);
+      let $imag = imag($x);
+      $real = ENGINE.runKernel(Transpose, { x: $real }, attrs);
+      $imag = ENGINE.runKernel(Transpose, { x: $imag }, attrs);
+      if (conjugate) {
+        $imag = neg($imag);
+      }
+      return complex($real, $imag);
+    });
+  }
   return ENGINE.runKernel(Transpose, inputs, attrs);
 }
 var transpose = op({ transpose_ });
@@ -6810,76 +6940,6 @@ function encodeStrings(a) {
 
 // src/tfjs-core/src/version.ts
 var version = "0.0.0";
-
-// src/tfjs-core/src/globals.ts
-function enableProdMode() {
-  env().set("PROD", true);
-}
-function enableDebugMode() {
-  env().set("DEBUG", true);
-}
-function disableDeprecationWarnings() {
-  env().set("DEPRECATION_WARNINGS_ENABLED", false);
-  console.warn(`TensorFlow.js deprecation warnings have been disabled.`);
-}
-function deprecationWarn(msg) {
-  if (env().getBool("DEPRECATION_WARNINGS_ENABLED")) {
-    console.warn(msg + " You can disable deprecation warnings with tf.disableDeprecationWarnings().");
-  }
-}
-setDeprecationWarningFn(deprecationWarn);
-function disposeVariables() {
-  ENGINE.disposeVariables();
-}
-function engine() {
-  return ENGINE;
-}
-function memory() {
-  return ENGINE.memory();
-}
-function profile(f) {
-  return ENGINE.profile(f);
-}
-function tidy(nameOrFn, fn) {
-  return ENGINE.tidy(nameOrFn, fn);
-}
-function dispose(container) {
-  const tensors = getTensorsInContainer(container);
-  tensors.forEach((tensor2) => tensor2.dispose());
-}
-function keep(result) {
-  return ENGINE.keep(result);
-}
-function time(f) {
-  return ENGINE.time(f);
-}
-function setBackend(backendName) {
-  return ENGINE.setBackend(backendName);
-}
-function ready() {
-  return ENGINE.ready();
-}
-function getBackend() {
-  return ENGINE.backendName;
-}
-function removeBackend(name) {
-  ENGINE.removeBackend(name);
-}
-function findBackend(name) {
-  return ENGINE.findBackend(name);
-}
-function findBackendFactory(name) {
-  return ENGINE.findBackendFactory(name);
-}
-function registerBackend(name, factory, priority = 1) {
-  return ENGINE.registerBackend(name, factory, priority);
-}
-function backend() {
-  return ENGINE.backend;
-}
-function setPlatform(platformName, platform) {
-  env().setPlatform(platformName, platform);
-}
 
 // src/tfjs-core/src/ops/add.ts
 function add_(a, b) {
@@ -8431,14 +8491,6 @@ function greaterEqual_(a, b) {
 }
 var greaterEqual = op({ greaterEqual_ });
 
-// src/tfjs-core/src/ops/imag.ts
-function imag_(input) {
-  const $input = convertToTensor(input, "input", "imag");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Imag, inputs);
-}
-var imag = op({ imag_ });
-
 // src/tfjs-core/src/ops/is_finite.ts
 function isFinite_(x) {
   const $x = convertToTensor(x, "x", "isFinite");
@@ -8636,14 +8688,6 @@ function checkGrads(grads2) {
     the f you passed encloses all operations that lead from x to y.`);
   }
 }
-
-// src/tfjs-core/src/ops/neg.ts
-function neg_(x) {
-  const $x = convertToTensor(x, "x", "neg");
-  const inputs = { x: $x };
-  return ENGINE.runKernel(Neg, inputs);
-}
-var neg = op({ neg_ });
 
 // src/tfjs-core/src/ops/softplus.ts
 function softplus_(x) {
@@ -9397,14 +9441,6 @@ function range(start, stop, step2 = 1, dtype = "float32") {
   const attrs = { start, stop, step: step2, dtype };
   return ENGINE.runKernel(Range, {}, attrs);
 }
-
-// src/tfjs-core/src/ops/real.ts
-function real_(input) {
-  const $input = convertToTensor(input, "input", "real");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Real, inputs);
-}
-var real = op({ real_ });
 
 // src/tfjs-core/src/ops/reciprocal.ts
 function reciprocal_(x) {

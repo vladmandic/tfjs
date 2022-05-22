@@ -7035,6 +7035,11 @@ var _Engine = class {
     }
     return t;
   }
+  makeTensorFromDataId(dataId, shape, dtype, backend2) {
+    dtype = dtype || "float32";
+    const tensorInfo = { dataId, shape, dtype };
+    return this.makeTensorFromTensorInfo(tensorInfo, backend2);
+  }
   makeTensorFromTensorInfo(tensorInfo, backend2) {
     const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
@@ -8521,6 +8526,7 @@ __export(io_exports, {
   decodeWeights: () => decodeWeights,
   encodeWeights: () => encodeWeights,
   fromMemory: () => fromMemory,
+  fromMemorySync: () => fromMemorySync,
   getLoadHandlers: () => getLoadHandlers,
   getModelArtifactsForJSON: () => getModelArtifactsForJSON,
   getModelArtifactsInfoForJSON: () => getModelArtifactsInfoForJSON,
@@ -8534,7 +8540,8 @@ __export(io_exports, {
   registerSaveRouter: () => registerSaveRouter,
   removeModel: () => removeModel,
   weightsLoaderFactory: () => weightsLoaderFactory,
-  withSaveHandler: () => withSaveHandler
+  withSaveHandler: () => withSaveHandler,
+  withSaveHandlerSync: () => withSaveHandlerSync
 });
 
 // src/tfjs-core/src/io/browser_files.ts
@@ -8967,7 +8974,7 @@ var PassthroughLoader = class {
   constructor(modelArtifacts) {
     this.modelArtifacts = modelArtifacts;
   }
-  async load() {
+  load() {
     return this.modelArtifacts;
   }
 };
@@ -8975,11 +8982,25 @@ var PassthroughSaver = class {
   constructor(saveHandler) {
     this.saveHandler = saveHandler;
   }
-  async save(modelArtifacts) {
+  save(modelArtifacts) {
     return this.saveHandler(modelArtifacts);
   }
 };
+var PassthroughAsync = class {
+  constructor(handler) {
+    if (handler.load) {
+      this.load = () => Promise.resolve(handler.load());
+    }
+    if (handler.save) {
+      this.save = (modelArtifacts) => Promise.resolve(handler.save(modelArtifacts));
+    }
+  }
+};
 function fromMemory(modelArtifacts, weightSpecs, weightData, trainingConfig) {
+  const args = arguments;
+  return new PassthroughAsync(fromMemorySync(...args));
+}
+function fromMemorySync(modelArtifacts, weightSpecs, weightData, trainingConfig) {
   if (arguments.length === 1) {
     const isModelArtifacts = modelArtifacts.modelTopology != null || modelArtifacts.weightSpecs != null;
     if (isModelArtifacts) {
@@ -8999,6 +9020,9 @@ function fromMemory(modelArtifacts, weightSpecs, weightData, trainingConfig) {
   }
 }
 function withSaveHandler(saveHandler) {
+  return new PassthroughSaver(saveHandler);
+}
+function withSaveHandlerSync(saveHandler) {
   return new PassthroughSaver(saveHandler);
 }
 
@@ -9031,8 +9055,102 @@ function oneHot_(indices, depth, onValue = 1, offValue = 0) {
 }
 var oneHot = op({ oneHot_ });
 
+// src/tfjs-core/src/globals.ts
+function enableProdMode() {
+  env().set("PROD", true);
+}
+function enableDebugMode() {
+  env().set("DEBUG", true);
+}
+function disableDeprecationWarnings() {
+  env().set("DEPRECATION_WARNINGS_ENABLED", false);
+  console.warn(`TensorFlow.js deprecation warnings have been disabled.`);
+}
+function deprecationWarn(msg) {
+  if (env().getBool("DEPRECATION_WARNINGS_ENABLED")) {
+    console.warn(msg + " You can disable deprecation warnings with tf.disableDeprecationWarnings().");
+  }
+}
+setDeprecationWarningFn(deprecationWarn);
+function disposeVariables() {
+  ENGINE.disposeVariables();
+}
+function engine() {
+  return ENGINE;
+}
+function memory() {
+  return ENGINE.memory();
+}
+function profile(f) {
+  return ENGINE.profile(f);
+}
+function tidy(nameOrFn, fn) {
+  return ENGINE.tidy(nameOrFn, fn);
+}
+function dispose(container) {
+  const tensors = getTensorsInContainer(container);
+  tensors.forEach((tensor2) => tensor2.dispose());
+}
+function keep(result) {
+  return ENGINE.keep(result);
+}
+function time(f) {
+  return ENGINE.time(f);
+}
+function setBackend(backendName) {
+  return ENGINE.setBackend(backendName);
+}
+function ready() {
+  return ENGINE.ready();
+}
+function getBackend() {
+  return ENGINE.backendName;
+}
+function removeBackend(name) {
+  ENGINE.removeBackend(name);
+}
+function findBackend(name) {
+  return ENGINE.findBackend(name);
+}
+function findBackendFactory(name) {
+  return ENGINE.findBackendFactory(name);
+}
+function registerBackend(name, factory, priority = 1) {
+  return ENGINE.registerBackend(name, factory, priority);
+}
+function backend() {
+  return ENGINE.backend;
+}
+function setPlatform(platformName, platform) {
+  env().setPlatform(platformName, platform);
+}
+
+// src/tfjs-core/src/ops/imag.ts
+function imag_(input2) {
+  const $input = convertToTensor(input2, "input", "imag");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Imag, inputs);
+}
+var imag = op({ imag_ });
+
+// src/tfjs-core/src/ops/neg.ts
+function neg_(x) {
+  const $x = convertToTensor(x, "x", "neg");
+  const inputs = { x: $x };
+  return ENGINE.runKernel(Neg, inputs);
+}
+var neg = op({ neg_ });
+
+// src/tfjs-core/src/ops/real.ts
+function real_(input2) {
+  const $input = convertToTensor(input2, "input", "real");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Real, inputs);
+}
+var real = op({ real_ });
+
 // src/tfjs-core/src/ops/transpose.ts
-function transpose_(x, perm) {
+function transpose_(x, perm, conjugate) {
   const $x = convertToTensor(x, "x", "transpose");
   if (perm == null) {
     perm = $x.shape.map((s, i) => i).reverse();
@@ -9046,6 +9164,18 @@ function transpose_(x, perm) {
   }
   const inputs = { x: $x };
   const attrs = { perm };
+  if ($x.dtype === "complex64") {
+    return tidy(() => {
+      let $real = real($x);
+      let $imag = imag($x);
+      $real = ENGINE.runKernel(Transpose, { x: $real }, attrs);
+      $imag = ENGINE.runKernel(Transpose, { x: $imag }, attrs);
+      if (conjugate) {
+        $imag = neg($imag);
+      }
+      return complex($real, $imag);
+    });
+  }
   return ENGINE.runKernel(Transpose, inputs, attrs);
 }
 var transpose = op({ transpose_ });
@@ -10041,76 +10171,6 @@ function encodeStrings(a) {
 
 // src/tfjs-core/src/version.ts
 var version = "0.0.0";
-
-// src/tfjs-core/src/globals.ts
-function enableProdMode() {
-  env().set("PROD", true);
-}
-function enableDebugMode() {
-  env().set("DEBUG", true);
-}
-function disableDeprecationWarnings() {
-  env().set("DEPRECATION_WARNINGS_ENABLED", false);
-  console.warn(`TensorFlow.js deprecation warnings have been disabled.`);
-}
-function deprecationWarn(msg) {
-  if (env().getBool("DEPRECATION_WARNINGS_ENABLED")) {
-    console.warn(msg + " You can disable deprecation warnings with tf.disableDeprecationWarnings().");
-  }
-}
-setDeprecationWarningFn(deprecationWarn);
-function disposeVariables() {
-  ENGINE.disposeVariables();
-}
-function engine() {
-  return ENGINE;
-}
-function memory() {
-  return ENGINE.memory();
-}
-function profile(f) {
-  return ENGINE.profile(f);
-}
-function tidy(nameOrFn, fn) {
-  return ENGINE.tidy(nameOrFn, fn);
-}
-function dispose(container) {
-  const tensors = getTensorsInContainer(container);
-  tensors.forEach((tensor2) => tensor2.dispose());
-}
-function keep(result) {
-  return ENGINE.keep(result);
-}
-function time(f) {
-  return ENGINE.time(f);
-}
-function setBackend(backendName) {
-  return ENGINE.setBackend(backendName);
-}
-function ready() {
-  return ENGINE.ready();
-}
-function getBackend() {
-  return ENGINE.backendName;
-}
-function removeBackend(name) {
-  ENGINE.removeBackend(name);
-}
-function findBackend(name) {
-  return ENGINE.findBackend(name);
-}
-function findBackendFactory(name) {
-  return ENGINE.findBackendFactory(name);
-}
-function registerBackend(name, factory, priority = 1) {
-  return ENGINE.registerBackend(name, factory, priority);
-}
-function backend() {
-  return ENGINE.backend;
-}
-function setPlatform(platformName, platform) {
-  env().setPlatform(platformName, platform);
-}
 
 // src/tfjs-core/src/ops/add.ts
 function add_(a, b) {
@@ -11662,14 +11722,6 @@ function greaterEqual_(a, b) {
 }
 var greaterEqual = op({ greaterEqual_ });
 
-// src/tfjs-core/src/ops/imag.ts
-function imag_(input2) {
-  const $input = convertToTensor(input2, "input", "imag");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Imag, inputs);
-}
-var imag = op({ imag_ });
-
 // src/tfjs-core/src/ops/is_finite.ts
 function isFinite_(x) {
   const $x = convertToTensor(x, "x", "isFinite");
@@ -11867,14 +11919,6 @@ function checkGrads(grads2) {
     the f you passed encloses all operations that lead from x to y.`);
   }
 }
-
-// src/tfjs-core/src/ops/neg.ts
-function neg_(x) {
-  const $x = convertToTensor(x, "x", "neg");
-  const inputs = { x: $x };
-  return ENGINE.runKernel(Neg, inputs);
-}
-var neg = op({ neg_ });
 
 // src/tfjs-core/src/ops/softplus.ts
 function softplus_(x) {
@@ -12628,14 +12672,6 @@ function range(start, stop, step5 = 1, dtype = "float32") {
   const attrs = { start, stop, step: step5, dtype };
   return ENGINE.runKernel(Range, {}, attrs);
 }
-
-// src/tfjs-core/src/ops/real.ts
-function real_(input2) {
-  const $input = convertToTensor(input2, "input", "real");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Real, inputs);
-}
-var real = op({ real_ });
 
 // src/tfjs-core/src/ops/reciprocal.ts
 function reciprocal_(x) {
@@ -38501,13 +38537,16 @@ var GraphModel = class {
       this.handler = handlers[0];
     }
   }
-  async load() {
+  load() {
     this.findIOHandler();
     if (this.handler.load == null) {
       throw new Error("Cannot proceed with model loading because the IOHandler provided does not have the `load` method implemented.");
     }
-    const artifacts = await this.handler.load();
-    return this.loadSync(artifacts);
+    const loadResult = this.handler.load();
+    if (util_exports.isPromise(loadResult)) {
+      return loadResult.then((artifacts) => this.loadSync(artifacts));
+    }
+    return this.loadSync(loadResult);
   }
   loadSync(artifacts) {
     this.artifacts = artifacts;
@@ -38607,17 +38646,29 @@ async function loadGraphModel(modelUrl, options = {}) {
   if (options == null) {
     options = {};
   }
-  if (options.fromTFHub) {
-    if (modelUrl.load == null) {
-      if (!modelUrl.endsWith("/")) {
-        modelUrl = modelUrl + "/";
-      }
-      modelUrl = `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
-    }
+  if (options.fromTFHub && typeof modelUrl === "string") {
+    modelUrl = getTFHubUrl(modelUrl);
   }
   const model2 = new GraphModel(modelUrl, options);
   await model2.load();
   return model2;
+}
+function loadGraphModelSync(modelSource) {
+  if (modelSource == null) {
+    throw new Error("modelUrl in loadGraphModelSync() cannot be null. Please provide a url or an IOHandler that loads the model");
+  }
+  if (!modelSource.load) {
+    throw new Error(`modelUrl IO Handler ${modelSource} has no load function`);
+  }
+  const model2 = new GraphModel(modelSource);
+  model2.load();
+  return model2;
+}
+function getTFHubUrl(modelUrl) {
+  if (!modelUrl.endsWith("/")) {
+    modelUrl = modelUrl + "/";
+  }
+  return `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
 }
 
 // src/tfjs-converter/src/version.ts
@@ -56105,15 +56156,15 @@ var cropAndResizeConfig2 = {
 
 // src/tfjs-backend-webgl/src/cum_gpu.ts
 var CumProgram = class {
-  constructor(op2, shape, exclusive, reverse5) {
+  constructor(op2, outputShape, exclusive, reverse5) {
+    this.op = op2;
+    this.outputShape = outputShape;
     this.variableNames = ["x"];
     this.customUniforms = [{ name: "index", type: "float" }];
-    this.op = op2;
-    this.outputShape = shape;
-    const rank = shape.length;
+    const rank = this.outputShape.length;
     const initVal = this.op === "*" /* Prod */ ? "1.0" : "0.0";
     const val = exclusive ? initVal : `getX(${getCoords2(rank, "coords", this.op)})`;
-    const length = shape[shape.length - 1];
+    const length = this.outputShape[this.outputShape.length - 1];
     let condition = "";
     let idxString = "";
     if (exclusive) {
@@ -56149,7 +56200,7 @@ function getCoords2(rank, name, op2) {
   } else if (rank === 4) {
     return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
   } else {
-    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
+    throw new Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
   }
 }
 function getFinalCoord(rank, name, op2) {
@@ -56162,7 +56213,7 @@ function getFinalCoord(rank, name, op2) {
   } else if (rank === 4) {
     return `${name}.w`;
   } else {
-    throw Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
+    throw new Error(`Cumulative ${op2} for rank ${rank} is not yet supported`);
   }
 }
 
@@ -57601,11 +57652,23 @@ function fusedConv2d(args) {
     const fusedActivation = activation2 ? mapActivationToShaderProgram(activation2, false) : null;
     const program = new Conv2DProgram(convInfo, hasBias, fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
     const inputs2 = [x, filter];
-    if (bias) {
-      inputs2.push(bias);
+    const alignInputWithDataFormat = (input2, dataFormat2) => {
+      if (dataFormat2 === "NCHW" && input2.shape.length === 1 && input2.shape[0] !== 1) {
+        const alignedInput = reshape4({
+          inputs: { x: input2 },
+          backend: backend2,
+          attrs: { shape: [input2.shape[0], 1, 1] }
+        });
+        intermediates.push(alignedInput);
+        return alignedInput;
+      }
+      return input2;
+    };
+    if (hasBias) {
+      inputs2.push(alignInputWithDataFormat(bias, dataFormat));
     }
-    if (preluActivationWeights) {
-      inputs2.push(preluActivationWeights);
+    if (hasPreluActivationWeights) {
+      inputs2.push(alignInputWithDataFormat(preluActivationWeights, dataFormat));
     }
     if (hasLeakyreluAlpha) {
       const $leakyreluAlpha = backend2.makeTensorInfo([], "float32", util_exports.createScalarValue(leakyreluAlpha, "float32"));
@@ -62335,8 +62398,8 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
-    @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
-    `);
+    @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${program.variableTypes ? program.variableTypes[i] : mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+      `);
   });
   if (uniformDeclaration !== "") {
     prefixSnippets.push(`
@@ -62355,7 +62418,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
     sources.push(setOutputSnippet(outputData.shape, outputData.dtype, program.isVec4));
   }
   if (dispatchLayoutRank === outputData.shape.length) {
-    const inputSnippet = inputInfo.map((x) => getInputSnippet(x, outputData.shape, program.isVec4, program.dispatchLayout.x.length === outputData.shape.length)).join("\n");
+    const inputSnippet = inputInfo.map((x, i) => getInputSnippet(x, outputData.shape, program.variableTypes ? program.variableTypes[i] === "vec4<f32>" : program.isVec4, program.dispatchLayout.x.length === outputData.shape.length)).join("\n");
     sources.push(inputSnippet);
   }
   sources.push(program.getUserCode());
@@ -62858,14 +62921,16 @@ function isWebGPUSupported() {
 }
 
 // src/tfjs-backend-webgpu/src/matmul_packed_vec4_webgpu.ts
-function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileInner) {
-  util_exports.assert(tileInner % 4 === 0 && workPerThread[0] === 4, () => "tileInner must be divisible by 4. And ColPerThread must be 4");
+function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileInner, innerElementSize = 4) {
+  util_exports.assert((tileInner % 4 === 0 || tileInner % 3 === 0) && workPerThread[0] === 4 && (innerElementSize === 3 || innerElementSize === 4), () => `tileInner must be divisible by 4|3. ColPerThread must be 4.
+           innerElementSize must be 3|4.`);
   return `
-  var<workgroup> mm_Asub : array<array<vec4<f32>, ${tileInner / workPerThread[0]}>, ${tileAOuter}>;
+  var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${tileInner / innerElementSize}>, ${tileAOuter}>;
   var<workgroup> mm_Bsub : array<array<vec4<f32>, ${tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
   let RowPerThread = ${workPerThread[1]};
   let ColPerThread = ${workPerThread[0]};
+  let InnerElementSize = ${innerElementSize};
   let TileInner = ${tileInner};
 
   ${getMainHeaderString()}
@@ -62878,7 +62943,6 @@ function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileI
     let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
 
     var acc: array<vec4<f32>, RowPerThread>;
-    var ACached : vec4<f32>;
     var BCached : array<vec4<f32>, 4>;
 
     // Loop over shared dimension.
@@ -62892,7 +62956,7 @@ function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileI
             let inputCol = tileCol;
             mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, globalId);
         }
-        globalColA = globalColA + TileInner / ColPerThread;
+        globalColA = globalColA + TileInner / InnerElementSize;
 
         // Load one tile of B into local memory.
         for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
@@ -62904,18 +62968,18 @@ function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileI
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < TileInner / ColPerThread; k = k + 1) {
-            BCached[0] = mm_Bsub[k * ColPerThread][tileCol];
-            BCached[1] = mm_Bsub[k * ColPerThread + 1][tileCol];
-            BCached[2] = mm_Bsub[k * ColPerThread + 2][tileCol];
-            BCached[3] = mm_Bsub[k * ColPerThread + 3][tileCol];
+        for (var k = 0; k < TileInner / InnerElementSize; k = k + 1) {
+            BCached[0] = mm_Bsub[k * InnerElementSize][tileCol];
+            BCached[1] = mm_Bsub[k * InnerElementSize + 1][tileCol];
+            BCached[2] = mm_Bsub[k * InnerElementSize + 2][tileCol];
+            ${innerElementSize === 3 ? "" : "BCached[3] = mm_Bsub[k * InnerElementSize + 3][tileCol];"}
 
             for (var i = 0; i < RowPerThread; i = i + 1) {
-                ACached = mm_Asub[tileRow + i][k];
+                let ACached = mm_Asub[tileRow + i][k];
                 acc[i] = BCached[0] * ACached.x + acc[i];
                 acc[i] = BCached[1] * ACached.y + acc[i];
                 acc[i] = BCached[2] * ACached.z + acc[i];
-                acc[i] = BCached[3] * ACached.w + acc[i];
+                ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached.w + acc[i];"}
             }
         }
 
@@ -65035,18 +65099,25 @@ var Conv2DMMVec4Program = class {
     this.addBias = addBias;
     this.activation = activation2;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.innerElementSize = this.convInfo.inChannels % 4 === 0 ? 4 : 3;
+    if (this.innerElementSize === 3) {
+      this.variableTypes = ["f32", "vec4<f32>"];
+    } else {
+      this.variableTypes = ["vec4<f32>", "vec4<f32>"];
+    }
     if (this.addBias) {
       this.variableNames.push("bias");
+      this.variableTypes.push("vec4<f32>");
     }
     if (this.hasPreluActivationWeights) {
       this.variableNames.push("preluActivationWeights");
+      this.variableTypes.push("vec4<f32>");
     }
     this.tileAOuter = this.outputShape[1] === 1 ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = this.tileBOuter;
+    this.tileInner = this.workGroupSize[0] * this.innerElementSize;
     [this.fitA, this.fitB] = this.getShapeFit();
-    this.remainder = this.convInfo.inChannels % 4 === 0;
-    this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}_${this.remainder}`;
+    this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}_${this.innerElementSize}`;
   }
   getShapeFit() {
     const tileSizeA = [this.tileAOuter, this.tileInner];
@@ -65059,68 +65130,33 @@ var Conv2DMMVec4Program = class {
       tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
     ];
   }
-  getSampleAWithRemainder(index) {
-    return `let flatIndex${index} = getIndexFromCoords4D(coord, uniforms.xShape);
-    let divBy4Remainder${index} = flatIndex${index} % 4;
-    let divBy4Index${index} = flatIndex${index} / 4;
-    let curData${index} = x[divBy4Index${index}];
-    if (divBy4Remainder${index} == 0) {
-      temp = curData${index};
-    } else {
-      // TODO: This could end up being a redundant load with another one in
-      // the same shader invocation. Perhaps there's an opportunity for
-      // optimization
-      let nextData${index} = x[divBy4Index${index} + 1];
-      if (divBy4Remainder${index} == 1) {
-        temp = vec4<f32>(curData${index}.yzw, nextData${index}.x);
-      } else if (divBy4Remainder${index} == 2) {
-        temp = vec4<f32>(curData${index}.zw, nextData${index}.xy);
-      } else if (divBy4Remainder${index} == 3) {
-        temp = vec4<f32>(curData${index}.w, nextData${index}.xyz);
-      }
-    }
-    `;
-  }
   getUserCode() {
-    const matMulSource = makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner);
-    const remainderSnippet = this.remainder ? `// The bounds checking is always needed since we use it to pad zero for
-          // the 'same' padding type.
-          if (coordsInBounds4D(coord, uniforms.xShape)) {
-            resData = x[getIndexFromCoords4D(coord, uniforms.xShape) / 4];
-          } else {
-            resData = vec4<f32>(0.0); }` : `var temp = vec4<f32>(0.0);
-          ${this.getSampleAWithRemainder(1)}
-          resData = temp;
-          if (WCol == (uniforms.filterDims[1] - 1)) {
-            coord = vec4<i32>(
-              coord.x, coord.y + 1, coord.z + 1 - uniforms.filterDims[1], 0);
-              ${this.getSampleAWithRemainder(2)}
-            if (inChCoord == 0) {
-              resData = vec4<f32>(resData.xyz, temp.x);
-            } else if (inChCoord == 1) {
-              resData = vec4<f32>(resData.xy, temp.xy);
-            } else {
-              resData = vec4<f32>(resData.x, temp.xyz);
-            }
-          }
-          `;
+    const matMulSource = makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner, this.innerElementSize);
     const readASnippet = `let outRow = r / uniforms.outShape[2];
         let outCol = r % uniforms.outShape[2];
         let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
         let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
         let inChCoord = c % uniforms.xShape[3];
-        var coord = vec4<i32>(
+        let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
+        let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
+
+        var resData = vec${this.innerElementSize}<f32>(0.0);
+        // The bounds checking is always needed since we use it to pad zero for
+        // the 'same' padding type.
+        if (xRow >= 0 && xRow < uniforms.xShape[1] && xCol >= 0 && xCol < uniforms.xShape[2]) {
+          var coord = vec4<i32>(
             batch,
-            outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
-            outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
+            xRow,
+            xCol,
             inChCoord);
-        var resData = vec4<f32>(0.0);
-        ${remainderSnippet}
+          let xIndex = getIndexFromCoords4D(coord, uniforms.xShape);
+          ${this.innerElementSize === 3 ? "resData = vec3<f32>(x[xIndex], x[xIndex + 1], x[xIndex + 2]);" : "resData = x[xIndex / 4];"}
+        }
         return resData;`;
     const sampleA = this.fitA ? `${readASnippet}` : `if (r < uniforms.dimAOuter && c < uniforms.dimInner) {
           ${readASnippet}
          }
-         return vec4<f32>(0.0);
+         return vec${this.innerElementSize}<f32>(0.0);
         `;
     const sampleB = this.fitB ? `return W[row * uniforms.dimBOuter / 4 + col];` : `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
            return W[row * uniforms.dimBOuter / 4 + col];
@@ -65146,9 +65182,9 @@ var Conv2DMMVec4Program = class {
     const addBiasSnippet = this.addBias ? "value = value + getBiasByOutputCoords(outCoord);" : "";
     const userCode = `
         ${activationSnippet}
-        fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> vec4<f32> {
+        fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> vec${this.innerElementSize}<f32> {
           let r = row;
-          let c = col * 4;
+          let c = col * ${this.innerElementSize};
           var batch = i32(globalId.z);
           ${sampleA}
         }
@@ -65404,7 +65440,7 @@ function conv2DImpl({
       leakyreluAlpha
     });
   }
-  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels === 3 && convInfo.padInfo.type === "VALID") && convInfo.outChannels % 4 === 0 && isChannelsLast;
+  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) && convInfo.outChannels % 4 === 0 && isChannelsLast;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     { type: "int32", data: [convInfo.filterHeight, convInfo.filterWidth] },
@@ -69867,7 +69903,7 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
-    pass.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    pass.dispatchWorkgroups(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 1);
@@ -69997,7 +70033,7 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    pass.dispatchWorkgroups(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 1);
@@ -73737,7 +73773,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.17.0-20220518";
+var externalVersion = "3.18.0-20220522";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -74081,6 +74117,7 @@ export {
   linalg,
   linspace,
   loadGraphModel,
+  loadGraphModelSync,
   loadLayersModel,
   localResponseNormalization,
   log2 as log,
