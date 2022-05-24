@@ -63107,57 +63107,87 @@ var MatMulPackedVec4Program = class {
 };
 
 // src/tfjs-backend-webgpu/src/matmul_packed_webgpu.ts
-function makeMatMulPackedSource(workPerThread, workGroupSize) {
-  const tileAOuter = workGroupSize[1] * workPerThread[1];
-  const tileBOuter = workGroupSize[0] * workPerThread[0];
-  const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+var writeDataToSubASnippet = (transpose6) => {
+  if (transpose6) {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(
+          t * TileInner + inputRow,
+          globalRowStart + inputCol, globalId);
+        `;
+  } else {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(
+          globalRowStart + inputRow,
+          t * TileInner + inputCol, globalId);
+        `;
+  }
+};
+var readDataFromSubASnippet = (transposeA) => {
+  return transposeA ? "let ACached = mm_Asub[k][tileRow + innerRow];" : "let ACached = mm_Asub[tileRow + innerRow][k];";
+};
+function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false, tileInner = 32) {
+  const tileAOuter = workPerThread[1] * workGroupSize[1];
+  const tileBOuter = workPerThread[0] * workGroupSize[0];
+  const tileAWidth = transposeA ? tileAOuter : tileInner;
+  const tileAHight = transposeA ? tileInner : tileAOuter;
+  util_exports.assert(tileAHight % workGroupSize[1] === 0 && tileAWidth % workGroupSize[0] === 0 && tileInner % workGroupSize[1] === 0, () => `tileAHight ${tileAHight} must be divisible by workGroupSize[1]${workGroupSize[1]}, tileAWidth ${tileAWidth} must be divisible by workGroupSize[0]${workGroupSize[0]}, tileInner ${tileInner} must be divisible by workGroupSize[1]${workGroupSize[1]}`);
+  const rowPerThreadA = tileAHight / workGroupSize[1];
+  const colPerThreadA = tileAWidth / workGroupSize[0];
+  const rowPerThreadB = tileInner / workGroupSize[1];
   return `
-    var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
+    var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    ${getMainHeaderString()}
-      let tileRow = i32(localId.y) * ${workPerThread[1]};
-      let tileCol = i32(localId.x) * ${workPerThread[0]};
+    let RowPerThread = ${workPerThread[1]};
+    let ColPerThread = ${workPerThread[0]};
+    let TileInner = ${tileInner};
 
-      let globalRow = i32(globalId.y) * ${workPerThread[1]};
-      let globalCol = i32(globalId.x) * ${workPerThread[0]};
+    @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+    fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+            @builtin(global_invocation_id) GlobalId : vec3<u32>,
+            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+            @builtin(workgroup_id) workgroupId: vec3<u32>) {
+      localId = LocalId;
+      globalId = GlobalId;
+      numWorkgroups = NumWorkgroups;
 
-      let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
+      let tileRow = i32(localId.y) * RowPerThread;
+      let tileCol = i32(localId.x) * ColPerThread;
 
-      var acc : array<array<f32, ${workPerThread[0]}>, ${workPerThread[1]}>;
-      var ACached : f32;
-      var BCached : array<f32, ${workPerThread[0]}>;
+      let globalRow = i32(globalId.y) * RowPerThread;
+      let globalCol = i32(globalId.x) * ColPerThread;
+
+      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+
+      let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
+
+      var acc : array<array<f32, ColPerThread>, RowPerThread>;
 
       // Without this initialization strange values show up in acc.
-      for (var innerRow = 0; innerRow < ${workPerThread[1]}; innerRow = innerRow + 1) {
-        for (var innerCol = 0; innerCol < ${workPerThread[0]}; innerCol = innerCol + 1) {
+      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
           acc[innerRow][innerCol] = 0.0;
         }
       }
 
-      let ColPerThreadA = ${tileInner} / ${workGroupSize[0]};
-      let tileColA = i32(localId.x) * ColPerThreadA;
-      let RowPerThreadB = ${tileInner} / ${workGroupSize[1]};
-      let tileRowB = i32(localId.y) * RowPerThreadB;
-
+      let tileRowA = i32(localId.y) * ${rowPerThreadA};
+      let tileColA = i32(localId.x) * ${colPerThreadA};
+      let tileRowB = i32(localId.y) * ${rowPerThreadB};
       // Loop over shared dimension.
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < ${workPerThread[1]}; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ColPerThreadA; innerCol = innerCol + 1) {
-            let inputRow = tileRow + innerRow;
+        for (var innerRow = 0; innerRow < ${rowPerThreadA}; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < ${colPerThreadA}; innerCol = innerCol + 1) {
+            let inputRow = tileRowA + innerRow;
             let inputCol = tileColA + innerCol;
-
-            mm_Asub[inputRow][inputCol] = mm_readA(
-                globalRow + innerRow,
-                t * ${tileInner} + inputCol, globalId);
+            ${writeDataToSubASnippet(transposeA)}
           }
         }
+
         // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ${workPerThread[0]}; innerCol = innerCol + 1) {
+        for (var innerRow = 0; innerRow < ${rowPerThreadB}; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol + innerCol;
-
             mm_Bsub[inputRow][inputCol] = mm_readB(
               t * ${tileInner} + inputRow,
               globalCol + innerCol, globalId);
@@ -63167,14 +63197,15 @@ function makeMatMulPackedSource(workPerThread, workGroupSize) {
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < ${tileInner}; k = k + 1) {
-          for (var inner = 0; inner < ${workPerThread[0]}; inner = inner + 1) {
+        var BCached : array<f32, ColPerThread>;
+        for (var k = 0; k < TileInner; k = k + 1) {
+          for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
             BCached[inner] = mm_Bsub[k][tileCol + inner];
           }
 
-          for (var innerRow = 0; innerRow < ${workPerThread[1]}; innerRow = innerRow + 1) {
-            ACached = mm_Asub[tileRow + innerRow][k];
-            for (var innerCol = 0; innerCol < ${workPerThread[0]}; innerCol = innerCol + 1) {
+          for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+            ${readDataFromSubASnippet(transposeA)}
+            for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
               acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
             }
           }
@@ -63183,8 +63214,8 @@ function makeMatMulPackedSource(workPerThread, workGroupSize) {
         workgroupBarrier();
       }
 
-      for (var innerRow = 0; innerRow < ${workPerThread[1]}; innerRow = innerRow + 1) {
-        for (var innerCol = 0; innerCol < ${workPerThread[0]}; innerCol = innerCol + 1) {
+      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
 
           if ((globalCol + innerCol) < uniforms.dimBOuter &&
               (globalRow + innerRow) < uniforms.dimAOuter) {
@@ -63197,7 +63228,21 @@ function makeMatMulPackedSource(workPerThread, workGroupSize) {
     }
   `;
 }
-function makeMatMulVectorSource(workGroupSize) {
+var readVectorASnippet = (transpose6) => {
+  return transpose6 ? `
+      mm_readA(colA, globalRow, globalId),
+      mm_readA(colA + 1, globalRow, globalId),
+      mm_readA(colA + 2, globalRow, globalId),
+      mm_readA(colA + 3, globalRow, globalId)
+  ` : `
+      mm_readA(globalRow, colA, globalId),
+      mm_readA(globalRow, colA + 1, globalId),
+      mm_readA(globalRow, colA + 2, globalId),
+      mm_readA(globalRow, colA + 3, globalId)
+  `;
+};
+function makeMatMulVectorSource(workGroupSize, transposeA = false) {
+  util_exports.assert(workGroupSize[1] === 1 && workGroupSize[2] === 1, () => `A linear work group size is required. But got ${workGroupSize}.`);
   return `
     let TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
@@ -63216,10 +63261,7 @@ function makeMatMulVectorSource(workGroupSize) {
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
         let colA = t * TileSize + tileCol * 4;
-        mm_Asub[tileCol] = vec4<f32>(mm_readA(globalRow, colA, globalId),
-                                mm_readA(globalRow, colA + 1, globalId),
-                                mm_readA(globalRow, colA + 2, globalId),
-                                mm_readA(globalRow, colA + 3, globalId));
+        mm_Asub[tileCol] = vec4<f32>(${readVectorASnippet(transposeA)});
         workgroupBarrier();
 
         // Compute acc values for a single thread.
@@ -63269,7 +63311,6 @@ var MatMulPackedProgram2 = class {
       this.variableNames.push("preluActivationWeights");
     }
     this.workPerThread = workPerThread;
-    this.aShape = aShape;
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     this.addBias = addBias;
@@ -63277,50 +63318,33 @@ var MatMulPackedProgram2 = class {
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.batchAEqualOne = batchAEqualOne;
     this.batchBEqualOne = batchBEqualOne;
-    const dimBOuter = this.outputShape[2];
-    const bShape = this.transposeB ? [this.outputShape[0], dimBOuter, dimInner] : [this.outputShape[0], dimInner, dimBOuter];
-    [this.fitA, this.fitB] = this.getShapeFit(bShape);
-    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${transposeB}_${this.activation}_${this.fitA}_${this.fitB}_${this.outputShape[1] > 1}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
+    [this.fitAOuter, this.fitBOuter, this.fitInner] = this.getShapeFit(outputShape[1], outputShape[2], dimInner);
+    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.outputShape[1] > 1}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
-  getShapeFit(bShape) {
+  getShapeFit(dimAOuter, dimBOuter, dimInner) {
     const tileAOuter = this.workGroupSize[1] * this.workPerThread;
     const tileBOuter = this.workGroupSize[0] * this.workPerThread;
-    let tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    this.tileInner = 32;
     if (this.outputShape[1] === 1) {
-      tileInner *= 4;
+      this.tileInner = this.workGroupSize[0] * 4;
     }
-    util_exports.assert(tileInner % this.workGroupSize[0] === 0 && tileInner % this.workGroupSize[1] === 0, () => `tileInner must be multiple of workgroupsize.x and workgroupsize.y`);
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
-      tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
-    ];
+    const fitAOuter = dimAOuter % tileAOuter === 0;
+    const fitBOuter = dimBOuter % tileBOuter === 0;
+    const fitInner = dimInner % this.tileInner === 0;
+    return [fitAOuter, fitBOuter, fitInner];
   }
   getUserCode() {
-    let sampleA;
-    if (this.transposeA === false) {
-      sampleA = this.fitA ? `return A[batch * batchASize + row * uniforms.dimInner + col];` : `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A[batch * batchASize + row * uniforms.dimInner + col];
-           }
-           return 0.0;`;
-    } else {
-      sampleA = this.fitA ? `return A[batch * batchASize + col * uniforms.dimAOuter + row];` : `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A[batch* batchASize + col * uniforms.dimAOuter + row];
-           }
-           return 0.0;`;
-    }
+    const sampleA = this.fitAOuter && this.fitInner ? `return A[batch * batchASize + row * uniforms.aShape[2] + col];` : `
+        if(row < uniforms.aShape[1] && col < uniforms.aShape[2]) {
+          return A[batch * batchASize + row * uniforms.aShape[2] + col];
+        }
+        return 0.0;
+         `;
     let sampleB;
     if (this.transposeB === false) {
-      sampleB = this.fitB ? `return B[batch * batchBSize + row * uniforms.dimBOuter + col];` : `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B[batch * batchBSize + row * uniforms.dimBOuter + col];
-           }
-           return 0.0;`;
+      sampleB = `return B[batch * batchBSize + row * uniforms.dimBOuter + col];`;
     } else {
-      sampleB = this.fitB ? `return B[batch * batchBSize + col * uniforms.dimInner + row];` : `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B[batch * batchBSize + col * uniforms.dimInner + row];
-           }
-           return 0.0;`;
+      sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
     }
     let activationSnippet = "", applyActivationSnippet = "";
     if (this.activation) {
@@ -63373,7 +63397,7 @@ var MatMulPackedProgram2 = class {
         ${applyActivationSnippet}
         setOutputAtCoords(batch, row, col, value);
       }
-      ${this.outputShape[1] > 1 ? makeMatMulPackedSource([this.workPerThread, this.workPerThread, 1], this.workGroupSize) : makeMatMulVectorSource(this.workGroupSize)}
+      ${this.outputShape[1] > 1 ? makeMatMulPackedSource([this.workPerThread, this.workPerThread, 1], this.workGroupSize, this.transposeA, this.tileInner) : makeMatMulVectorSource(this.workGroupSize, this.transposeA)}
     `;
     return userCode;
   }
@@ -65217,12 +65241,12 @@ var Conv2DMMVec4Program = class {
 
 // src/tfjs-backend-webgpu/src/conv2d_mm_webgpu.ts
 var Conv2DMMProgram = class {
-  constructor(convInfo, addBias = false, activation2 = null, hasPreluActivationWeights = false) {
+  constructor(convInfo, dimAOuter, dimBOuter, dimInner, addBias = false, activation2 = null, hasPreluActivationWeights = false) {
     this.variableNames = ["x", "W"];
     this.uniforms = `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === "channelsLast";
-    this.dispatchLayout = this.isChannelsLast ? { x: [3], y: [1, 2], z: [0] } : { x: [1], y: [2, 3], z: [0] };
+    this.dispatchLayout = this.isChannelsLast ? { x: [3], y: [1, 2], z: [0] } : { x: [2, 3], y: [1], z: [0] };
     this.workGroupSize = computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
     this.elementsPerThread = computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
@@ -65232,33 +65256,22 @@ var Conv2DMMProgram = class {
     if (hasPreluActivationWeights) {
       this.variableNames.push("preluActivationWeights");
     }
-    this.convInfo = convInfo;
     this.addBias = addBias;
     this.activation = activation2;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}_${this.fitA}_${this.fitB}_${this.isChannelsLast}`;
-  }
-  getShapeFit() {
     const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
-    util_exports.assert(tileInner % this.workGroupSize[0] === 0 && tileInner % this.workGroupSize[1] === 0, () => "tileInner must be multiple of workgroupsize.x and workgroupsize.y");
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
-    const dimAOuter = this.convInfo.outHeight * this.convInfo.outWidth;
-    const dimBOuter = this.convInfo.outChannels;
-    const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth * this.convInfo.inChannels;
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
-      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
-    ];
+    this.tileInner = 32;
+    this.fitAOuter = dimAOuter % tileAOuter === 0;
+    this.fitBOuter = dimBOuter % tileBOuter === 0;
+    this.fitInner = dimInner % this.tileInner === 0;
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isChannelsLast}`;
   }
   getUserCode() {
     const coordASnippet = this.isChannelsLast ? `
-    let coord = vec4<i32>(batch, xRow, xCol, col % inChannels);
+    let coord = vec4<i32>(batch, xRow, xCol, xCh);
     ` : `
-    let coord = vec4<i32>(batch, col % inChannels, xRow, xCol);
+    let coord = vec4<i32>(batch, xCh, xRow, xCol);
     `;
     const coordResSnippet = this.isChannelsLast ? `
     let outCoord = vec4<i32>(
@@ -65269,21 +65282,24 @@ var Conv2DMMProgram = class {
     ` : `
     let outCoord = vec4<i32>(
       batch,
-      col,
-      row / outWidth,
-      row % outWidth);
+      row,
+      col / outWidth,
+      col % outWidth);
     `;
-    const matMulSource = makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize);
-    const readASnippet = `
+    const matMulSource = makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize, !this.isChannelsLast, this.tileInner);
+    const row = this.isChannelsLast ? "row" : "col";
+    const col = this.isChannelsLast ? "col" : "row";
+    const readXSnippet = `
     let inChannels = uniforms.wShape[2];
     let outWidth = ${this.isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
-    let outRow = row / outWidth;
-    let outCol = row % outWidth;
+    let outRow = ${row} / outWidth;
+    let outCol = ${row} % outWidth;
 
-    let WRow = col / (uniforms.filterDims[1] * inChannels);
-    let WCol = col / inChannels % uniforms.filterDims[1];
+    let WRow = ${col} / (uniforms.filterDims[1] * inChannels);
+    let WCol = ${col} / inChannels % uniforms.filterDims[1];
     let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
     let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
+    let xCh = ${col} % inChannels;
     ${coordASnippet}
     // The bounds checking is always needed since we use it to pad zero for the
     // 'same' padding type.
@@ -65291,16 +65307,14 @@ var Conv2DMMProgram = class {
       return x[getIndexFromCoords4D(coord, uniforms.xShape)];
     }
     return 0.0;`;
-    const sampleA = this.fitA ? `${readASnippet}` : `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
-      ${readASnippet}
+    const sampleX = this.isChannelsLast ? this.fitAOuter && this.fitInner ? `${readXSnippet}` : `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
+      ${readXSnippet}
     }
-    return 0.0;
-    `;
-    const sampleB = this.fitB ? `return W[row * uniforms.dimBOuter + col];` : `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return W[row * uniforms.dimBOuter + col];
-	 }
-	 return 0.0;
-	 `;
+    return 0.0;` : this.fitInner && this.fitBOuter ? `${readXSnippet}` : `if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
+          ${readXSnippet}
+        }
+        return 0.0;`;
+    const sampleW = `return W[row * uniforms.wShape[3] + col];`;
     let activationSnippet = "", applyActivationSnippet = "";
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram2(this.activation, false);
@@ -65323,11 +65337,12 @@ var Conv2DMMProgram = class {
     ${activationSnippet}
     fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
       var batch = i32(globalId.z);
-      ${sampleA}
+      ${this.isChannelsLast ? sampleX : sampleW}
     }
 
     fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
-      ${sampleB}
+      var batch = i32(globalId.z);
+      ${this.isChannelsLast ? sampleW : sampleX}
     }
 
     fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
@@ -65441,22 +65456,24 @@ function conv2DImpl({
     });
   }
   const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) && convInfo.outChannels % 4 === 0 && isChannelsLast;
+  const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth : convInfo.outChannels;
+  const dimBOuter = isChannelsLast ? convInfo.outChannels : convInfo.outHeight * convInfo.outWidth;
+  const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     { type: "int32", data: [convInfo.filterHeight, convInfo.filterWidth] },
     { type: "int32", data: [...padInfo] },
     { type: "int32", data: [convInfo.strideHeight, convInfo.strideWidth] },
-    { type: "int32", data: [convInfo.dilationHeight, convInfo.dilationWidth] }
+    { type: "int32", data: [convInfo.dilationHeight, convInfo.dilationWidth] },
+    { type: "int32", data: [dimAOuter] },
+    { type: "int32", data: [dimBOuter] },
+    { type: "int32", data: [dimInner] }
   ];
   if (useVec4) {
     program = new Conv2DMMVec4Program(convInfo, hasBias, activation2, hasPreluActivationWeights);
   } else {
-    program = new Conv2DMMProgram(convInfo, hasBias, activation2, hasPreluActivationWeights);
+    program = new Conv2DMMProgram(convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation2, hasPreluActivationWeights);
   }
-  const dimAOuter = convInfo.outHeight * convInfo.outWidth;
-  const dimBOuter = convInfo.outChannels;
-  const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
-  dimensions.push({ type: "int32", data: [dimAOuter] }, { type: "int32", data: [dimBOuter] }, { type: "int32", data: [dimInner] });
   const inputVar = [x, filter];
   if (hasBias) {
     inputVar.push(bias);
@@ -73773,7 +73790,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.18.0-20220522";
+var externalVersion = "3.18.0-20220524";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
