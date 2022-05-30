@@ -25,6 +25,9 @@ fi
 
 # build wasm binaries and js bindings
 cd src
+echo "Cleaning Bazel build cache"
+bazel clean
+
 echo "Building: tfjs-backend-wasm"
 bazel build --symlink_prefix="wasm-out/" -c opt --copt="-O3" --copt="-flto" //tfjs-backend-wasm/src/cc:tfjs-backend-wasm
 
