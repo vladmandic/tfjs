@@ -9298,7 +9298,7 @@ function fusedMatMul_({
   bias,
   activation = "linear",
   preluActivationWeights,
-  leakyreluAlpha
+  leakyreluAlpha = 0.2
 }) {
   if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = matMul(a, b, transposeA, transposeB);
@@ -12001,19 +12001,16 @@ function makeShader(inputInfo, outputData, program, isFromPixel = false) {
 
     // Only used when the y/z dimension of workgroup size is 1.
     fn getGlobalIndex() -> i32 {
-      if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
-        return i32(globalId.x);
-      }
+      ${program.dispatch[1] === 1 && program.dispatch[2] === 1 ? `  return i32(globalId.x);` : `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+                 localId.y * workGroupSizeX + localId.x;
+             let workGroupID = (globalId - localId)/vec3<u32>(
+                 workGroupSizeX, workGroupSizeY, workGroupSizeZ);
 
-      let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-          localId.y * workGroupSizeX + localId.x;
-      let workGroupID = (globalId - localId)/vec3<u32>(
-          workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-      return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-        workGroupID.y * numWorkgroups.x + workGroupID.x) *
-        (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-        localInvocationIndex);
+             return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
+                 workGroupID.y * numWorkgroups.x + workGroupID.x) *
+                 (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+                 localInvocationIndex);
+      `}
     }
   `);
   if (isFromPixel === true) {
@@ -16350,6 +16347,24 @@ var Conv2DMMProgram = class {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Conv2D_impl.ts
+function getShapeForBatchMatMul(shape, isChannelsLast) {
+  const length = shape.length;
+  if (length >= 3) {
+    return isChannelsLast ? [
+      ...shape.slice(0, -3),
+      shape[length - 3] * shape[length - 2],
+      shape[length - 1]
+    ] : [
+      ...shape.slice(0, -3),
+      shape[length - 3],
+      shape[length - 2] * shape[length - 1]
+    ];
+  } else if (!isChannelsLast && length === 1 && shape[0] > 1) {
+    return [shape[0], 1];
+  } else {
+    return null;
+  }
+}
 function conv2dByMatMul({
   x,
   filter,
@@ -16364,6 +16379,7 @@ function conv2dByMatMul({
   const transposeA = isChannelsLast ? false : true;
   const transposeB = false;
   const sameSize = isChannelsLast && convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
+  const intermediates = [];
   let xReshaped;
   let filterReshaped;
   if (sameSize) {
@@ -16400,6 +16416,26 @@ function conv2dByMatMul({
       attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
     });
   }
+  intermediates.push(xReshaped);
+  intermediates.push(filterReshaped);
+  if (preluActivationWeights != null) {
+    const targetShape = getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape2({
+        inputs: { x: preluActivationWeights },
+        backend,
+        attrs: { shape: targetShape }
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape2({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
+      intermediates.push(bias);
+    }
+  }
   const result = batchMatMulImpl({
     a: isChannelsLast ? xReshaped : filterReshaped,
     b: isChannelsLast ? filterReshaped : xReshaped,
@@ -16412,9 +16448,10 @@ function conv2dByMatMul({
     leakyreluAlpha
   });
   const out = reshape2({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
-  backend.disposeData(xReshaped.dataId);
-  backend.disposeData(filterReshaped.dataId);
-  backend.disposeData(result.dataId);
+  intermediates.push(result);
+  for (const i of intermediates) {
+    backend.disposeData(i.dataId);
+  }
   return out;
 }
 function conv2DImpl({
@@ -16463,18 +16500,35 @@ function conv2DImpl({
   } else {
     program = new Conv2DMMProgram(convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation, hasPreluActivationWeights);
   }
+  const intermediates = [];
   const inputVar = [x, filter];
   if (hasBias) {
+    if (!isChannelsLast && bias.shape.length === 1) {
+      bias = reshape2({ inputs: { x: bias }, backend, attrs: { shape: [bias.shape[0], 1, 1] } });
+      intermediates.push(bias);
+    }
     inputVar.push(bias);
   }
   if (hasPreluActivationWeights) {
+    if (!isChannelsLast && preluActivationWeights.shape.length === 1) {
+      preluActivationWeights = reshape2({
+        inputs: { x: preluActivationWeights },
+        backend,
+        attrs: { shape: [preluActivationWeights.shape[0], 1, 1] }
+      });
+      intermediates.push(preluActivationWeights);
+    }
     inputVar.push(preluActivationWeights);
   }
   if (activation === "leakyrelu") {
     dimensions.push({ type: "float32", data: [leakyreluAlpha] });
     program.uniforms += " alpha : f32,";
   }
-  return backend.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
+  const out = backend.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
+  for (const i of intermediates) {
+    backend.disposeData(i.dataId);
+  }
+  return out;
 }
 
 // src/tfjs-backend-webgpu/src/kernels/Conv2D.ts
@@ -17908,9 +17962,6 @@ function fusedConv2d(args) {
     activation,
     leakyreluAlpha
   } = attrs;
-  if (dataFormat !== "NHWC") {
-    throw new Error(`WebGPU backend FusedConv2D does not support dataFormat:'${dataFormat}'. Please use 'NHWC'.`);
-  }
   const $dataFormat = backend_util_exports.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util_exports.computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad2, dimRoundingMode, false, $dataFormat);
   return conv2DImpl({
@@ -20368,7 +20419,8 @@ var compileProgram = (device, program, pipelineLayout, inputsData, output, isFro
   return pipeline;
 };
 function makeShaderKey(program, shapes, types = [], broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
-  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape;
+  const flatDispatchString = program.dispatch[1] === 1 && program.dispatch[2] === 1 ? "flatDispatch" : "";
+  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape + flatDispatchString;
   return key;
 }
 

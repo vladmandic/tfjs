@@ -13765,7 +13765,7 @@ function fusedMatMul_({
   bias,
   activation: activation2 = "linear",
   preluActivationWeights,
-  leakyreluAlpha
+  leakyreluAlpha = 0.2
 }) {
   if (shouldFuse(ENGINE.state.gradientDepth, activation2) === false) {
     let result = matMul(a, b, transposeA, transposeB);
@@ -31992,7 +31992,8 @@ var json4 = [
       {
         "tfName": "leakyrelu_alpha",
         "name": "leakyreluAlpha",
-        "type": "number"
+        "type": "number",
+        "defaultValue": 0.2
       }
     ]
   },
@@ -33820,6 +33821,12 @@ var json12 = [
         "name": "transposeB",
         "type": "bool",
         "defaultValue": false
+      },
+      {
+        "tfName": "leakyrelu_alpha",
+        "name": "leakyreluAlpha",
+        "type": "number",
+        "defaultValue": 0.2
       },
       {
         "tfName": "T",
@@ -55385,7 +55392,7 @@ var Im2ColPackedProgram = class {
     this.packedInputs = true;
     this.packedOutput = true;
     this.customUniforms = [
-      { name: "inputShape", type: "ivec3" },
+      { name: "inputShape", type: "ivec4" },
       { name: "pad", type: "ivec2" },
       { name: "stride", type: "ivec2" },
       { name: "dilation", type: "ivec2" },
@@ -55398,15 +55405,15 @@ var Im2ColPackedProgram = class {
     const { dataFormat } = convInfo;
     const glsl = getGlslDifferences();
     const isChannelsLast = dataFormat === "channelsLast";
-    const rowDim = isChannelsLast ? 0 : 1;
-    const colDim = isChannelsLast ? 1 : 2;
-    const boundsCheckingSnippet = this.enableShapeUniforms ? "if(blockIndex < outShape[1] && pos < outShape[0]) {" : `if(blockIndex < ${outputShape[1]} && pos < ${outputShape[0]}) {`;
+    const rowDim = isChannelsLast ? 1 : 2;
+    const colDim = isChannelsLast ? 2 : 3;
+    const boundsCheckingSnippet = this.enableShapeUniforms ? "if(blockIndex < outShape[2] && pos < outShape[1]) {" : `if(blockIndex < ${outputShape[2]} && pos < ${outputShape[1]}) {`;
     let unrolled = ``;
     for (let row = 0; row <= 1; row++) {
       for (let col = 0; col <= 1; col++) {
         unrolled += `
-          blockIndex = rc.y + ${col};
-          pos = rc.x + ${row};
+          blockIndex = rc.z + ${col};
+          pos = rc.y + ${row};
 
           ${boundsCheckingSnippet}
             offsetY = int(blockIndex / outWidth) * stride[0] - pad[0];
@@ -55427,12 +55434,12 @@ var Im2ColPackedProgram = class {
                 if (${isChannelsLast}) {
                   innerDims = vec2(d1, ch);
                   result[${row * 2 + col}] = getChannel(
-                    getA(d0, int(innerDims.x),
+                    getA(rc.x, d0, int(innerDims.x),
                     int(innerDims.y)), innerDims);
                 } else {
                   innerDims = vec2(d0, d1);
                   result[${row * 2 + col}] = getChannel(
-                    getA(ch, int(innerDims.x),
+                    getA(rc.x, ch, int(innerDims.x),
                     int(innerDims.y)), innerDims);
                 }
               }
@@ -55443,7 +55450,7 @@ var Im2ColPackedProgram = class {
     }
     this.userCode = `
       void main() {
-        ivec2 rc = getOutputCoords();
+        ivec3 rc = getOutputCoords();
 
         vec4 result = vec4(0);
 
@@ -55459,6 +55466,24 @@ var Im2ColPackedProgram = class {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Conv2D_impl.ts
+function getShapeForBatchMatMul(shape, isChannelsLast) {
+  const length = shape.length;
+  if (length >= 3) {
+    return isChannelsLast ? [
+      ...shape.slice(0, -3),
+      shape[length - 3] * shape[length - 2],
+      shape[length - 1]
+    ] : [
+      ...shape.slice(0, -3),
+      shape[length - 3],
+      shape[length - 2] * shape[length - 1]
+    ];
+  } else if (!isChannelsLast && length === 1 && shape[0] > 1) {
+    return [shape[0], 1];
+  } else {
+    return null;
+  }
+}
 function conv2dByMatMul({
   x,
   filter,
@@ -55479,14 +55504,23 @@ function conv2dByMatMul({
   const transposeB = false;
   let out;
   const intermediates = [];
-  if (preluActivationWeights != null && !isChannelsLast && preluActivationWeights.shape.length === 3) {
-    const preluActivationWeightsInNhwcFormat = transpose3({
-      inputs: { x: preluActivationWeights },
-      backend: backend2,
-      attrs: { perm: [1, 2, 0] }
-    });
-    intermediates.push(preluActivationWeightsInNhwcFormat);
-    preluActivationWeights = preluActivationWeightsInNhwcFormat;
+  if (preluActivationWeights != null) {
+    const targetShape = getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape4({
+        inputs: { x: preluActivationWeights },
+        backend: backend2,
+        attrs: { shape: targetShape }
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape4({ inputs: { x: bias }, backend: backend2, attrs: { shape: targetShape } });
+      intermediates.push(bias);
+    }
   }
   const batchMatMulWillBeUnpacked = (outerShapeX === 1 || outerShapeFilter === 1) && sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
   const canOptimize = !batchMatMulWillBeUnpacked && xTexData.isPacked && isChannelsLast && xTexData.texture != null && xShape[2] % 2 !== 0 && util_exports.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3));
@@ -55526,13 +55560,13 @@ function conv2dByMatMul({
     out.shape = convInfo.outShape;
     intermediates.push(pointwiseConv);
   } else {
-    const xInNhwcFormat = isChannelsLast ? x : transpose3({ inputs: { x }, backend: backend2, attrs: { perm: [0, 2, 3, 1] } });
-    const xInNhwcFormatShape = xInNhwcFormat.shape;
-    const targetShape = xInNhwcFormatShape[0] * xInNhwcFormatShape[1] * xInNhwcFormatShape[2];
+    const numCols = convInfo.outHeight * convInfo.outWidth;
     const xReshaped = reshape4({
-      inputs: { x: xInNhwcFormat },
+      inputs: { x },
       backend: backend2,
-      attrs: { shape: [1, targetShape, convInfo.inChannels] }
+      attrs: {
+        shape: isChannelsLast ? [convInfo.batchSize, numCols, convInfo.inChannels] : [convInfo.batchSize, convInfo.inChannels, numCols]
+      }
     });
     const filterReshaped = reshape4({
       inputs: { x: filter },
@@ -55540,9 +55574,9 @@ function conv2dByMatMul({
       attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
     });
     const result = batchMatMulImpl({
-      a: xReshaped,
-      b: filterReshaped,
-      transposeA,
+      a: isChannelsLast ? xReshaped : filterReshaped,
+      b: isChannelsLast ? filterReshaped : xReshaped,
+      transposeA: !isChannelsLast,
       transposeB,
       backend: backend2,
       bias,
@@ -55550,22 +55584,7 @@ function conv2dByMatMul({
       preluActivationWeights,
       leakyreluAlpha
     });
-    const outInNHWCFormatShape = [
-      convInfo.batchSize,
-      convInfo.outHeight,
-      convInfo.outWidth,
-      convInfo.outChannels
-    ];
-    const outInNHWCFormat = reshape4({ inputs: { x: result }, backend: backend2, attrs: { shape: outInNHWCFormatShape } });
-    out = isChannelsLast ? outInNHWCFormat : transpose3({
-      inputs: { x: outInNHWCFormat },
-      backend: backend2,
-      attrs: { perm: [0, 3, 1, 2] }
-    });
-    if (!isChannelsLast) {
-      intermediates.push(xInNhwcFormat);
-      intermediates.push(outInNHWCFormat);
-    }
+    out = reshape4({ inputs: { x: result }, backend: backend2, attrs: { shape: convInfo.outShape } });
     intermediates.push(xReshaped);
     intermediates.push(filterReshaped);
     intermediates.push(result);
@@ -55596,30 +55615,37 @@ function conv2dWithIm2Row({
   const isChannelsLast = dataFormat === "channelsLast";
   const sharedDim = filterWidth * filterHeight * inChannels;
   const numCols = outHeight * outWidth;
-  const x2ColShape = [sharedDim, numCols];
+  const x2ColShape = [convInfo.batchSize, sharedDim, numCols];
   const transposeA = true;
   const transposeB = false;
   const intermediates = [];
-  if (preluActivationWeights != null && !isChannelsLast && preluActivationWeights.shape.length === 3) {
-    const preluActivationWeightsInNhwcFormat = transpose3({
-      inputs: { x: preluActivationWeights },
-      backend: backend2,
-      attrs: { perm: [1, 2, 0] }
-    });
-    intermediates.push(preluActivationWeightsInNhwcFormat);
-    preluActivationWeights = preluActivationWeightsInNhwcFormat;
+  if (preluActivationWeights != null) {
+    const targetShape = getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape4({
+        inputs: { x: preluActivationWeights },
+        backend: backend2,
+        attrs: { shape: targetShape }
+      });
+      intermediates.push(preluActivationWeights);
+    }
   }
-  const xSqueezed = reshape4({ inputs: { x }, backend: backend2, attrs: { shape: x.shape.slice(1) } });
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape4({ inputs: { x: bias }, backend: backend2, attrs: { shape: targetShape } });
+      intermediates.push(bias);
+    }
+  }
   const w2Row = reshape4({
     inputs: { x: filter },
     backend: backend2,
     attrs: { shape: [1, sharedDim, util_exports.sizeFromShape(filter.shape) / sharedDim] }
   });
-  intermediates.push(xSqueezed);
   intermediates.push(w2Row);
   const im2ColProgram = new Im2ColPackedProgram(x2ColShape, convInfo);
   const customValues = [
-    xSqueezed.shape,
+    x.shape,
     [convInfo.padInfo.top, convInfo.padInfo.left],
     [convInfo.strideHeight, convInfo.strideWidth],
     [convInfo.dilationHeight, convInfo.dilationWidth],
@@ -55627,20 +55653,16 @@ function conv2dWithIm2Row({
     [convInfo.filterWidth * convInfo.inChannels],
     [convInfo.outWidth]
   ];
-  const im2Col = backend2.runWebGLProgram(im2ColProgram, [xSqueezed], "float32", customValues);
-  const im2ColReshaped = reshape4({
-    inputs: { x: im2Col },
-    backend: backend2,
-    attrs: { shape: [1, x2ColShape[0], x2ColShape[1]] }
-  });
+  const im2Col = backend2.runWebGLProgram(im2ColProgram, [x], "float32", customValues);
+  const im2ColReshaped = reshape4({ inputs: { x: im2Col }, backend: backend2, attrs: { shape: x2ColShape } });
   intermediates.push(im2Col);
   intermediates.push(im2ColReshaped);
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
   const hasLeakyreluAlpha = activation2 === "leakyrelu";
   const fusedActivation = activation2 ? mapActivationToShaderProgram(activation2, true) : null;
-  const matmulProgram = new MatMulPackedProgram(im2ColReshaped.shape, w2Row.shape, [1, numCols, convInfo.outChannels], transposeA, transposeB, hasBias, fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
-  const inputs = [im2ColReshaped, w2Row];
+  const matmulProgram = new MatMulPackedProgram(isChannelsLast ? im2ColReshaped.shape : w2Row.shape, isChannelsLast ? w2Row.shape : im2ColReshaped.shape, isChannelsLast ? [convInfo.batchSize, numCols, convInfo.outChannels] : [convInfo.batchSize, convInfo.outChannels, numCols], transposeA, transposeB, hasBias, fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
+  const inputs = isChannelsLast ? [im2ColReshaped, w2Row] : [w2Row, im2ColReshaped];
   if (bias) {
     inputs.push(bias);
   }
@@ -55653,12 +55675,7 @@ function conv2dWithIm2Row({
     intermediates.push($leakyreluAlpha);
   }
   const product = backend2.runWebGLProgram(matmulProgram, inputs, "float32");
-  const outInNHWCFormatShape = [1, outHeight, outWidth, convInfo.outChannels];
-  const outInNHWCFormat = reshape4({ inputs: { x: product }, backend: backend2, attrs: { shape: outInNHWCFormatShape } });
-  const out = isChannelsLast ? outInNHWCFormat : transpose3({ inputs: { x: outInNHWCFormat }, backend: backend2, attrs: { perm: [0, 3, 1, 2] } });
-  if (!isChannelsLast) {
-    intermediates.push(outInNHWCFormat);
-  }
+  const out = reshape4({ inputs: { x: product }, backend: backend2, attrs: { shape: convInfo.outShape } });
   intermediates.push(product);
   for (const i of intermediates) {
     backend2.disposeIntermediateTensorInfo(i);
@@ -55676,7 +55693,7 @@ function conv2d4(args) {
   let out;
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID")) {
     out = conv2dByMatMul({ x, filter, convInfo, backend: backend2 });
-  } else if (env().getBool("WEBGL_CONV_IM2COL") && x.shape[0] === 1) {
+  } else if (env().getBool("WEBGL_CONV_IM2COL")) {
     out = conv2dWithIm2Row({ x, filter, convInfo, backend: backend2 });
   } else {
     const program = new Conv2DProgram(convInfo);
@@ -57634,7 +57651,7 @@ function fusedConv2d(args) {
       preluActivationWeights,
       leakyreluAlpha
     });
-  } else if (env().getBool("WEBGL_CONV_IM2COL") && x.shape[0] === 1) {
+  } else if (env().getBool("WEBGL_CONV_IM2COL")) {
     out = conv2dWithIm2Row({
       x,
       filter,
@@ -62308,19 +62325,16 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
 
     // Only used when the y/z dimension of workgroup size is 1.
     fn getGlobalIndex() -> i32 {
-      if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
-        return i32(globalId.x);
-      }
+      ${program.dispatch[1] === 1 && program.dispatch[2] === 1 ? `  return i32(globalId.x);` : `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+                 localId.y * workGroupSizeX + localId.x;
+             let workGroupID = (globalId - localId)/vec3<u32>(
+                 workGroupSizeX, workGroupSizeY, workGroupSizeZ);
 
-      let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-          localId.y * workGroupSizeX + localId.x;
-      let workGroupID = (globalId - localId)/vec3<u32>(
-          workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-      return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-        workGroupID.y * numWorkgroups.x + workGroupID.x) *
-        (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-        localInvocationIndex);
+             return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
+                 workGroupID.y * numWorkgroups.x + workGroupID.x) *
+                 (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+                 localInvocationIndex);
+      `}
     }
   `);
   if (isFromPixel === true) {
@@ -65361,6 +65375,24 @@ var Conv2DMMProgram = class {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Conv2D_impl.ts
+function getShapeForBatchMatMul2(shape, isChannelsLast) {
+  const length = shape.length;
+  if (length >= 3) {
+    return isChannelsLast ? [
+      ...shape.slice(0, -3),
+      shape[length - 3] * shape[length - 2],
+      shape[length - 1]
+    ] : [
+      ...shape.slice(0, -3),
+      shape[length - 3],
+      shape[length - 2] * shape[length - 1]
+    ];
+  } else if (!isChannelsLast && length === 1 && shape[0] > 1) {
+    return [shape[0], 1];
+  } else {
+    return null;
+  }
+}
 function conv2dByMatMul2({
   x,
   filter,
@@ -65375,6 +65407,7 @@ function conv2dByMatMul2({
   const transposeA = isChannelsLast ? false : true;
   const transposeB = false;
   const sameSize = isChannelsLast && convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
+  const intermediates = [];
   let xReshaped;
   let filterReshaped;
   if (sameSize) {
@@ -65411,6 +65444,26 @@ function conv2dByMatMul2({
       attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
     });
   }
+  intermediates.push(xReshaped);
+  intermediates.push(filterReshaped);
+  if (preluActivationWeights != null) {
+    const targetShape = getShapeForBatchMatMul2(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape5({
+        inputs: { x: preluActivationWeights },
+        backend: backend2,
+        attrs: { shape: targetShape }
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul2(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape5({ inputs: { x: bias }, backend: backend2, attrs: { shape: targetShape } });
+      intermediates.push(bias);
+    }
+  }
   const result = batchMatMulImpl2({
     a: isChannelsLast ? xReshaped : filterReshaped,
     b: isChannelsLast ? filterReshaped : xReshaped,
@@ -65423,9 +65476,10 @@ function conv2dByMatMul2({
     leakyreluAlpha
   });
   const out = reshape5({ inputs: { x: result }, backend: backend2, attrs: { shape: convInfo.outShape } });
-  backend2.disposeData(xReshaped.dataId);
-  backend2.disposeData(filterReshaped.dataId);
-  backend2.disposeData(result.dataId);
+  intermediates.push(result);
+  for (const i of intermediates) {
+    backend2.disposeData(i.dataId);
+  }
   return out;
 }
 function conv2DImpl({
@@ -65474,18 +65528,35 @@ function conv2DImpl({
   } else {
     program = new Conv2DMMProgram(convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation2, hasPreluActivationWeights);
   }
+  const intermediates = [];
   const inputVar = [x, filter];
   if (hasBias) {
+    if (!isChannelsLast && bias.shape.length === 1) {
+      bias = reshape5({ inputs: { x: bias }, backend: backend2, attrs: { shape: [bias.shape[0], 1, 1] } });
+      intermediates.push(bias);
+    }
     inputVar.push(bias);
   }
   if (hasPreluActivationWeights) {
+    if (!isChannelsLast && preluActivationWeights.shape.length === 1) {
+      preluActivationWeights = reshape5({
+        inputs: { x: preluActivationWeights },
+        backend: backend2,
+        attrs: { shape: [preluActivationWeights.shape[0], 1, 1] }
+      });
+      intermediates.push(preluActivationWeights);
+    }
     inputVar.push(preluActivationWeights);
   }
   if (activation2 === "leakyrelu") {
     dimensions.push({ type: "float32", data: [leakyreluAlpha] });
     program.uniforms += " alpha : f32,";
   }
-  return backend2.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
+  const out = backend2.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
+  for (const i of intermediates) {
+    backend2.disposeData(i.dataId);
+  }
+  return out;
 }
 
 // src/tfjs-backend-webgpu/src/kernels/Conv2D.ts
@@ -66919,9 +66990,6 @@ function fusedConv2d2(args) {
     activation: activation2,
     leakyreluAlpha
   } = attrs;
-  if (dataFormat !== "NHWC") {
-    throw new Error(`WebGPU backend FusedConv2D does not support dataFormat:'${dataFormat}'. Please use 'NHWC'.`);
-  }
   const $dataFormat = backend_util_exports.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util_exports.computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad3, dimRoundingMode, false, $dataFormat);
   return conv2DImpl({
@@ -69379,7 +69447,8 @@ var compileProgram2 = (device, program, pipelineLayout, inputsData, output, isFr
   return pipeline;
 };
 function makeShaderKey2(program, shapes, types = [], broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
-  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape;
+  const flatDispatchString = program.dispatch[1] === 1 && program.dispatch[2] === 1 ? "flatDispatch" : "";
+  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape + flatDispatchString;
   return key;
 }
 
@@ -73790,7 +73859,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.18.0-20220524";
+var externalVersion = "3.18.0-20220529";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

@@ -9307,7 +9307,7 @@ function fusedMatMul_({
   bias,
   activation = "linear",
   preluActivationWeights,
-  leakyreluAlpha
+  leakyreluAlpha = 0.2
 }) {
   if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = matMul(a, b, transposeA, transposeB);
