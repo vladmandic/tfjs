@@ -4110,6 +4110,7 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
+ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -5432,7 +5433,8 @@ function fromPixels_(pixels, numChannels = 3) {
           throw new Error("Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.");
         }
       } else {
-        fromPixels2DContext = document.createElement("canvas").getContext("2d");
+        const willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY");
+        fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently });
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -23478,24 +23480,31 @@ var fusedDepthwiseConv2DConfig = {
 
 // src/tfjs-backend-webgl/src/gather_nd_gpu.ts
 var GatherNDProgram = class {
-  constructor(sliceDim, strides, shape) {
+  constructor(sliceDim, strides, shape, paramsShape) {
     this.sliceDim = sliceDim;
     this.strides = strides;
+    this.paramsShape = paramsShape;
     this.variableNames = ["x", "indices"];
     this.outputShape = shape;
     const stridesType = getCoordsDataType(strides.length);
     const dtype = getCoordsDataType(shape.length);
     const strideString = this.sliceDim > 1 ? "strides[j]" : "strides";
+    const paramsShapeType = getCoordsDataType(paramsShape.length);
+    const paramsShapeString = paramsShape.length > 1 ? "paramsShape[j]" : "paramsShape";
     this.userCode = `
         ${stridesType} strides = ${stridesType}(${this.strides});
+        ${paramsShapeType} paramsShape = ${paramsShapeType}(${this.paramsShape});
          void main() {
           ${dtype} coords = getOutputCoords();
           int flattenIndex = 0;
+          bool out_of_bounds = false;
           for (int j = 0; j < ${this.sliceDim}; j++) {
             int index = round(getIndices(coords[0], j));
+            out_of_bounds = out_of_bounds || index < 0;
+            out_of_bounds = out_of_bounds || index >= ${paramsShapeString};
             flattenIndex += index * ${strideString};
           }
-          setOutput(getX(flattenIndex, coords[1]));
+          setOutput(out_of_bounds ? 0.0 : getX(flattenIndex, coords[1]));
         }
       `;
   }
@@ -23521,7 +23530,7 @@ function gatherNd(args) {
     const outValue = gatherNdImplCPU(indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize, strides, params.shape, paramsSize);
     return backend.makeTensorInfo(resultShape, params.dtype, outValue.values);
   }
-  const program = new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+  const program = new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize], params.shape);
   const res = backend.runWebGLProgram(program, [flattenX, flattenIndices], flattenX.dtype);
   const reshaped = reshape2({ inputs: { x: res }, backend, attrs: { shape: resultShape } });
   backend.disposeIntermediateTensorInfo(flattenIndices);

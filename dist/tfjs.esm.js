@@ -3233,6 +3233,15 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
           return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
         };
+        var _LogicalNot = Module["_LogicalNot"] = function() {
+          return (_LogicalNot = Module["_LogicalNot"] = Module["asm"]["LogicalNot"]).apply(null, arguments);
+        };
+        var _LogicalOr = Module["_LogicalOr"] = function() {
+          return (_LogicalOr = Module["_LogicalOr"] = Module["asm"]["LogicalOr"]).apply(null, arguments);
+        };
+        var _LogicalXor = Module["_LogicalXor"] = function() {
+          return (_LogicalXor = Module["_LogicalXor"] = Module["asm"]["LogicalXor"]).apply(null, arguments);
+        };
         var _Max = Module["_Max"] = function() {
           return (_Max = Module["_Max"] = Module["asm"]["Max"]).apply(null, arguments);
         };
@@ -3446,7 +3455,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var dynCall_jiji = Module["dynCall_jiji"] = function() {
           return (dynCall_jiji = Module["dynCall_jiji"] = Module["asm"]["dynCall_jiji"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21456;
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21664;
         Module["cwrap"] = cwrap;
         Module["keepRuntimeAlive"] = keepRuntimeAlive;
         Module["PThread"] = PThread;
@@ -4472,6 +4481,15 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
           return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
+        };
+        var _LogicalNot = Module["_LogicalNot"] = function() {
+          return (_LogicalNot = Module["_LogicalNot"] = Module["asm"]["LogicalNot"]).apply(null, arguments);
+        };
+        var _LogicalOr = Module["_LogicalOr"] = function() {
+          return (_LogicalOr = Module["_LogicalOr"] = Module["asm"]["LogicalOr"]).apply(null, arguments);
+        };
+        var _LogicalXor = Module["_LogicalXor"] = function() {
+          return (_LogicalXor = Module["_LogicalXor"] = Module["asm"]["LogicalXor"]).apply(null, arguments);
         };
         var _Max = Module["_Max"] = function() {
           return (_Max = Module["_Max"] = Module["asm"]["Max"]).apply(null, arguments);
@@ -5524,6 +5542,7 @@ var Log1p = "Log1p";
 var LogicalAnd = "LogicalAnd";
 var LogicalNot = "LogicalNot";
 var LogicalOr = "LogicalOr";
+var LogicalXor = "LogicalXor";
 var LogSoftmax = "LogSoftmax";
 var LowerBound = "LowerBound";
 var LRN = "LRN";
@@ -6492,15 +6511,15 @@ __export(tensor_util_exports, {
 });
 
 // src/tfjs-core/src/types.ts
-var Rank = /* @__PURE__ */ ((Rank30) => {
-  Rank30["R0"] = "R0";
-  Rank30["R1"] = "R1";
-  Rank30["R2"] = "R2";
-  Rank30["R3"] = "R3";
-  Rank30["R4"] = "R4";
-  Rank30["R5"] = "R5";
-  Rank30["R6"] = "R6";
-  return Rank30;
+var Rank = /* @__PURE__ */ ((Rank31) => {
+  Rank31["R0"] = "R0";
+  Rank31["R1"] = "R1";
+  Rank31["R2"] = "R2";
+  Rank31["R3"] = "R3";
+  Rank31["R4"] = "R4";
+  Rank31["R5"] = "R5";
+  Rank31["R6"] = "R6";
+  return Rank31;
 })(Rank || {});
 var UpcastInt32AndMap = /* @__PURE__ */ ((UpcastInt32AndMap2) => {
   UpcastInt32AndMap2["float32"] = "float32";
@@ -7399,6 +7418,7 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
+ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -9339,7 +9359,8 @@ function fromPixels_(pixels, numChannels = 3) {
           throw new Error("Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.");
         }
       } else {
-        fromPixels2DContext = document.createElement("canvas").getContext("2d");
+        const willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY");
+        fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently });
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -57758,24 +57779,31 @@ var fusedDepthwiseConv2DConfig2 = {
 
 // src/tfjs-backend-webgl/src/gather_nd_gpu.ts
 var GatherNDProgram = class {
-  constructor(sliceDim, strides, shape) {
+  constructor(sliceDim, strides, shape, paramsShape) {
     this.sliceDim = sliceDim;
     this.strides = strides;
+    this.paramsShape = paramsShape;
     this.variableNames = ["x", "indices"];
     this.outputShape = shape;
     const stridesType = getCoordsDataType(strides.length);
     const dtype = getCoordsDataType(shape.length);
     const strideString = this.sliceDim > 1 ? "strides[j]" : "strides";
+    const paramsShapeType = getCoordsDataType(paramsShape.length);
+    const paramsShapeString = paramsShape.length > 1 ? "paramsShape[j]" : "paramsShape";
     this.userCode = `
         ${stridesType} strides = ${stridesType}(${this.strides});
+        ${paramsShapeType} paramsShape = ${paramsShapeType}(${this.paramsShape});
          void main() {
           ${dtype} coords = getOutputCoords();
           int flattenIndex = 0;
+          bool out_of_bounds = false;
           for (int j = 0; j < ${this.sliceDim}; j++) {
             int index = round(getIndices(coords[0], j));
+            out_of_bounds = out_of_bounds || index < 0;
+            out_of_bounds = out_of_bounds || index >= ${paramsShapeString};
             flattenIndex += index * ${strideString};
           }
-          setOutput(getX(flattenIndex, coords[1]));
+          setOutput(out_of_bounds ? 0.0 : getX(flattenIndex, coords[1]));
         }
       `;
   }
@@ -57801,7 +57829,7 @@ function gatherNd2(args) {
     const outValue = gatherNdImplCPU(indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize, strides, params.shape, paramsSize);
     return backend2.makeTensorInfo(resultShape, params.dtype, outValue.values);
   }
-  const program = new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+  const program = new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize], params.shape);
   const res = backend2.runWebGLProgram(program, [flattenX, flattenIndices], flattenX.dtype);
   const reshaped = reshape4({ inputs: { x: res }, backend: backend2, attrs: { shape: resultShape } });
   backend2.disposeIntermediateTensorInfo(flattenIndices);
@@ -62230,6 +62258,326 @@ function mapActivationToShaderProgram2(activation2, packed = false) {
   throw new Error(`Activation ${activation2} has not been implemented for the WebGPU backend.`);
 }
 
+// src/tfjs-backend-webgpu/src/webgpu_util.ts
+var webgpu_util_exports = {};
+__export(webgpu_util_exports, {
+  ArrayBufferToTypedArray: () => ArrayBufferToTypedArray,
+  GPUBytesPerElement: () => GPUBytesPerElement,
+  computeDispatch: () => computeDispatch,
+  computeWorkGroupSizeForConv2d: () => computeWorkGroupSizeForConv2d,
+  computeWorkGroupSizeForMatMul: () => computeWorkGroupSizeForMatMul,
+  computeWorkPerThreadForConv2d: () => computeWorkPerThreadForConv2d,
+  flatDispatchLayout: () => flatDispatchLayout,
+  isWebGPUSupported: () => isWebGPUSupported,
+  tilesFitEvenlyIntoShape: () => tilesFitEvenlyIntoShape
+});
+var arrayProduct = (arr) => {
+  let product = 1;
+  for (let i = 0; i < arr.length; i++) {
+    product *= arr[i];
+  }
+  return product;
+};
+function tilesFitEvenlyIntoShape(tileSize, shape) {
+  if (tileSize.length !== shape.length) {
+    throw new Error(`Cannot compute whether rank ${tileSize.length} tiles fit evenly into rank ${shape.length} shape - ranks must match.`);
+  }
+  return shape.every((dim, dimIdx) => dim % tileSize[dimIdx] === 0);
+}
+function computeDispatch(layout, outputShape, workGroupSize = [1, 1, 1], elementsPerThread = [1, 1, 1]) {
+  const [dispatchX, dispatchY, dispatchZ] = [
+    Math.ceil(arrayProduct(layout.x.map((d) => outputShape[d])) / (workGroupSize[0] * elementsPerThread[0])),
+    layout.y ? Math.ceil(arrayProduct(layout.y.map((d) => outputShape[d])) / (workGroupSize[1] * elementsPerThread[1])) : 1,
+    layout.z ? Math.ceil(arrayProduct(layout.z.map((d) => outputShape[d])) / (workGroupSize[2] * elementsPerThread[2])) : 1
+  ];
+  return [dispatchX, dispatchY, dispatchZ];
+}
+function computeWorkGroupSizeForConv2d(layout, outputShape, isVec4 = false) {
+  if (isVec4) {
+    return [8, 8, 1];
+  }
+  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
+  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
+  if (dim0 <= 4) {
+    return [4, 16, 1];
+  }
+  if (dim1 <= 4) {
+    return [16, 4, 1];
+  }
+  return [16, 16, 1];
+}
+function computeWorkGroupSizeForMatMul(dimAOuter, dimInner, dimBOuter) {
+  if (dimAOuter === 1) {
+    return [32, 1, 1];
+  } else if (dimBOuter === 1) {
+    return [1, 32, 1];
+  }
+  return [8, 8, 1];
+}
+function computeWorkPerThreadForConv2d(layout, outputShape, isVec4 = false) {
+  if (isVec4) {
+    return [4, 4, 1];
+  }
+  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
+  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
+  if (dim0 <= 4) {
+    return [1, 2, 1];
+  }
+  if (dim1 <= 4) {
+    return [2, 1, 1];
+  }
+  return [2, 2, 1];
+}
+function flatDispatchLayout(shape) {
+  return { x: shape.map((d, i) => i) };
+}
+function GPUBytesPerElement(dtype) {
+  if (dtype === "float32" || dtype === "int32" || dtype === "bool" || dtype === "string") {
+    return 4;
+  } else if (dtype === "complex64") {
+    return 8;
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
+function ArrayBufferToTypedArray(data, dtype) {
+  if (dtype === "float32") {
+    return new Float32Array(data);
+  } else if (dtype === "int32") {
+    return new Int32Array(data);
+  } else if (dtype === "bool" || dtype === "string") {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
+function isWebGPUSupported() {
+  return (typeof window !== "undefined" || typeof WorkerGlobalScope !== "undefined") && !!navigator.gpu;
+}
+
+// src/tfjs-backend-webgpu/src/matmul_packed_vec4_webgpu.ts
+var writeDataToSubASnippet = (transpose6, innerAElementSize) => {
+  if (transpose6) {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(
+          t * TileInner + inputRow,
+          globalRowStart / ${innerAElementSize} + inputCol, globalId);
+        `;
+  } else {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(
+          globalRow + innerRow,
+          t * TileInner / ${innerAElementSize} + inputCol, globalId);
+        `;
+  }
+};
+var calculateResultSnippet = (transposeA, innerElementSize) => {
+  if (transposeA) {
+    return `
+        let ACached0 = mm_Asub[k * InnerElementSize][localRow];
+        let ACached1 = mm_Asub[k * InnerElementSize + 1][localRow];
+        let ACached2 = mm_Asub[k * InnerElementSize + 2][localRow];
+        ${innerElementSize === 3 ? "" : "let ACached3 = mm_Asub[k * InnerElementSize + 3][localRow];"}
+        for (var i = 0; i < RowPerThread; i = i + 1) {
+          acc[i] = BCached[0] * ACached0[i] + acc[i];
+          acc[i] = BCached[1] * ACached1[i] + acc[i];
+          acc[i] = BCached[2] * ACached2[i] + acc[i];
+          ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached3[i] + acc[i];"}
+        }`;
+  } else {
+    return `
+        for (var i = 0; i < RowPerThread; i = i + 1) {
+          let ACached = mm_Asub[tileRow + i][k];
+          acc[i] = BCached[0] * ACached.x + acc[i];
+          acc[i] = BCached[1] * ACached.y + acc[i];
+          acc[i] = BCached[2] * ACached.z + acc[i];
+          ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached.w + acc[i];"}
+        }`;
+  }
+};
+function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileInner, innerElementSize = 4, transposeA = false) {
+  const tileAWidth = transposeA ? tileAOuter : tileInner;
+  const tileAHight = transposeA ? tileInner : tileAOuter;
+  const innerAElementSize = transposeA ? workPerThread[1] : innerElementSize;
+  util_exports.assert((transposeA && tileAOuter === tileBOuter || (tileInner % 4 === 0 || tileInner % 3 === 0)) && workPerThread[0] === 4 && (innerElementSize === 3 || innerElementSize === 4), () => `tileInner ${tileInner} must be divisible by 4|3. ColPerThread ${workPerThread[0]} must be 4.
+           innerElementSize ${innerElementSize} must be 3|4.`);
+  return `
+  var<workgroup> mm_Asub : array<array<vec${innerAElementSize}<f32>, ${tileAWidth / innerAElementSize}>, ${tileAHight}>;
+  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${tileBOuter / workPerThread[0]}>, ${tileInner}>;
+
+  let RowPerThread = ${workPerThread[1]};
+  let ColPerThread = ${workPerThread[0]};
+  let InnerElementSize = ${innerElementSize};
+  let TileInner = ${tileInner};
+
+  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+          @builtin(global_invocation_id) GlobalId : vec3<u32>,
+          @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+          @builtin(workgroup_id) workgroupId: vec3<u32>) {
+    localId = LocalId;
+    globalId = GlobalId;
+    numWorkgroups = NumWorkgroups;
+
+    let localRow = i32(localId.y);
+    let tileRow = ${tileAOuter === 1 ? "0" : "localRow * RowPerThread"};
+    let tileCol = i32(localId.x);
+
+    let globalRow = ${tileAOuter === 1 ? "0" : "i32(globalId.y) * RowPerThread"};
+    let globalCol = i32(globalId.x);
+    let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+
+    let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
+
+    var acc: array<vec4<f32>, RowPerThread>;
+    var BCached : array<vec4<f32>, 4>;
+
+    // Loop over shared dimension.
+    let RowPerThreadB = TileInner / i32(workGroupSizeY);
+    let tileRowB = localRow * RowPerThreadB;
+    for (var t = 0; t < numTiles; t = t + 1) {
+        // Load one tile of A into local memory.
+        for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+            let inputRow = tileRow + innerRow;
+            let inputCol = tileCol;
+            ${writeDataToSubASnippet(transposeA, innerAElementSize)}
+        }
+
+        // Load one tile of B into local memory.
+        for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
+            let inputRow = tileRowB + innerRow;
+            let inputCol = tileCol;
+            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, globalId);
+        }
+
+        workgroupBarrier();
+
+        // Compute acc values for a single thread.
+        for (var k = 0; k < TileInner / InnerElementSize; k = k + 1) {
+            BCached[0] = mm_Bsub[k * InnerElementSize][tileCol];
+            BCached[1] = mm_Bsub[k * InnerElementSize + 1][tileCol];
+            BCached[2] = mm_Bsub[k * InnerElementSize + 2][tileCol];
+            ${innerElementSize === 3 ? "" : "BCached[3] = mm_Bsub[k * InnerElementSize + 3][tileCol];"}
+
+            ${calculateResultSnippet(transposeA, innerElementSize)}
+        }
+
+        workgroupBarrier();
+    }
+
+    for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        mm_write(globalRow + innerRow,
+                 globalCol,
+                 acc[innerRow], globalId);
+    }
+  }`;
+}
+var MatMulPackedVec4Program = class {
+  constructor(aShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA = false, bias = null, activation2 = null, preluActivationWeights = null) {
+    this.variableNames = ["A", "B"];
+    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
+    this.workGroupSize = [8, 8, 1];
+    this.isVec4 = true;
+    this.outputShape = outputShape;
+    this.dispatchLayout = { x: [2], y: [1], z: [0] };
+    if (outputShape[1] === 1 && !transposeA) {
+      this.elementsPerThread = [4, 1, 1];
+    } else {
+      this.elementsPerThread = [4, 4, 1];
+    }
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
+    const addBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    if (addBias) {
+      this.variableNames.push("bias");
+    }
+    if (hasPreluActivationWeights) {
+      this.variableNames.push("preluActivationWeights");
+    }
+    this.tileAOuter = outputShape[1] === 1 && !transposeA ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
+    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileInner = this.tileBOuter;
+    this.aShape = aShape;
+    this.addBias = addBias;
+    this.activation = activation2;
+    this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
+    this.transposeA = transposeA;
+    const dimInner = transposeA ? aShape[1] : aShape[2];
+    this.fitAOuter = outputShape[1] % this.tileAOuter === 0;
+    this.fitBOuter = outputShape[2] % this.tileBOuter === 0;
+    this.fitInner = dimInner % this.tileInner === 0;
+    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.elementsPerThread}_${this.batchAEqualOne}_${this.batchBEqualOne}_${this.transposeA}`;
+  }
+  getUserCode() {
+    const sampleA = this.fitAOuter && this.fitInner ? `return A[batch * batchASize + row * uniforms.aShape[2] / 4 + col]` : `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.aShape[1], uniforms.aShape[2]))) {
+            return A[batch * batchASize + row * uniforms.aShape[2] / 4 + col];
+        }
+        return vec4<f32>(0.0)`;
+    const sampleB = this.fitInner && this.fitBOuter ? `return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` : `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+             return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
+        }
+        return vec4<f32>(0.0)`;
+    let activationSnippet = "", applyActivationSnippet = "";
+    if (this.activation) {
+      const activationOp = mapActivationToShaderProgram2(this.activation, this.isVec4);
+      if (this.hasPreluActivationWeights) {
+        activationSnippet = `fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
+                  let b = getPreluActivationWeightsByOutputCoords(outCoord);
+                  ${activationOp}
+                }`;
+      } else {
+        activationSnippet = `
+            fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
+              ${activationOp}
+            }`;
+      }
+      applyActivationSnippet = "value = activation(value, outCoord);";
+    }
+    const addBiasSnippet = this.addBias ? "value = value + getBiasByOutputCoords(outCoord);" : "";
+    const userCode = `
+      ${activationSnippet}
+      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
+        ${this.batchAEqualOne ? `
+          let batchASize = 0;
+          let batch = 0;
+        ` : `
+          let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
+          let batch = i32(globalId.z);
+        `}
+
+        ${sampleA};
+      }
+
+      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
+        ${this.batchBEqualOne ? `
+          let batchBSize = 0;
+          let batch = 0;
+          ` : `
+          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
+          let batch = i32(globalId.z);
+       `}
+        ${sampleB};
+      }
+
+      fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<u32>) {
+        if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
+        {
+          var value = valueIn;
+          let batch = i32(globalId.z);
+          let outCoord = vec3<i32>(batch, row, col * 4);
+          ${addBiasSnippet}
+          ${applyActivationSnippet}
+          setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], value);
+        }
+      }
+      ${makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner, 4, this.transposeA)}
+    `;
+    return userCode;
+  }
+};
+
 // src/tfjs-backend-webgpu/src/shader_util.ts
 function symbolicallyComputeStrides2(indicesArr, variableName) {
   if (Math.max(...indicesArr) > 3) {
@@ -62245,7 +62593,18 @@ function symbolicallyComputeStrides2(indicesArr, variableName) {
   return strides;
 }
 
-// src/tfjs-backend-webgpu/src/shader_preprocessor.ts
+// src/tfjs-backend-webgpu/src/webgpu_program.ts
+var compileProgram2 = (device, program, pipelineLayout, inputsData, output, isFromPixel = false) => {
+  const outputData = { dtype: output.dtype, shape: output.shape };
+  const source = makeShader2(inputsData, outputData, program, isFromPixel);
+  const module = device.createShaderModule({ code: source, label: program.constructor.name });
+  const pipeline = device.createComputePipeline({
+    layout: pipelineLayout,
+    compute: { module, entryPoint: "main" },
+    label: program.constructor.name
+  });
+  return pipeline;
+};
 function getCoordsDataType2(rank) {
   if (rank <= 1) {
     return "i32";
@@ -62280,19 +62639,10 @@ function getCoordsXYZ(index) {
     throw Error(`Index ${index} is not yet supported`);
   }
 }
-function mapToWgslTypes(type, isVec4) {
-  if (type === "float32") {
-    return isVec4 ? "vec4<f32>" : "f32";
-  } else if (type === "int32") {
-    return isVec4 ? "vec4<i32>" : "i32";
-  } else if (type === "bool") {
-    return isVec4 ? "vec4<i32>" : "i32";
-  }
-  return type;
-}
-function getWorkGroupSizeString() {
+function getMainHeaderAndGlobalIndexString() {
   return `
-  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+    ${getMainHeaderString()}
+      let index = getGlobalIndex();
 `;
 }
 function getMainHeaderString() {
@@ -62306,49 +62656,48 @@ function getMainHeaderString() {
     numWorkgroups = NumWorkgroups;
 `;
 }
-function getMainHeaderAndGlobalIndexString() {
+function getWorkGroupSizeString() {
   return `
-    ${getMainHeaderString()}
-      let index = getGlobalIndex();
+  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
 `;
 }
 function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   const prefixSnippets = [];
   prefixSnippets.push(`
-    let workGroupSizeX = ${program.workGroupSize[0]}u;
-    let workGroupSizeY = ${program.workGroupSize[1]}u;
-    let workGroupSizeZ = ${program.workGroupSize[2]}u;
+      let workGroupSizeX = ${program.workGroupSize[0]}u;
+      let workGroupSizeY = ${program.workGroupSize[1]}u;
+      let workGroupSizeZ = ${program.workGroupSize[2]}u;
 
-    var<private> localId: vec3<u32>;
-    var<private> globalId: vec3<u32>;
-    var<private> numWorkgroups: vec3<u32>;
+      var<private> localId: vec3<u32>;
+      var<private> globalId: vec3<u32>;
+      var<private> numWorkgroups: vec3<u32>;
 
-    // Only used when the y/z dimension of workgroup size is 1.
-    fn getGlobalIndex() -> i32 {
-      ${program.dispatch[1] === 1 && program.dispatch[2] === 1 ? `  return i32(globalId.x);` : `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-                 localId.y * workGroupSizeX + localId.x;
-             let workGroupID = (globalId - localId)/vec3<u32>(
-                 workGroupSizeX, workGroupSizeY, workGroupSizeZ);
+      // Only used when the y/z dimension of workgroup size is 1.
+      fn getGlobalIndex() -> i32 {
+        ${isFlatDispatch(program) ? `  return i32(globalId.x);` : `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+                   localId.y * workGroupSizeX + localId.x;
+               let workGroupID = (globalId - localId)/vec3<u32>(
+                   workGroupSizeX, workGroupSizeY, workGroupSizeZ);
 
-             return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-                 workGroupID.y * numWorkgroups.x + workGroupID.x) *
-                 (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-                 localInvocationIndex);
-      `}
-    }
-  `);
+               return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
+                   workGroupID.y * numWorkgroups.x + workGroupID.x) *
+                   (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+                   localInvocationIndex);
+        `}
+      }
+    `);
   if (isFromPixel === true) {
     prefixSnippets.push(`
-      struct Uniform {
-        size            : i32,
-        numChannels     : i32,
-        outShapeStrides : vec2<i32>,
-        dispatchSize    : vec3<u32>,
-      };
+        struct Uniform {
+          size            : i32,
+          numChannels     : i32,
+          outShapeStrides : vec2<i32>,
+          dispatchSize    : vec3<u32>,
+        };
 
-      @group(0) @binding(0) var<storage, write> result: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
-      @group(0) @binding(2) var<uniform> uniforms: Uniform;
-    `);
+        @group(0) @binding(0) var<storage, write> result: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
+        @group(0) @binding(2) var<uniform> uniforms: Uniform;
+      `);
     return [
       commonSnippet,
       prefixSnippets.join("\n"),
@@ -62385,7 +62734,7 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   }
   preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `
-       outShapeStrides: ${stridesDataType}, `;
+         outShapeStrides: ${stridesDataType}, `;
   if (program.size) {
     if (preMemberIsStruct) {
       uniformDeclaration += `@align(16) `;
@@ -62403,22 +62752,22 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   prefixSnippets.push(uniformDeclaration);
   if (program.atomic) {
     prefixSnippets.push(`
-    @group(0) @binding(0) var<storage, read_write> result: array<atomic<i32>>;
-  `);
+      @group(0) @binding(0) var<storage, read_write> result: array<atomic<i32>>;
+    `);
   } else {
     prefixSnippets.push(`
-    @group(0) @binding(0) var<storage, write> result: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
-  `);
+      @group(0) @binding(0) var<storage, write> result: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
+    `);
   }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
-    @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${program.variableTypes ? program.variableTypes[i] : mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
-      `);
+      @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${program.variableTypes ? program.variableTypes[i] : mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+        `);
   });
   if (uniformDeclaration !== "") {
     prefixSnippets.push(`
-    @group(0) @binding(${1 + program.variableNames.length}) var<uniform> uniforms: Uniforms;
-    `);
+      @group(0) @binding(${1 + program.variableNames.length}) var<uniform> uniforms: Uniforms;
+      `);
   }
   const [coordsSnippet, dispatchLayoutRank] = getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
   const sources = [
@@ -62438,6 +62787,11 @@ function makeShader2(inputInfo, outputData, program, isFromPixel = false) {
   sources.push(program.getUserCode());
   const source = sources.join("\n");
   return source;
+}
+function makeShaderKey2(program, shapes, types = [], broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
+  const flatDispatchString = isFlatDispatch(program) ? "flatDispatch" : "";
+  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape + flatDispatchString;
+  return key;
 }
 var commonSnippet = `
   struct vec5 {x: i32, y: i32, z: i32, w: i32, u: i32};
@@ -62498,6 +62852,240 @@ var commonSnippet = `
     return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
   }
 `;
+function getCoordsFromIndexSnippet(shape) {
+  const rank = shape.length;
+  if (rank <= 1) {
+    return `fn getCoordsFromIndex(index : i32) -> i32 { return index; }`;
+  }
+  const strides = util_exports.computeStrides(shape);
+  const dtype = getCoordsDataType2(rank);
+  const coords3 = [];
+  for (let i = 0; i < rank; i++) {
+    coords3.push(`d${i}`);
+  }
+  if (strides.length === 1) {
+    return `    fn getCoordsFromIndex(index : i32) -> vec2<i32> {
+      let d0 = index / uniforms.outShapeStrides; let d1 = index - d0 * uniforms.outShapeStrides;
+      return vec2<i32>(d0, d1);
+    }`;
+  }
+  let snippet;
+  snippet = "var index2 = index;" + strides.map((_, i) => {
+    const line1 = `let ${coords3[i]} = index2 / uniforms.outShapeStrides.${getCoordsXYZ(i)}`;
+    const line2 = i === strides.length - 1 ? `let ${coords3[i + 1]} = index2 - ${coords3[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}` : `index2 = index2 - ${coords3[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}`;
+    return `${line1}; ${line2};`;
+  }).join("");
+  return `
+    fn getCoordsFromIndex(index : i32) -> ${dtype} {
+      ${snippet}
+      return ${dtype}(${coords3.join(",")});
+    }
+  `;
+}
+function getInputAtCoordsSnippet(inputInfo, isVec4) {
+  const texName = inputInfo.name;
+  const rank = inputInfo.shape.length;
+  const type = getCoordsDataType2(rank);
+  const funcName = "get" + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const dims = ["d0", "d1", "d2", "d3", "d4", "d5"].slice(0, rank);
+  const inputs = dims.map((d) => `${d} : i32`).join(", ");
+  if (rank < 1) {
+    if (isVec4) {
+      return `
+        fn ${funcName}() -> vec4<f32> {
+          return vec4<f32>(${texName}[0]);
+        }
+      `;
+    }
+    return `
+      fn ${funcName}() ->f32 {
+        return f32(${texName}[0]);
+      }
+    `;
+  }
+  const shapeStr = `uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
+  let rankStr = `${rank}D`;
+  if (rank === 0) {
+    rankStr = "1D";
+  }
+  if (isVec4) {
+    return `
+      fn ${funcName}(${inputs}) -> vec4<f32> {
+        return vec4<f32>(${texName}[getIndexFromCoords${rankStr}(${type}(${dims.join(",")}),
+          ${shapeStr}) / 4]);
+      }
+      `;
+  }
+  return `
+    fn ${funcName}(${inputs}) -> f32 {
+      return f32(${texName}[getIndexFromCoords${rankStr}(${type}(${dims.join(",")}),
+        ${shapeStr})]);
+    }
+   `;
+}
+function getInputByOutputSnippet(inputInfo, outShape, isVec4, isFlatDispatchLayout) {
+  const texName = inputInfo.name;
+  const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
+  const funcName = "get" + texFuncSnippet + "ByOutput";
+  const inRank = inputInfo.shape.length;
+  const outRank = outShape.length;
+  const type = getCoordsDataType2(outRank);
+  if (util_exports.arraysEqual(inputInfo.shape, outShape) && isFlatDispatchLayout) {
+    if (isVec4) {
+      return `
+      fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
+        return vec4<f32>(${texName}[globalIndex]);
+      }
+
+      fn ${funcName}Coords(coords : ${type}) -> vec4<f32> {
+        return vec4<f32>(${texName}[${outRank > 1 ? "getOutputIndexFromCoords(coords)" : "coords"} / 4]);
+      }
+      `;
+    } else {
+      return `
+    fn ${funcName}Index(globalIndex : i32) -> f32 {
+      return f32(${texName}[globalIndex]);
+    }
+
+    fn ${funcName}Coords(coords : ${type}) -> f32 {
+      return f32(${texName}[${outRank > 1 ? "getOutputIndexFromCoords(coords)" : "coords"}]);
+    }
+    `;
+    }
+  }
+  const broadcastDims = backend_util_exports.getBroadcastDims(inputInfo.shape, outShape);
+  const rankDiff = outRank - inRank;
+  let coordsSnippet = "";
+  if (inRank === 0) {
+    if (isVec4) {
+      return `
+    fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
+      return get${texFuncSnippet}();
+    }
+
+    fn ${funcName}Coords(coords : ${type}) -> vec4<f32> {
+      return get${texFuncSnippet}();
+    }
+  `;
+    }
+    return `
+    fn ${funcName}Index(globalIndex : i32) -> f32{
+      return get${texFuncSnippet}();
+    }
+
+    fn ${funcName}Coords(coords : ${type}) -> f32{
+      return get${texFuncSnippet}();
+    }
+  `;
+  } else {
+    if (outRank < 2 && broadcastDims.length >= 1) {
+      coordsSnippet = "coords = 0;";
+    } else {
+      coordsSnippet = broadcastDims.map((d) => `coords.${getCoordsXYZ(d + rankDiff)} = 0;`).join("\n");
+    }
+  }
+  let unpackedCoordsSnippet = "";
+  if (outRank < 2 && inRank > 0) {
+    unpackedCoordsSnippet = "coords";
+  } else {
+    if (outRank > 1) {
+      const coordsType = getCoordsDataType2(inRank);
+      const coordsValues = inputInfo.shape.map((s, i) => `coords.${getCoordsXYZ(i + rankDiff)}`).join(", ");
+      unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
+    } else {
+      unpackedCoordsSnippet = "coords";
+    }
+  }
+  const shapeStr = `uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
+  const rankStr = `${inRank}D`;
+  if (isVec4) {
+    return `
+    fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
+      var coords = getCoordsFromIndex(globalIndex);
+      ${coordsSnippet}
+      return ${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr}) / 4];
+    }
+
+    fn ${funcName}Coords(coordsIn : ${type}) -> vec4<f32> {
+      var coords = coordsIn;
+      ${coordsSnippet}
+      return ${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr}) / 4];
+    }
+  `;
+  }
+  return `
+  fn ${funcName}Index(globalIndex : i32) -> f32 {
+    var coords = getCoordsFromIndex(globalIndex);
+    ${coordsSnippet}
+    return f32(${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr})]);
+  }
+
+  fn ${funcName}Coords(coordsIn : ${type}) -> f32 {
+    var coords = coordsIn;
+    ${coordsSnippet}
+    return f32(${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr})]);
+  }
+`;
+}
+function getInputSnippet(inputInfo, outShape, isVec4, isFlatDispatchLayout) {
+  let res = getInputAtCoordsSnippet(inputInfo, isVec4);
+  const inShape = inputInfo.shape;
+  if (inShape.length <= outShape.length) {
+    res += getInputByOutputSnippet(inputInfo, outShape, isVec4, isFlatDispatchLayout);
+  }
+  return res;
+}
+function getOutputCoordsSnippet(outShape, dispatchLayout) {
+  const { x, y = [], z = [] } = dispatchLayout;
+  const outRank = outShape.length;
+  if (x.length === outRank) {
+    const dtype2 = getCoordsDataType2(outRank);
+    const snippet2 = `fn getOutputCoords() -> ${dtype2}{
+    let globalIndex = getGlobalIndex();
+    return getCoordsFromIndex(globalIndex);
+  }
+  `;
+    return [snippet2, outRank];
+  }
+  let gatherDimensionsStr = "";
+  const dims = [x, y, z];
+  let rank = 0;
+  for (let i = 0; i < dims.length; i++) {
+    const arr = dims[i];
+    if (arr.length === 0) {
+      continue;
+    }
+    rank += arr.length;
+    if (arr.length === 1) {
+      gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
+    } else {
+      const strides = symbolicallyComputeStrides2(arr, "uniforms.outShape");
+      gatherDimensionsStr += `var index${i} = i32(globalId[${i}]);`;
+      for (let j = 0; j < strides.length; j++) {
+        gatherDimensionsStr += `let d${arr[j]} = index${i} / ${strides[j]};`;
+        if (j === strides.length - 1) {
+          gatherDimensionsStr += `let d${arr[j + 1]} = index${i} - d${arr[j]} * ${strides[j]};`;
+        } else {
+          gatherDimensionsStr += `index${i} = index${i} - d${arr[j]} * ${strides[j]};`;
+        }
+      }
+    }
+  }
+  const dimensions = [];
+  for (let i = 0; i < rank; i++) {
+    dimensions.push(`d${i}`);
+  }
+  const dtype = getCoordsDataType2(rank);
+  let snippet = `fn getOutputCoords() -> ${dtype} {
+  ${gatherDimensionsStr}
+`;
+  if (dimensions.length === 0) {
+    snippet += `return ${dtype}(0); }`;
+  } else {
+    snippet += `return ${dtype}(${dimensions.join(",")}); }`;
+  }
+  return [snippet, rank];
+}
 function getOutputIndexFromCoordsSnippet(outRank) {
   let snippet = "";
   switch (outRank) {
@@ -62560,6 +63148,19 @@ function getOutputIndexFromCoordsSnippet(outRank) {
   }
   return snippet;
 }
+function isFlatDispatch(program) {
+  return program.dispatch[1] === 1 && program.dispatch[2] === 1;
+}
+function mapToWgslTypes(type, isVec4) {
+  if (type === "float32") {
+    return isVec4 ? "vec4<f32>" : "f32";
+  } else if (type === "int32") {
+    return isVec4 ? "vec4<i32>" : "i32";
+  } else if (type === "bool") {
+    return isVec4 ? "vec4<i32>" : "i32";
+  }
+  return type;
+}
 function setOutputSnippet(outShape, outBufferType, isVec4) {
   const outRank = outShape.length;
   const wgslType = mapToWgslTypes(outBufferType, isVec4);
@@ -62608,520 +63209,9 @@ function setOutputSnippet(outShape, outBufferType, isVec4) {
   }
   return snippet;
 }
-function getInputSnippet(inputInfo, outShape, isVec4, isFlatDispatchLayout) {
-  let res = getInputAtCoordsSnippet(inputInfo, isVec4);
-  const inShape = inputInfo.shape;
-  if (inShape.length <= outShape.length) {
-    res += getInputByOutputSnippet(inputInfo, outShape, isVec4, isFlatDispatchLayout);
-  }
-  return res;
-}
-function getInputAtCoordsSnippet(inputInfo, isVec4) {
-  const texName = inputInfo.name;
-  const rank = inputInfo.shape.length;
-  const type = getCoordsDataType2(rank);
-  const funcName = "get" + texName.charAt(0).toUpperCase() + texName.slice(1);
-  const dims = ["d0", "d1", "d2", "d3", "d4", "d5"].slice(0, rank);
-  const inputs = dims.map((d) => `${d} : i32`).join(", ");
-  if (rank < 1) {
-    if (isVec4) {
-      return `
-        fn ${funcName}() -> vec4<f32> {
-          return vec4<f32>(${texName}[0]);
-        }
-      `;
-    }
-    return `
-      fn ${funcName}() ->f32 {
-        return f32(${texName}[0]);
-      }
-    `;
-  }
-  const shapeStr = `uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
-  let rankStr = `${rank}D`;
-  if (rank === 0) {
-    rankStr = "1D";
-  }
-  if (isVec4) {
-    return `
-      fn ${funcName}(${inputs}) -> vec4<f32> {
-        return vec4<f32>(${texName}[getIndexFromCoords${rankStr}(${type}(${dims.join(",")}),
-          ${shapeStr}) / 4]);
-      }
-      `;
-  }
-  return `
-    fn ${funcName}(${inputs}) -> f32 {
-      return f32(${texName}[getIndexFromCoords${rankStr}(${type}(${dims.join(",")}),
-        ${shapeStr})]);
-    }
-   `;
-}
-function getInputByOutputSnippet(inputInfo, outShape, isVec4, isFlatDispatchLayout) {
-  const texName = inputInfo.name;
-  const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
-  const funcName = "get" + texFuncSnippet + "ByOutput";
-  const inRank = inputInfo.shape.length;
-  const outRank = outShape.length;
-  const type = getCoordsDataType2(outRank);
-  if (util_exports.arraysEqual(inputInfo.shape, outShape) && isFlatDispatchLayout) {
-    if (isVec4) {
-      return `
-        fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
-          return vec4<f32>(${texName}[globalIndex]);
-        }
-
-        fn ${funcName}Coords(coords : ${type}) -> vec4<f32> {
-          return vec4<f32>(${texName}[${outRank > 1 ? "getOutputIndexFromCoords(coords)" : "coords"} / 4]);
-        }
-        `;
-    } else {
-      return `
-      fn ${funcName}Index(globalIndex : i32) -> f32 {
-        return f32(${texName}[globalIndex]);
-      }
-
-      fn ${funcName}Coords(coords : ${type}) -> f32 {
-        return f32(${texName}[${outRank > 1 ? "getOutputIndexFromCoords(coords)" : "coords"}]);
-      }
-      `;
-    }
-  }
-  const broadcastDims = backend_util_exports.getBroadcastDims(inputInfo.shape, outShape);
-  const rankDiff = outRank - inRank;
-  let coordsSnippet = "";
-  if (inRank === 0) {
-    if (isVec4) {
-      return `
-      fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
-        return get${texFuncSnippet}();
-      }
-
-      fn ${funcName}Coords(coords : ${type}) -> vec4<f32> {
-        return get${texFuncSnippet}();
-      }
-    `;
-    }
-    return `
-      fn ${funcName}Index(globalIndex : i32) -> f32{
-        return get${texFuncSnippet}();
-      }
-
-      fn ${funcName}Coords(coords : ${type}) -> f32{
-        return get${texFuncSnippet}();
-      }
-    `;
-  } else {
-    if (outRank < 2 && broadcastDims.length >= 1) {
-      coordsSnippet = "coords = 0;";
-    } else {
-      coordsSnippet = broadcastDims.map((d) => `coords.${getCoordsXYZ(d + rankDiff)} = 0;`).join("\n");
-    }
-  }
-  let unpackedCoordsSnippet = "";
-  if (outRank < 2 && inRank > 0) {
-    unpackedCoordsSnippet = "coords";
-  } else {
-    if (outRank > 1) {
-      const coordsType = getCoordsDataType2(inRank);
-      const coordsValues = inputInfo.shape.map((s, i) => `coords.${getCoordsXYZ(i + rankDiff)}`).join(", ");
-      unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
-    } else {
-      unpackedCoordsSnippet = "coords";
-    }
-  }
-  const shapeStr = `uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
-  const rankStr = `${inRank}D`;
-  if (isVec4) {
-    return `
-      fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
-        var coords = getCoordsFromIndex(globalIndex);
-        ${coordsSnippet}
-        return ${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr}) / 4];
-      }
-
-      fn ${funcName}Coords(coordsIn : ${type}) -> vec4<f32> {
-        var coords = coordsIn;
-        ${coordsSnippet}
-        return ${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr}) / 4];
-      }
-    `;
-  }
-  return `
-    fn ${funcName}Index(globalIndex : i32) -> f32 {
-      var coords = getCoordsFromIndex(globalIndex);
-      ${coordsSnippet}
-      return f32(${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr})]);
-    }
-
-    fn ${funcName}Coords(coordsIn : ${type}) -> f32 {
-      var coords = coordsIn;
-      ${coordsSnippet}
-      return f32(${texName}[getIndexFromCoords${rankStr}(${unpackedCoordsSnippet}, ${shapeStr})]);
-    }
-  `;
-}
-function getOutputCoordsSnippet(outShape, dispatchLayout) {
-  const { x, y = [], z = [] } = dispatchLayout;
-  const outRank = outShape.length;
-  if (x.length === outRank) {
-    const dtype2 = getCoordsDataType2(outRank);
-    const snippet2 = `fn getOutputCoords() -> ${dtype2}{
-      let globalIndex = getGlobalIndex();
-      return getCoordsFromIndex(globalIndex);
-    }
-    `;
-    return [snippet2, outRank];
-  }
-  let gatherDimensionsStr = "";
-  const dims = [x, y, z];
-  let rank = 0;
-  for (let i = 0; i < dims.length; i++) {
-    const arr = dims[i];
-    if (arr.length === 0) {
-      continue;
-    }
-    rank += arr.length;
-    if (arr.length === 1) {
-      gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
-    } else {
-      const strides = symbolicallyComputeStrides2(arr, "uniforms.outShape");
-      gatherDimensionsStr += `var index${i} = i32(globalId[${i}]);`;
-      for (let j = 0; j < strides.length; j++) {
-        gatherDimensionsStr += `let d${arr[j]} = index${i} / ${strides[j]};`;
-        if (j === strides.length - 1) {
-          gatherDimensionsStr += `let d${arr[j + 1]} = index${i} - d${arr[j]} * ${strides[j]};`;
-        } else {
-          gatherDimensionsStr += `index${i} = index${i} - d${arr[j]} * ${strides[j]};`;
-        }
-      }
-    }
-  }
-  const dimensions = [];
-  for (let i = 0; i < rank; i++) {
-    dimensions.push(`d${i}`);
-  }
-  const dtype = getCoordsDataType2(rank);
-  let snippet = `fn getOutputCoords() -> ${dtype} {
-    ${gatherDimensionsStr}
-  `;
-  if (dimensions.length === 0) {
-    snippet += `return ${dtype}(0); }`;
-  } else {
-    snippet += `return ${dtype}(${dimensions.join(",")}); }`;
-  }
-  return [snippet, rank];
-}
-function getCoordsFromIndexSnippet(shape) {
-  const rank = shape.length;
-  if (rank <= 1) {
-    return `fn getCoordsFromIndex(index : i32) -> i32 { return index; }`;
-  }
-  const strides = util_exports.computeStrides(shape);
-  const dtype = getCoordsDataType2(rank);
-  const coords3 = [];
-  for (let i = 0; i < rank; i++) {
-    coords3.push(`d${i}`);
-  }
-  if (strides.length === 1) {
-    return `    fn getCoordsFromIndex(index : i32) -> vec2<i32> {
-      let d0 = index / uniforms.outShapeStrides; let d1 = index - d0 * uniforms.outShapeStrides;
-      return vec2<i32>(d0, d1);
-    }`;
-  }
-  let snippet;
-  snippet = "var index2 = index;" + strides.map((_, i) => {
-    const line1 = `let ${coords3[i]} = index2 / uniforms.outShapeStrides.${getCoordsXYZ(i)}`;
-    const line2 = i === strides.length - 1 ? `let ${coords3[i + 1]} = index2 - ${coords3[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}` : `index2 = index2 - ${coords3[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}`;
-    return `${line1}; ${line2};`;
-  }).join("");
-  return `
-    fn getCoordsFromIndex(index : i32) -> ${dtype} {
-      ${snippet}
-      return ${dtype}(${coords3.join(",")});
-    }
-  `;
-}
-
-// src/tfjs-backend-webgpu/src/webgpu_util.ts
-var webgpu_util_exports = {};
-__export(webgpu_util_exports, {
-  ArrayBufferToTypedArray: () => ArrayBufferToTypedArray,
-  GPUBytesPerElement: () => GPUBytesPerElement,
-  computeDispatch: () => computeDispatch,
-  computeWorkGroupSizeForConv2d: () => computeWorkGroupSizeForConv2d,
-  computeWorkGroupSizeForMatMul: () => computeWorkGroupSizeForMatMul,
-  computeWorkPerThreadForConv2d: () => computeWorkPerThreadForConv2d,
-  flatDispatchLayout: () => flatDispatchLayout,
-  isWebGPUSupported: () => isWebGPUSupported,
-  tilesFitEvenlyIntoShape: () => tilesFitEvenlyIntoShape
-});
-var arrayProduct = (arr) => {
-  let product = 1;
-  for (let i = 0; i < arr.length; i++) {
-    product *= arr[i];
-  }
-  return product;
-};
-function tilesFitEvenlyIntoShape(tileSize, shape) {
-  if (tileSize.length !== shape.length) {
-    throw new Error(`Cannot compute whether rank ${tileSize.length} tiles fit evenly into rank ${shape.length} shape - ranks must match.`);
-  }
-  return shape.every((dim, dimIdx) => dim % tileSize[dimIdx] === 0);
-}
-function computeDispatch(layout, outputShape, workGroupSize = [1, 1, 1], elementsPerThread = [1, 1, 1]) {
-  const [dispatchX, dispatchY, dispatchZ] = [
-    Math.ceil(arrayProduct(layout.x.map((d) => outputShape[d])) / (workGroupSize[0] * elementsPerThread[0])),
-    layout.y ? Math.ceil(arrayProduct(layout.y.map((d) => outputShape[d])) / (workGroupSize[1] * elementsPerThread[1])) : 1,
-    layout.z ? Math.ceil(arrayProduct(layout.z.map((d) => outputShape[d])) / (workGroupSize[2] * elementsPerThread[2])) : 1
-  ];
-  return [dispatchX, dispatchY, dispatchZ];
-}
-function computeWorkGroupSizeForConv2d(layout, outputShape) {
-  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
-  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
-  if (dim0 <= 4) {
-    return [4, 16, 1];
-  }
-  if (dim1 <= 4) {
-    return [16, 4, 1];
-  }
-  return [16, 16, 1];
-}
-function computeWorkGroupSizeForMatMul(dimAOuter, dimInner, dimBOuter) {
-  if (dimAOuter === 1) {
-    return [32, 1, 1];
-  } else if (dimBOuter === 1) {
-    return [1, 32, 1];
-  }
-  return [8, 8, 1];
-}
-function computeWorkPerThreadForConv2d(layout, outputShape) {
-  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
-  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
-  if (dim0 <= 4) {
-    return [1, 2, 1];
-  }
-  if (dim1 <= 4) {
-    return [2, 1, 1];
-  }
-  return [2, 2, 1];
-}
-function flatDispatchLayout(shape) {
-  return { x: shape.map((d, i) => i) };
-}
-function GPUBytesPerElement(dtype) {
-  if (dtype === "float32" || dtype === "int32" || dtype === "bool" || dtype === "string") {
-    return 4;
-  } else if (dtype === "complex64") {
-    return 8;
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-function ArrayBufferToTypedArray(data, dtype) {
-  if (dtype === "float32") {
-    return new Float32Array(data);
-  } else if (dtype === "int32") {
-    return new Int32Array(data);
-  } else if (dtype === "bool" || dtype === "string") {
-    return Uint8Array.from(new Int32Array(data));
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-function isWebGPUSupported() {
-  return (typeof window !== "undefined" || typeof WorkerGlobalScope !== "undefined") && !!navigator.gpu;
-}
-
-// src/tfjs-backend-webgpu/src/matmul_packed_vec4_webgpu.ts
-function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileInner, innerElementSize = 4) {
-  util_exports.assert((tileInner % 4 === 0 || tileInner % 3 === 0) && workPerThread[0] === 4 && (innerElementSize === 3 || innerElementSize === 4), () => `tileInner must be divisible by 4|3. ColPerThread must be 4.
-           innerElementSize must be 3|4.`);
-  return `
-  var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${tileInner / innerElementSize}>, ${tileAOuter}>;
-  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${tileBOuter / workPerThread[0]}>, ${tileInner}>;
-
-  let RowPerThread = ${workPerThread[1]};
-  let ColPerThread = ${workPerThread[0]};
-  let InnerElementSize = ${innerElementSize};
-  let TileInner = ${tileInner};
-
-  ${getMainHeaderString()}
-
-    let tileRow = ${tileAOuter === 1 ? "0" : "i32(localId.y) * RowPerThread"};
-    let tileCol = i32(localId.x);
-
-    let globalRow = ${tileAOuter === 1 ? "0" : "i32(globalId.y) * RowPerThread"};
-    let globalCol = i32(globalId.x);
-    let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
-
-    var acc: array<vec4<f32>, RowPerThread>;
-    var BCached : array<vec4<f32>, 4>;
-
-    // Loop over shared dimension.
-    var globalColA = tileCol;
-    let RowPerThreadB = TileInner / i32(workGroupSizeY);
-    let tileRowB = i32(localId.y) * RowPerThreadB;
-    for (var t = 0; t < numTiles; t = t + 1) {
-        // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-            let inputRow = tileRow + innerRow;
-            let inputCol = tileCol;
-            mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, globalId);
-        }
-        globalColA = globalColA + TileInner / InnerElementSize;
-
-        // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
-            let inputRow = tileRowB + innerRow;
-            let inputCol = tileCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, globalId);
-        }
-
-        workgroupBarrier();
-
-        // Compute acc values for a single thread.
-        for (var k = 0; k < TileInner / InnerElementSize; k = k + 1) {
-            BCached[0] = mm_Bsub[k * InnerElementSize][tileCol];
-            BCached[1] = mm_Bsub[k * InnerElementSize + 1][tileCol];
-            BCached[2] = mm_Bsub[k * InnerElementSize + 2][tileCol];
-            ${innerElementSize === 3 ? "" : "BCached[3] = mm_Bsub[k * InnerElementSize + 3][tileCol];"}
-
-            for (var i = 0; i < RowPerThread; i = i + 1) {
-                let ACached = mm_Asub[tileRow + i][k];
-                acc[i] = BCached[0] * ACached.x + acc[i];
-                acc[i] = BCached[1] * ACached.y + acc[i];
-                acc[i] = BCached[2] * ACached.z + acc[i];
-                ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached.w + acc[i];"}
-            }
-        }
-
-        workgroupBarrier();
-    }
-
-    for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-        mm_write(globalRow + innerRow,
-                 globalCol,
-                 acc[innerRow], globalId);
-    }
-  }`;
-}
-var MatMulPackedVec4Program = class {
-  constructor(aShape, outputShape, rowPerThread, batchAEqualOne, batchBEqualOne, bias = null, activation2 = null, preluActivationWeights = null) {
-    this.variableNames = ["A", "B"];
-    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-    this.workGroupSize = [8, 8, 1];
-    this.isVec4 = true;
-    this.outputShape = outputShape;
-    this.dispatchLayout = { x: [2], y: [1], z: [0] };
-    if (outputShape[1] === 1) {
-      this.elementsPerThread = [4, 1, 1];
-    } else {
-      this.elementsPerThread = [4, 4, 1];
-    }
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
-    const addBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    if (addBias) {
-      this.variableNames.push("bias");
-    }
-    if (hasPreluActivationWeights) {
-      this.variableNames.push("preluActivationWeights");
-    }
-    this.tileAOuter = outputShape[1] === 1 ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
-    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = this.tileBOuter;
-    this.aShape = aShape;
-    this.addBias = addBias;
-    this.activation = activation2;
-    this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
-    [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
-  }
-  getShapeFit() {
-    const dimInner = this.aShape[2];
-    const dimBOuter = this.outputShape[2];
-    const bShape = [this.outputShape[0], dimInner, dimBOuter];
-    const tileSizeA = [this.tileAOuter, this.tileInner];
-    const tileSizeB = [this.tileInner, this.tileBOuter];
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
-      tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
-    ];
-  }
-  getUserCode() {
-    const sampleA = this.fitA ? `return A[batch * batchASize + row * uniforms.dimInner / 4 + col]` : `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A[batch * batchASize + row * uniforms.dimInner / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
-    const sampleB = this.fitB ? `return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` : `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
-    let activationSnippet = "", applyActivationSnippet = "";
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram2(this.activation, this.isVec4);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet = `fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
-                  let b = getPreluActivationWeightsByOutputCoords(outCoord);
-                  ${activationOp}
-                }`;
-      } else {
-        activationSnippet = `
-            fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
-              ${activationOp}
-            }`;
-      }
-      applyActivationSnippet = "value = activation(value, outCoord);";
-    }
-    const addBiasSnippet = this.addBias ? "value = value + getBiasByOutputCoords(outCoord);" : "";
-    const userCode = `
-      ${activationSnippet}
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        ${this.batchAEqualOne ? `
-          let batchASize = 0;
-          let batch = 0;
-        ` : `
-          let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
-          let batch = i32(globalId.z);
-        `}
-
-        ${sampleA};
-      }
-
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        ${this.batchBEqualOne ? `
-          let batchBSize = 0;
-          let batch = 0;
-          ` : `
-          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
-          let batch = i32(globalId.z);
-       `}
-        ${sampleB};
-      }
-
-      fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<u32>) {
-        if (row < uniforms.aShape[1] && col * 4 < uniforms.bShape[2])
-        {
-          var value = valueIn;
-          let batch = i32(globalId.z);
-          let outCoord = vec3<i32>(batch, row, col * 4);
-          ${addBiasSnippet}
-          ${applyActivationSnippet}
-          setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], value);
-        }
-      }
-      ${makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner)}
-    `;
-    return userCode;
-  }
-};
 
 // src/tfjs-backend-webgpu/src/matmul_packed_webgpu.ts
-var writeDataToSubASnippet = (transpose6) => {
+var writeDataToSubASnippet2 = (transpose6) => {
   if (transpose6) {
     return `
         mm_Asub[inputRow][inputCol] = mm_readA(
@@ -63193,7 +63283,7 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
           for (var innerCol = 0; innerCol < ${colPerThreadA}; innerCol = innerCol + 1) {
             let inputRow = tileRowA + innerRow;
             let inputCol = tileColA + innerCol;
-            ${writeDataToSubASnippet(transposeA)}
+            ${writeDataToSubASnippet2(transposeA)}
           }
         }
 
@@ -63230,13 +63320,9 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
 
       for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-
-          if ((globalCol + innerCol) < uniforms.dimBOuter &&
-              (globalRow + innerRow) < uniforms.dimAOuter) {
-            mm_write(globalRow + innerRow,
-                     globalCol + innerCol,
-                     acc[innerRow][innerCol], globalId);
-          }
+          mm_write(globalRow + innerRow,
+                   globalCol + innerCol,
+                   acc[innerRow][innerCol], globalId);
         }
       }
     }
@@ -63293,9 +63379,7 @@ function makeMatMulVectorSource(workGroupSize, transposeA = false) {
         workgroupBarrier();
       }
 
-      if (globalRow < uniforms.dimAOuter && globalCol < uniforms.dimBOuter) {
-        mm_write(globalRow, globalCol, acc, globalId);
-      }
+      mm_write(globalRow, globalCol, acc, globalId);
     }
   `;
 }
@@ -63404,12 +63488,15 @@ var MatMulPackedProgram2 = class {
       }
 
       fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
+        ${this.fitAOuter && this.fitBOuter ? "" : "if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)"}
+        {
         var value = valueIn;
         let batch = i32(globalId.z);
         let outCoord = vec3<i32>(batch, row, col);
         ${addBiasSnippet}
         ${applyActivationSnippet}
         setOutputAtCoords(batch, row, col, value);
+        }
       }
       ${this.outputShape[1] > 1 ? makeMatMulPackedSource([this.workPerThread, this.workPerThread, 1], this.workGroupSize, this.transposeA, this.tileInner) : makeMatMulVectorSource(this.workGroupSize, this.transposeA)}
     `;
@@ -63783,14 +63870,14 @@ function batchMatMulImpl2({
   const batchDim = Math.max(batchDimA, batchDimB);
   const batchAEqualOne = batchDimA === 1;
   const batchBEqualOne = batchDimB === 1;
-  const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 && !transposeA && !transposeB;
+  const useVec4 = (innerShapeA % 4 === 0 && !transposeA || outerShapeA % 4 === 0 && transposeA) && outerShapeB % 4 === 0 && !transposeB;
   let program;
   if (outerShapeA * outerShapeB <= 32) {
     program = new MatMulReduceProgram([batchDim, outerShapeA, outerShapeB], batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation2, preluActivationWeights);
   } else if (!transposeA && !transposeB && (outerShapeA <= 16 && (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB) || outerShapeB <= 16 && (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
     program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias, activation2, preluActivationWeights);
   } else if (useVec4) {
-    program = new MatMulPackedVec4Program(a3dShape, [batchDim, outerShapeA, outerShapeB], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), batchAEqualOne, batchBEqualOne, bias, activation2, preluActivationWeights);
+    program = new MatMulPackedVec4Program(a3dShape, [batchDim, outerShapeA, outerShapeB], batchAEqualOne, batchBEqualOne, transposeA, bias, activation2, preluActivationWeights);
   } else {
     program = new MatMulPackedProgram2(a3dShape, [batchDim, outerShapeA, outerShapeB], env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation2, preluActivationWeights);
   }
@@ -65116,258 +65203,192 @@ var concatConfig3 = {
   kernelFunc: concat4
 };
 
-// src/tfjs-backend-webgpu/src/conv2d_mm_vec4_webgpu.ts
-var Conv2DMMVec4Program = class {
-  constructor(convInfo, addBias = false, activation2 = null, hasPreluActivationWeights = false) {
-    this.variableNames = ["x", "W"];
-    this.uniforms = `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
-      dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-    this.workGroupSize = [8, 8, 1];
-    this.isVec4 = true;
-    this.outputShape = convInfo.outShape;
-    util_exports.assert(convInfo.dataFormat === "channelsLast", () => "TODO: NCHW is unimplemented");
-    this.dispatchLayout = { x: [3], y: [1, 2], z: [0] };
-    if (this.outputShape[1] === 1) {
-      this.elementsPerThread = [4, 1, 1];
-    } else {
-      this.elementsPerThread = [4, 4, 1];
-    }
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
-    this.convInfo = convInfo;
-    this.addBias = addBias;
-    this.activation = activation2;
-    this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.innerElementSize = this.convInfo.inChannels % 4 === 0 ? 4 : 3;
-    if (this.innerElementSize === 3) {
-      this.variableTypes = ["f32", "vec4<f32>"];
-    } else {
-      this.variableTypes = ["vec4<f32>", "vec4<f32>"];
-    }
-    if (this.addBias) {
-      this.variableNames.push("bias");
-      this.variableTypes.push("vec4<f32>");
-    }
-    if (this.hasPreluActivationWeights) {
-      this.variableNames.push("preluActivationWeights");
-      this.variableTypes.push("vec4<f32>");
-    }
-    this.tileAOuter = this.outputShape[1] === 1 ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
-    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = this.workGroupSize[0] * this.innerElementSize;
-    [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}_${this.elementsPerThread}_${this.innerElementSize}`;
-  }
-  getShapeFit() {
-    const tileSizeA = [this.tileAOuter, this.tileInner];
-    const tileSizeB = [this.tileInner, this.tileBOuter];
-    const dimAOuter = this.outputShape[1] * this.outputShape[2];
-    const dimBOuter = this.outputShape[3];
-    const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth * this.convInfo.inChannels;
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
-      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
-    ];
-  }
-  getUserCode() {
-    const matMulSource = makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner, this.innerElementSize);
-    const readASnippet = `let outRow = r / uniforms.outShape[2];
-        let outCol = r % uniforms.outShape[2];
-        let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
-        let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
-        let inChCoord = c % uniforms.xShape[3];
-        let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
-        let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
-
-        var resData = vec${this.innerElementSize}<f32>(0.0);
-        // The bounds checking is always needed since we use it to pad zero for
-        // the 'same' padding type.
-        if (xRow >= 0 && xRow < uniforms.xShape[1] && xCol >= 0 && xCol < uniforms.xShape[2]) {
-          var coord = vec4<i32>(
-            batch,
-            xRow,
-            xCol,
-            inChCoord);
-          let xIndex = getIndexFromCoords4D(coord, uniforms.xShape);
-          ${this.innerElementSize === 3 ? "resData = vec3<f32>(x[xIndex], x[xIndex + 1], x[xIndex + 2]);" : "resData = x[xIndex / 4];"}
-        }
-        return resData;`;
-    const sampleA = this.fitA ? `${readASnippet}` : `if (r < uniforms.dimAOuter && c < uniforms.dimInner) {
-          ${readASnippet}
-         }
-         return vec${this.innerElementSize}<f32>(0.0);
-        `;
-    const sampleB = this.fitB ? `return W[row * uniforms.dimBOuter / 4 + col];` : `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return W[row * uniforms.dimBOuter / 4 + col];
-         }
-         return vec4<f32>(0.0);
-        `;
-    let activationSnippet = "", applyActivationSnippet = "";
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram2(this.activation, this.isVec4);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet = `fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
-          let b = getPreluActivationWeightsByOutputCoords(outCoord);
-          ${activationOp}
-        }`;
-      } else {
-        activationSnippet = `
-        fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
-          ${activationOp}
-        }`;
-      }
-      applyActivationSnippet = `value = activation(value, outCoord);`;
-    }
-    const addBiasSnippet = this.addBias ? "value = value + getBiasByOutputCoords(outCoord);" : "";
-    const userCode = `
-        ${activationSnippet}
-        fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> vec${this.innerElementSize}<f32> {
-          let r = row;
-          let c = col * ${this.innerElementSize};
-          var batch = i32(globalId.z);
-          ${sampleA}
-        }
-
-        fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> vec4<f32> {
-          ${sampleB}
-        }
-
-        fn mm_write(row : i32, col : i32, valueInput : vec4<f32>, globalId : vec3<u32>) {
-          var batch = i32(globalId.z);
-          var value = valueInput;
-          if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
-          {
-            let outCoord = vec4<i32>(
-              batch,
-              row / uniforms.outShape[2],
-              row % uniforms.outShape[2],
-              col * 4);
-            ${addBiasSnippet}
-            ${applyActivationSnippet}
-            setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], outCoord[3],
-              value);
-          }
-        }
-        ${matMulSource}
-      `;
-    return userCode;
+// src/tfjs-backend-webgpu/src/conv2d_mm_webgpu.ts
+var typeSnippet = (innerElementSize) => {
+  switch (innerElementSize) {
+    case 1:
+      return "f32";
+    case 2:
+      return "vec2<f32>";
+    case 3:
+      return "vec3<f32>";
+    case 4:
+      return "vec4<f32>";
+    default:
+      throw new Error(`innerElementSize ${innerElementSize} is not supported.`);
   }
 };
+function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, addBias = false, activation2 = null, hasPreluActivationWeights = false, innerElementSizeX = 4, innerElementSizeW = 4, innerElementSize = 4) {
+  const getXSnippet = (innerElementSize2) => {
+    switch (innerElementSize2) {
+      case 1:
+        return "resData = x[xIndex];";
+      case 3:
+        return "resData = vec3<f32>(x[xIndex], x[xIndex + 1], x[xIndex + 2]);";
+      case 4:
+        return "resData = x[xIndex / 4];";
+      default:
+        throw new Error(`innerElementSize ${innerElementSize2} is not supported.`);
+    }
+  };
+  const getWSnippet = (innerElementSize2) => {
+    switch (innerElementSize2) {
+      case 1:
+        return "return W[row * uniforms.wShape[3] + colIn];";
+      case 4:
+        return "return W[row * uniforms.wShape[3] / 4 + colIn];";
+      default:
+        throw new Error(`innerElementSize ${innerElementSize2} is not supported.`);
+    }
+  };
+  const coordASnippet = isChannelsLast ? `
+      let coord = vec4<i32>(batch, xRow, xCol, xCh);
+      ` : `
+      let coord = vec4<i32>(batch, xCh, xRow, xCol);
+      `;
+  const coordResSnippet = isChannelsLast ? `
+      let outCoord = vec4<i32>(
+        batch,
+        row / outWidth,
+        row % outWidth,
+        col);
+      ` : `
+      let outCoord = vec4<i32>(
+        batch,
+        row,
+        col / outWidth,
+        col % outWidth);
+      `;
+  const xHight = isChannelsLast ? "uniforms.xShape[1]" : "uniforms.xShape[2]";
+  const xWidth = isChannelsLast ? "uniforms.xShape[2]" : "uniforms.xShape[3]";
+  const row = isChannelsLast ? "row" : "col";
+  const col = isChannelsLast ? "col" : "row";
+  const readXSnippet = `
+      let inChannels = uniforms.wShape[2];
+      let outWidth = ${isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
+      let outRow = ${row} / outWidth;
+      let outCol = ${row} % outWidth;
 
-// src/tfjs-backend-webgpu/src/conv2d_mm_webgpu.ts
+      let WRow = ${col} / (uniforms.filterDims[1] * inChannels);
+      let WCol = ${col} / inChannels % uniforms.filterDims[1];
+      let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
+      let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
+      let xCh = ${col} % inChannels;
+      var resData = ${typeSnippet(innerElementSizeX)}(0.0);
+      // The bounds checking is always needed since we use it to pad zero for
+      // the 'same' padding type.
+      if (xRow >= 0 && xRow < ${xHight} && xCol >= 0 && xCol < ${xWidth}) {
+        ${coordASnippet}
+        let xIndex = getIndexFromCoords4D(coord, uniforms.xShape);
+        ${getXSnippet(innerElementSizeX)}
+      }
+      return resData;`;
+  const sampleX = isChannelsLast ? fitAOuter && fitInner ? `
+      let col = colIn * ${innerElementSizeX};
+      ${readXSnippet}` : `
+      let col = colIn * ${innerElementSizeX};
+      if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
+        ${readXSnippet}
+      }
+      return ${typeSnippet(innerElementSizeX)}(0.0);` : fitInner && fitBOuter ? `
+      let col = colIn * ${innerElementSizeX};
+      ${readXSnippet}` : `
+      let col = colIn * ${innerElementSizeX};
+      if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
+        ${readXSnippet}
+      }
+      return ${typeSnippet(innerElementSizeX)}(0.0);`;
+  const sampleW = `${getWSnippet(innerElementSizeW)}`;
+  const resType = typeSnippet(innerElementSize);
+  const aType = isChannelsLast ? typeSnippet(innerElementSizeX) : typeSnippet(innerElementSizeW);
+  const bType = isChannelsLast ? typeSnippet(innerElementSizeW) : typeSnippet(innerElementSizeX);
+  let activationSnippet = "", applyActivationSnippet = "";
+  if (activation2) {
+    const activationOp = mapActivationToShaderProgram2(activation2, innerElementSize === 4);
+    if (hasPreluActivationWeights) {
+      activationSnippet = `fn activation(a: ${resType}, outCoord : vec4<i32>) -> ${resType} {
+              let b = getPreluActivationWeightsByOutputCoords(outCoord);
+              ${activationOp}
+           }`;
+    } else {
+      activationSnippet = `
+           fn activation(a : ${resType}, outCoord : vec4<i32>) -> ${resType} {
+             ${activationOp}
+           }`;
+    }
+    applyActivationSnippet = `value = activation(value, outCoord);`;
+  }
+  const addBiasSnippet = addBias ? "value = value + getBiasByOutputCoords(outCoord);" : "";
+  const userCode = `
+      ${activationSnippet}
+      fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
+        var batch = i32(globalId.z);
+        ${isChannelsLast ? sampleX : sampleW}
+      }
+
+      fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${bType} {
+        var batch = i32(globalId.z);
+        ${isChannelsLast ? sampleW : sampleX}
+      }
+
+      fn mm_write(row : i32, colIn : i32, valueIn : ${resType}, globalId : vec3<u32>) {
+        var col = colIn * ${innerElementSize};
+        if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
+        {
+        var batch = i32(globalId.z);
+        var value = valueIn;
+        let outWidth = ${isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
+        ${coordResSnippet}
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
+        setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], outCoord[3], value);
+        }
+      }`;
+  return userCode;
+}
 var Conv2DMMProgram = class {
-  constructor(convInfo, dimAOuter, dimBOuter, dimInner, addBias = false, activation2 = null, hasPreluActivationWeights = false) {
+  constructor(convInfo, dimAOuter, dimBOuter, dimInner, addBias = false, activation2 = null, hasPreluActivationWeights = false, isVec4 = false) {
     this.variableNames = ["x", "W"];
     this.uniforms = `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === "channelsLast";
+    this.isVec4 = isVec4;
     this.dispatchLayout = this.isChannelsLast ? { x: [3], y: [1, 2], z: [0] } : { x: [2, 3], y: [1], z: [0] };
-    this.workGroupSize = computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
-    this.elementsPerThread = computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
+    this.workGroupSize = computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape, this.isVec4);
+    this.elementsPerThread = computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape, this.isVec4);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
+    this.innerElementSize = this.isVec4 ? convInfo.inChannels % 4 === 0 ? 4 : 3 : this.elementsPerThread[0];
+    if (this.isVec4) {
+      this.variableTypes = this.innerElementSize === 3 ? ["f32", "vec4<f32>"] : ["vec4<f32>", "vec4<f32>"];
+    }
     if (addBias) {
       this.variableNames.push("bias");
+      if (this.isVec4) {
+        this.variableTypes.push("vec4<f32>");
+      }
     }
     if (hasPreluActivationWeights) {
       this.variableNames.push("preluActivationWeights");
+      if (this.isVec4) {
+        this.variableTypes.push("vec4<f32>");
+      }
     }
     this.addBias = addBias;
     this.activation = activation2;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
-    const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = 32;
-    this.fitAOuter = dimAOuter % tileAOuter === 0;
-    this.fitBOuter = dimBOuter % tileBOuter === 0;
+    this.tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
+    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileInner = Math.max(this.workGroupSize[0] * this.innerElementSize, this.workGroupSize[1]);
+    this.fitAOuter = dimAOuter % this.tileAOuter === 0;
+    this.fitBOuter = dimBOuter % this.tileBOuter === 0;
     this.fitInner = dimInner % this.tileInner === 0;
-    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isChannelsLast}`;
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${this.innerElementSize}_${this.isChannelsLast}`;
   }
   getUserCode() {
-    const coordASnippet = this.isChannelsLast ? `
-    let coord = vec4<i32>(batch, xRow, xCol, xCh);
-    ` : `
-    let coord = vec4<i32>(batch, xCh, xRow, xCol);
-    `;
-    const coordResSnippet = this.isChannelsLast ? `
-    let outCoord = vec4<i32>(
-      batch,
-      row / outWidth,
-      row % outWidth,
-      col);
-    ` : `
-    let outCoord = vec4<i32>(
-      batch,
-      row,
-      col / outWidth,
-      col % outWidth);
-    `;
-    const matMulSource = makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize, !this.isChannelsLast, this.tileInner);
-    const row = this.isChannelsLast ? "row" : "col";
-    const col = this.isChannelsLast ? "col" : "row";
-    const readXSnippet = `
-    let inChannels = uniforms.wShape[2];
-    let outWidth = ${this.isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
-    let outRow = ${row} / outWidth;
-    let outCol = ${row} % outWidth;
-
-    let WRow = ${col} / (uniforms.filterDims[1] * inChannels);
-    let WCol = ${col} / inChannels % uniforms.filterDims[1];
-    let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
-    let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
-    let xCh = ${col} % inChannels;
-    ${coordASnippet}
-    // The bounds checking is always needed since we use it to pad zero for the
-    // 'same' padding type.
-    if(coordsInBounds4D(coord, uniforms.xShape)) {
-      return x[getIndexFromCoords4D(coord, uniforms.xShape)];
-    }
-    return 0.0;`;
-    const sampleX = this.isChannelsLast ? this.fitAOuter && this.fitInner ? `${readXSnippet}` : `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
-      ${readXSnippet}
-    }
-    return 0.0;` : this.fitInner && this.fitBOuter ? `${readXSnippet}` : `if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
-          ${readXSnippet}
-        }
-        return 0.0;`;
-    const sampleW = `return W[row * uniforms.wShape[3] + col];`;
-    let activationSnippet = "", applyActivationSnippet = "";
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram2(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet = `fn activation(a: f32, outCoord : vec4<i32>) -> f32 {
-                  let b = getPreluActivationWeightsByOutputCoords(outCoord);
-                  ${activationOp}
-                }`;
-      } else {
-        activationSnippet = `
-                  fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
-                    ${activationOp}
-                  }
-                `;
-      }
-      applyActivationSnippet = `value = activation(value, outCoord);`;
-    }
-    const addBiasSnippet = this.addBias ? "value = value + getBiasByOutputCoords(outCoord);" : "";
+    const matMulSource = this.isVec4 ? makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner, this.innerElementSize, !this.isChannelsLast) : makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize, !this.isChannelsLast, this.tileInner);
+    const elementsSize = this.isVec4 ? [this.isChannelsLast ? this.innerElementSize : 4, 4, 4] : [1, 1, 1];
     const userCode = `
-    ${activationSnippet}
-    fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
-      var batch = i32(globalId.z);
-      ${this.isChannelsLast ? sampleX : sampleW}
-    }
-
-    fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
-      var batch = i32(globalId.z);
-      ${this.isChannelsLast ? sampleW : sampleX}
-    }
-
-    fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
-      var batch = i32(globalId.z);
-      var value = valueInput;
-      let outWidth = ${this.isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
-      ${coordResSnippet}
-      ${addBiasSnippet}
-      ${applyActivationSnippet}
-      result[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
-    }
+    ${conv2dCommonSnippet(this.isChannelsLast, this.fitAOuter, this.fitBOuter, this.fitInner, this.addBias, this.activation, this.hasPreluActivationWeights, elementsSize[0], elementsSize[1], elementsSize[2])}
     ${matMulSource}
   `;
     return userCode;
@@ -65495,7 +65516,6 @@ function conv2DImpl({
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
   const isChannelsLast = convInfo.dataFormat === "channelsLast";
-  let program;
   const sameSize = isChannelsLast && convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
   if (sameSize || convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID")) {
     return conv2dByMatMul2({
@@ -65509,7 +65529,7 @@ function conv2DImpl({
       leakyreluAlpha
     });
   }
-  const useVec4 = (convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) && convInfo.outChannels % 4 === 0 && isChannelsLast;
+  const useVec4 = ((convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) && isChannelsLast || convInfo.outWidth % 4 === 0 && !isChannelsLast) && convInfo.outChannels % 4 === 0;
   const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth : convInfo.outChannels;
   const dimBOuter = isChannelsLast ? convInfo.outChannels : convInfo.outHeight * convInfo.outWidth;
   const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
@@ -65523,11 +65543,7 @@ function conv2DImpl({
     { type: "int32", data: [dimBOuter] },
     { type: "int32", data: [dimInner] }
   ];
-  if (useVec4) {
-    program = new Conv2DMMVec4Program(convInfo, hasBias, activation2, hasPreluActivationWeights);
-  } else {
-    program = new Conv2DMMProgram(convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation2, hasPreluActivationWeights);
-  }
+  const program = new Conv2DMMProgram(convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation2, hasPreluActivationWeights, useVec4);
   const intermediates = [];
   const inputVar = [x, filter];
   if (hasBias) {
@@ -65634,6 +65650,8 @@ var Conv2DDerInputMMProgram = class {
     }
 
     fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
+      if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
+      {
       var batch = i32(globalId.z);
       var value = valueInput;
       let outCoord = vec4<i32>(
@@ -65642,6 +65660,7 @@ var Conv2DDerInputMMProgram = class {
           row % uniforms.outShape[2],
           col);
       result[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
+      }
     }
 
     ${matMulSource}
@@ -68061,14 +68080,14 @@ var ScatterOptimizedProgram = class {
     }
     const updatesSnippet = `getUpdates(${updatesString})`;
     const atomicAddSnippet = this.type === "int32" ? `atomicAdd(&(result[flatIndex]), i32(updateValue));` : `
-     var assumed = atomicLoad(&(result[flatIndex]));
-     var success = 0;
-     for (; success == 0;) {
-       let new = bitcast<f32>(assumed) + updateValue;
-       let newI32 = bitcast<i32>(new);
-       let resValue = atomicCompareExchangeWeak(&(result[flatIndex]), assumed, newI32);
-       assumed = resValue[0];
-       success = resValue[1];
+     var oldValue = atomicLoad(&(result[flatIndex]));
+     var exchanged = false;
+     for (; !exchanged;) {
+       let newValueF32 = bitcast<f32>(oldValue) + updateValue;
+       let newValue = bitcast<i32>(newValueF32);
+       let res = atomicCompareExchangeWeak(&(result[flatIndex]), oldValue, newValue);
+       oldValue = res.old_value;
+       exchanged = res.exchanged;
      }
      `;
     const userCode = `
@@ -69424,34 +69443,6 @@ function getBytesPerElement(format) {
   }
 }
 
-// src/tfjs-backend-webgpu/src/webgpu_program.ts
-var makeBindGroup = (device, bindGroupLayout, inputs, output, uniforms) => {
-  const bindings = [output, ...inputs];
-  if (uniforms) {
-    bindings.push(uniforms);
-  }
-  return device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: bindings.map((b, i) => ({ binding: i, resource: b }))
-  });
-};
-var compileProgram2 = (device, program, pipelineLayout, inputsData, output, isFromPixel = false) => {
-  const outputData = { dtype: output.dtype, shape: output.shape };
-  const source = makeShader2(inputsData, outputData, program, isFromPixel);
-  const module = device.createShaderModule({ code: source, label: program.constructor.name });
-  const pipeline = device.createComputePipeline({
-    layout: pipelineLayout,
-    compute: { module, entryPoint: "main" },
-    label: program.constructor.name
-  });
-  return pipeline;
-};
-function makeShaderKey2(program, shapes, types = [], broadcastDimsKey = "", inputShapesEqualsOutShape = "") {
-  const flatDispatchString = program.dispatch[1] === 1 && program.dispatch[2] === 1 ? "flatDispatch" : "";
-  const key = program.shaderKey + "_" + (program.workGroupSize ? program.workGroupSize.join(",") : "") + shapes.map((shape) => shape.length).join(",") + types.join(",") + program.variableNames.join(",") + broadcastDimsKey + inputShapesEqualsOutShape + flatDispatchString;
-  return key;
-}
-
 // src/tfjs-backend-webgpu/src/backend_webgpu.ts
 var CPU_HANDOFF_SIZE_THRESHOLD2 = env().getNumber("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD");
 var reshapeDispatch = (device, program) => {
@@ -69931,6 +69922,16 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     return this.layoutCache[inputEntrySize];
   }
+  makeBindGroup(device, bindGroupLayout, inputs, output, uniforms) {
+    const bindings = [output, ...inputs];
+    if (uniforms) {
+      bindings.push(uniforms);
+    }
+    return device.createBindGroup({
+      layout: bindGroupLayout,
+      entries: bindings.map((b, i) => ({ binding: i, resource: b }))
+    });
+  }
   runWebGPUProgram(program, inputs, outputDtype, programUniforms, output) {
     if (!output) {
       output = this.makeTensorInfo(program.outputShape, outputDtype);
@@ -69979,7 +69980,7 @@ var _WebGPUBackend = class extends KernelBackend {
       return compileProgram2(this.device, program, pipelineLayout, inputsData, output);
     });
     const shouldTimeProgram = this.activeTimers != null;
-    const bg = makeBindGroup(this.device, bindGroupLayout, inputs.map((t) => this.tensorToBinding(t)), this.tensorToBinding(output), uniforms);
+    const bg = this.makeBindGroup(this.device, bindGroupLayout, inputs.map((t) => this.tensorToBinding(t)), this.tensorToBinding(output), uniforms);
     this.ensureCommandEncoderReady();
     const pass = this.getComputePass();
     if (shouldTimeProgram) {
@@ -70310,7 +70311,7 @@ function createUnaryKernelConfig(kernelName, outType) {
 var absConfig4 = createUnaryKernelConfig(Abs);
 
 // src/tfjs-backend-wasm/src/kernels/binary_kernel.ts
-function createBinaryKernelConfig(kernelName, supportsFullBroadcast17, dtype) {
+function createBinaryKernelConfig(kernelName, supportsFullBroadcast19, dtype) {
   let wasmFunc9;
   function setupFunc3(backend2) {
     wasmFunc9 = backend2.wasm.cwrap(kernelName, null, [
@@ -71837,6 +71838,17 @@ var logConfig4 = createUnaryKernelConfig(Log);
 var supportsFullBroadcast8 = false;
 var logicalAndConfig4 = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast8, "bool");
 
+// src/tfjs-backend-wasm/src/kernels/LogicalNot.ts
+var logicalNotConfig4 = createUnaryKernelConfig(LogicalNot);
+
+// src/tfjs-backend-wasm/src/kernels/LogicalOr.ts
+var supportsFullBroadcast9 = false;
+var logicalOrConfig3 = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast9, "bool");
+
+// src/tfjs-backend-wasm/src/kernels/LogicalXor.ts
+var supportsFullBroadcast10 = false;
+var logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast10, "bool");
+
 // src/tfjs-backend-wasm/src/kernels/Max.ts
 var wasmMax;
 function setup22(backend2) {
@@ -71886,8 +71898,8 @@ var maxConfig4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Maximum.ts
-var supportsFullBroadcast9 = false;
-var maximumConfig4 = createBinaryKernelConfig(Maximum, supportsFullBroadcast9);
+var supportsFullBroadcast11 = false;
+var maximumConfig4 = createBinaryKernelConfig(Maximum, supportsFullBroadcast11);
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool.ts
 var wasmMaxPool;
@@ -72051,8 +72063,8 @@ var minConfig4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Minimum.ts
-var supportsFullBroadcast10 = false;
-var minimumConfig4 = createBinaryKernelConfig(Minimum, supportsFullBroadcast10);
+var supportsFullBroadcast12 = false;
+var minimumConfig4 = createBinaryKernelConfig(Minimum, supportsFullBroadcast12);
 
 // src/tfjs-backend-wasm/src/kernels/MirrorPad.ts
 var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
@@ -72095,8 +72107,8 @@ var mirrorPadConfig4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Multiply.ts
-var supportsFullBroadcast11 = true;
-var multiplyConfig4 = createBinaryKernelConfig(Multiply, supportsFullBroadcast11);
+var supportsFullBroadcast13 = true;
+var multiplyConfig4 = createBinaryKernelConfig(Multiply, supportsFullBroadcast13);
 
 // src/tfjs-backend-wasm/src/kernels/Neg.ts
 var negConfig4 = createUnaryKernelConfig(Neg);
@@ -72208,8 +72220,8 @@ var nonMaxSuppressionV5Config4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/NotEqual.ts
-var supportsFullBroadcast12 = false;
-var notEqualConfig4 = createBinaryKernelConfig(NotEqual, supportsFullBroadcast12, "bool");
+var supportsFullBroadcast14 = false;
+var notEqualConfig4 = createBinaryKernelConfig(NotEqual, supportsFullBroadcast14, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/OneHot.ts
 var wasmOneHot;
@@ -72326,8 +72338,8 @@ var padV2Config4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Pow.ts
-var supportsFullBroadcast13 = false;
-var powConfig4 = createBinaryKernelConfig(Pow, supportsFullBroadcast13);
+var supportsFullBroadcast15 = false;
+var powConfig4 = createBinaryKernelConfig(Pow, supportsFullBroadcast15);
 
 // src/tfjs-backend-wasm/src/kernels/Prelu.ts
 var wasmPrelu;
@@ -72433,8 +72445,8 @@ var rangeConfig4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/RealDiv.ts
-var supportsFullBroadcast14 = true;
-var realDivConfig4 = createBinaryKernelConfig(RealDiv, supportsFullBroadcast14);
+var supportsFullBroadcast16 = true;
+var realDivConfig4 = createBinaryKernelConfig(RealDiv, supportsFullBroadcast16);
 
 // src/tfjs-backend-wasm/src/kernels/Relu.ts
 var reluConfig4 = createUnaryKernelConfig(Relu);
@@ -73025,8 +73037,8 @@ var sqrtConfig4 = createUnaryKernelConfig(Sqrt);
 var squareConfig4 = createUnaryKernelConfig(Square);
 
 // src/tfjs-backend-wasm/src/kernels/SquaredDifference.ts
-var supportsFullBroadcast15 = true;
-var squaredDifferenceConfig4 = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast15);
+var supportsFullBroadcast17 = true;
+var squaredDifferenceConfig4 = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast17);
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
@@ -73127,8 +73139,8 @@ var stridedSliceConfig4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Sub.ts
-var supportsFullBroadcast16 = true;
-var subConfig4 = createBinaryKernelConfig(Sub, supportsFullBroadcast16);
+var supportsFullBroadcast18 = true;
+var subConfig4 = createBinaryKernelConfig(Sub, supportsFullBroadcast18);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
@@ -73419,6 +73431,9 @@ var kernelConfigs4 = [
   lessEqualConfig4,
   logConfig4,
   logicalAndConfig4,
+  logicalNotConfig4,
+  logicalOrConfig3,
+  logicalXorConfig,
   maxConfig4,
   maximumConfig4,
   maxPoolConfig4,
@@ -73859,7 +73874,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.18.0-20220529";
+var externalVersion = "3.18.0-20220602";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -73978,6 +73993,7 @@ export {
   LogicalAnd,
   LogicalNot,
   LogicalOr,
+  LogicalXor,
   LowerBound,
   MathBackendCPU,
   MathBackendWebGL,

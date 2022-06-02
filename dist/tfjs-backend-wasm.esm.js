@@ -3227,6 +3227,15 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
           return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
         };
+        var _LogicalNot = Module["_LogicalNot"] = function() {
+          return (_LogicalNot = Module["_LogicalNot"] = Module["asm"]["LogicalNot"]).apply(null, arguments);
+        };
+        var _LogicalOr = Module["_LogicalOr"] = function() {
+          return (_LogicalOr = Module["_LogicalOr"] = Module["asm"]["LogicalOr"]).apply(null, arguments);
+        };
+        var _LogicalXor = Module["_LogicalXor"] = function() {
+          return (_LogicalXor = Module["_LogicalXor"] = Module["asm"]["LogicalXor"]).apply(null, arguments);
+        };
         var _Max = Module["_Max"] = function() {
           return (_Max = Module["_Max"] = Module["asm"]["Max"]).apply(null, arguments);
         };
@@ -3440,7 +3449,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var dynCall_jiji = Module["dynCall_jiji"] = function() {
           return (dynCall_jiji = Module["dynCall_jiji"] = Module["asm"]["dynCall_jiji"]).apply(null, arguments);
         };
-        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21456;
+        var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 21664;
         Module["cwrap"] = cwrap;
         Module["keepRuntimeAlive"] = keepRuntimeAlive;
         Module["PThread"] = PThread;
@@ -4466,6 +4475,15 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
           return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
+        };
+        var _LogicalNot = Module["_LogicalNot"] = function() {
+          return (_LogicalNot = Module["_LogicalNot"] = Module["asm"]["LogicalNot"]).apply(null, arguments);
+        };
+        var _LogicalOr = Module["_LogicalOr"] = function() {
+          return (_LogicalOr = Module["_LogicalOr"] = Module["asm"]["LogicalOr"]).apply(null, arguments);
+        };
+        var _LogicalXor = Module["_LogicalXor"] = function() {
+          return (_LogicalXor = Module["_LogicalXor"] = Module["asm"]["LogicalXor"]).apply(null, arguments);
         };
         var _Max = Module["_Max"] = function() {
           return (_Max = Module["_Max"] = Module["asm"]["Max"]).apply(null, arguments);
@@ -5510,6 +5528,7 @@ var Log1p = "Log1p";
 var LogicalAnd = "LogicalAnd";
 var LogicalNot = "LogicalNot";
 var LogicalOr = "LogicalOr";
+var LogicalXor = "LogicalXor";
 var LRN = "LRN";
 var Max = "Max";
 var Maximum = "Maximum";
@@ -7289,6 +7308,7 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
+ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -8611,7 +8631,8 @@ function fromPixels_(pixels, numChannels = 3) {
           throw new Error("Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.");
         }
       } else {
-        fromPixels2DContext = document.createElement("canvas").getContext("2d");
+        const willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY");
+        fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently });
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -14782,7 +14803,7 @@ function createUnaryKernelConfig(kernelName, outType) {
 var absConfig = createUnaryKernelConfig(Abs);
 
 // src/tfjs-backend-wasm/src/kernels/binary_kernel.ts
-function createBinaryKernelConfig(kernelName, supportsFullBroadcast17, dtype) {
+function createBinaryKernelConfig(kernelName, supportsFullBroadcast19, dtype) {
   let wasmFunc9;
   function setupFunc3(backend) {
     wasmFunc9 = backend.wasm.cwrap(kernelName, null, [
@@ -16743,6 +16764,17 @@ var logConfig = createUnaryKernelConfig(Log);
 var supportsFullBroadcast8 = false;
 var logicalAndConfig = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast8, "bool");
 
+// src/tfjs-backend-wasm/src/kernels/LogicalNot.ts
+var logicalNotConfig = createUnaryKernelConfig(LogicalNot);
+
+// src/tfjs-backend-wasm/src/kernels/LogicalOr.ts
+var supportsFullBroadcast9 = false;
+var logicalOrConfig = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast9, "bool");
+
+// src/tfjs-backend-wasm/src/kernels/LogicalXor.ts
+var supportsFullBroadcast10 = false;
+var logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast10, "bool");
+
 // src/tfjs-backend-wasm/src/kernels/Max.ts
 var wasmMax;
 function setup22(backend) {
@@ -16792,8 +16824,8 @@ var maxConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Maximum.ts
-var supportsFullBroadcast9 = false;
-var maximumConfig = createBinaryKernelConfig(Maximum, supportsFullBroadcast9);
+var supportsFullBroadcast11 = false;
+var maximumConfig = createBinaryKernelConfig(Maximum, supportsFullBroadcast11);
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool.ts
 var wasmMaxPool;
@@ -16957,8 +16989,8 @@ var minConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Minimum.ts
-var supportsFullBroadcast10 = false;
-var minimumConfig = createBinaryKernelConfig(Minimum, supportsFullBroadcast10);
+var supportsFullBroadcast12 = false;
+var minimumConfig = createBinaryKernelConfig(Minimum, supportsFullBroadcast12);
 
 // src/tfjs-backend-wasm/src/kernels/MirrorPad.ts
 var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
@@ -17001,8 +17033,8 @@ var mirrorPadConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Multiply.ts
-var supportsFullBroadcast11 = true;
-var multiplyConfig = createBinaryKernelConfig(Multiply, supportsFullBroadcast11);
+var supportsFullBroadcast13 = true;
+var multiplyConfig = createBinaryKernelConfig(Multiply, supportsFullBroadcast13);
 
 // src/tfjs-backend-wasm/src/kernels/Neg.ts
 var negConfig = createUnaryKernelConfig(Neg);
@@ -17114,8 +17146,8 @@ var nonMaxSuppressionV5Config = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/NotEqual.ts
-var supportsFullBroadcast12 = false;
-var notEqualConfig = createBinaryKernelConfig(NotEqual, supportsFullBroadcast12, "bool");
+var supportsFullBroadcast14 = false;
+var notEqualConfig = createBinaryKernelConfig(NotEqual, supportsFullBroadcast14, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/OneHot.ts
 var wasmOneHot;
@@ -17232,8 +17264,8 @@ var padV2Config = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Pow.ts
-var supportsFullBroadcast13 = false;
-var powConfig = createBinaryKernelConfig(Pow, supportsFullBroadcast13);
+var supportsFullBroadcast15 = false;
+var powConfig = createBinaryKernelConfig(Pow, supportsFullBroadcast15);
 
 // src/tfjs-backend-wasm/src/kernels/Prelu.ts
 var wasmPrelu;
@@ -17339,8 +17371,8 @@ var rangeConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/RealDiv.ts
-var supportsFullBroadcast14 = true;
-var realDivConfig = createBinaryKernelConfig(RealDiv, supportsFullBroadcast14);
+var supportsFullBroadcast16 = true;
+var realDivConfig = createBinaryKernelConfig(RealDiv, supportsFullBroadcast16);
 
 // src/tfjs-backend-wasm/src/kernels/Relu.ts
 var reluConfig = createUnaryKernelConfig(Relu);
@@ -17931,8 +17963,8 @@ var sqrtConfig = createUnaryKernelConfig(Sqrt);
 var squareConfig = createUnaryKernelConfig(Square);
 
 // src/tfjs-backend-wasm/src/kernels/SquaredDifference.ts
-var supportsFullBroadcast15 = true;
-var squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast15);
+var supportsFullBroadcast17 = true;
+var squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast17);
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
@@ -18033,8 +18065,8 @@ var stridedSliceConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Sub.ts
-var supportsFullBroadcast16 = true;
-var subConfig = createBinaryKernelConfig(Sub, supportsFullBroadcast16);
+var supportsFullBroadcast18 = true;
+var subConfig = createBinaryKernelConfig(Sub, supportsFullBroadcast18);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
@@ -18325,6 +18357,9 @@ var kernelConfigs = [
   lessEqualConfig,
   logConfig,
   logicalAndConfig,
+  logicalNotConfig,
+  logicalOrConfig,
+  logicalXorConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,

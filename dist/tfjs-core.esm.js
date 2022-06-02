@@ -2293,6 +2293,7 @@ var Log1p = "Log1p";
 var LogicalAnd = "LogicalAnd";
 var LogicalNot = "LogicalNot";
 var LogicalOr = "LogicalOr";
+var LogicalXor = "LogicalXor";
 var LogSoftmax = "LogSoftmax";
 var LowerBound = "LowerBound";
 var LRN = "LRN";
@@ -4168,6 +4169,7 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
+ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -6108,7 +6110,8 @@ function fromPixels_(pixels, numChannels = 3) {
           throw new Error("Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.");
         }
       } else {
-        fromPixels2DContext = document.createElement("canvas").getContext("2d");
+        const willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY");
+        fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently });
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -13068,6 +13071,7 @@ export {
   LogicalAnd,
   LogicalNot,
   LogicalOr,
+  LogicalXor,
   LowerBound,
   Max,
   MaxPool,
