@@ -4169,7 +4169,6 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
-ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -5101,14 +5100,14 @@ var ModelStoreManagerRegistry = class {
     registry.managers[scheme] = manager;
   }
   static getManager(scheme) {
-    const manager = this.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
     return manager;
   }
   static getSchemes() {
-    return Object.keys(this.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 };
 function parseURL(url) {
@@ -6110,8 +6109,7 @@ function fromPixels_(pixels, numChannels = 3) {
           throw new Error("Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.");
         }
       } else {
-        const willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY");
-        fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently });
+        fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -8037,7 +8035,8 @@ function depthwiseConv2d_(x, filter, strides, pad2, dataFormat = "NHWC", dilatio
   }
   assert(x4D.rank === 4, () => `Error in depthwiseConv2d: input must be rank 4, but got rank ${x4D.rank}.`);
   assert($filter.rank === 4, () => `Error in depthwiseConv2d: filter must be rank 4, but got rank ${$filter.rank}.`);
-  assert(x4D.shape[3] === $filter.shape[2], () => `Error in depthwiseConv2d: number of input channels (${x4D.shape[3]}) must match the inChannels dimension in filter ${$filter.shape[2]}.`);
+  const inChannels = dataFormat === "NHWC" ? x4D.shape[3] : x4D.shape[1];
+  assert(inChannels === $filter.shape[2], () => `Error in depthwiseConv2d: number of input channels (${inChannels}) must match the inChannels dimension in filter ${$filter.shape[2]}.`);
   checkPadOnDimRoundingMode("depthwiseConv2d", pad2, dimRoundingMode);
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad2, dataFormat, dilations, dimRoundingMode };
@@ -9425,6 +9424,15 @@ function randomNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
 }
 var randomNormal = op({ randomNormal_ });
 
+// src/tfjs-core/src/ops/random_standard_normal.ts
+function randomStandardNormal_(shape, dtype, seed) {
+  if (dtype != null && dtype === "bool") {
+    throw new Error(`Unsupported data type ${dtype}`);
+  }
+  return randomNormal(shape, 0, 1, dtype, seed);
+}
+var randomStandardNormal = op({ randomStandardNormal_ });
+
 // src/tfjs-core/src/ops/random_uniform.ts
 function randomUniform_(shape, minval = 0, maxval = 1, dtype = "float32", seed) {
   const res = buffer(shape, dtype);
@@ -9769,7 +9777,7 @@ var squaredDifference = op({ squaredDifference_ });
 
 // src/tfjs-core/src/ops/squeeze.ts
 function squeeze_(x, axis) {
-  const $x = convertToTensor(x, "x", "squeeze");
+  const $x = convertToTensor(x, "x", "squeeze", "string_or_numeric");
   return reshape($x, squeezeShape($x.shape, axis).newShape);
 }
 var squeeze = op({ squeeze_ });
@@ -13335,6 +13343,7 @@ export {
   rand,
   randomGamma,
   randomNormal,
+  randomStandardNormal,
   randomUniform,
   range,
   ready,
@@ -13574,21 +13583,5 @@ export {
  * limitations under the License.
  * =============================================================================
  */
-/**
-* @license
-* Copyright 2018 Google LLC. All Rights Reserved.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-* =============================================================================
-*/
 /** @license See the LICENSE file. */
 //# sourceMappingURL=tfjs-core.esm.js.map

@@ -49,6 +49,6 @@ cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfj
 cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js src/tfjs-backend-wasm/wasm-out/
 chmod 644 src/tfjs-backend-wasm/wasm-out/*
 cd src/tfjs-backend-wasm/scripts
-node ./create-worker-module.js
-node ./patch-threaded-simd-module.js
+# node ./create-worker-module.js
+# node ./patch-threaded-simd-module.js
 cd ../../../
