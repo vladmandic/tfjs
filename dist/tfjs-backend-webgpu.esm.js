@@ -13605,7 +13605,7 @@ var BiasActivationProgram = class {
     ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
     ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
-        let outCoord = getCoordsFromIndex(index);
+        let coords = getCoordsFromIndex(index);
         var value = getXByOutputIndex(index);
         ${biasActivationSnippet(this.addBias, this.activation)}
         setOutputAtIndex(index, value);

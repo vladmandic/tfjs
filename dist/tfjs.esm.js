@@ -64243,7 +64243,7 @@ var BiasActivationProgram = class {
     ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
     ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
-        let outCoord = getCoordsFromIndex(index);
+        let coords = getCoordsFromIndex(index);
         var value = getXByOutputIndex(index);
         ${biasActivationSnippet(this.addBias, this.activation)}
         setOutputAtIndex(index, value);
@@ -74411,7 +74411,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.18.0-20220713";
+var externalVersion = "3.18.0-20220716";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
