@@ -4067,6 +4067,7 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
+ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -11611,6 +11612,7 @@ var ENV3 = env();
 ENV3.registerFlag("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE", () => 15);
 ENV3.registerFlag("WEBGPU_CPU_FORWARD", () => true);
 ENV3.registerFlag("WEBGPU_MATMUL_WORK_PER_THREAD", () => 4);
+ENV3.registerFlag("WEBGPU_MATMUL_PROGRAM_TYPE", () => -1);
 ENV3.registerFlag("WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE", () => false);
 ENV3.registerFlag("WEBGPU_USE_LOW_POWER_GPU", () => false);
 ENV3.registerFlag("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e3);
@@ -11684,8 +11686,31 @@ var INT_DIV_VEC4 = `
   }
   return vec4<f32>(resultTemp);
   `;
-var NOT_EQUAL = "return f32(a != b);";
-var NOT_EQUAL_VEC4 = "return vec4<f32>(a != b);";
+var NOT_EQUAL = `
+  if (isnan(a) || isnan(b)) {
+    return 1.0;
+  }
+  return f32(a != b);
+`;
+var NOT_EQUAL_VEC4 = `
+  var result = vec4<f32>(a != b);
+  var isANaN = isnanVec4(a);
+  var isBNaN = isnanVec4(b);
+  if (isANaN.r || isBNaN.r) {
+    result.r = 1.0;
+  }
+  if (isANaN.g || isBNaN.g) {
+    result.g = 1.0;
+  }
+  if (isANaN.b || isBNaN.b) {
+    result.b = 1.0;
+  }
+  if (isANaN.a || isBNaN.a) {
+    result.a = 1.0;
+  }
+
+  return result;
+`;
 var POW = `
   if(a < 0.0 && floor(b) < b) {
     return uniforms.NAN;
@@ -11955,308 +11980,6 @@ function biasActivationSnippet(hasBias, activation) {
       `;
 }
 
-// src/tfjs-backend-webgpu/src/webgpu_util.ts
-var webgpu_util_exports = {};
-__export(webgpu_util_exports, {
-  ArrayBufferToTypedArray: () => ArrayBufferToTypedArray,
-  GPUBytesPerElement: () => GPUBytesPerElement,
-  computeDispatch: () => computeDispatch,
-  computeWorkGroupSizeForConv2d: () => computeWorkGroupSizeForConv2d,
-  computeWorkGroupSizeForMatMul: () => computeWorkGroupSizeForMatMul,
-  computeWorkPerThreadForConv2d: () => computeWorkPerThreadForConv2d,
-  flatDispatchLayout: () => flatDispatchLayout,
-  isWebGPUSupported: () => isWebGPUSupported,
-  tilesFitEvenlyIntoShape: () => tilesFitEvenlyIntoShape
-});
-var arrayProduct = (arr) => {
-  let product = 1;
-  for (let i = 0; i < arr.length; i++) {
-    product *= arr[i];
-  }
-  return product;
-};
-function tilesFitEvenlyIntoShape(tileSize, shape) {
-  if (tileSize.length !== shape.length) {
-    throw new Error(`Cannot compute whether rank ${tileSize.length} tiles fit evenly into rank ${shape.length} shape - ranks must match.`);
-  }
-  return shape.every((dim, dimIdx) => dim % tileSize[dimIdx] === 0);
-}
-function computeDispatch(layout, outputShape, workGroupSize = [1, 1, 1], elementsPerThread = [1, 1, 1]) {
-  const [dispatchX, dispatchY, dispatchZ] = [
-    Math.ceil(arrayProduct(layout.x.map((d) => outputShape[d])) / (workGroupSize[0] * elementsPerThread[0])),
-    layout.y ? Math.ceil(arrayProduct(layout.y.map((d) => outputShape[d])) / (workGroupSize[1] * elementsPerThread[1])) : 1,
-    layout.z ? Math.ceil(arrayProduct(layout.z.map((d) => outputShape[d])) / (workGroupSize[2] * elementsPerThread[2])) : 1
-  ];
-  return [dispatchX, dispatchY, dispatchZ];
-}
-function computeWorkGroupSizeForConv2d(layout, outputShape, isVec4 = false) {
-  if (isVec4) {
-    return [8, 8, 1];
-  }
-  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
-  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
-  if (dim0 <= 4) {
-    return [4, 16, 1];
-  }
-  if (dim1 <= 4) {
-    return [16, 4, 1];
-  }
-  return [16, 16, 1];
-}
-function computeWorkGroupSizeForMatMul(dimAOuter, dimInner, dimBOuter) {
-  if (dimAOuter === 1) {
-    return [32, 1, 1];
-  } else if (dimBOuter === 1) {
-    return [1, 32, 1];
-  }
-  return [8, 8, 1];
-}
-function computeWorkPerThreadForConv2d(layout, outputShape, isVec4 = false) {
-  if (isVec4) {
-    return [4, 4, 1];
-  }
-  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
-  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
-  if (dim0 <= 4) {
-    return [1, 2, 1];
-  }
-  if (dim1 <= 4) {
-    return [2, 1, 1];
-  }
-  return [2, 2, 1];
-}
-function flatDispatchLayout(shape) {
-  return { x: shape.map((d, i) => i) };
-}
-function GPUBytesPerElement(dtype) {
-  if (dtype === "float32" || dtype === "int32" || dtype === "bool" || dtype === "string") {
-    return 4;
-  } else if (dtype === "complex64") {
-    return 8;
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-function ArrayBufferToTypedArray(data, dtype) {
-  if (dtype === "float32") {
-    return new Float32Array(data);
-  } else if (dtype === "int32") {
-    return new Int32Array(data);
-  } else if (dtype === "bool" || dtype === "string") {
-    return Uint8Array.from(new Int32Array(data));
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-function isWebGPUSupported() {
-  return (typeof window !== "undefined" || typeof WorkerGlobalScope !== "undefined") && !!navigator.gpu;
-}
-
-// src/tfjs-backend-webgpu/src/matmul_packed_vec4_webgpu.ts
-var writeDataToSubASnippet = (transpose4, innerAElementSize) => {
-  if (transpose4) {
-    return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
-          t * TileInner + inputRow,
-          globalRowStart / ${innerAElementSize} + inputCol, globalId);
-        `;
-  } else {
-    return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
-          globalRow + innerRow,
-          t * TileInner / ${innerAElementSize} + inputCol, globalId);
-        `;
-  }
-};
-var calculateResultSnippet = (transposeA, innerElementSize) => {
-  if (transposeA) {
-    return `
-        let ACached0 = mm_Asub[k * InnerElementSize][localRow];
-        let ACached1 = mm_Asub[k * InnerElementSize + 1][localRow];
-        let ACached2 = mm_Asub[k * InnerElementSize + 2][localRow];
-        ${innerElementSize === 3 ? "" : "let ACached3 = mm_Asub[k * InnerElementSize + 3][localRow];"}
-        for (var i = 0; i < RowPerThread; i = i + 1) {
-          acc[i] = BCached[0] * ACached0[i] + acc[i];
-          acc[i] = BCached[1] * ACached1[i] + acc[i];
-          acc[i] = BCached[2] * ACached2[i] + acc[i];
-          ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached3[i] + acc[i];"}
-        }`;
-  } else {
-    return `
-        for (var i = 0; i < RowPerThread; i = i + 1) {
-          let ACached = mm_Asub[tileRow + i][k];
-          acc[i] = BCached[0] * ACached.x + acc[i];
-          acc[i] = BCached[1] * ACached.y + acc[i];
-          acc[i] = BCached[2] * ACached.z + acc[i];
-          ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached.w + acc[i];"}
-        }`;
-  }
-};
-function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileInner, innerElementSize = 4, transposeA = false) {
-  const tileAWidth = transposeA ? tileAOuter : tileInner;
-  const tileAHight = transposeA ? tileInner : tileAOuter;
-  const innerAElementSize = transposeA ? workPerThread[1] : innerElementSize;
-  util_exports.assert((transposeA && tileAOuter === tileBOuter || (tileInner % 4 === 0 || tileInner % 3 === 0)) && workPerThread[0] === 4 && (innerElementSize === 3 || innerElementSize === 4), () => `tileInner ${tileInner} must be divisible by 4|3. ColPerThread ${workPerThread[0]} must be 4.
-           innerElementSize ${innerElementSize} must be 3|4.`);
-  return `
-  var<workgroup> mm_Asub : array<array<vec${innerAElementSize}<f32>, ${tileAWidth / innerAElementSize}>, ${tileAHight}>;
-  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${tileBOuter / workPerThread[0]}>, ${tileInner}>;
-
-  const RowPerThread = ${workPerThread[1]};
-  const ColPerThread = ${workPerThread[0]};
-  const InnerElementSize = ${innerElementSize};
-  const TileInner = ${tileInner};
-
-  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-          @builtin(workgroup_id) workgroupId: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-
-    let localRow = i32(localId.y);
-    let tileRow = ${tileAOuter === 1 ? "0" : "localRow * RowPerThread"};
-    let tileCol = i32(localId.x);
-
-    let globalRow = ${tileAOuter === 1 ? "0" : "i32(globalId.y) * RowPerThread"};
-    let globalCol = i32(globalId.x);
-    let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
-
-    let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
-
-    var acc: array<vec4<f32>, RowPerThread>;
-    var BCached : array<vec4<f32>, 4>;
-
-    // Loop over shared dimension.
-    let RowPerThreadB = TileInner / i32(workGroupSizeY);
-    let tileRowB = localRow * RowPerThreadB;
-    for (var t = 0; t < numTiles; t = t + 1) {
-        // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-            let inputRow = tileRow + innerRow;
-            let inputCol = tileCol;
-            ${writeDataToSubASnippet(transposeA, innerAElementSize)}
-        }
-
-        // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
-            let inputRow = tileRowB + innerRow;
-            let inputCol = tileCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, globalId);
-        }
-
-        workgroupBarrier();
-
-        // Compute acc values for a single thread.
-        for (var k = 0; k < TileInner / InnerElementSize; k = k + 1) {
-            BCached[0] = mm_Bsub[k * InnerElementSize][tileCol];
-            BCached[1] = mm_Bsub[k * InnerElementSize + 1][tileCol];
-            BCached[2] = mm_Bsub[k * InnerElementSize + 2][tileCol];
-            ${innerElementSize === 3 ? "" : "BCached[3] = mm_Bsub[k * InnerElementSize + 3][tileCol];"}
-
-            ${calculateResultSnippet(transposeA, innerElementSize)}
-        }
-
-        workgroupBarrier();
-    }
-
-    for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-        mm_write(globalRow + innerRow,
-                 globalCol,
-                 acc[innerRow], globalId);
-    }
-  }`;
-}
-var MatMulPackedVec4Program = class {
-  constructor(aShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA = false, bias = null, activation = null, preluActivationWeights = null) {
-    this.variableNames = ["A", "B"];
-    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-    this.workGroupSize = [8, 8, 1];
-    this.isVec4 = true;
-    this.outputShape = outputShape;
-    this.dispatchLayout = { x: [2], y: [1], z: [0] };
-    if (outputShape[1] === 1 && !transposeA) {
-      this.elementsPerThread = [4, 1, 1];
-    } else {
-      this.elementsPerThread = [4, 4, 1];
-    }
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
-    const addBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    if (addBias) {
-      this.variableNames.push("bias");
-    }
-    if (hasPreluActivationWeights) {
-      this.variableNames.push("preluActivationWeights");
-    }
-    this.tileAOuter = outputShape[1] === 1 && !transposeA ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
-    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = this.tileBOuter;
-    this.aShape = aShape;
-    this.addBias = addBias;
-    this.activation = activation;
-    this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
-    this.transposeA = transposeA;
-    const dimInner = transposeA ? aShape[1] : aShape[2];
-    this.fitAOuter = outputShape[1] % this.tileAOuter === 0;
-    this.fitBOuter = outputShape[2] % this.tileBOuter === 0;
-    this.fitInner = dimInner % this.tileInner === 0;
-    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.elementsPerThread}_${this.batchAEqualOne}_${this.batchBEqualOne}_${this.transposeA}`;
-  }
-  getUserCode() {
-    const sampleA = this.fitAOuter && this.fitInner ? `return A[batch * batchASize + row * uniforms.aShape[2] / 4 + col]` : `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.aShape[1], uniforms.aShape[2]))) {
-            return A[batch * batchASize + row * uniforms.aShape[2] / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
-    const sampleB = this.fitInner && this.fitBOuter ? `return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` : `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
-    const userCode = `
-      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights, true)}
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        ${this.batchAEqualOne ? `
-          let batchASize = 0;
-          let batch = 0;
-        ` : `
-          let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
-          let batch = i32(globalId.z);
-        `}
-
-        ${sampleA};
-      }
-
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        ${this.batchBEqualOne ? `
-          let batchBSize = 0;
-          let batch = 0;
-          ` : `
-          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
-          let batch = i32(globalId.z);
-       `}
-        ${sampleB};
-      }
-
-      fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<u32>) {
-        if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
-        {
-          var value = valueIn;
-          let batch = i32(globalId.z);
-          let coords = vec3<i32>(batch, row, col * 4);
-          ${biasActivationSnippet(this.addBias, this.activation)}
-          setOutputAtCoords(coords[0], coords[1], coords[2], value);
-        }
-      }
-      ${makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner, 4, this.transposeA)}
-    `;
-    return userCode;
-  }
-};
-
 // src/tfjs-backend-webgpu/src/shader_util.ts
 function symbolicallyComputeStrides(indicesArr, variableName) {
   if (Math.max(...indicesArr) > 3) {
@@ -12516,8 +12239,8 @@ var commonSnippet = `
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
-    let mod: i32 = a % b;
-    if (sign < 0. && mod != 0) {
+    let modulo: i32 = a % b;
+    if (sign < 0. && modulo != 0) {
       res = res - 1;
     }
     return res;
@@ -12894,19 +12617,178 @@ function setOutputSnippet(outShape, outBufferType, isVec4) {
   return snippet;
 }
 
+// src/tfjs-backend-webgpu/src/webgpu_util.ts
+var webgpu_util_exports = {};
+__export(webgpu_util_exports, {
+  ArrayBufferToTypedArray: () => ArrayBufferToTypedArray,
+  GPUBytesPerElement: () => GPUBytesPerElement,
+  MatMulProgramType: () => MatMulProgramType,
+  computeDispatch: () => computeDispatch,
+  computeWorkGroupSizeForConv2d: () => computeWorkGroupSizeForConv2d,
+  computeWorkGroupSizeForMatMul: () => computeWorkGroupSizeForMatMul,
+  computeWorkPerThreadForConv2d: () => computeWorkPerThreadForConv2d,
+  flatDispatchLayout: () => flatDispatchLayout,
+  isWebGPUSupported: () => isWebGPUSupported,
+  tilesFitEvenlyIntoShape: () => tilesFitEvenlyIntoShape
+});
+var arrayProduct = (arr) => {
+  let product = 1;
+  for (let i = 0; i < arr.length; i++) {
+    product *= arr[i];
+  }
+  return product;
+};
+function tilesFitEvenlyIntoShape(tileSize, shape) {
+  if (tileSize.length !== shape.length) {
+    throw new Error(`Cannot compute whether rank ${tileSize.length} tiles fit evenly into rank ${shape.length} shape - ranks must match.`);
+  }
+  return shape.every((dim, dimIdx) => dim % tileSize[dimIdx] === 0);
+}
+function computeDispatch(layout, outputShape, workGroupSize = [1, 1, 1], elementsPerThread = [1, 1, 1]) {
+  const [dispatchX, dispatchY, dispatchZ] = [
+    Math.ceil(arrayProduct(layout.x.map((d) => outputShape[d])) / (workGroupSize[0] * elementsPerThread[0])),
+    layout.y ? Math.ceil(arrayProduct(layout.y.map((d) => outputShape[d])) / (workGroupSize[1] * elementsPerThread[1])) : 1,
+    layout.z ? Math.ceil(arrayProduct(layout.z.map((d) => outputShape[d])) / (workGroupSize[2] * elementsPerThread[2])) : 1
+  ];
+  return [dispatchX, dispatchY, dispatchZ];
+}
+function computeWorkGroupSizeForConv2d(layout, outputShape, isVec4 = false) {
+  if (isVec4) {
+    return [8, 8, 1];
+  }
+  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
+  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
+  if (dim0 <= 4) {
+    return [4, 16, 1];
+  }
+  if (dim1 <= 4) {
+    return [16, 4, 1];
+  }
+  return [16, 16, 1];
+}
+function computeWorkGroupSizeForMatMul(dimAOuter, dimInner, dimBOuter) {
+  if (dimAOuter === 1) {
+    return [32, 1, 1];
+  } else if (dimBOuter === 1) {
+    return [1, 32, 1];
+  }
+  return [8, 8, 1];
+}
+function computeWorkPerThreadForConv2d(layout, outputShape, isVec4 = false) {
+  if (isVec4) {
+    return [4, 4, 1];
+  }
+  const dim0 = arrayProduct(layout.x.map((d) => outputShape[d]));
+  const dim1 = arrayProduct(layout.y.map((d) => outputShape[d]));
+  if (dim0 <= 4) {
+    return [1, 2, 1];
+  }
+  if (dim1 <= 4) {
+    return [2, 1, 1];
+  }
+  return [2, 2, 1];
+}
+function flatDispatchLayout(shape) {
+  return { x: shape.map((d, i) => i) };
+}
+function GPUBytesPerElement(dtype) {
+  if (dtype === "float32" || dtype === "int32" || dtype === "bool" || dtype === "string") {
+    return 4;
+  } else if (dtype === "complex64") {
+    return 8;
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
+function ArrayBufferToTypedArray(data, dtype) {
+  if (dtype === "float32") {
+    return new Float32Array(data);
+  } else if (dtype === "int32") {
+    return new Int32Array(data);
+  } else if (dtype === "bool" || dtype === "string") {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
+function isWebGPUSupported() {
+  return (typeof window !== "undefined" || typeof WorkerGlobalScope !== "undefined") && !!navigator.gpu;
+}
+var MatMulProgramType = /* @__PURE__ */ ((MatMulProgramType2) => {
+  MatMulProgramType2[MatMulProgramType2["MatMulPackedVec4Program"] = 0] = "MatMulPackedVec4Program";
+  MatMulProgramType2[MatMulProgramType2["MatMulReduceProgram"] = 1] = "MatMulReduceProgram";
+  MatMulProgramType2[MatMulProgramType2["MatMulSplitKProgram"] = 2] = "MatMulSplitKProgram";
+  MatMulProgramType2[MatMulProgramType2["MatMulSmallOutputSizeProgram"] = 3] = "MatMulSmallOutputSizeProgram";
+  MatMulProgramType2[MatMulProgramType2["MatMulPackedProgram"] = 4] = "MatMulPackedProgram";
+  MatMulProgramType2[MatMulProgramType2["MatMulMax"] = 5] = "MatMulMax";
+  return MatMulProgramType2;
+})(MatMulProgramType || {});
+
 // src/tfjs-backend-webgpu/src/matmul_packed_webgpu.ts
-var writeDataToSubASnippet2 = (transpose4) => {
+function matMulReadFnSource(batchAEqualOne, batchBEqualOne, transposeA, transposeB, fitAOuter = false, fitBOuter = false, fitInner = false, component = 1) {
+  util_exports.assert(transposeA && component === 1 || !transposeA, () => `transposeA ${transposeA} is not compatible with component size ${component}`);
+  const sampleA = `
+      let batch = ${batchAEqualOne ? "0" : "batchIn"};
+      let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+      ${transposeA ? `value = A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${component}];` : `value = A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${component}];`}
+
+    `;
+  let sampleB;
+  if (transposeB === false) {
+    sampleB = `value = B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${component}];`;
+  } else {
+    sampleB = `value = B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${component}];`;
+  }
+  return `
+  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+    var value = ${typeSnippet(component)}(0.0);
+    let col = colIn * ${component};
+    ${fitAOuter && fitInner ? sampleA : `
+    ${transposeA ? `if(row < uniforms.dimAOuter && col < uniforms.dimInner)` : `if(row < uniforms.aShape[1] && col < uniforms.aShape[2])`}
+    {
+      ${sampleA}
+    }
+    `}
+    return value;
+  }
+
+  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+    let col = colIn * ${component};
+    let batch = ${batchBEqualOne ? "0" : "batchIn"};
+    let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+    var value = ${typeSnippet(component)}(0.0);
+    ${sampleB}
+    return value;
+  }
+  `;
+}
+function matMulReadWriteFnSource(hasBias, activation, batchAEqualOne, batchBEqualOne, transposeA, transposeB, fitAOuter = false, fitBOuter = false, fitInner = false, component = 1) {
+  return `
+  ${matMulReadFnSource(batchAEqualOne, batchBEqualOne, transposeA, transposeB, fitAOuter, fitBOuter, fitInner, component)}
+  fn mm_write(batch: i32, row: i32, colIn: i32, valueIn: ${typeSnippet(component)}) {
+    let col = colIn * ${component};
+    ${fitAOuter && fitBOuter ? "" : "if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)"}
+    {
+      var value = valueIn;
+      let coords = vec3<i32>(batch, row, col);
+      ${biasActivationSnippet(hasBias, activation)}
+      setOutputAtCoords(coords[0], coords[1], coords[2], value);
+    }
+  }
+  `;
+}
+var writeDataToSubASnippet = (transpose4) => {
   if (transpose4) {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
           t * TileInner + inputRow,
-          globalRowStart + inputCol, globalId);
+          globalRowStart + inputCol);
         `;
   } else {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
           globalRowStart + inputRow,
-          t * TileInner + inputCol, globalId);
+          t * TileInner + inputCol);
         `;
   }
 };
@@ -12943,7 +12825,7 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
 
       let globalRow = i32(globalId.y) * RowPerThread;
       let globalCol = i32(globalId.x) * ColPerThread;
-
+      let batch = i32(globalId.z);
       let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
       let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
@@ -12967,7 +12849,7 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
           for (var innerCol = 0; innerCol < ${colPerThreadA}; innerCol = innerCol + 1) {
             let inputRow = tileRowA + innerRow;
             let inputCol = tileColA + innerCol;
-            ${writeDataToSubASnippet2(transposeA)}
+            ${writeDataToSubASnippet(transposeA)}
           }
         }
 
@@ -12976,9 +12858,9 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
           for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol + innerCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(
-              t * ${tileInner} + inputRow,
-              globalCol + innerCol, globalId);
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+              t * TileInner + inputRow,
+              globalCol + innerCol);
           }
         }
 
@@ -13004,9 +12886,8 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
 
       for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-          mm_write(globalRow + innerRow,
-                   globalCol + innerCol,
-                   acc[innerRow][innerCol], globalId);
+          mm_write(batch, globalRow + innerRow, globalCol + innerCol,
+              acc[innerRow][innerCol]);
         }
       }
     }
@@ -13014,18 +12895,18 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
 }
 var readVectorASnippet = (transpose4) => {
   return transpose4 ? `
-      mm_readA(colA, globalRow, globalId),
-      mm_readA(colA + 1, globalRow, globalId),
-      mm_readA(colA + 2, globalRow, globalId),
-      mm_readA(colA + 3, globalRow, globalId)
+      mm_readA(batch, colA, globalRow),
+      mm_readA(batch, colA + 1, globalRow),
+      mm_readA(batch, colA + 2, globalRow),
+      mm_readA(batch, colA + 3, globalRow)
   ` : `
-      mm_readA(globalRow, colA, globalId),
-      mm_readA(globalRow, colA + 1, globalId),
-      mm_readA(globalRow, colA + 2, globalId),
-      mm_readA(globalRow, colA + 3, globalId)
+      mm_readA(batch, globalRow, colA),
+      mm_readA(batch, globalRow, colA + 1),
+      mm_readA(batch, globalRow, colA + 2),
+      mm_readA(batch, globalRow, colA + 3)
   `;
 };
-function makeMatMulVectorSource(workGroupSize, transposeA = false) {
+function makeVectorMatrixProductSource(workGroupSize, transposeA = false) {
   util_exports.assert(workGroupSize[1] === 1 && workGroupSize[2] === 1, () => `A linear work group size is required. But got ${workGroupSize}.`);
   return `
     const TileSize = ${workGroupSize[0] * 4};
@@ -13037,7 +12918,7 @@ function makeMatMulVectorSource(workGroupSize, transposeA = false) {
       let globalRow = i32(globalId.y);
 
       let numTiles = (uniforms.dimInner - 1) / TileSize + 1;
-
+      let batch = i32(globalId.z);
       // Without this initialization strange values show up in acc.
       var acc = 0.0;
 
@@ -13051,10 +12932,10 @@ function makeMatMulVectorSource(workGroupSize, transposeA = false) {
         // Compute acc values for a single thread.
         for (var k = 0; k < TileSize / 4; k = k + 1) {
           let rowB = t * TileSize + k * 4;
-          let BCached = vec4<f32>(mm_readB(rowB, globalCol, globalId),
-                              mm_readB(rowB + 1, globalCol, globalId),
-                              mm_readB(rowB + 2, globalCol, globalId),
-                              mm_readB(rowB + 3, globalCol, globalId));
+          let BCached = vec4<f32>(mm_readB(batch, rowB, globalCol),
+                              mm_readB(batch, rowB + 1, globalCol),
+                              mm_readB(batch, rowB + 2, globalCol),
+                              mm_readB(batch, rowB + 3, globalCol));
 
           let ACached = mm_Asub[k];
           acc = acc + dot(ACached, BCached);
@@ -13063,7 +12944,7 @@ function makeMatMulVectorSource(workGroupSize, transposeA = false) {
         workgroupBarrier();
       }
 
-      mm_write(globalRow, globalCol, acc, globalId);
+      mm_write(batch, globalRow, globalCol, acc);
     }
   `;
 }
@@ -13116,54 +12997,174 @@ var MatMulPackedProgram = class {
     return [fitAOuter, fitBOuter, fitInner];
   }
   getUserCode() {
-    const sampleA = this.fitAOuter && this.fitInner ? `return A[batch * batchASize + row * uniforms.aShape[2] + col];` : `
-        if(row < uniforms.aShape[1] && col < uniforms.aShape[2]) {
-          return A[batch * batchASize + row * uniforms.aShape[2] + col];
-        }
-        return 0.0;
-         `;
-    let sampleB;
-    if (this.transposeB === false) {
-      sampleB = `return B[batch * batchBSize + row * uniforms.dimBOuter + col];`;
-    } else {
-      sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
-    }
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
+      ${matMulReadWriteFnSource(this.addBias, this.activation, this.batchAEqualOne, this.batchBEqualOne, false, this.transposeB, this.fitAOuter, this.fitBOuter, this.fitInner)}
+      ${this.outputShape[1] > 1 ? makeMatMulPackedSource([this.workPerThread, this.workPerThread, 1], this.workGroupSize, this.transposeA, this.tileInner) : makeVectorMatrixProductSource(this.workGroupSize, this.transposeA)}
+    `;
+    return userCode;
+  }
+};
 
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${this.batchAEqualOne ? `
-        let batch = 0;
-        let batchASize = 0;
-        ` : `
-        let batch = i32(globalId.z);
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-        `}
-        ${sampleA}
-      }
+// src/tfjs-backend-webgpu/src/matmul_packed_vec4_webgpu.ts
+var writeDataToSubASnippet2 = (transpose4, innerAElementSize) => {
+  if (transpose4) {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+          t * TileInner + inputRow,
+          globalRowStart / ${innerAElementSize} + inputCol);
+        `;
+  } else {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+          globalRow + innerRow,
+          t * TileInner / ${innerAElementSize} + inputCol);
+        `;
+  }
+};
+var calculateResultSnippet = (transposeA, innerElementSize) => {
+  if (transposeA) {
+    return `
+        let ACached0 = mm_Asub[k * InnerElementSize][localRow];
+        let ACached1 = mm_Asub[k * InnerElementSize + 1][localRow];
+        let ACached2 = mm_Asub[k * InnerElementSize + 2][localRow];
+        ${innerElementSize === 3 ? "" : "let ACached3 = mm_Asub[k * InnerElementSize + 3][localRow];"}
+        for (var i = 0; i < RowPerThread; i = i + 1) {
+          acc[i] = BCached[0] * ACached0[i] + acc[i];
+          acc[i] = BCached[1] * ACached1[i] + acc[i];
+          acc[i] = BCached[2] * ACached2[i] + acc[i];
+          ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached3[i] + acc[i];"}
+        }`;
+  } else {
+    return `
+        for (var i = 0; i < RowPerThread; i = i + 1) {
+          let ACached = mm_Asub[tileRow + i][k];
+          acc[i] = BCached[0] * ACached.x + acc[i];
+          acc[i] = BCached[1] * ACached.y + acc[i];
+          acc[i] = BCached[2] * ACached.z + acc[i];
+          ${innerElementSize === 3 ? "" : "acc[i] = BCached[3] * ACached.w + acc[i];"}
+        }`;
+  }
+};
+function makeMatMulPackedVec4Source(workPerThread, tileAOuter, tileBOuter, tileInner, innerElementSize = 4, transposeA = false) {
+  const tileAWidth = transposeA ? tileAOuter : tileInner;
+  const tileAHight = transposeA ? tileInner : tileAOuter;
+  const innerAElementSize = transposeA ? workPerThread[1] : innerElementSize;
+  util_exports.assert((transposeA && tileAOuter === tileBOuter || (tileInner % 4 === 0 || tileInner % 3 === 0)) && workPerThread[0] === 4 && (innerElementSize === 3 || innerElementSize === 4), () => `tileInner ${tileInner} must be divisible by 4|3. ColPerThread ${workPerThread[0]} must be 4.
+           innerElementSize ${innerElementSize} must be 3|4.`);
+  return `
+  var<workgroup> mm_Asub : array<array<vec${innerAElementSize}<f32>, ${tileAWidth / innerAElementSize}>, ${tileAHight}>;
+  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${this.batchBEqualOne ? `
-        let batch = 0;
-        let batchBSize = 0;
-        ` : `
-        let batch = i32(globalId.z);
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-        `}
-        ${sampleB}
-      }
+  const RowPerThread = ${workPerThread[1]};
+  const ColPerThread = ${workPerThread[0]};
+  const InnerElementSize = ${innerElementSize};
+  const TileInner = ${tileInner};
 
-      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
-        ${this.fitAOuter && this.fitBOuter ? "" : "if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)"}
-        {
-        var value = valueIn;
-        let batch = i32(globalId.z);
-        let coords = vec3<i32>(batch, row, col);
-        ${biasActivationSnippet(this.addBias, this.activation)}
-        setOutputAtCoords(batch, row, col, value);
+  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+          @builtin(global_invocation_id) GlobalId : vec3<u32>,
+          @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+          @builtin(workgroup_id) workgroupId: vec3<u32>) {
+    localId = LocalId;
+    globalId = GlobalId;
+    numWorkgroups = NumWorkgroups;
+
+    let localRow = i32(localId.y);
+    let tileRow = ${tileAOuter === 1 ? "0" : "localRow * RowPerThread"};
+    let tileCol = i32(localId.x);
+
+    let globalRow = ${tileAOuter === 1 ? "0" : "i32(globalId.y) * RowPerThread"};
+    let globalCol = i32(globalId.x);
+    let batch = i32(globalId.z);
+    let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+
+    let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
+
+    var acc: array<vec4<f32>, RowPerThread>;
+    var BCached : array<vec4<f32>, 4>;
+
+    // Loop over shared dimension.
+    let RowPerThreadB = TileInner / i32(workGroupSizeY);
+    let tileRowB = localRow * RowPerThreadB;
+    for (var t = 0; t < numTiles; t = t + 1) {
+        // Load one tile of A into local memory.
+        for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+            let inputRow = tileRow + innerRow;
+            let inputCol = tileCol;
+            ${writeDataToSubASnippet2(transposeA, innerAElementSize)}
         }
-      }
-      ${this.outputShape[1] > 1 ? makeMatMulPackedSource([this.workPerThread, this.workPerThread, 1], this.workGroupSize, this.transposeA, this.tileInner) : makeMatMulVectorSource(this.workGroupSize, this.transposeA)}
+
+        // Load one tile of B into local memory.
+        for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
+            let inputRow = tileRowB + innerRow;
+            let inputCol = tileCol;
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch, t * TileInner + inputRow, globalCol);
+        }
+
+        workgroupBarrier();
+
+        // Compute acc values for a single thread.
+        for (var k = 0; k < TileInner / InnerElementSize; k = k + 1) {
+            BCached[0] = mm_Bsub[k * InnerElementSize][tileCol];
+            BCached[1] = mm_Bsub[k * InnerElementSize + 1][tileCol];
+            BCached[2] = mm_Bsub[k * InnerElementSize + 2][tileCol];
+            ${innerElementSize === 3 ? "" : "BCached[3] = mm_Bsub[k * InnerElementSize + 3][tileCol];"}
+
+            ${calculateResultSnippet(transposeA, innerElementSize)}
+        }
+
+        workgroupBarrier();
+    }
+
+    for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        mm_write(batch, globalRow + innerRow, globalCol, acc[innerRow]);
+    }
+  }`;
+}
+var MatMulPackedVec4Program = class {
+  constructor(aShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA = false, bias = null, activation = null, preluActivationWeights = null) {
+    this.variableNames = ["A", "B"];
+    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
+    this.workGroupSize = [8, 8, 1];
+    this.isVec4 = true;
+    this.outputShape = outputShape;
+    this.dispatchLayout = { x: [2], y: [1], z: [0] };
+    if (outputShape[1] === 1 && !transposeA) {
+      this.elementsPerThread = [4, 1, 1];
+    } else {
+      this.elementsPerThread = [4, 4, 1];
+    }
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workGroupSize, this.elementsPerThread);
+    const addBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    if (addBias) {
+      this.variableNames.push("bias");
+    }
+    if (hasPreluActivationWeights) {
+      this.variableNames.push("preluActivationWeights");
+    }
+    this.tileAOuter = outputShape[1] === 1 && !transposeA ? 1 : this.workGroupSize[1] * this.elementsPerThread[1];
+    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileInner = this.tileBOuter;
+    this.aShape = aShape;
+    this.addBias = addBias;
+    this.activation = activation;
+    this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
+    this.transposeA = transposeA;
+    const dimInner = transposeA ? aShape[1] : aShape[2];
+    this.fitAOuter = outputShape[1] % this.tileAOuter === 0;
+    this.fitBOuter = outputShape[2] % this.tileBOuter === 0;
+    this.fitInner = dimInner % this.tileInner === 0;
+    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.elementsPerThread}_${this.batchAEqualOne}_${this.batchBEqualOne}_${this.transposeA}`;
+  }
+  getUserCode() {
+    const userCode = `
+      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights, true)}
+      ${matMulReadWriteFnSource(this.addBias, this.activation, this.batchAEqualOne, this.batchBEqualOne, false, false, this.fitAOuter, this.fitBOuter, this.fitInner, 4)}
+      ${makeMatMulPackedVec4Source(this.elementsPerThread, this.tileAOuter, this.tileBOuter, this.tileInner, 4, this.transposeA)}
     `;
     return userCode;
   }
@@ -13230,49 +13231,9 @@ var MatMulReduceProgram = class {
     this.shaderKey = `matMulReduce_${this.activation}_${transposeA}_${transposeB}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
   getUserCode() {
-    let sampleA;
-    if (this.transposeA === false) {
-      sampleA = `return f32(A[batch * batchASize + row * uniforms.dimInner + col]);`;
-    } else {
-      sampleA = `return f32(A[batch * batchASize + col * uniforms.dimAOuter + row]);`;
-    }
-    let sampleB;
-    if (this.transposeB === false) {
-      sampleB = `return f32(B[batch * batchBSize + row * uniforms.dimBOuter + col]);`;
-    } else {
-      sampleB = `return f32(B[batch * batchBSize + col * uniforms.dimInner + row]);`;
-    }
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
-
-      fn mm_readA(batchIn: i32, row : i32, col : i32) -> f32 {
-        ${this.batchAEqualOne ? `
-          let batchASize = 0;
-          let batch = 0;
-          ` : `
-          let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-          let batch = batchIn;
-          `}
-        ${sampleA}
-      }
-
-      fn mm_readB(batchIn: i32, row : i32, col : i32) -> f32 {
-        ${this.batchBEqualOne ? `
-          let batch = 0;
-          let batchBSize = 0;
-          ` : `
-          let batch = batchIn;
-          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-          `}
-        ${sampleB}
-      }
-
-      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
-        var value = valueIn;
-        let coords = vec3<i32>(batch, row, col);
-        ${biasActivationSnippet(this.addBias, this.activation)}
-        setOutputAtCoords(batch, row, col, value);
-      }
+      ${matMulReadWriteFnSource(this.addBias, this.activation, this.batchAEqualOne, this.batchBEqualOne, this.transposeA, this.transposeB)}
       ${makeMatMulReduceSource()}
     `;
     return userCode;
@@ -13299,6 +13260,7 @@ function makeMatMulSmallOutputSizeSource(workGroupSize) {
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);
     let globalCol = i32(globalId.x);
+    let batch = i32(globalId.z);
 
     // uniforms.dimInner should be greater than 0.
     let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
@@ -13306,9 +13268,9 @@ function makeMatMulSmallOutputSizeSource(workGroupSize) {
 
     var globalColA = tileCol;
     var globalRowB = 0;
-    var regA = mm_readA(globalRow, globalColA, globalId);
-    var regB0 = mm_readB(globalRowB + 2 * tileRow, globalCol, globalId);
-    var regB1 = mm_readB(globalRowB + 2 * tileRow + 1, globalCol, globalId);
+    var regA = mm_readA(batch, globalRow, globalColA);
+    var regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
+    var regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
     globalColA = globalColA + ${tileInner};
     globalRowB = globalRowB + ${tileInner};
 
@@ -13319,9 +13281,9 @@ function makeMatMulSmallOutputSizeSource(workGroupSize) {
 
       workgroupBarrier();
 
-      regA = mm_readA(globalRow, globalColA, globalId);
-      regB0 = mm_readB(globalRowB + 2 * tileRow, globalCol, globalId);
-      regB1 = mm_readB(globalRowB + 2 * tileRow + 1, globalCol, globalId);
+      regA = mm_readA(batch, globalRow, globalColA);
+      regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
+      regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
       globalColA = globalColA + ${tileInner};
       globalRowB = globalRowB + ${tileInner};
 
@@ -13331,16 +13293,15 @@ function makeMatMulSmallOutputSizeSource(workGroupSize) {
       workgroupBarrier();
     }
 
-    mm_write(globalRow, globalCol, acc, globalId);
+    mm_write(batch, globalRow, globalCol, acc);
   }
   `;
 }
 var MatMulSmallOutputSizeProgram = class {
-  constructor(aShape, bShape, outputShape, bias = null, activation = null, preluActivationWeights = null) {
+  constructor(aShape, bShape, outputShape, transposeA = false, transposeB = false, bias = null, activation = null, preluActivationWeights = null) {
     this.variableNames = ["A", "B"];
     this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.workGroupSize = [16, 8, 1];
-    util_exports.assert(aShape[1] <= 16 || bShape[2] <= 16, () => "This program can be only used when A width or B Height are small");
     this.outputShape = outputShape;
     this.dispatchLayout = { x: [2], y: [1], z: [0] };
     this.dispatch = [
@@ -13356,60 +13317,19 @@ var MatMulSmallOutputSizeProgram = class {
     if (hasPreluActivationWeights) {
       this.variableNames.push("preluActivationWeights");
     }
+    this.transposeA = transposeA;
+    this.transposeB = transposeB;
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.batchAEqualOne = aShape[0] === 1;
     this.batchBEqualOne = bShape[0] === 1;
-    this.shaderKey = `matMulSmallOutputSize_${this.activation}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
+    this.shaderKey = `matMulSmallOutputSize_${this.activation}_${transposeA}_${transposeB}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
   getUserCode() {
-    const sampleA = `var result: f32;
-        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-          result =  A[batch * batchASize + row * uniforms.dimInner + col];
-        } else {
-          result = 0.0;
-        }
-        return result;`;
-    const sampleB = `var result: f32;
-        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           result = B[batch * batchBSize + row * uniforms.dimBOuter + col];
-         } else {
-           result = 0.0;
-         }
-         return result;`;
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
-
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${this.batchAEqualOne ? `
-          let batch = 0;
-          let batchASize = 0;
-          ` : `
-          let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-          let batch = i32(globalId.z);
-          `}
-        ${sampleA}
-      }
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${this.batchBEqualOne ? `
-          let batch = 0;
-          let batchBSize = 0;
-          ` : `
-          let batch = i32(globalId.z);
-          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-          `}
-        ${sampleB}
-      }
-      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
-        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimBOuter))) {
-          let batch = i32(globalId.z);
-          let coords = vec3<i32>(batch, row, col);
-          var value = valueIn;
-          ${biasActivationSnippet(this.addBias, this.activation)}
-          setOutputAtCoords(batch, row, col, value);
-        }
-      }
+      ${matMulReadWriteFnSource(this.addBias, this.activation, this.batchAEqualOne, this.batchBEqualOne, this.transposeA, this.transposeB)}
       ${makeMatMulSmallOutputSizeSource(this.workGroupSize)}
     `;
     return userCode;
@@ -13447,30 +13367,6 @@ var MatMulSplitKProgram = class {
     this.shaderKey = `matMulSplitK_${transposeA}_${transposeB}_${batchAEqualOne}_${batchBEqualOne}_${this.elementsPerThread}`;
   }
   getUserCode() {
-    let sampleA;
-    if (this.transposeA === false) {
-      sampleA = `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            value = A[batch * batchASize + row * uniforms.dimInner + col];
-          }
-          return value;`;
-    } else {
-      sampleA = `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            value = A[batch* batchASize + col * uniforms.dimAOuter + row];
-          }
-          return value;`;
-    }
-    let sampleB;
-    if (this.transposeB === false) {
-      sampleB = `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            value = B[batch * batchBSize + row * uniforms.dimBOuter + col];
-          }
-          return value;`;
-    } else {
-      sampleB = `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            value = B[batch * batchBSize + col * uniforms.dimInner + row];
-          }
-          return value;`;
-    }
     const atomicAddSnippet = `
      var oldValue = atomicLoad(&(result[flatIndex]));
      var exchanged = false;
@@ -13483,18 +13379,7 @@ var MatMulSplitKProgram = class {
      }
      `;
     const userCode = `
-      fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-        var value = 0.0;
-        ${sampleA}
-      }
-
-      fn mm_readB(batch: i32, row : i32, col : i32) -> f32 {
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-        var value = 0.0;
-        ${sampleB}
-      }
-
+      ${matMulReadFnSource(this.batchAEqualOne, this.batchBEqualOne, this.transposeA, this.transposeB)}
       fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
           let coords = vec3<i32>(batch, row, col);
@@ -13723,41 +13608,64 @@ function batchMatMulImpl({
   let program;
   let out;
   const outputShape = [batchDim, outerShapeA, outerShapeB];
-  if (outerShapeA * outerShapeB <= 128) {
-    program = new MatMulReduceProgram(outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation, preluActivationWeights);
-  } else if (batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 48 && innerShapeB >= 2e3) {
-    out = fill2({ backend, attrs: { shape: outputShape, value: 0, dtype: a.dtype } });
-    program = new MatMulSplitKProgram(outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA, transposeB);
-    if (bias || activation) {
-      out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
-      const biasActivationProgram = new BiasActivationProgram(out.shape, bias, activation, preluActivationWeights);
-      let uniformData = null;
-      const activationInputs = [out];
-      if (bias) {
-        activationInputs.push(bias);
-      }
-      if (preluActivationWeights) {
-        activationInputs.push(preluActivationWeights);
-      }
-      if (activation === "leakyrelu") {
-        uniformData = [{ type: "float32", data: [leakyreluAlpha] }];
-        biasActivationProgram.uniforms += " alpha : f32,";
-      }
-      const outActivated = backend.runWebGPUProgram(biasActivationProgram, activationInputs, out.dtype, uniformData);
-      intermediates.push(out);
-      const outReshaped2 = reshape2({ inputs: { x: outActivated }, backend, attrs: { shape: outShape } });
-      intermediates.push(outActivated);
-      for (const i of intermediates) {
-        backend.disposeData(i.dataId);
-      }
-      return outReshaped2;
+  let matmulProgramType = env().get("WEBGPU_MATMUL_PROGRAM_TYPE");
+  if (matmulProgramType < 0) {
+    if (outerShapeA * outerShapeB <= 128) {
+      matmulProgramType = 1 /* MatMulReduceProgram */;
+    } else if (batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 48 && innerShapeB >= 2e3) {
+      matmulProgramType = 2 /* MatMulSplitKProgram */;
+    } else if (outerShapeA <= 16 && (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB) || outerShapeB <= 16 && (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA)) {
+      matmulProgramType = 3 /* MatMulSmallOutputSizeProgram */;
+    } else if (useVec4) {
+      matmulProgramType = 0 /* MatMulPackedVec4Program */;
+    } else {
+      matmulProgramType = 4 /* MatMulPackedProgram */;
     }
-  } else if (!transposeA && !transposeB && (outerShapeA <= 16 && (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB) || outerShapeB <= 16 && (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
-    program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape, outputShape, bias, activation, preluActivationWeights);
-  } else if (useVec4) {
-    program = new MatMulPackedVec4Program(a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA, bias, activation, preluActivationWeights);
-  } else {
-    program = new MatMulPackedProgram(a3dShape, outputShape, env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation, preluActivationWeights);
+  }
+  switch (matmulProgramType) {
+    case 0 /* MatMulPackedVec4Program */:
+      program = new MatMulPackedVec4Program(a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA, bias, activation, preluActivationWeights);
+      break;
+    case 1 /* MatMulReduceProgram */:
+      program = new MatMulReduceProgram(outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation, preluActivationWeights);
+      break;
+    case 2 /* MatMulSplitKProgram */: {
+      out = fill2({ backend, attrs: { shape: outputShape, value: 0, dtype: a.dtype } });
+      program = new MatMulSplitKProgram(outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA, transposeB);
+      if (bias || activation) {
+        out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
+        const biasActivationProgram = new BiasActivationProgram(out.shape, bias, activation, preluActivationWeights);
+        let uniformData = null;
+        const activationInputs = [out];
+        if (bias) {
+          activationInputs.push(bias);
+        }
+        if (preluActivationWeights) {
+          activationInputs.push(preluActivationWeights);
+        }
+        if (activation === "leakyrelu") {
+          uniformData = [{ type: "float32", data: [leakyreluAlpha] }];
+          biasActivationProgram.uniforms += " alpha : f32,";
+        }
+        const outActivated = backend.runWebGPUProgram(biasActivationProgram, activationInputs, out.dtype, uniformData);
+        intermediates.push(out);
+        const outReshaped2 = reshape2({ inputs: { x: outActivated }, backend, attrs: { shape: outShape } });
+        intermediates.push(outActivated);
+        for (const i of intermediates) {
+          backend.disposeData(i.dataId);
+        }
+        return outReshaped2;
+      }
+      break;
+    }
+    case 3 /* MatMulSmallOutputSizeProgram */:
+      program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape, outputShape, transposeA, transposeB, bias, activation, preluActivationWeights);
+      break;
+    case 4 /* MatMulPackedProgram */:
+      program = new MatMulPackedProgram(a3dShape, outputShape, env().get("WEBGPU_MATMUL_WORK_PER_THREAD"), batchAEqualOne, batchBEqualOne, transposeA, transposeB, bias, activation, preluActivationWeights);
+      break;
+    default:
+      throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);
   }
   if (bias) {
     inputs.push(bias);
@@ -16422,21 +16330,18 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
   const bType = isChannelsLast ? typeSnippet(innerElementSizeW) : typeSnippet(innerElementSizeX);
   const userCode = `
       ${activationFnSnippet(activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
-      fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
-        let batch = i32(globalId.z);
+      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${bType} {
-        let batch = i32(globalId.z);
+      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(row : i32, colIn : i32, valueIn : ${resType}, globalId : vec3<u32>) {
+      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
         let col = colIn * ${innerElementSize};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
-        let batch = i32(globalId.z);
         var value = valueIn;
         let outWidth = ${isChannelsLast ? "uniforms.outShape[2]" : "uniforms.outShape[3]"};
         ${coordResSnippet}
@@ -16744,13 +16649,12 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
       }
       return ${typeSnippet(innerElementSize)}(0.0);`;
   const userCode = `
-  fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${typeSnippet(innerElementSize)} {
+  fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${typeSnippet(innerElementSize)} {
     let col = colIn * ${innerElementSize};
-    var batch = i32(globalId.z);
     ${sampleA}
   }
 
-  fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${typeSnippet(innerElementSize)} {
+  fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${typeSnippet(innerElementSize)} {
     let col = colIn * ${innerElementSize};
     let coordX = uniforms.filterDims.x - 1 -
         row / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
@@ -16765,10 +16669,9 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
     return ${typeSnippet(innerElementSize)}(0.0);
   }
 
-  fn mm_write(row : i32, colIn : i32, valueInput : ${typeSnippet(innerElementSize)}, globalId : vec3<u32>) {
+  fn mm_write(batch: i32, row : i32, colIn : i32, valueInput : ${typeSnippet(innerElementSize)}) {
     let col = colIn * ${innerElementSize};
     if (row < uniforms.dimAOuter && (col + ${innerElementSize - 1}) < uniforms.dimBOuter) {
-      var batch = i32(globalId.z);
       var value = valueInput;
       let outCoord = vec4<i32>(
           batch,
@@ -17987,6 +17890,7 @@ var fromPixelsConfig = {
   kernelFunc: fromPixels2
 };
 var fromPixels2DContext2;
+var willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
 var videoToTextureMap = /* @__PURE__ */ new Map();
 function fromPixels2(args) {
   const { inputs, backend, attrs } = args;
@@ -18023,8 +17927,10 @@ function fromPixels2(args) {
       };
     } else {
       if (isVideoOrImage) {
-        if (fromPixels2DContext2 == null) {
-          fromPixels2DContext2 = document.createElement("canvas").getContext("2d");
+        const newWillReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
+        if (fromPixels2DContext2 == null || newWillReadFrequently !== willReadFrequently) {
+          willReadFrequently = newWillReadFrequently;
+          fromPixels2DContext2 = document.createElement("canvas").getContext("2d", { willReadFrequently });
         }
         fromPixels2DContext2.canvas.width = width;
         fromPixels2DContext2.canvas.height = height;
@@ -20598,7 +20504,7 @@ var reshapeDispatch = (device, program) => {
   }
 };
 var _WebGPUBackend = class extends KernelBackend {
-  constructor(device, supportTimeQuery = false) {
+  constructor(device) {
     super();
     this.commandQueueOwnedIds = /* @__PURE__ */ new WeakSet();
     this.dispatchNumberInEncoder = 0;
@@ -20616,7 +20522,7 @@ var _WebGPUBackend = class extends KernelBackend {
     this.queue = device.queue;
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
-    this.supportTimeQuery = supportTimeQuery;
+    this.supportTimeQuery = device.features.has("timestamp-query");
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
@@ -20857,6 +20763,9 @@ var _WebGPUBackend = class extends KernelBackend {
     return buffer(t.shape, t.dtype, data);
   }
   async time(f) {
+    if (!this.supportTimeQuery) {
+      console.warn(`This device doesn't support timestamp-query extension. Start Chrome browser with flag --disable-dawn-features=disallow_unsafe_apis then try again. Otherwise, zero will be shown for the kernel time when profiling mode is enabled. Using performance.now is not workable for webgpu since it doesn't support synchronous data read from GPU.`);
+    }
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers = [];
     let outerMostTime = false;
@@ -21153,11 +21062,9 @@ if (isWebGPUSupported()) {
     };
     if (supportTimeQuery) {
       deviceDescriptor.requiredFeatures = ["timestamp-query"];
-    } else {
-      console.warn(`This device doesn't support timestamp-query extension. Start Chrome browser with flag --disable-dawn-features=disallow_unsafe_apis then try again. Or zero will shown for the kernel time when profiling mode isenabled. Using performance.now is not workable for webgpu sinceit doesn't support synchronously to read data from GPU.`);
     }
     const device = await adapter.requestDevice(deviceDescriptor);
-    return new WebGPUBackend(device, supportTimeQuery);
+    return new WebGPUBackend(device);
   }, 3);
 }
 export {

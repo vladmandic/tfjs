@@ -4169,6 +4169,7 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
+ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -6880,9 +6881,15 @@ Actual:   ${actualFlat}.
 Expected: ${expectedFlat}.`);
     }
   }
+  if (typeof expect !== "undefined") {
+    expect().nothing();
+  }
 }
 function expectPromiseToFail(fn, done) {
   fn().then(() => done.fail(), () => done());
+  if (typeof expect !== "undefined") {
+    expect().nothing();
+  }
 }
 function expectArraysEqual(actual, expected) {
   const exp2 = typeof expected === "string" || typeof expected === "number" || typeof expected === "boolean" ? [expected] : expected;
@@ -6897,6 +6904,9 @@ function expectNumbersClose(a, e, epsilon) {
   }
   if (!areClose(a, e, epsilon)) {
     throw new Error(`Numbers differ: actual === ${a}, expected === ${e}`);
+  }
+  if (typeof expect !== "undefined") {
+    expect().nothing();
   }
 }
 function areClose(a, e, epsilon) {

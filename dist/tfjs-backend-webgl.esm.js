@@ -4110,6 +4110,7 @@ ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
+ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -12360,6 +12361,7 @@ ENV3.registerFlag("CPU_HANDOFF_SIZE_THRESHOLD", () => 128);
 ENV3.registerFlag("WEBGL_USE_SHAPES_UNIFORMS", () => false);
 ENV3.registerFlag("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e5);
 ENV3.registerFlag("TOPK_K_CPU_HANDOFF_THRESHOLD", () => 128);
+ENV3.registerFlag("WEBGL_EXP_CONV", () => false);
 
 // src/tfjs-backend-webgl/src/glsl_version.ts
 function getGlslDifferences() {
@@ -21119,6 +21121,314 @@ var Conv3DProgram = class {
   }
 };
 
+// src/tfjs-backend-webgl/src/conv_packed_gpu.ts
+var Conv2DPackedProgram = class {
+  constructor(convInfo, addBias = false, activation = null, hasPreluActivation = false, hasLeakyReluAlpha = false) {
+    this.variableNames = ["x", "W"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [
+      { name: "pads", type: "ivec2" },
+      { name: "strides", type: "ivec2" },
+      { name: "dilations", type: "ivec2" },
+      { name: "inDims", type: "ivec2" }
+    ];
+    this.outputShape = convInfo.outShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    const padLeft = convInfo.padInfo.left;
+    const strideWidth = convInfo.strideWidth;
+    const dilationWidth = convInfo.dilationWidth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const texelsAcross = filterWidth;
+    let mainLoop = `
+       int xR; int xC; int xCOffset;
+       vec4 wTexel; vec4 previous; vec4 final;`;
+    for (let c = 0; c < filterWidth; c++) {
+      mainLoop += `
+           vec4 xTexelC${c * 2};
+           int xTexelC${c * 2}Ready;
+           vec4 xTexelC${c * 2 + 1};
+           int xTexelC${c * 2 + 1}Ready;
+           vec4 xC${c};`;
+    }
+    mainLoop += `
+     for (int r = 0; r < ${filterHeight}; r++) {
+      for (int d1 = 0; d1 < ${convInfo.inChannels}; d1 += 2) {
+       `;
+    for (let c = 0; c < filterWidth; c++) {
+      mainLoop += `
+           xTexelC${c * 2} = vec4(0.0);
+           xTexelC${c * 2}Ready = 0;
+           xTexelC${c * 2 + 1} = vec4(0.0);
+           xTexelC${c * 2 + 1}Ready = 0;
+           xC${c} = vec4(0.0);`;
+    }
+    mainLoop += `
+         xR = xRCorner + r * dilations[0];
+         if (xR >=0 && xR < inDims[0]) {
+       `;
+    for (let texelC = 0; texelC < (texelsAcross + 1) / 2; texelC++) {
+      const colIndex = texelC * 2;
+      mainLoop += `
+           xC = xCCorner + ${colIndex * dilationWidth};
+           `;
+      if (strideWidth === 1) {
+        if (colIndex < filterWidth) {
+          if (padLeft % 2 === 1) {
+            mainLoop += `
+                 xCOffset = xC + 1;
+                 if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${colIndex}Ready == 0) {
+                   xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
+
+                   // Need to manually clear unused channels in case
+                   // we're reading from recycled texture.
+                   if (xCOffset + 1 >= inDims[1]) {
+                     xTexelC${colIndex}.zw = vec2(0.0);
+                   }
+                   xTexelC${colIndex}Ready = 1;
+                 }
+               `;
+            if (dilationWidth === 1 && colIndex > 0) {
+              mainLoop += `
+                 xC${colIndex} = vec4(xTexelC${colIndex - 2}.zw, xTexelC${colIndex}.xy);
+                 `;
+            } else {
+              mainLoop += `
+                   xCOffset = xC + 1 - 2;
+
+                   if (xCOffset >= 0 && xCOffset < inDims[1]) {
+                     previous = getX(batch, xR, xCOffset, d1);
+
+                     // Need to manually clear unused channels in case
+                     // we're reading from recycled texture.
+                     if (xCOffset + 1 >= inDims[1]) {
+                       previous.zw = vec2(0.0);
+                     }
+
+                     xC${colIndex} = vec4(previous.zw, xTexelC${colIndex}.xy);
+                   } else {
+                     xC${colIndex} = vec4(0.0, 0.0, xTexelC${colIndex}.xy);
+                   }
+                   `;
+            }
+          } else {
+            mainLoop += `
+                 if (xC >= 0 && xC < inDims[1] && xTexelC${colIndex}Ready == 0) {
+                   xTexelC${colIndex} = getX(batch, xR, xC, d1);
+                   if (xC + 1 >= inDims[1]) {
+                     xTexelC${colIndex}.zw = vec2(0.0);
+                   }
+                   xTexelC${colIndex}Ready = 1;
+                 }
+
+                 xC${colIndex} = xTexelC${colIndex};
+                 `;
+          }
+          if (colIndex + 1 < filterWidth) {
+            const nextTexelOffset = padLeft % 2 === 0 ? util_exports.nearestLargerEven(dilationWidth) : dilationWidth;
+            if (dilationWidth % 2 === 0 && padLeft % 2 === 1 || dilationWidth % 2 !== 0 && padLeft % 2 !== 1) {
+              mainLoop += `
+                   xCOffset = xC + imod(pads[1], 2) + ${nextTexelOffset};
+
+                   if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${colIndex + 1}Ready == 0) {
+                     xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
+
+                     // Need to manually clear unused channels in case
+                     // we're reading from recycled texture.
+                     if (xCOffset + 1 >= inDims[1]) {
+                       xTexelC${colIndex + 1}.zw = vec2(0.0);
+                     }
+                     xTexelC${colIndex + 1}Ready = 1;
+                   }
+                   `;
+              if (dilationWidth > 1) {
+                mainLoop += `
+                     xCOffset -= 2;
+                     if (xCOffset >= 0 && xCOffset < inDims[1]) {
+                      previous = getX(batch, xR, xCOffset, d1);
+                      xC${colIndex + 1} = vec4(previous.zw, xTexelC${colIndex + 1}.xy);
+                     } else {
+                      xC${colIndex + 1} = vec4(0.0, 0.0, xTexelC${colIndex + 1}.xy);
+                     }
+                     `;
+              } else {
+                mainLoop += `
+                     xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${colIndex + 1}.xy);
+                     `;
+              }
+            } else {
+              if (nextTexelOffset === 1) {
+                mainLoop += `
+                     xC${colIndex + 1} = xTexelC${colIndex};
+                     `;
+              } else {
+                mainLoop += `
+                     xCOffset = xC + ${nextTexelOffset};
+
+                     if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${colIndex + 1}Ready == 0) {
+                       xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
+                       if (xCOffset + 1 >= inDims[1]) {
+                         xTexelC${colIndex + 1}.zw = vec2(0.0);
+                       }
+                       xTexelC${colIndex + 1}Ready = 1;
+                     }
+
+                     xC${colIndex + 1} = xTexelC${colIndex + 1};
+                     `;
+              }
+            }
+          }
+        }
+      } else {
+        if (colIndex < filterWidth) {
+          if (padLeft % 2 === 1) {
+            mainLoop += `
+                 xCOffset = xC + 1 - strides[1];
+                 if(xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${colIndex}Ready == 0) {
+                   xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
+                   // Need to manually clear unused channels in case
+                   // we're reading from recycled texture.
+                   if (xCOffset + 1 >= inDims[1]) {
+                     xTexelC${colIndex}.zw = vec2(0.0);
+                   }
+                   xTexelC${colIndex}Ready = 1;
+                 }
+
+                 if(xC + 1 >= 0 && xC + 1 < inDims[1] && xTexelC${colIndex + 1}Ready == 0) {
+                   xTexelC${colIndex + 1} = getX(batch, xR, xC + 1, d1);
+                   // Need to manually clear unused channels in case
+                   // we're reading from recycled texture.
+                   if (xC + 2 >= inDims[1]) {
+                     xTexelC${colIndex + 1}.zw = vec2(0.0);
+                   }
+                   xTexelC${colIndex + 1}Ready = 1;
+                 }
+
+                 xC${colIndex} = vec4(xTexelC${colIndex}.zw, xTexelC${colIndex + 1}.zw);
+               `;
+            if (colIndex + 1 < filterWidth) {
+              mainLoop += `
+                   final = vec4(0.0);
+                   xCOffset = xC + 1 + strides[1];
+                   if(xCOffset >= 0 && xCOffset < inDims[1]) {
+                     final = getX(batch, xR, xCOffset, d1);
+                   }
+                   xC${colIndex + 1} = vec4(xTexelC${colIndex + 1}.xy, final.xy);
+                 `;
+            }
+          } else {
+            mainLoop += `
+                 if(xC >= 0 && xC < inDims[1] && xTexelC${colIndex}Ready == 0) {
+                   xTexelC${colIndex} = getX(batch, xR, xC, d1);
+                   if (xC + 1 >= inDims[1]) {
+                     xTexelC${colIndex}.zw = vec2(0.0);
+                   }
+                   xTexelC${colIndex}Ready = 1;
+                 }
+
+                 xCOffset = xC + strides[1];
+                 if(xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${colIndex + 1}Ready == 0) {
+                   xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
+                   if (xCOffset + 1 >= inDims[1]) {
+                     xTexelC${colIndex + 1}.zw = vec2(0.);
+                   }
+                   xTexelC${colIndex + 1}Ready = 1;
+                 }
+
+                 xC${colIndex} = vec4(
+                   xTexelC${colIndex}.xy, xTexelC${colIndex + 1}.xy);
+               `;
+            if (colIndex + 1 < filterWidth) {
+              mainLoop += `
+                   xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${colIndex + 1}.zw);
+                 `;
+            }
+          }
+        }
+      }
+      if (colIndex < filterWidth) {
+        mainLoop += `
+             wTexel = getW(r, ${colIndex}, d1, d2);
+             dotProd += xC${colIndex}.xxzz * vec4(wTexel.xy, wTexel.xy);
+             if(d1 + 1 < ${convInfo.inChannels}) {
+               dotProd += xC${colIndex}.yyww * vec4(wTexel.zw, wTexel.zw);
+             }
+           `;
+        if (colIndex + 1 < filterWidth) {
+          mainLoop += `
+               wTexel = getW(r, ${colIndex + 1}, d1, d2);
+               dotProd += xC${colIndex + 1}.xxzz * vec4(wTexel.xy, wTexel.xy);
+               if(d1 + 1 < ${convInfo.inChannels}) {
+                 dotProd += xC${colIndex + 1}.yyww * vec4(wTexel.zw, wTexel.zw);
+               }
+             `;
+        }
+      }
+    }
+    mainLoop += `
+     }
+   `;
+    mainLoop += `
+     }
+   `;
+    mainLoop += `
+     }
+   `;
+    let activationSnippet = "", applyActivationSnippet = "";
+    if (activation) {
+      if (hasPreluActivation) {
+        activationSnippet = `vec4 activation(vec4 a) {
+           vec4 b = getPreluActivationWeightsAtOutCoords();
+           ${activation}
+         }`;
+      } else if (hasLeakyReluAlpha) {
+        activationSnippet = `vec4 activation(vec4 a) {
+           vec4 b = getLeakyreluAlphaAtOutCoords();
+           ${activation}
+         }`;
+      } else {
+        activationSnippet = `vec4 activation(vec4 x) {
+           ${activation}
+         }`;
+      }
+      applyActivationSnippet = `result = activation(result);`;
+    }
+    const addBiasSnippet = addBias ? "result += getBiasAtOutCoords();" : "";
+    if (addBias) {
+      this.variableNames.push("bias");
+    }
+    if (hasPreluActivation) {
+      this.variableNames.push("preluActivationWeights");
+    }
+    if (hasLeakyReluAlpha) {
+      this.variableNames.push("leakyreluAlpha");
+    }
+    this.userCode = `
+       ${activationSnippet}
+
+       void main() {
+         ivec4 coords = getOutputCoords();
+         int batch = coords.x;
+         ivec2 xRCCorner = coords.yz * strides - pads;
+         int d2 = coords.w;
+         int xRCorner = xRCCorner.x;
+         int xCCorner = xRCCorner.y;
+
+         //intialize dotProd with a small epsilon seems to reduce GPU accuracy loss.
+         vec4 dotProd = vec4(0.000000000000001);
+
+         ${mainLoop}
+
+         vec4 result = dotProd - vec4(0.000000000000001);
+         ${addBiasSnippet}
+         ${applyActivationSnippet}
+         setOutput(result);
+       }
+     `;
+  }
+};
+
 // src/tfjs-backend-webgl/src/im2col_packed_gpu.ts
 var Im2ColPackedProgram = class {
   constructor(outputShape, convInfo) {
@@ -21427,6 +21737,15 @@ function conv2d3(args) {
   let out;
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID")) {
     out = conv2dByMatMul({ x, filter, convInfo, backend });
+  } else if (convInfo.strideWidth <= 2 && $dataFormat === "channelsLast" && env().getBool("WEBGL_EXP_CONV")) {
+    const program = new Conv2DPackedProgram(convInfo);
+    const customValues = [
+      [convInfo.padInfo.top, convInfo.padInfo.left],
+      [convInfo.strideHeight, convInfo.strideWidth],
+      [convInfo.dilationHeight, convInfo.dilationWidth],
+      [convInfo.inHeight, convInfo.inWidth]
+    ];
+    out = backend.runWebGLProgram(program, [x, filter], "float32", customValues);
   } else if (env().getBool("WEBGL_CONV_IM2COL")) {
     out = conv2dWithIm2Row({ x, filter, convInfo, backend });
   } else {
@@ -22360,15 +22679,18 @@ var DepthwiseConvPacked2DProgram = class {
               if (dilationWidth > 1) {
                 mainLoop += `
                     xCOffset -= 2;
-                    if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${colIndex}Ready == 0) {
-                      xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
-                      xTexelC${colIndex}Ready = 1;
+                    if (xCOffset >= 0 && xCOffset < inDims[1]) {
+                     previous = getX(batch, xR, xCOffset, d1);
+                     xC${colIndex + 1} = vec4(previous.zw, xTexelC${colIndex + 1}.xy);
+                    } else {
+                     xC${colIndex + 1} = vec4(0.0, 0.0, xTexelC${colIndex + 1}.xy);
                     }
                     `;
+              } else {
+                mainLoop += `
+                    xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${colIndex + 1}.xy);
+                    `;
               }
-              mainLoop += `
-                  xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${colIndex + 1}.xy);
-                  `;
             } else {
               if (nextTexelOffset === 1) {
                 mainLoop += `
@@ -23327,6 +23649,7 @@ var fromPixelsConfig = {
   kernelFunc: fromPixels2
 };
 var fromPixels2DContext2;
+var willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
 function fromPixels2(args) {
   const { inputs, backend, attrs } = args;
   let { pixels } = inputs;
@@ -23340,8 +23663,10 @@ function fromPixels2(args) {
   const texShape = [height, width];
   const outShape = [height, width, numChannels];
   if (isImage || isVideo) {
-    if (fromPixels2DContext2 == null) {
-      fromPixels2DContext2 = document.createElement("canvas").getContext("2d");
+    const newWillReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
+    if (fromPixels2DContext2 == null || newWillReadFrequently !== willReadFrequently) {
+      willReadFrequently = newWillReadFrequently;
+      fromPixels2DContext2 = document.createElement("canvas").getContext("2d", { willReadFrequently });
     }
     fromPixels2DContext2.canvas.width = width;
     fromPixels2DContext2.canvas.height = height;
@@ -23374,34 +23699,10 @@ function fusedConv2d(args) {
   const convInfo = backend_util_exports.computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad2, dimRoundingMode, false, $dataFormat);
   let out;
   const intermediates = [];
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID")) {
-    out = conv2dByMatMul({
-      x,
-      filter,
-      convInfo,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
-  } else if (env().getBool("WEBGL_CONV_IM2COL")) {
-    out = conv2dWithIm2Row({
-      x,
-      filter,
-      convInfo,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
-  } else {
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    const hasLeakyreluAlpha = activation === "leakyrelu";
-    const fusedActivation = activation ? mapActivationToShaderProgram(activation, false) : null;
-    const program = new Conv2DProgram(convInfo, hasBias, fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
+  const hasBias = bias != null;
+  const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = activation === "leakyrelu";
+  const prepareInputs = () => {
     const inputs2 = [x, filter];
     const alignInputWithDataFormat = (input, dataFormat2) => {
       if (dataFormat2 === "NCHW" && input.shape.length === 1 && input.shape[0] !== 1) {
@@ -23426,6 +23727,45 @@ function fusedConv2d(args) {
       inputs2.push($leakyreluAlpha);
       intermediates.push($leakyreluAlpha);
     }
+    return inputs2;
+  };
+  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID")) {
+    out = conv2dByMatMul({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+  } else if (convInfo.strideWidth <= 2 && $dataFormat === "channelsLast" && env().getBool("WEBGL_EXP_CONV")) {
+    const fusedActivation = activation ? mapActivationToShaderProgram(activation, true) : null;
+    const program = new Conv2DPackedProgram(convInfo, hasBias, fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
+    const customValues = [
+      [convInfo.padInfo.top, convInfo.padInfo.left],
+      [convInfo.strideHeight, convInfo.strideWidth],
+      [convInfo.dilationHeight, convInfo.dilationWidth],
+      [convInfo.inHeight, convInfo.inWidth]
+    ];
+    const inputs2 = prepareInputs();
+    out = backend.runWebGLProgram(program, inputs2, "float32", customValues);
+  } else if (env().getBool("WEBGL_CONV_IM2COL")) {
+    out = conv2dWithIm2Row({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+  } else {
+    const fusedActivation = activation ? mapActivationToShaderProgram(activation, false) : null;
+    const program = new Conv2DProgram(convInfo, hasBias, fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
+    const inputs2 = prepareInputs();
     out = backend.runWebGLProgram(program, inputs2, "float32");
   }
   const outReshaped = reshape2({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
