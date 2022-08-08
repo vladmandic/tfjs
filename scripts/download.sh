@@ -12,6 +12,7 @@ if [ -d src ] && [ -f src/package.json ]; then
 else
   echo "Fetching latest version of TFJS"
   git clone --depth 1 https://github.com/tensorflow/tfjs src
+  # git clone --depth 1 --branch settimeout https://github.com/gyagp/tfjs src
   cd src
   if [ -f tfjs.code-workspace ]; then rm tfjs.code-workspace; fi
   cd ..

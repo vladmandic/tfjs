@@ -26,11 +26,10 @@ fi
 # build wasm binaries and js bindings
 cd src
 echo "Cleaning Bazel build cache"
-bazel clean
+# bazel clean
 
 echo "Building: tfjs-backend-wasm"
 bazel build --symlink_prefix="wasm-out/" -c opt --copt="-O3" --copt="-flto" //tfjs-backend-wasm/src/cc:tfjs-backend-wasm
-
 echo "Building: tfjs-backend-wasm-simd"
 bazel build --symlink_prefix="wasm-out/" -c opt --copt="-msimd128" --copt="-O3" --copt="-flto" //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd
 echo "Building: tfjs-backend-wasm-threaded-simd"
@@ -48,7 +47,7 @@ cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/* src/tfjs-backen
 cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.worker.js src/tfjs-backend-wasm/wasm-out/
 cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js src/tfjs-backend-wasm/wasm-out/
 chmod 644 src/tfjs-backend-wasm/wasm-out/*
-cd src/tfjs-backend-wasm/scripts
+# cd src/tfjs-backend-wasm/scripts
 # node ./create-worker-module.js
 # node ./patch-threaded-simd-module.js
-cd ../../../
+# cd ../../../

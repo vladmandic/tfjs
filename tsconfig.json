@@ -7,7 +7,7 @@
     "baseUrl": "./",
     "paths": { "tslib": ["node_modules/tslib/tslib.d.ts"] },
     "allowJs": true,
-    "allowSyntheticDefaultImports": false,
+    "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "alwaysStrict": true,
