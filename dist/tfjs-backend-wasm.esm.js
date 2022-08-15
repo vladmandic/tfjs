@@ -21711,40 +21711,43 @@ for (const kernelConfig of kernelConfigs) {
 
 // src/tfjs-backend-wasm/src/flags_wasm.ts
 var ENV3 = env();
-ENV3.registerFlag(
-  "WASM_HAS_SIMD_SUPPORT",
-  async () => WebAssembly.validate(new Uint8Array([
-    0,
-    97,
-    115,
-    109,
-    1,
-    0,
-    0,
-    0,
-    1,
-    4,
-    1,
-    96,
-    0,
-    0,
-    3,
-    2,
-    1,
-    0,
-    10,
-    9,
-    1,
-    7,
-    0,
-    65,
-    0,
-    253,
-    15,
-    26,
-    11
-  ]))
-);
+ENV3.registerFlag("WASM_HAS_SIMD_SUPPORT", async () => {
+  try {
+    return WebAssembly.validate(new Uint8Array([
+      0,
+      97,
+      115,
+      109,
+      1,
+      0,
+      0,
+      0,
+      1,
+      4,
+      1,
+      96,
+      0,
+      0,
+      3,
+      2,
+      1,
+      0,
+      10,
+      9,
+      1,
+      7,
+      0,
+      65,
+      0,
+      253,
+      15,
+      26,
+      11
+    ]));
+  } catch (e) {
+    return false;
+  }
+});
 ENV3.registerFlag("WASM_HAS_MULTITHREAD_SUPPORT", async () => {
   if (ENV3.get("IS_NODE")) {
     return false;
