@@ -9667,13 +9667,13 @@ function matMul_(a, b, transposeA = false, transposeB = false) {
 var matMul = op({ matMul_ });
 
 // src/tfjs-core/src/ops/one_hot.ts
-function oneHot_(indices, depth, onValue = 1, offValue = 0) {
+function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
   const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
   const inputs = { indices: $indices };
-  const attrs = { depth, onValue, offValue };
+  const attrs = { dtype, depth, onValue, offValue };
   return ENGINE.runKernel(
     OneHot,
     inputs,
@@ -33732,55 +33732,55 @@ ENV4.registerFlag("KEEP_INTERMEDIATE_TENSORS", () => false, (debugValue) => {
 });
 
 // src/tfjs-converter/src/data/compiled_api.ts
-var DataType8 = /* @__PURE__ */ ((DataType48) => {
-  DataType48[DataType48["DT_INVALID"] = 0] = "DT_INVALID";
-  DataType48[DataType48["DT_FLOAT"] = 1] = "DT_FLOAT";
-  DataType48[DataType48["DT_DOUBLE"] = 2] = "DT_DOUBLE";
-  DataType48[DataType48["DT_INT32"] = 3] = "DT_INT32";
-  DataType48[DataType48["DT_UINT8"] = 4] = "DT_UINT8";
-  DataType48[DataType48["DT_INT16"] = 5] = "DT_INT16";
-  DataType48[DataType48["DT_INT8"] = 6] = "DT_INT8";
-  DataType48[DataType48["DT_STRING"] = 7] = "DT_STRING";
-  DataType48[DataType48["DT_COMPLEX64"] = 8] = "DT_COMPLEX64";
-  DataType48[DataType48["DT_INT64"] = 9] = "DT_INT64";
-  DataType48[DataType48["DT_BOOL"] = 10] = "DT_BOOL";
-  DataType48[DataType48["DT_QINT8"] = 11] = "DT_QINT8";
-  DataType48[DataType48["DT_QUINT8"] = 12] = "DT_QUINT8";
-  DataType48[DataType48["DT_QINT32"] = 13] = "DT_QINT32";
-  DataType48[DataType48["DT_BFLOAT16"] = 14] = "DT_BFLOAT16";
-  DataType48[DataType48["DT_QINT16"] = 15] = "DT_QINT16";
-  DataType48[DataType48["DT_QUINT16"] = 16] = "DT_QUINT16";
-  DataType48[DataType48["DT_UINT16"] = 17] = "DT_UINT16";
-  DataType48[DataType48["DT_COMPLEX128"] = 18] = "DT_COMPLEX128";
-  DataType48[DataType48["DT_HALF"] = 19] = "DT_HALF";
-  DataType48[DataType48["DT_RESOURCE"] = 20] = "DT_RESOURCE";
-  DataType48[DataType48["DT_VARIANT"] = 21] = "DT_VARIANT";
-  DataType48[DataType48["DT_UINT32"] = 22] = "DT_UINT32";
-  DataType48[DataType48["DT_UINT64"] = 23] = "DT_UINT64";
-  DataType48[DataType48["DT_FLOAT_REF"] = 101] = "DT_FLOAT_REF";
-  DataType48[DataType48["DT_DOUBLE_REF"] = 102] = "DT_DOUBLE_REF";
-  DataType48[DataType48["DT_INT32_REF"] = 103] = "DT_INT32_REF";
-  DataType48[DataType48["DT_UINT8_REF"] = 104] = "DT_UINT8_REF";
-  DataType48[DataType48["DT_INT16_REF"] = 105] = "DT_INT16_REF";
-  DataType48[DataType48["DT_INT8_REF"] = 106] = "DT_INT8_REF";
-  DataType48[DataType48["DT_STRING_REF"] = 107] = "DT_STRING_REF";
-  DataType48[DataType48["DT_COMPLEX64_REF"] = 108] = "DT_COMPLEX64_REF";
-  DataType48[DataType48["DT_INT64_REF"] = 109] = "DT_INT64_REF";
-  DataType48[DataType48["DT_BOOL_REF"] = 110] = "DT_BOOL_REF";
-  DataType48[DataType48["DT_QINT8_REF"] = 111] = "DT_QINT8_REF";
-  DataType48[DataType48["DT_QUINT8_REF"] = 112] = "DT_QUINT8_REF";
-  DataType48[DataType48["DT_QINT32_REF"] = 113] = "DT_QINT32_REF";
-  DataType48[DataType48["DT_BFLOAT16_REF"] = 114] = "DT_BFLOAT16_REF";
-  DataType48[DataType48["DT_QINT16_REF"] = 115] = "DT_QINT16_REF";
-  DataType48[DataType48["DT_QUINT16_REF"] = 116] = "DT_QUINT16_REF";
-  DataType48[DataType48["DT_UINT16_REF"] = 117] = "DT_UINT16_REF";
-  DataType48[DataType48["DT_COMPLEX128_REF"] = 118] = "DT_COMPLEX128_REF";
-  DataType48[DataType48["DT_HALF_REF"] = 119] = "DT_HALF_REF";
-  DataType48[DataType48["DT_RESOURCE_REF"] = 120] = "DT_RESOURCE_REF";
-  DataType48[DataType48["DT_VARIANT_REF"] = 121] = "DT_VARIANT_REF";
-  DataType48[DataType48["DT_UINT32_REF"] = 122] = "DT_UINT32_REF";
-  DataType48[DataType48["DT_UINT64_REF"] = 123] = "DT_UINT64_REF";
-  return DataType48;
+var DataType8 = /* @__PURE__ */ ((DataType49) => {
+  DataType49[DataType49["DT_INVALID"] = 0] = "DT_INVALID";
+  DataType49[DataType49["DT_FLOAT"] = 1] = "DT_FLOAT";
+  DataType49[DataType49["DT_DOUBLE"] = 2] = "DT_DOUBLE";
+  DataType49[DataType49["DT_INT32"] = 3] = "DT_INT32";
+  DataType49[DataType49["DT_UINT8"] = 4] = "DT_UINT8";
+  DataType49[DataType49["DT_INT16"] = 5] = "DT_INT16";
+  DataType49[DataType49["DT_INT8"] = 6] = "DT_INT8";
+  DataType49[DataType49["DT_STRING"] = 7] = "DT_STRING";
+  DataType49[DataType49["DT_COMPLEX64"] = 8] = "DT_COMPLEX64";
+  DataType49[DataType49["DT_INT64"] = 9] = "DT_INT64";
+  DataType49[DataType49["DT_BOOL"] = 10] = "DT_BOOL";
+  DataType49[DataType49["DT_QINT8"] = 11] = "DT_QINT8";
+  DataType49[DataType49["DT_QUINT8"] = 12] = "DT_QUINT8";
+  DataType49[DataType49["DT_QINT32"] = 13] = "DT_QINT32";
+  DataType49[DataType49["DT_BFLOAT16"] = 14] = "DT_BFLOAT16";
+  DataType49[DataType49["DT_QINT16"] = 15] = "DT_QINT16";
+  DataType49[DataType49["DT_QUINT16"] = 16] = "DT_QUINT16";
+  DataType49[DataType49["DT_UINT16"] = 17] = "DT_UINT16";
+  DataType49[DataType49["DT_COMPLEX128"] = 18] = "DT_COMPLEX128";
+  DataType49[DataType49["DT_HALF"] = 19] = "DT_HALF";
+  DataType49[DataType49["DT_RESOURCE"] = 20] = "DT_RESOURCE";
+  DataType49[DataType49["DT_VARIANT"] = 21] = "DT_VARIANT";
+  DataType49[DataType49["DT_UINT32"] = 22] = "DT_UINT32";
+  DataType49[DataType49["DT_UINT64"] = 23] = "DT_UINT64";
+  DataType49[DataType49["DT_FLOAT_REF"] = 101] = "DT_FLOAT_REF";
+  DataType49[DataType49["DT_DOUBLE_REF"] = 102] = "DT_DOUBLE_REF";
+  DataType49[DataType49["DT_INT32_REF"] = 103] = "DT_INT32_REF";
+  DataType49[DataType49["DT_UINT8_REF"] = 104] = "DT_UINT8_REF";
+  DataType49[DataType49["DT_INT16_REF"] = 105] = "DT_INT16_REF";
+  DataType49[DataType49["DT_INT8_REF"] = 106] = "DT_INT8_REF";
+  DataType49[DataType49["DT_STRING_REF"] = 107] = "DT_STRING_REF";
+  DataType49[DataType49["DT_COMPLEX64_REF"] = 108] = "DT_COMPLEX64_REF";
+  DataType49[DataType49["DT_INT64_REF"] = 109] = "DT_INT64_REF";
+  DataType49[DataType49["DT_BOOL_REF"] = 110] = "DT_BOOL_REF";
+  DataType49[DataType49["DT_QINT8_REF"] = 111] = "DT_QINT8_REF";
+  DataType49[DataType49["DT_QUINT8_REF"] = 112] = "DT_QUINT8_REF";
+  DataType49[DataType49["DT_QINT32_REF"] = 113] = "DT_QINT32_REF";
+  DataType49[DataType49["DT_BFLOAT16_REF"] = 114] = "DT_BFLOAT16_REF";
+  DataType49[DataType49["DT_QINT16_REF"] = 115] = "DT_QINT16_REF";
+  DataType49[DataType49["DT_QUINT16_REF"] = 116] = "DT_QUINT16_REF";
+  DataType49[DataType49["DT_UINT16_REF"] = 117] = "DT_UINT16_REF";
+  DataType49[DataType49["DT_COMPLEX128_REF"] = 118] = "DT_COMPLEX128_REF";
+  DataType49[DataType49["DT_HALF_REF"] = 119] = "DT_HALF_REF";
+  DataType49[DataType49["DT_RESOURCE_REF"] = 120] = "DT_RESOURCE_REF";
+  DataType49[DataType49["DT_VARIANT_REF"] = 121] = "DT_VARIANT_REF";
+  DataType49[DataType49["DT_UINT32_REF"] = 122] = "DT_UINT32_REF";
+  DataType49[DataType49["DT_UINT64_REF"] = 123] = "DT_UINT64_REF";
+  return DataType49;
 })(DataType8 || {});
 var SaverDef;
 ((SaverDef2) => {
@@ -46393,6 +46393,7 @@ __export(shared_exports, {
   addImpl: () => addImpl,
   bincountImpl: () => bincountImpl,
   bincountReduceImpl: () => bincountReduceImpl,
+  castImpl: () => castImpl,
   ceilImpl: () => ceilImpl,
   concatImpl: () => concatImpl,
   equalImpl: () => equalImpl,
@@ -46553,6 +46554,20 @@ var realConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Cast.ts
+function castImpl(values, shape, inputType, dtype) {
+  if (dtype === "int32") {
+    const resultValues = Int32Array.from(values);
+    return [shape, "int32", resultValues];
+  }
+  if (dtype === "bool") {
+    const zero = util_exports.toTypedArray([0], inputType);
+    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
+      (a, b) => a !== b ? 1 : 0
+    )(shape, [], values, zero, "bool");
+    return [resultShape, "bool", resultData];
+  }
+  throw new Error(`Error in Cast: failed to cast ${inputType} to ${dtype}`);
+}
 function cast3(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
@@ -46578,20 +46593,9 @@ function cast3(args) {
     const result = identity2({ inputs: { x }, backend: backend2 });
     return { dataId: result.dataId, shape: result.shape, dtype };
   }
-  if (dtype === "int32") {
-    const values = backend2.data.get(x.dataId).values;
-    const resultValues = Int32Array.from(values);
-    return backend2.makeTensorInfo(x.shape, "int32", resultValues);
-  }
-  if (dtype === "bool") {
-    const xVals = backend2.data.get(x.dataId).values;
-    const zero = util_exports.toTypedArray([0], x.dtype);
-    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
-      (a, b) => a !== b ? 1 : 0
-    )(x.shape, [], xVals, zero, "bool");
-    return backend2.makeTensorInfo(resultShape, "bool", resultData);
-  }
-  throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
+  const values = backend2.data.get(x.dataId).values;
+  const [resultShape, resultType, resultData] = castImpl(values, x.shape, x.dtype, dtype);
+  return backend2.makeTensorInfo(resultShape, resultType, resultData);
 }
 var castConfig = {
   kernelName: Cast,
@@ -52414,7 +52418,7 @@ var nonMaxSuppressionV5Config = {
 function oneHot2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { indices } = inputs;
-  const { depth, onValue, offValue } = attrs;
+  const { dtype, depth, onValue, offValue } = attrs;
   assertNotComplex(indices, "oneHot");
   const indicesSize = util_exports.sizeFromShape(indices.shape);
   const res = new Float32Array(indicesSize * depth);
@@ -52425,7 +52429,7 @@ function oneHot2(args) {
       res[event * depth + indicesVal[event]] = onValue;
     }
   }
-  return backend2.makeTensorInfo([...indices.shape, depth], "int32", res);
+  return backend2.makeTensorInfo([...indices.shape, depth], dtype, res);
 }
 var oneHotConfig = {
   kernelName: OneHot,
@@ -54407,6 +54411,9 @@ function getWebGLRenderingContext(webGLVersion, customCanvas) {
     ev.preventDefault();
     delete contexts[webGLVersion];
   }, false);
+  if (env().getBool("SOFTWARE_WEBGL_ENABLED")) {
+    WEBGL_ATTRIBUTES.failIfMajorPerformanceCaveat = false;
+  }
   if (webGLVersion === 1) {
     return canvas.getContext("webgl", WEBGL_ATTRIBUTES) || canvas.getContext("experimental-webgl", WEBGL_ATTRIBUTES);
   }
@@ -55174,6 +55181,7 @@ ENV5.registerFlag("WEBGL_USE_SHAPES_UNIFORMS", () => false);
 ENV5.registerFlag("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e5);
 ENV5.registerFlag("TOPK_K_CPU_HANDOFF_THRESHOLD", () => 128);
 ENV5.registerFlag("WEBGL_EXP_CONV", () => false);
+ENV5.registerFlag("SOFTWARE_WEBGL_ENABLED", () => ENV5.getBool("IS_TEST"));
 
 // src/tfjs-backend-webgl/src/glsl_version.ts
 function getGlslDifferences() {
@@ -58533,6 +58541,7 @@ var {
   addImpl: addImplCPU,
   bincountImpl: bincountImplCPU,
   bincountReduceImpl: bincountReduceImplCPU,
+  castImpl: castImplCPU,
   ceilImpl: ceilImplCPU,
   concatImpl: concatImplCPU,
   equalImpl: equalImplCPU,
@@ -62756,6 +62765,11 @@ function cast4(args) {
   if (!util_exports.hasEncodingLoss(x.dtype, dtype)) {
     const result = identity3({ inputs: { x }, backend: backend2 });
     return { dataId: result.dataId, shape: result.shape, dtype };
+  }
+  if (backend2.shouldExecuteOnCPU([x])) {
+    const values = backend2.texData.get(x.dataId).values;
+    const [resultShape, resultType, resultData] = castImplCPU(values, x.shape, x.dtype, dtype);
+    return backend2.makeTensorInfo(resultShape, resultType, resultData);
   }
   if (dtype === "int32") {
     return int(x, backend2);
@@ -67926,11 +67940,11 @@ var OneHotProgram = class {
 var oneHot3 = (args) => {
   const { inputs, backend: backend2, attrs } = args;
   const { indices } = inputs;
-  const { depth, onValue, offValue } = attrs;
+  const { dtype, depth, onValue, offValue } = attrs;
   const indicesSize = util_exports.sizeFromShape(indices.shape);
   const program = new OneHotProgram(indicesSize, depth, onValue, offValue);
   const reshaped = reshape4({ inputs: { x: indices }, backend: backend2, attrs: { shape: [indicesSize] } });
-  const result = backend2.runWebGLProgram(program, [reshaped], indices.dtype);
+  const result = backend2.runWebGLProgram(program, [reshaped], dtype);
   backend2.disposeIntermediateTensorInfo(reshaped);
   const outShape = [...indices.shape, depth];
   const out = reshape4({ inputs: { x: result }, backend: backend2, attrs: { shape: outShape } });
@@ -71140,7 +71154,7 @@ var compileProgram2 = (device, program, inputsData, output) => {
     { code: source, label: program.constructor.name }
   );
   const pipeline = device.createComputePipeline({
-    compute: { module, entryPoint: "main" },
+    compute: { module, entryPoint: "_start" },
     label: program.constructor.name,
     layout: "auto"
   });
@@ -71180,22 +71194,43 @@ function getCoordsXYZ(index) {
     throw Error(`Index ${index} is not yet supported`);
   }
 }
-function getMainHeaderAndGlobalIndexString() {
-  return `
-    ${getMainHeaderString()}
-      let index = getGlobalIndex();
-`;
-}
-function getMainHeaderString() {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-`;
+function getMainHeaderString(...params) {
+  let snippet;
+  switch (params.length) {
+    case 0:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main();
+        }
+
+        fn main()
+      `;
+      break;
+    case 1:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main(getGlobalIndex());
+        }
+
+        fn main(${params[0]} : i32)
+      `;
+      break;
+    default:
+      throw Error("Unreachable");
+  }
+  return snippet;
 }
 function getWorkGroupSizeString() {
   return `
@@ -73037,10 +73072,10 @@ function makeMatMulPackedVec4Source(workPerThread, workGroupSize, transposeA = f
   const TileInner = ${tileInner};
 
   @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-          @builtin(workgroup_id) workgroupId: vec3<u32>) {
+  fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+            @builtin(global_invocation_id) GlobalId : vec3<u32>,
+            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+            @builtin(workgroup_id) workgroupId: vec3<u32>) {
     localId = LocalId;
     globalId = GlobalId;
     numWorkgroups = NumWorkgroups;
@@ -73134,10 +73169,10 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
     const TileInner = ${tileInner};
 
     @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-    fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-            @builtin(global_invocation_id) GlobalId : vec3<u32>,
-            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-            @builtin(workgroup_id) workgroupId: vec3<u32>) {
+    fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+              @builtin(global_invocation_id) GlobalId : vec3<u32>,
+              @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+              @builtin(workgroup_id) workgroupId: vec3<u32>) {
       localId = LocalId;
       globalId = GlobalId;
       numWorkgroups = NumWorkgroups;
@@ -73238,7 +73273,7 @@ function makeVectorMatrixProductSource(workGroupSize, transposeA = false) {
     const TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
-    ${getMainHeaderString()}
+    ${getMainHeaderString()} {
       let tileCol = i32(localId.x);
       let globalCol = i32(globalId.x);
       let globalRow = i32(globalId.y);
@@ -73378,7 +73413,7 @@ var MatMulPackedProgram2 = class {
 function makeMatMulReduceSource() {
   return `
     var<workgroup> sumValues : array<f32, workGroupSizeX>;
-    ${getMainHeaderString()}
+    ${getMainHeaderString()} {
       let coords = getOutputCoords();
       let batch = coords[0];
       let row = coords[1];
@@ -73470,7 +73505,7 @@ function makeMatMulSmallOutputSizeSource(workGroupSize) {
   // shared memory, so it is instruction-Level parallelism for arithmetic
   // operations and others handle IO operations between barrier api, makes ALU
   // and load/store units work simultaneously, could improves the performance.
-  ${getMainHeaderString()}
+  ${getMainHeaderString()} {
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);
@@ -73685,7 +73720,7 @@ var BiasActivationProgram = class {
   getUserCode() {
     return `
     ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
-    ${getMainHeaderAndGlobalIndexString()}
+    ${getMainHeaderString("index")} {
       if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
         var value = getXByOutputIndex(index);
@@ -73716,7 +73751,7 @@ var FillProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-    ${getMainHeaderAndGlobalIndexString()}
+    ${getMainHeaderString("index")} {
       if (index < uniforms.size) {
         setOutputAtIndex(index, uniforms.value);
       }
@@ -73986,7 +74021,7 @@ var BinaryOpComplexProgram2 = class {
         ${opStr}
       }
 
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if(index < uniforms.size) {
           let areal = getARealByOutputIndex(index);
           let aimag = getAImagByOutputIndex(index);
@@ -74056,8 +74091,7 @@ var BinaryOpProgram2 = class {
           ${opStr}
         }
         var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
-        ${getMainHeaderAndGlobalIndexString()}
-
+        ${getMainHeaderString("index")} {
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
           // than work group size.
@@ -74084,7 +74118,7 @@ var BinaryOpProgram2 = class {
        fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
          ${opStr}
        }
-       ${getMainHeaderAndGlobalIndexString()}
+       ${getMainHeaderString("index")} {
          if (index < uniforms.size) {
            let a = getAByOutputIndex(index);
            let b = getBByOutputIndex(index);
@@ -74149,7 +74183,7 @@ var UnaryOpProgram2 = class {
       fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false)}
       }
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let a = getAByOutputIndex(index);
           setOutputAtIndex(index, unaryOperation(a));
@@ -74263,6 +74297,7 @@ function binaryKernelFunc3({ opType, cpuKernelImpl, supportsComplex = false, dty
 // src/tfjs-backend-webgpu/src/kernel_utils/shared.ts
 var {
   addImpl: addImplCPU2,
+  castImpl: castImplCPU2,
   ceilImpl: ceilImplCPU2,
   concatImpl: concatImplCPU2,
   equalImpl: equalImplCPU2,
@@ -74341,7 +74376,7 @@ var AddNPackedProgram2 = class {
       return `v${variable2}`;
     }).join(" + ");
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if (flatIndex < uniforms.size) {
@@ -74382,24 +74417,25 @@ var ArgMinMaxProgram2 = class {
     this.uniforms = "infinityValue : f32,";
     this.size = true;
     const axes = [axis];
-    backend_util_exports.assertAxesAreInnerMostDims(
-      "arg" + reduceType.charAt(0).toUpperCase() + reduceType.slice(1),
-      axes,
-      inputShape.length
-    );
     this.op = reduceType === "min" ? "<" : ">";
-    const [outputShape] = backend_util_exports.computeOutAndReduceShapes(inputShape, axes);
+    const [outputShape, reduceShape] = backend_util_exports.computeOutAndReduceShapes(inputShape, axes);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
+    if (util_exports.sizeFromShape(reduceShape) < 32 || util_exports.sizeFromShape(outputShape) > 1e3) {
+      this.type = "plain";
+      this.dispatch = computeDispatch(
+        this.dispatchLayout,
+        this.outputShape,
+        this.workGroupSize
+      );
+    } else {
+      this.type = "shared";
+      this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
+    }
     this.inputShape = inputShape;
-    this.shaderKey = `argMinMax${this.op}`;
+    this.shaderKey = `argMinMax_${this.op}_${this.type}`;
   }
   getUserCode() {
-    const sharedMemorySnippet = `
-      var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
-      var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
-    `;
     const getInputShapeLastDim = () => {
       if (this.inputShape.length === 1) {
         return "uniforms.xShape";
@@ -74420,14 +74456,19 @@ var ArgMinMaxProgram2 = class {
       }
       return snippet;
     };
-    const userCode = `
+    if (this.type === "shared") {
+      const sharedMemorySnippet = `
+      var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
+      var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+    `;
+      const userCode = `
       fn DIV_CEIL(a : u32, b : u32) -> u32 {
         return ((a - 1u) / b + 1u);
       }
 
       ${sharedMemorySnippet}
 
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         let outputIndex = index / i32(workGroupSizeX);
         let reduceLength = ${getInputShapeLastDim()};
 
@@ -74467,7 +74508,28 @@ var ArgMinMaxProgram2 = class {
         }
       }
     `;
-    return userCode;
+      return userCode;
+    } else {
+      const userCode = `
+      ${getMainHeaderString("index")} {
+        if (index < uniforms.size) {
+          let outputCoords = getCoordsFromIndex(index);
+          var bestIndex = 0;
+          var bestValue = getX(${splitOutputCoords()} 0);
+          let reduceLength = ${getInputShapeLastDim()};
+          for (var i = 1; i < reduceLength; i++) {
+            let candidate = getX(${splitOutputCoords()} i);
+            if (candidate ${this.op} bestValue) {
+              bestValue = candidate;
+              bestIndex = i;
+            }
+          }
+          setOutputAtIndexI32(index, bestIndex);
+        }
+      }
+      `;
+      return userCode;
+    }
   }
 };
 
@@ -74495,8 +74557,8 @@ var TransposeSharedProgram = class {
       const TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${this.workGroupSize[0]}>;
       ${getWorkGroupSizeString()}
-      fn main(@builtin(local_invocation_id) localId : vec3<u32>,
-              @builtin(workgroup_id) workgroupId : vec3<u32>) {
+      fn _start(@builtin(local_invocation_id) localId : vec3<u32>,
+                @builtin(workgroup_id) workgroupId : vec3<u32>) {
         var x = i32(workgroupId.x) * TILE_DIM + i32(localId.x);
         var y = i32(workgroupId.y) * TILE_DIM + i32(localId.y);
         let width = uniforms.outShape[0];
@@ -74544,8 +74606,7 @@ var TransposeProgram2 = class {
     const dtype = getCoordsDataType2(this.outputShape.length);
     const switched = getSwitchedCoords2(this.newDim);
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
-
+      ${getMainHeaderString("index")} {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
@@ -74690,7 +74751,7 @@ var Pool2DProgram2 = class {
       returnValue = `resultValue / count`;
     }
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
       if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
           let batch = coords[0];
@@ -74745,7 +74806,7 @@ var PoolWithFilterSizeEqualsOneProgram = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           let batch = coords[0];
@@ -74764,29 +74825,221 @@ var PoolWithFilterSizeEqualsOneProgram = class {
   }
 };
 
-// src/tfjs-backend-webgpu/src/kernels/AvgPool.ts
-function avgPool4(args) {
+// src/tfjs-backend-webgpu/src/reduce_webgpu.ts
+var ReduceProgram2 = class {
+  constructor(reduceInfo, reduceType) {
+    this.workGroupSize = [64, 1, 1];
+    this.variableNames = ["x"];
+    this.uniforms = "reduceSize : i32,";
+    this.size = true;
+    this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
+    const [outputShape] = backend_util_exports.computeOutAndReduceShapes(this.inputShape, [1]);
+    this.outputShape = outputShape.length === 0 ? [1] : outputShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
+    this.reduceType = reduceType;
+    this.shaderKey = `reduce_${reduceType}`;
+  }
+  getUserCode() {
+    let reduceOp = ``;
+    let initValue = "0.0";
+    if (this.reduceType === "min" || this.reduceType === "max") {
+      reduceOp = `
+         if (isnan(candidate)) {
+          bestValue = uniforms.NAN;
+         } else if (!isnan(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
+           {  bestValue = candidate; }`;
+      initValue = "f32(x[offset])";
+    } else if (this.reduceType === "sum" || this.reduceType === "mean") {
+      reduceOp = " bestValue = bestValue + candidate; ";
+    } else if (this.reduceType === "prod") {
+      reduceOp = " bestValue = bestValue * candidate; ";
+      initValue = "1.0";
+    }
+    const outputSnippet = this.reduceType === "mean" ? `setOutputAtIndex(outputIndex, bestValue / f32(uniforms.reduceSize));` : `setOutputAtIndex(outputIndex, bestValue);`;
+    const sharedMemorySnippet = `
+         var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+       `;
+    const userCode = `
+       fn DIV_CEIL(a : u32, b : u32) -> u32 {
+        return ((a - 1u) / b + 1u);
+       }
+
+       ${sharedMemorySnippet}
+       fn getOffset(outputIndex : i32) -> i32 {
+         let outputCoords = getCoordsFromIndex(outputIndex);
+         let offset = ${this.outputShape.length === 1 ? "outputCoords" : "outputCoords[0]"} * uniforms.reduceSize;
+          return offset;
+       }
+       ${getMainHeaderString("index")} {
+         let outputIndex = index / i32(workGroupSizeX);
+         let offset = getOffset(outputIndex);
+         var bestValue = ${initValue};
+         let Length = uniforms.reduceSize;
+         let WorkPerThread = DIV_CEIL(u32(Length), workGroupSizeX);
+         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
+             k = k + i32(workGroupSizeX)) {
+           let candidate = f32(x[offset + k]);
+           ${reduceOp}
+         }
+         xBestValues[localId.x] = bestValue;
+         workgroupBarrier();
+
+         var reduceSize = min(u32(Length), workGroupSizeX);
+         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
+             currentSize = reduceSize / 2u) {
+           let interval = DIV_CEIL(reduceSize, 2u);
+           if (localId.x < currentSize) {
+            let candidate = xBestValues[localId.x + interval];
+            ${reduceOp}
+            xBestValues[localId.x] = bestValue;
+           }
+           reduceSize = interval;
+           workgroupBarrier();
+         }
+
+         if (localId.x == 0u && outputIndex < uniforms.size) {
+          ${outputSnippet}
+        }
+       }
+     `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernel_utils/reduce.ts
+function reduce2(x, axis, keepDims, reduceType, backend2) {
+  const xRank = x.shape.length;
+  const toDispose = [];
+  const origAxes = util_exports.parseAxisParam(axis, x.shape);
+  let axes = origAxes;
+  const permutedAxes = backend_util_exports.getAxesPermutation(axes, xRank);
+  let input2 = x;
+  if (permutedAxes != null) {
+    input2 = transpose4({ inputs: { x }, attrs: { perm: permutedAxes }, backend: backend2 });
+    axes = backend_util_exports.getInnerMostAxes(axes.length, xRank);
+    toDispose.push(input2);
+  }
+  backend_util_exports.assertAxesAreInnerMostDims(reduceType, axes, xRank);
+  const [reduceOutShape, reduceShape] = backend_util_exports.computeOutAndReduceShapes(input2.shape, axes);
+  let resOutShape = reduceOutShape;
+  if (keepDims) {
+    resOutShape = backend_util_exports.expandShapeToKeepDim(reduceOutShape, origAxes);
+  }
+  let res;
+  if ((reduceType === "max" || reduceType === "prod") && backend2.shouldExecuteOnCPU([input2])) {
+    const xVals = backend2.tensorMap.get(input2.dataId).values;
+    switch (reduceType) {
+      case "max":
+        const outValues = maxImplCPU2(
+          xVals,
+          util_exports.sizeFromShape(reduceShape),
+          resOutShape,
+          x.dtype
+        );
+        res = backend2.makeTensorInfo(resOutShape, x.dtype, outValues);
+        break;
+      case "prod":
+        const { outVals, outShape, outDtype } = prodImplCPU2(input2.shape, input2.dtype, xVals, axes);
+        res = backend2.makeTensorInfo(outShape, outDtype, outVals);
+        break;
+      default:
+        throw new Error(
+          `${reduceType} CPU implementation is not yet supported.`
+        );
+    }
+  } else {
+    const inSize = util_exports.sizeFromShape(reduceShape);
+    const xSize = util_exports.sizeFromShape(input2.shape);
+    const batchSize = xSize / inSize;
+    const reduceInfo = { windowSize: inSize, inSize, batchSize, outSize: 1 };
+    const dtype = reduceType === "mean" ? "float32" : sumOutType(x.dtype);
+    const uniformData = [
+      { type: "int32", data: [inSize] }
+    ];
+    const program = new ReduceProgram2(reduceInfo, reduceType);
+    const reduced = backend2.runWebGPUProgram(program, [input2], dtype, uniformData);
+    toDispose.push(reduced);
+    res = reshape5({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend: backend2 });
+  }
+  toDispose.forEach((t) => backend2.disposeData(t.dataId));
+  return res;
+}
+
+// src/tfjs-backend-webgpu/src/kernels/Max.ts
+function max5(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
-  const { filterSize, strides, pad: pad3, dimRoundingMode } = attrs;
-  const dilations = 1;
-  const convInfo = backend_util_exports.computePool2DInfo(
-    x.shape,
-    filterSize,
-    strides,
-    dilations,
-    pad3,
-    dimRoundingMode
-  );
+  const { reductionIndices, keepDims } = attrs;
+  return reduce2(x, reductionIndices, keepDims, "max", backend2);
+}
+var maxConfig3 = {
+  kernelName: Max,
+  backendName: "webgpu",
+  kernelFunc: max5
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Mean.ts
+function mean3(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { keepDims, axis } = attrs;
+  return reduce2(x, axis, keepDims, "mean", backend2);
+}
+var meanConfig3 = {
+  kernelName: Mean,
+  backendName: "webgpu",
+  kernelFunc: mean3
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Pool_impl.ts
+function poolImpl(x, convInfo, poolType, backend2) {
   if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 && util_exports.arraysEqual(convInfo.inShape, convInfo.outShape)) {
     return identity4({ inputs: { x }, backend: backend2 });
+  }
+  if (convInfo.filterWidth === convInfo.inWidth && convInfo.filterHeight === convInfo.inHeight && convInfo.batchSize === 1 && convInfo.padInfo.type === "VALID") {
+    const length = x.shape.length;
+    const reshapeX = reshape5({
+      inputs: { x },
+      backend: backend2,
+      attrs: {
+        shape: [
+          x.shape[length - 3] * x.shape[length - 2],
+          x.shape[length - 1]
+        ]
+      }
+    });
+    let reduceX;
+    if (poolType === "avg") {
+      reduceX = mean3(
+        { inputs: { x: reshapeX }, backend: backend2, attrs: { axis: 0, keepDims: false } }
+      );
+    } else {
+      util_exports.assert(poolType === "max", () => `Invalid pool type ${poolType}`);
+      reduceX = max5({
+        inputs: { x: reshapeX },
+        backend: backend2,
+        attrs: { reductionIndices: 0, keepDims: false }
+      });
+    }
+    const result = reshape5(
+      { inputs: { x: reduceX }, backend: backend2, attrs: { shape: convInfo.outShape } }
+    );
+    backend2.disposeData(reshapeX.dataId);
+    backend2.disposeData(reduceX.dataId);
+    return result;
   }
   let program;
   const dimensions = [{ type: "int32", data: [convInfo.strideHeight, convInfo.strideWidth] }];
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
     program = new PoolWithFilterSizeEqualsOneProgram(convInfo);
   } else {
-    program = new Pool2DProgram2(convInfo, "avg");
+    if (poolType === "avg") {
+      program = new Pool2DProgram2(convInfo, "avg");
+    } else {
+      util_exports.assert(poolType === "max", () => `Invalid pool type ${poolType}`);
+      program = new Pool2DProgram2(convInfo, "max");
+    }
     dimensions.push(
       { type: "int32", data: [convInfo.padInfo.top, convInfo.padInfo.left] },
       {
@@ -74801,6 +75054,23 @@ function avgPool4(args) {
     );
   }
   return backend2.runWebGPUProgram(program, [x], x.dtype, dimensions);
+}
+
+// src/tfjs-backend-webgpu/src/kernels/AvgPool.ts
+function avgPool4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { filterSize, strides, pad: pad3, dimRoundingMode } = attrs;
+  const dilations = 1;
+  const convInfo = backend_util_exports.computePool2DInfo(
+    x.shape,
+    filterSize,
+    strides,
+    dilations,
+    pad3,
+    dimRoundingMode
+  );
+  return poolImpl(x, convInfo, "avg", backend2);
 }
 var avgPoolConfig3 = {
   kernelName: AvgPool,
@@ -74855,7 +75125,7 @@ var SliceProgram2 = class {
       });
     }
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           var sourceLoc : ${dtype};
           let coords = getCoordsFromIndex(index);
@@ -75009,6 +75279,11 @@ function cast5(args) {
     const result = identity4({ inputs: { x }, backend: backend2 });
     return { dataId: result.dataId, shape: result.shape, dtype };
   }
+  if (backend2.shouldExecuteOnCPU([x])) {
+    const values = backend2.tensorMap.get(x.dataId).values;
+    const [resultShape, resultType, resultData] = castImplCPU2(values, x.shape, x.dtype, dtype);
+    return backend2.makeTensorInfo(resultShape, resultType, resultData);
+  }
   if (dtype === "int32") {
     return int2(x, backend2);
   }
@@ -75060,7 +75335,7 @@ var ClipVec4Program = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
           var clampedValue : vec4<f32>;
@@ -75098,7 +75373,7 @@ var ClipProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
           if (isnan(value)) {
@@ -75176,7 +75451,7 @@ var ConcatProgram2 = class {
       snippets.push(`setOutputAtCoords(coords.x, coords.y, getT0(yR, yC));`);
     }
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
@@ -75890,7 +76165,7 @@ var Conv2DDerInputProgram2 = class {
     const colDim = this.isChannelsLast ? 2 : 3;
     const channelDim = this.isChannelsLast ? 3 : 1;
     return `
-    ${getMainHeaderAndGlobalIndexString()} {
+    ${getMainHeaderString("index")} {
       if(index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
         let batch = coords[0];
@@ -76057,7 +76332,7 @@ var CropAndResizeProgram2 = class {
       `0.5 * (x1+x2) * ${inputWidthFloat}`
     ];
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+    ${getMainHeaderString("index")} {
       if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
         let height_ratio = f32(${heightRatio});
@@ -76177,7 +76452,7 @@ var CumProgram2 = class {
       idxString = this.reverse ? "end + pow2" : "end - pow2";
     }
     return `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
        if (index < uniforms.size) {
          var coords = getCoordsFromIndex(index);
 
@@ -76309,7 +76584,7 @@ var DepthToSpaceProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           let b = coords[0];
@@ -76439,10 +76714,10 @@ var DepthwiseConv2DNCHWSharedProgram = class {
       }
 
       ${getWorkGroupSizeString()}
-      fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-              @builtin(global_invocation_id) GlobalId : vec3<u32>,
-              @builtin(local_invocation_index) LocalIndex: u32,
-              @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
+      fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                @builtin(local_invocation_index) LocalIndex: u32,
+                @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
         localId = LocalId;
         globalId = GlobalId;
         let localIndex = i32(LocalIndex);
@@ -76543,7 +76818,7 @@ var DepthwiseConv2DVec4Program = class {
         return value;
       }
       ${getWorkGroupSizeString()}
-      fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
+      fn _start(@builtin(global_invocation_id) globalId: vec3<u32>) {
         let batch = i32(globalId.z) / uniforms.outShape[1];
         let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * 4;
@@ -76621,7 +76896,7 @@ var DepthwiseConv2DProgram2 = class {
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivation, false, 4)}
 
-      ${getMainHeaderString()}
+      ${getMainHeaderString()} {
         let coords = getOutputCoords();
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.${this.isChannelsLast ? "yz" : "zw"}) * uniforms.stride - uniforms.pad;
@@ -76754,147 +77029,6 @@ var multiplyConfig3 = {
   backendName: "webgpu",
   kernelFunc: multiplyKernelFunc
 };
-
-// src/tfjs-backend-webgpu/src/reduce_webgpu.ts
-var ReduceProgram2 = class {
-  constructor(reduceInfo, reduceType) {
-    this.workGroupSize = [64, 1, 1];
-    this.variableNames = ["x"];
-    this.uniforms = "reduceSize : i32,";
-    this.size = true;
-    this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
-    const [outputShape] = backend_util_exports.computeOutAndReduceShapes(this.inputShape, [1]);
-    this.outputShape = outputShape.length === 0 ? [1] : outputShape;
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
-    this.reduceType = reduceType;
-    this.shaderKey = `reduce_${reduceType}`;
-  }
-  getUserCode() {
-    let reduceOp = ``;
-    let initValue = "0.0";
-    if (this.reduceType === "min" || this.reduceType === "max") {
-      reduceOp = `
-         if (isnan(candidate)) {
-          bestValue = uniforms.NAN;
-         } else if (!isnan(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
-           {  bestValue = candidate; }`;
-      initValue = "f32(x[offset])";
-    } else if (this.reduceType === "sum" || this.reduceType === "mean") {
-      reduceOp = " bestValue = bestValue + candidate; ";
-    } else if (this.reduceType === "prod") {
-      reduceOp = " bestValue = bestValue * candidate; ";
-      initValue = "1.0";
-    }
-    const outputSnippet = this.reduceType === "mean" ? `setOutputAtIndex(outputIndex, bestValue / f32(uniforms.reduceSize));` : `setOutputAtIndex(outputIndex, bestValue);`;
-    const sharedMemorySnippet = `
-         var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
-       `;
-    const userCode = `
-       fn DIV_CEIL(a : u32, b : u32) -> u32 {
-        return ((a - 1u) / b + 1u);
-       }
-
-       ${sharedMemorySnippet}
-       fn getOffset(outputIndex : i32) -> i32 {
-         let outputCoords = getCoordsFromIndex(outputIndex);
-         let offset = ${this.outputShape.length === 1 ? "outputCoords" : "outputCoords[0]"} * uniforms.reduceSize;
-          return offset;
-       }
-       ${getMainHeaderAndGlobalIndexString()}
-         let outputIndex = index / i32(workGroupSizeX);
-         let offset = getOffset(outputIndex);
-         var bestValue = ${initValue};
-         let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(u32(Length), workGroupSizeX);
-         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
-             k = k + i32(workGroupSizeX)) {
-           let candidate = f32(x[offset + k]);
-           ${reduceOp}
-         }
-         xBestValues[localId.x] = bestValue;
-         workgroupBarrier();
-
-         var reduceSize = min(u32(Length), workGroupSizeX);
-         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
-             currentSize = reduceSize / 2u) {
-           let interval = DIV_CEIL(reduceSize, 2u);
-           if (localId.x < currentSize) {
-            let candidate = xBestValues[localId.x + interval];
-            ${reduceOp}
-            xBestValues[localId.x] = bestValue;
-           }
-           reduceSize = interval;
-           workgroupBarrier();
-         }
-
-         if (localId.x == 0u && outputIndex < uniforms.size) {
-          ${outputSnippet}
-        }
-       }
-     `;
-    return userCode;
-  }
-};
-
-// src/tfjs-backend-webgpu/src/kernel_utils/reduce.ts
-function reduce2(x, axis, keepDims, reduceType, backend2) {
-  const xRank = x.shape.length;
-  const toDispose = [];
-  const origAxes = util_exports.parseAxisParam(axis, x.shape);
-  let axes = origAxes;
-  const permutedAxes = backend_util_exports.getAxesPermutation(axes, xRank);
-  let input2 = x;
-  if (permutedAxes != null) {
-    input2 = transpose4({ inputs: { x }, attrs: { perm: permutedAxes }, backend: backend2 });
-    axes = backend_util_exports.getInnerMostAxes(axes.length, xRank);
-    toDispose.push(input2);
-  }
-  backend_util_exports.assertAxesAreInnerMostDims(reduceType, axes, xRank);
-  const [reduceOutShape, reduceShape] = backend_util_exports.computeOutAndReduceShapes(input2.shape, axes);
-  let resOutShape = reduceOutShape;
-  if (keepDims) {
-    resOutShape = backend_util_exports.expandShapeToKeepDim(reduceOutShape, origAxes);
-  }
-  let res;
-  if ((reduceType === "max" || reduceType === "prod") && backend2.shouldExecuteOnCPU([input2])) {
-    const xVals = backend2.tensorMap.get(input2.dataId).values;
-    switch (reduceType) {
-      case "max":
-        const outValues = maxImplCPU2(
-          xVals,
-          util_exports.sizeFromShape(reduceShape),
-          resOutShape,
-          x.dtype
-        );
-        res = backend2.makeTensorInfo(resOutShape, x.dtype, outValues);
-        break;
-      case "prod":
-        const { outVals, outShape, outDtype } = prodImplCPU2(input2.shape, input2.dtype, xVals, axes);
-        res = backend2.makeTensorInfo(outShape, outDtype, outVals);
-        break;
-      default:
-        throw new Error(
-          `${reduceType} CPU implementation is not yet supported.`
-        );
-    }
-  } else {
-    const inSize = util_exports.sizeFromShape(reduceShape);
-    const xSize = util_exports.sizeFromShape(input2.shape);
-    const batchSize = xSize / inSize;
-    const reduceInfo = { windowSize: inSize, inSize, batchSize, outSize: 1 };
-    const dtype = reduceType === "mean" ? "float32" : sumOutType(x.dtype);
-    const uniformData = [
-      { type: "int32", data: [inSize] }
-    ];
-    const program = new ReduceProgram2(reduceInfo, reduceType);
-    const reduced = backend2.runWebGPUProgram(program, [input2], dtype, uniformData);
-    toDispose.push(reduced);
-    res = reshape5({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend: backend2 });
-  }
-  toDispose.forEach((t) => backend2.disposeData(t.dataId));
-  return res;
-}
 
 // src/tfjs-backend-webgpu/src/kernels/Sum.ts
 function sum5(args) {
@@ -77055,7 +77189,7 @@ var FlipLeftRightProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           let coordX = uniforms.xShape[2] - coords[2] - 1;
@@ -77120,7 +77254,7 @@ var FromPixelsProgram2 = class {
     const textureType = this.importVideo ? "texture_external" : "texture_2d<f32>";
     return `
       @binding(1) @group(0) var src: ${textureType};
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         let flatIndex = index * uniforms.numChannels;
         if (flatIndex < uniforms.size) {
           let coords = getCoordsFromIndex(flatIndex);
@@ -77285,7 +77419,7 @@ var BatchNormProgram2 = class {
       scaleSnippet = "getScaleByOutputIndex(index)";
     }
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size)
         {
           let xValue = getXByOutputIndex(index);
@@ -77477,7 +77611,7 @@ var GatherNDProgram2 = class {
       strideString = "uniforms.strides";
     }
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           var flattenIndex = 0;
@@ -77567,7 +77701,7 @@ var GatherProgram2 = class {
   getUserCode() {
     const sourceCoords = getSourceCoords4(this.aShape);
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
           let indexZ = i32(getIndices(resRC.x, resRC.z));
@@ -77759,19 +77893,6 @@ var logicalNotConfig3 = {
   kernelFunc: logicalNot4
 };
 
-// src/tfjs-backend-webgpu/src/kernels/Max.ts
-function max5(args) {
-  const { inputs, backend: backend2, attrs } = args;
-  const { x } = inputs;
-  const { reductionIndices, keepDims } = attrs;
-  return reduce2(x, reductionIndices, keepDims, "max", backend2);
-}
-var maxConfig3 = {
-  kernelName: Max,
-  backendName: "webgpu",
-  kernelFunc: max5
-};
-
 // src/tfjs-backend-webgpu/src/kernels/Maximum.ts
 var maximum5 = binaryKernelFunc3({
   opType: 16 /* MAX */,
@@ -77797,51 +77918,12 @@ function maxPool4(args) {
     pad3,
     dimRoundingMode
   );
-  let program;
-  const dimensions = [];
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-    if (util_exports.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-      return identity4({ inputs: { x }, backend: backend2 });
-    }
-    program = new PoolWithFilterSizeEqualsOneProgram(convInfo);
-    dimensions.push(
-      { type: "int32", data: [convInfo.strideHeight, convInfo.strideWidth] }
-    );
-  } else {
-    program = new Pool2DProgram2(convInfo, "max");
-    dimensions.push(
-      { type: "int32", data: [convInfo.strideHeight, convInfo.strideWidth] },
-      { type: "int32", data: [convInfo.padInfo.top, convInfo.padInfo.left] },
-      {
-        type: "int32",
-        data: [convInfo.dilationHeight, convInfo.dilationWidth]
-      },
-      { type: "int32", data: [convInfo.inHeight, convInfo.inWidth] },
-      {
-        type: "int32",
-        data: [convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth]
-      }
-    );
-  }
-  return backend2.runWebGPUProgram(program, [x], x.dtype, dimensions);
+  return poolImpl(x, convInfo, "max", backend2);
 }
 var maxPoolConfig3 = {
   kernelName: MaxPool,
   backendName: "webgpu",
   kernelFunc: maxPool4
-};
-
-// src/tfjs-backend-webgpu/src/kernels/Mean.ts
-function mean3(args) {
-  const { inputs, backend: backend2, attrs } = args;
-  const { x } = inputs;
-  const { keepDims, axis } = attrs;
-  return reduce2(x, axis, keepDims, "mean", backend2);
-}
-var meanConfig3 = {
-  kernelName: Mean,
-  backendName: "webgpu",
-  kernelFunc: mean3
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Min.ts
@@ -77903,7 +77985,7 @@ var MirrorPadProgram2 = class {
     const dtype = getCoordsDataType2(rank);
     const unpackedCoords = rank > 1 ? ["coords[0]", "coords[1]", "coords[2]", "coords[3]"].slice(0, rank) : "coords";
     return `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let start = ${dtype}(${start});
           let end = ${dtype}(${end});
@@ -78160,7 +78242,7 @@ var PadProgram2 = class {
     const rightPadCondition = rank > 1 ? `any(outC >= end)` : `outC >= end`;
     const unpackedCoords = rank > 1 ? ["coords[0]", "coords[1]", "coords[2]", "coords[3]"].slice(0, rank) : "coords";
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let start = ${startValue};
           let end = ${endValue};
@@ -78306,7 +78388,7 @@ var ResizeBilinearProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
           let b = coords[0];
@@ -78404,7 +78486,7 @@ var ResizeNearestNeighborProgram2 = class {
       sourceFracIndexRC = `vec2<f32>(rc) * effectiveInputOverOutputRatioRC`;
     }
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           let b = coords[0];
@@ -78496,8 +78578,7 @@ var RotateProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
-
+        ${getMainHeaderString("index")} {
           if (index < uniforms.size) {
             let coords = getCoordsFromIndex(index);
             let coordXFloat = (f32(coords[2]) - uniforms.centerX) *
@@ -78641,8 +78722,7 @@ var ScatterProgram2 = class {
     const userCode = `
     ${getUpdatesCoordsFromFlatIndex}
 
-      ${getMainHeaderAndGlobalIndexString()}
-
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
           var flattenedIndex = 0;
@@ -78753,7 +78833,7 @@ var SelectProgram2 = class {
       abCoords = abCoordVars.join();
     }
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
           let cVal = getC(${cCoords});
@@ -78924,7 +79004,7 @@ var TileProgram2 = class {
   getUserCode() {
     const sourceCoords = getSourceCoords5(this.rank, "uniforms.");
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
           setOutputAtIndex(index, getA(${sourceCoords}));
@@ -79188,7 +79268,7 @@ var StridedSliceProgram2 = class {
       }).join(",");
     }
     const userCode = `
-       ${getMainHeaderAndGlobalIndexString()}
+       ${getMainHeaderString("index")} {
          if (index < uniforms.size) {
            let coords = getCoordsFromIndex(index);
            setOutputAtIndex(index, getX(${newCoords}));
@@ -79332,7 +79412,7 @@ var SwapProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
+        ${getMainHeaderString("index")} {
           if (index < uniforms.size) {
             let outC = getCoordsFromIndex(index);
             let batch = outC[0];
@@ -79419,7 +79499,7 @@ var MergeProgram2 = class {
   }
   getUserCode() {
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
+        ${getMainHeaderString("index")} {
           if (index < uniforms.size) {
             let outC = getCoordsFromIndex(index);
             let batch = outC[0];
@@ -79692,7 +79772,7 @@ var TransformProgram2 = class {
             return outputValue;
           }
 
-          ${getMainHeaderAndGlobalIndexString()}
+          ${getMainHeaderString("index")} {
             if (index < uniforms.size) {
               let coords = getCoordsFromIndex(index);
               var outputValue : f32;
@@ -82447,8 +82527,8 @@ function setup30(backend2) {
 function oneHot4(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { indices } = inputs;
-  const { depth, onValue, offValue } = attrs;
-  const out = backend2.makeOutput([...indices.shape, depth], "int32");
+  const { dtype, depth, onValue, offValue } = attrs;
+  const out = backend2.makeOutput([...indices.shape, depth], dtype);
   const outId = backend2.dataIdMap.get(out.dataId).id;
   const indicesData = backend2.dataIdMap.get(indices.dataId);
   const indicesId = indicesData.id;
@@ -84593,7 +84673,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.19.0-20220819";
+var externalVersion = "3.19.0-20220823";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

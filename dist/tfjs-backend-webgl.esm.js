@@ -5721,13 +5721,13 @@ function matMul_(a, b, transposeA = false, transposeB = false) {
 var matMul = op({ matMul_ });
 
 // src/tfjs-core/src/ops/one_hot.ts
-function oneHot_(indices, depth, onValue = 1, offValue = 0) {
+function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
   const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
   const inputs = { indices: $indices };
-  const attrs = { depth, onValue, offValue };
+  const attrs = { dtype, depth, onValue, offValue };
   return ENGINE.runKernel(
     OneHot,
     inputs,
@@ -13996,6 +13996,9 @@ function getWebGLRenderingContext(webGLVersion, customCanvas) {
     ev.preventDefault();
     delete contexts[webGLVersion];
   }, false);
+  if (env().getBool("SOFTWARE_WEBGL_ENABLED")) {
+    WEBGL_ATTRIBUTES.failIfMajorPerformanceCaveat = false;
+  }
   if (webGLVersion === 1) {
     return canvas.getContext("webgl", WEBGL_ATTRIBUTES) || canvas.getContext("experimental-webgl", WEBGL_ATTRIBUTES);
   }
@@ -14763,6 +14766,7 @@ ENV3.registerFlag("WEBGL_USE_SHAPES_UNIFORMS", () => false);
 ENV3.registerFlag("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e5);
 ENV3.registerFlag("TOPK_K_CPU_HANDOFF_THRESHOLD", () => 128);
 ENV3.registerFlag("WEBGL_EXP_CONV", () => false);
+ENV3.registerFlag("SOFTWARE_WEBGL_ENABLED", () => ENV3.getBool("IS_TEST"));
 
 // src/tfjs-backend-webgl/src/glsl_version.ts
 function getGlslDifferences() {
@@ -18123,6 +18127,7 @@ __export(shared_exports, {
   addImpl: () => addImpl,
   bincountImpl: () => bincountImpl,
   bincountReduceImpl: () => bincountReduceImpl,
+  castImpl: () => castImpl,
   ceilImpl: () => ceilImpl,
   concatImpl: () => concatImpl,
   equalImpl: () => equalImpl,
@@ -18269,6 +18274,20 @@ function real2(args) {
 }
 
 // src/tfjs-backend-cpu/src/kernels/Cast.ts
+function castImpl(values, shape, inputType, dtype) {
+  if (dtype === "int32") {
+    const resultValues = Int32Array.from(values);
+    return [shape, "int32", resultValues];
+  }
+  if (dtype === "bool") {
+    const zero = util_exports.toTypedArray([0], inputType);
+    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
+      (a, b) => a !== b ? 1 : 0
+    )(shape, [], values, zero, "bool");
+    return [resultShape, "bool", resultData];
+  }
+  throw new Error(`Error in Cast: failed to cast ${inputType} to ${dtype}`);
+}
 function cast2(args) {
   const { inputs, backend, attrs } = args;
   const { x } = inputs;
@@ -18294,20 +18313,9 @@ function cast2(args) {
     const result = identity({ inputs: { x }, backend });
     return { dataId: result.dataId, shape: result.shape, dtype };
   }
-  if (dtype === "int32") {
-    const values = backend.data.get(x.dataId).values;
-    const resultValues = Int32Array.from(values);
-    return backend.makeTensorInfo(x.shape, "int32", resultValues);
-  }
-  if (dtype === "bool") {
-    const xVals = backend.data.get(x.dataId).values;
-    const zero = util_exports.toTypedArray([0], x.dtype);
-    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
-      (a, b) => a !== b ? 1 : 0
-    )(x.shape, [], xVals, zero, "bool");
-    return backend.makeTensorInfo(resultShape, "bool", resultData);
-  }
-  throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
+  const values = backend.data.get(x.dataId).values;
+  const [resultShape, resultType, resultData] = castImpl(values, x.shape, x.dtype, dtype);
+  return backend.makeTensorInfo(resultShape, resultType, resultData);
 }
 
 // src/tfjs-backend-cpu/src/utils/binary_utils.ts
@@ -19917,6 +19925,7 @@ var {
   addImpl: addImplCPU,
   bincountImpl: bincountImplCPU,
   bincountReduceImpl: bincountReduceImplCPU,
+  castImpl: castImplCPU,
   ceilImpl: ceilImplCPU,
   concatImpl: concatImplCPU,
   equalImpl: equalImplCPU,
@@ -24140,6 +24149,11 @@ function cast3(args) {
   if (!util_exports.hasEncodingLoss(x.dtype, dtype)) {
     const result = identity2({ inputs: { x }, backend });
     return { dataId: result.dataId, shape: result.shape, dtype };
+  }
+  if (backend.shouldExecuteOnCPU([x])) {
+    const values = backend.texData.get(x.dataId).values;
+    const [resultShape, resultType, resultData] = castImplCPU(values, x.shape, x.dtype, dtype);
+    return backend.makeTensorInfo(resultShape, resultType, resultData);
   }
   if (dtype === "int32") {
     return int(x, backend);
@@ -29310,11 +29324,11 @@ var OneHotProgram = class {
 var oneHot2 = (args) => {
   const { inputs, backend, attrs } = args;
   const { indices } = inputs;
-  const { depth, onValue, offValue } = attrs;
+  const { dtype, depth, onValue, offValue } = attrs;
   const indicesSize = util_exports.sizeFromShape(indices.shape);
   const program = new OneHotProgram(indicesSize, depth, onValue, offValue);
   const reshaped = reshape2({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
-  const result = backend.runWebGLProgram(program, [reshaped], indices.dtype);
+  const result = backend.runWebGLProgram(program, [reshaped], dtype);
   backend.disposeIntermediateTensorInfo(reshaped);
   const outShape = [...indices.shape, depth];
   const out = reshape2({ inputs: { x: result }, backend, attrs: { shape: outShape } });

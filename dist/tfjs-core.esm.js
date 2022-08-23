@@ -6403,13 +6403,13 @@ function matMul_(a, b, transposeA = false, transposeB = false) {
 var matMul = op({ matMul_ });
 
 // src/tfjs-core/src/ops/one_hot.ts
-function oneHot_(indices, depth, onValue = 1, offValue = 0) {
+function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
   const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
   const inputs = { indices: $indices };
-  const attrs = { depth, onValue, offValue };
+  const attrs = { dtype, depth, onValue, offValue };
   return ENGINE.runKernel(
     OneHot,
     inputs,

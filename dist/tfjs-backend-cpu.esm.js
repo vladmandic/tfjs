@@ -5687,13 +5687,13 @@ function matMul_(a, b, transposeA = false, transposeB = false) {
 var matMul = op({ matMul_ });
 
 // src/tfjs-core/src/ops/one_hot.ts
-function oneHot_(indices, depth, onValue = 1, offValue = 0) {
+function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
   const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
   const inputs = { indices: $indices };
-  const attrs = { depth, onValue, offValue };
+  const attrs = { dtype, depth, onValue, offValue };
   return ENGINE.runKernel(
     OneHot,
     inputs,
@@ -14009,6 +14009,7 @@ __export(shared_exports, {
   addImpl: () => addImpl,
   bincountImpl: () => bincountImpl,
   bincountReduceImpl: () => bincountReduceImpl,
+  castImpl: () => castImpl,
   ceilImpl: () => ceilImpl,
   concatImpl: () => concatImpl,
   equalImpl: () => equalImpl,
@@ -14169,6 +14170,20 @@ var realConfig = {
 };
 
 // src/tfjs-backend-cpu/src/kernels/Cast.ts
+function castImpl(values, shape, inputType, dtype) {
+  if (dtype === "int32") {
+    const resultValues = Int32Array.from(values);
+    return [shape, "int32", resultValues];
+  }
+  if (dtype === "bool") {
+    const zero = util_exports.toTypedArray([0], inputType);
+    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
+      (a, b) => a !== b ? 1 : 0
+    )(shape, [], values, zero, "bool");
+    return [resultShape, "bool", resultData];
+  }
+  throw new Error(`Error in Cast: failed to cast ${inputType} to ${dtype}`);
+}
 function cast2(args) {
   const { inputs, backend, attrs } = args;
   const { x } = inputs;
@@ -14194,20 +14209,9 @@ function cast2(args) {
     const result = identity({ inputs: { x }, backend });
     return { dataId: result.dataId, shape: result.shape, dtype };
   }
-  if (dtype === "int32") {
-    const values = backend.data.get(x.dataId).values;
-    const resultValues = Int32Array.from(values);
-    return backend.makeTensorInfo(x.shape, "int32", resultValues);
-  }
-  if (dtype === "bool") {
-    const xVals = backend.data.get(x.dataId).values;
-    const zero = util_exports.toTypedArray([0], x.dtype);
-    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
-      (a, b) => a !== b ? 1 : 0
-    )(x.shape, [], xVals, zero, "bool");
-    return backend.makeTensorInfo(resultShape, "bool", resultData);
-  }
-  throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
+  const values = backend.data.get(x.dataId).values;
+  const [resultShape, resultType, resultData] = castImpl(values, x.shape, x.dtype, dtype);
+  return backend.makeTensorInfo(resultShape, resultType, resultData);
 }
 var castConfig = {
   kernelName: Cast,
@@ -20030,7 +20034,7 @@ var nonMaxSuppressionV5Config = {
 function oneHot2(args) {
   const { inputs, backend, attrs } = args;
   const { indices } = inputs;
-  const { depth, onValue, offValue } = attrs;
+  const { dtype, depth, onValue, offValue } = attrs;
   assertNotComplex(indices, "oneHot");
   const indicesSize = util_exports.sizeFromShape(indices.shape);
   const res = new Float32Array(indicesSize * depth);
@@ -20041,7 +20045,7 @@ function oneHot2(args) {
       res[event * depth + indicesVal[event]] = onValue;
     }
   }
-  return backend.makeTensorInfo([...indices.shape, depth], "int32", res);
+  return backend.makeTensorInfo([...indices.shape, depth], dtype, res);
 }
 var oneHotConfig = {
   kernelName: OneHot,
