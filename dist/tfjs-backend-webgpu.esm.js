@@ -20873,7 +20873,7 @@ var Conv2DDerInputProgram = class {
         let batch = coords[0];
         let d1 = coords[${channelDim}];
 
-        let dyCorner = vec2<i32>(coords[${rowDim}]), coords[${colDim}]) - uniforms.pads;
+        let dyCorner = vec2<i32>(coords[${rowDim}], coords[${colDim}]) - uniforms.pads;
         let dyRCorner = dyCorner.x;
         let dyCCorner = dyCorner.y;
 
@@ -20887,7 +20887,7 @@ var Conv2DDerInputProgram = class {
               wRPerm < 0) {
             continue;
           }
-          let idyR = dyR;
+          let idyR = i32(dyR);
 
           for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
             let dyC = (f32(dyCCorner) + f32(wC)) / f32(uniforms.stride.y);
@@ -20896,7 +20896,7 @@ var Conv2DDerInputProgram = class {
                 fract(dyC) > 0.0 || wCPerm < 0) {
               continue;
             }
-            let idyC = dyC;
+            let idyC = i32(dyC);
 
             for (var d2 = 0; d2 < uniforms.outBackprop[3]; d2 = d2 + 1) {
               if (${this.isChannelsLast}) {
@@ -20956,12 +20956,12 @@ function conv2DBackpropInput2(args) {
     }
   ];
   let program;
-  if (env().getBool("WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE")) {
+  if (env().getBool("WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE") || convInfo.filterHeight <= 2 && convInfo.filterWidth <= 2 && convInfo.outChannels <= 16 && convInfo.inChannels === 1) {
     program = new Conv2DDerInputProgram(convInfo);
   } else {
     program = new Conv2DDerInputMMProgram(convInfo);
-    const dimAOuter = convInfo.inShape[1] * convInfo.inShape[2];
-    const dimBOuter = convInfo.inShape[3];
+    const dimAOuter = convInfo.inHeight * convInfo.inWidth;
+    const dimBOuter = convInfo.inChannels;
     const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
     dimensions.push(
       { type: "uint32", data: [dimAOuter] },
