@@ -72699,7 +72699,7 @@ var POW_VEC4 = `
   if (isExpZero.a) {
     resultTemp.a = 1.0;
   }
-  let isNaN = a < vec4<f32>(0.0) & floor(b) < b;
+  let isNaN = (a < vec4<f32>(0.0)) & (floor(b) < b);
   let valueForNaN = uniforms.NAN;
   ${CHECK_NAN_SNIPPET_VEC4_INNER}
   return resultTemp;
@@ -84661,7 +84661,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.20.0-20220828";
+var externalVersion = "3.20.0-20220830";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
