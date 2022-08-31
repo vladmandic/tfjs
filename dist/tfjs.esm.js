@@ -11,9 +11,6 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
     return require.apply(this, arguments);
   throw new Error('Dynamic require of "' + x + '" is not supported');
 });
-var __esm = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
-};
 var __commonJS = (cb, mod4) => function __require2() {
   return mod4 || (0, cb[__getOwnPropNames(cb)[0]])((mod4 = { exports: {} }).exports, mod4), mod4.exports;
 };
@@ -33,12 +30,10 @@ var __toESM = (mod4, isNodeMode, target) => (target = mod4 != null ? __create(__
   isNodeMode || !mod4 || !mod4.__esModule ? __defProp(target, "default", { value: mod4, enumerable: true }) : target,
   mod4
 ));
-var __toCommonJS = (mod4) => __copyProps(__defProp({}, "__esModule", { value: true }), mod4);
 
-// (disabled):src/node_modules/.pnpm/node-fetch@3.2.10/node_modules/node-fetch/src/index.js
-var src_exports = {};
-var init_src = __esm({
-  "(disabled):src/node_modules/.pnpm/node-fetch@3.2.10/node_modules/node-fetch/src/index.js"() {
+// (disabled):node-fetch
+var require_node_fetch = __commonJS({
+  "(disabled):node-fetch"() {
   }
 });
 
@@ -48,9 +43,9 @@ var require_util = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js
 var require_alea = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/alea.js"(exports, module) {
     (function(global2, module2, define2) {
       function Alea(seed) {
         var me = this, mash = Mash();
@@ -138,9 +133,9 @@ var require_alea = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js
 var require_xor128 = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor128.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -210,9 +205,9 @@ var require_xor128 = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js
 var require_xorwow = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorwow.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -289,9 +284,9 @@ var require_xorwow = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js
 var require_xorshift7 = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xorshift7.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -384,9 +379,9 @@ var require_xorshift7 = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js
 var require_xor4096 = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/xor4096.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this;
@@ -494,9 +489,9 @@ var require_xor4096 = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js
 var require_tychei = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/lib/tychei.js"(exports, module) {
     (function(global2, module2, define2) {
       function XorGen(seed) {
         var me = this, strseed = "";
@@ -578,9 +573,9 @@ var require_crypto = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js
 var require_seedrandom = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/seedrandom.js"(exports, module) {
     (function(global2, pool3, math) {
       var width = 256, chunks = 6, digits = 52, rngname = "random", startdenom = math.pow(width, chunks), significance = math.pow(2, digits), overflow = significance * 2, mask = width - 1, nodecrypto;
       function seedrandom5(seed, options, callback) {
@@ -723,9 +718,9 @@ var require_seedrandom = __commonJS({
   }
 });
 
-// src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js
+// node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js
 var require_seedrandom2 = __commonJS({
-  "src/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js"(exports, module) {
+  "node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom/index.js"(exports, module) {
     var alea5 = require_alea();
     var xor128 = require_xor128();
     var xorwow = require_xorwow();
@@ -743,9 +738,9 @@ var require_seedrandom2 = __commonJS({
   }
 });
 
-// (disabled):src/node_modules/.pnpm/string_decoder@1.3.0/node_modules/string_decoder/lib/string_decoder.js
+// (disabled):string_decoder
 var require_string_decoder = __commonJS({
-  "(disabled):src/node_modules/.pnpm/string_decoder@1.3.0/node_modules/string_decoder/lib/string_decoder.js"() {
+  "(disabled):string_decoder"() {
   }
 });
 
@@ -5048,7 +5043,7 @@ __export(util_exports, {
   toTypedArray: () => toTypedArray
 });
 
-// src/node_modules/.pnpm/long@5.2.0/node_modules/long/index.js
+// node_modules/.pnpm/long@5.2.0/node_modules/long/index.js
 var long_exports = {};
 __export(long_exports, {
   default: () => long_default
@@ -8952,7 +8947,7 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
-  importFetch: () => (init_src(), __toCommonJS(src_exports))
+  importFetch: () => require_node_fetch()
 };
 var systemFetch;
 var PlatformNode = class {
@@ -44364,8 +44359,8 @@ function getTFHubUrl(modelUrl) {
 var version3 = "0.0.0";
 
 // src/tfjs-data/src/index.ts
-var src_exports3 = {};
-__export(src_exports3, {
+var src_exports2 = {};
+__export(src_exports2, {
   CSVDataset: () => CSVDataset,
   Dataset: () => Dataset,
   FileDataSource: () => FileDataSource,
@@ -74341,7 +74336,7 @@ var addConfig3 = {
 // src/tfjs-backend-webgpu/src/addn_packed_webgpu.ts
 var AddNPackedProgram2 = class {
   constructor(shapes) {
-    this.workPerThread = 4;
+    this.workPerThread = 1;
     this.workGroupSize = [64, 1, 1];
     this.size = true;
     this.outputShape = shapes[0];
@@ -74572,7 +74567,7 @@ var TransposeSharedProgram = class {
 var TransposeProgram2 = class {
   constructor(aShape, newDim) {
     this.variableNames = ["A"];
-    this.workPerThread = 4;
+    this.workPerThread = 1;
     this.workGroupSize = [64, 1, 1];
     this.size = true;
     const outputShape = new Array(aShape.length);
@@ -75403,7 +75398,7 @@ var clipByValueConfig3 = {
 var ConcatProgram2 = class {
   constructor(shapes) {
     this.uniforms = "";
-    this.workPerThread = 4;
+    this.workPerThread = 1;
     this.workGroupSize = [64, 1, 1];
     this.size = true;
     this.outputShape = backend_util_exports.computeOutShape(shapes, 1);
@@ -84661,7 +84656,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.20.0-20220830";
+var externalVersion = "3.20.0-20220831";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -84937,7 +84932,7 @@ export {
   cumprod,
   cumsum,
   customGrad,
-  src_exports3 as data,
+  src_exports2 as data,
   denseBincount,
   deprecationWarn,
   depthToSpace,

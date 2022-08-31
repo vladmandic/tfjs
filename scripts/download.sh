@@ -14,6 +14,9 @@ else
   git clone --depth 1 https://github.com/tensorflow/tfjs src
   # git clone --depth 1 --branch settimeout https://github.com/gyagp/tfjs src
   cd src
-  if [ -f tfjs.code-workspace ]; then rm tfjs.code-workspace; fi
   cd ..
 fi
+
+if [ -f tfjs.code-workspace ]; then rm tfjs.code-workspace; fi
+if [ -f src/tfjs-automl/demo/img_classification/package.json ]; then rm src/tfjs-automl/demo/img_classification/package.json; fi
+if [ -f src/tfjs-automl/demo/object_detection/package.json ]; then rm src/tfjs-automl/demo/object_detection/package.json; fi
