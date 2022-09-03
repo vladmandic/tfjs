@@ -54813,8 +54813,13 @@ function getShapeAs3D(shape) {
 }
 function getTextureShapeFromLogicalShape(logShape, isPacked = false) {
   let maxTexSize = env().getNumber("WEBGL_MAX_TEXTURE_SIZE");
+  let maxSizeForNarrowTex = env().getNumber("WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE");
+  if (maxSizeForNarrowTex === Infinity && env().getBool("WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE")) {
+    maxSizeForNarrowTex = maxTexSize / 2;
+  }
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
+    maxSizeForNarrowTex = maxSizeForNarrowTex * 2;
     logShape = logShape.map(
       (d, i) => i >= logShape.length - 2 ? util_exports.nearestLargerEven(logShape[i]) : logShape[i]
     );
@@ -54827,19 +54832,22 @@ function getTextureShapeFromLogicalShape(logShape, isPacked = false) {
     logShape = squeezeResult.newShape;
   }
   let size = util_exports.sizeFromShape(logShape);
+  let textureShape = null;
   if (logShape.length <= 1 && size <= maxTexSize) {
-    return [1, size];
+    textureShape = [1, size];
   } else if (logShape.length === 2 && logShape[0] <= maxTexSize && logShape[1] <= maxTexSize) {
-    return logShape;
+    textureShape = logShape;
   } else if (logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize && logShape[2] <= maxTexSize) {
-    return [logShape[0] * logShape[1], logShape[2]];
+    textureShape = [logShape[0] * logShape[1], logShape[2]];
   } else if (logShape.length === 3 && logShape[0] <= maxTexSize && logShape[1] * logShape[2] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2]];
+    textureShape = [logShape[0], logShape[1] * logShape[2]];
   } else if (logShape.length === 4 && logShape[0] * logShape[1] * logShape[2] <= maxTexSize && logShape[3] <= maxTexSize) {
-    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (logShape.length === 4 && logShape[0] <= maxTexSize && logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
-  } else {
+    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+  }
+  const isLongNarrowTex = textureShape != null && Math.max(...textureShape) > maxSizeForNarrowTex && Math.min(...textureShape) <= (isPacked ? 2 : 1) && Math.min(...textureShape) > 0;
+  if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       const batchDim = getBatchDim(logShape);
       let rows = 2, cols = 2;
@@ -54847,10 +54855,12 @@ function getTextureShapeFromLogicalShape(logShape, isPacked = false) {
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      return util_exports.sizeToSquarishShape(size).map((d) => d * 2);
+      textureShape = util_exports.sizeToSquarishShape(size).map((d) => d * 2);
+    } else {
+      textureShape = util_exports.sizeToSquarishShape(size);
     }
-    return util_exports.sizeToSquarishShape(size);
   }
+  return textureShape;
 }
 function isEven2(n) {
   return n % 2 === 0;
@@ -55177,6 +55187,8 @@ ENV5.registerFlag("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e5);
 ENV5.registerFlag("TOPK_K_CPU_HANDOFF_THRESHOLD", () => 128);
 ENV5.registerFlag("WEBGL_EXP_CONV", () => false);
 ENV5.registerFlag("SOFTWARE_WEBGL_ENABLED", () => ENV5.getBool("IS_TEST"));
+ENV5.registerFlag("WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE", () => Infinity);
+ENV5.registerFlag("WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE", () => false);
 
 // src/tfjs-backend-webgl/src/glsl_version.ts
 function getGlslDifferences() {
@@ -56556,7 +56568,7 @@ function getSampler3D(inputInfo, enableShapeUniforms) {
       // Explicitly use integer operations as dot() only works on floats.
       int stride0 = ${texName}Shape[1] * ${texName}Shape[2];
       int stride1 = ${texName}Shape[2];
-      int index = row * ${stride0} + col * ${stride1} + depth + ${offset};
+      int index = row * stride0 + col * stride1 + depth + ${offset};
       vec2 uv = uvFromFlat(${texName}TexShape[0], ${texName}TexShape[1], index);
       return sampleTexture(${texName}, uv);
     }
@@ -72948,16 +72960,10 @@ function matMulReadFnSource(batchAEqualOne, batchBEqualOne, transposeA, transpos
   );
   const sampleA = `
       let batch = ${batchAEqualOne ? "0" : "batchIn"};
-      let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-      ${transposeA ? `value = A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${component}];` : `value = A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${component}];`}
+      ${transposeA ? `value = getA(batch, col, row);` : `value = getA(batch, row, col);`}
 
     `;
-  let sampleB;
-  if (transposeB === false) {
-    sampleB = `value = B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${component}];`;
-  } else {
-    sampleB = `value = B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${component}];`;
-  }
+  const sampleB = transposeB ? `value = getB(batch, col, row);` : `value = getB(batch, row, col);`;
   return `
   fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
@@ -72974,7 +72980,6 @@ function matMulReadFnSource(batchAEqualOne, batchBEqualOne, transposeA, transpos
   fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     let col = colIn * ${component};
     let batch = ${batchBEqualOne ? "0" : "batchIn"};
-    let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
@@ -84656,7 +84661,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.20.0-20220831";
+var externalVersion = "3.20.0-20220903";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

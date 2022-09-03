@@ -14398,8 +14398,13 @@ function getShapeAs3D(shape) {
 }
 function getTextureShapeFromLogicalShape(logShape, isPacked = false) {
   let maxTexSize = env().getNumber("WEBGL_MAX_TEXTURE_SIZE");
+  let maxSizeForNarrowTex = env().getNumber("WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE");
+  if (maxSizeForNarrowTex === Infinity && env().getBool("WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE")) {
+    maxSizeForNarrowTex = maxTexSize / 2;
+  }
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
+    maxSizeForNarrowTex = maxSizeForNarrowTex * 2;
     logShape = logShape.map(
       (d, i) => i >= logShape.length - 2 ? util_exports.nearestLargerEven(logShape[i]) : logShape[i]
     );
@@ -14412,19 +14417,22 @@ function getTextureShapeFromLogicalShape(logShape, isPacked = false) {
     logShape = squeezeResult.newShape;
   }
   let size = util_exports.sizeFromShape(logShape);
+  let textureShape = null;
   if (logShape.length <= 1 && size <= maxTexSize) {
-    return [1, size];
+    textureShape = [1, size];
   } else if (logShape.length === 2 && logShape[0] <= maxTexSize && logShape[1] <= maxTexSize) {
-    return logShape;
+    textureShape = logShape;
   } else if (logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize && logShape[2] <= maxTexSize) {
-    return [logShape[0] * logShape[1], logShape[2]];
+    textureShape = [logShape[0] * logShape[1], logShape[2]];
   } else if (logShape.length === 3 && logShape[0] <= maxTexSize && logShape[1] * logShape[2] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2]];
+    textureShape = [logShape[0], logShape[1] * logShape[2]];
   } else if (logShape.length === 4 && logShape[0] * logShape[1] * logShape[2] <= maxTexSize && logShape[3] <= maxTexSize) {
-    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (logShape.length === 4 && logShape[0] <= maxTexSize && logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
-  } else {
+    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+  }
+  const isLongNarrowTex = textureShape != null && Math.max(...textureShape) > maxSizeForNarrowTex && Math.min(...textureShape) <= (isPacked ? 2 : 1) && Math.min(...textureShape) > 0;
+  if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       const batchDim = getBatchDim(logShape);
       let rows = 2, cols = 2;
@@ -14432,10 +14440,12 @@ function getTextureShapeFromLogicalShape(logShape, isPacked = false) {
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      return util_exports.sizeToSquarishShape(size).map((d) => d * 2);
+      textureShape = util_exports.sizeToSquarishShape(size).map((d) => d * 2);
+    } else {
+      textureShape = util_exports.sizeToSquarishShape(size);
     }
-    return util_exports.sizeToSquarishShape(size);
   }
+  return textureShape;
 }
 function isEven2(n) {
   return n % 2 === 0;
@@ -14762,6 +14772,8 @@ ENV3.registerFlag("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e5);
 ENV3.registerFlag("TOPK_K_CPU_HANDOFF_THRESHOLD", () => 128);
 ENV3.registerFlag("WEBGL_EXP_CONV", () => false);
 ENV3.registerFlag("SOFTWARE_WEBGL_ENABLED", () => ENV3.getBool("IS_TEST"));
+ENV3.registerFlag("WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE", () => Infinity);
+ENV3.registerFlag("WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE", () => false);
 
 // src/tfjs-backend-webgl/src/glsl_version.ts
 function getGlslDifferences() {
@@ -16141,7 +16153,7 @@ function getSampler3D(inputInfo, enableShapeUniforms) {
       // Explicitly use integer operations as dot() only works on floats.
       int stride0 = ${texName}Shape[1] * ${texName}Shape[2];
       int stride1 = ${texName}Shape[2];
-      int index = row * ${stride0} + col * ${stride1} + depth + ${offset};
+      int index = row * stride0 + col * stride1 + depth + ${offset};
       vec2 uv = uvFromFlat(${texName}TexShape[0], ${texName}TexShape[1], index);
       return sampleTexture(${texName}, uv);
     }

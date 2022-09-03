@@ -15863,16 +15863,10 @@ function matMulReadFnSource(batchAEqualOne, batchBEqualOne, transposeA, transpos
   );
   const sampleA = `
       let batch = ${batchAEqualOne ? "0" : "batchIn"};
-      let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-      ${transposeA ? `value = A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${component}];` : `value = A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${component}];`}
+      ${transposeA ? `value = getA(batch, col, row);` : `value = getA(batch, row, col);`}
 
     `;
-  let sampleB;
-  if (transposeB === false) {
-    sampleB = `value = B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${component}];`;
-  } else {
-    sampleB = `value = B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${component}];`;
-  }
+  const sampleB = transposeB ? `value = getB(batch, col, row);` : `value = getB(batch, row, col);`;
   return `
   fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
@@ -15889,7 +15883,6 @@ function matMulReadFnSource(batchAEqualOne, batchBEqualOne, transposeA, transpos
   fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     let col = colIn * ${component};
     let batch = ${batchBEqualOne ? "0" : "batchIn"};
-    let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
