@@ -1568,6 +1568,7 @@ var PadV2 = "PadV2";
 var Pow = "Pow";
 var Prelu = "Prelu";
 var Prod = "Prod";
+var RaggedGather = "RaggedGather";
 var RaggedTensorToTensor = "RaggedTensorToTensor";
 var Range = "Range";
 var Real = "Real";
@@ -7766,6 +7767,12 @@ function ceil_(x) {
 }
 var ceil = op({ ceil_ });
 
+// src/tfjs-core/src/ops/fill.ts
+function fill(shape, value, dtype) {
+  const attrs = { shape, value, dtype };
+  return ENGINE.runKernel(Fill, {}, attrs);
+}
+
 // src/tfjs-core/src/ops/clip_by_value.ts
 function clipByValue_(x, clipValueMin, clipValueMax) {
   const $x = convertToTensor(x, "x", "clipByValue");
@@ -7773,6 +7780,9 @@ function clipByValue_(x, clipValueMin, clipValueMax) {
     clipValueMin <= clipValueMax,
     () => `Error in clip: min (${clipValueMin}) must be less than or equal to max (${clipValueMax}).`
   );
+  if (clipValueMin === clipValueMax) {
+    return fill($x.shape, clipValueMin, $x.dtype);
+  }
   const inputs = { x: $x };
   const attrs = { clipValueMin, clipValueMax };
   return ENGINE.runKernel(
@@ -8685,12 +8695,6 @@ function eye_(numRows, numColumns, batchShape, dtype = "float32") {
 }
 var eye = op({ eye_ });
 
-// src/tfjs-core/src/ops/fill.ts
-function fill(shape, value, dtype) {
-  const attrs = { shape, value, dtype };
-  return ENGINE.runKernel(Fill, {}, attrs);
-}
-
 // src/tfjs-core/src/ops/floor.ts
 function floor_(x) {
   const $x = convertToTensor(x, "x", "floor", "float32");
@@ -9535,6 +9539,27 @@ function prod_(x, axis = null, keepDims = false) {
   );
 }
 var prod = op({ prod_ });
+
+// src/tfjs-core/src/ops/ragged_gather.ts
+function raggedGather_(paramsNestedSplits, paramsDenseValues, indices, outputRaggedRank) {
+  const $paramsNestedSplits = paramsNestedSplits.map(
+    (t, i) => convertToTensor(t, `tensors${i}`, "raggedGather", "int32")
+  );
+  const $paramsDenseValues = convertToTensor(paramsDenseValues, "paramsDenseValues", "raggedGather");
+  const $indices = convertToTensor(indices, "indices", "raggedGather", "int32");
+  const inputs = {
+    paramsNestedSplits: $paramsNestedSplits,
+    paramsDenseValues: $paramsDenseValues,
+    indices: $indices
+  };
+  const attrs = { outputRaggedRank };
+  const result = ENGINE.runKernel(RaggedGather, inputs, attrs);
+  return {
+    outputNestedSplits: result.slice(0, result.length - 1),
+    outputDenseValues: result[result.length - 1]
+  };
+}
+var raggedGather = op({ raggedGather_ });
 
 // src/tfjs-core/src/ops/ragged_tensor_to_tensor.ts
 function raggedTensorToTensor_(shape, values, defaultValue, rowPartitionTensors, rowPartitionTypes) {
@@ -18156,6 +18181,7 @@ __export(shared_exports, {
   negImpl: () => negImpl,
   notEqualImpl: () => notEqualImpl,
   prodImpl: () => prodImpl,
+  raggedGatherImpl: () => raggedGatherImpl,
   raggedTensorToTensorImpl: () => raggedTensorToTensorImpl,
   rangeImpl: () => rangeImpl,
   rsqrtImpl: () => rsqrtImpl,
@@ -18757,6 +18783,160 @@ function prodImpl(xShape, xDtype, xVals, reductionAxes) {
     outVals[i] = prod3;
   }
   return { outVals, outShape, outDtype };
+}
+
+// src/tfjs-backend-cpu/src/kernels/RaggedGather_impl.ts
+function validateIndices(indices, indicesShape, numParams) {
+  indices.forEach((index, i) => {
+    if (index < 0 || index >= numParams) {
+      const locString = util_exports.indexToLoc(
+        i,
+        indicesShape.length,
+        util_exports.computeStrides(indicesShape)
+      ).join(",");
+      throw new Error(
+        `indices[${locString}] = ${index} is not in [0, ${numParams})`
+      );
+    }
+  });
+}
+function validateSplits(paramsNestedSplits, numParamsDenseValues) {
+  for (let dim = 0; dim < paramsNestedSplits.length; ++dim) {
+    const splits = paramsNestedSplits[dim];
+    const lastSplit = dim === paramsNestedSplits.length - 1 ? numParamsDenseValues : paramsNestedSplits[dim + 1].length;
+    if (splits.length === 0) {
+      throw new Error("Ragged splits may not be empty");
+    }
+    if (splits[0] < 0) {
+      throw new Error("Ragged splits must be non-negative");
+    }
+    if (splits[splits.length - 1] > lastSplit) {
+      throw new Error("Ragged splits must not point past values");
+    }
+    for (let i = 1; i < splits.length; ++i) {
+      if (splits[i - 1] > splits[i]) {
+        throw new Error("Ragged splits must be sorted in ascending order");
+      }
+    }
+  }
+}
+function makeSplits(indices, indicesShape, paramsNestedSplits, numParamsDenseValues) {
+  const valueSlices = [];
+  let numValues = 0;
+  const numSplits = indicesShape.length - 1 + paramsNestedSplits.length;
+  const outSplits = new Array(numSplits).fill(null).map(() => [0]);
+  validateSplits(paramsNestedSplits, numParamsDenseValues);
+  let nrows = 1;
+  for (let dim = 0; dim < indicesShape.length - 1; ++dim) {
+    nrows *= indicesShape[dim];
+    const rowLength = indicesShape[dim + 1];
+    for (let i = 1; i < nrows + 1; ++i) {
+      outSplits[dim].push(i * rowLength);
+    }
+  }
+  for (let i = 0; i < indices.length; ++i) {
+    let start = indices[i];
+    let limit = indices[i] + 1;
+    for (let dim = 0; dim < paramsNestedSplits.length; ++dim) {
+      const splits = paramsNestedSplits[dim];
+      const outDim = dim + indicesShape.length - 1;
+      if (outDim >= 0) {
+        const outSplitsOutDim = outSplits[outDim];
+        const delta = outSplitsOutDim[outSplitsOutDim.length - 1] - splits[start];
+        for (let j = start; j < limit; ++j) {
+          outSplits[outDim].push(splits[j + 1] + delta);
+        }
+      }
+      start = splits[start];
+      limit = splits[limit];
+    }
+    if (limit !== start) {
+      valueSlices.push([start, limit]);
+      numValues += limit - start;
+    }
+  }
+  return { outSplits, valueSlices, numValues };
+}
+function getSplits(outSplits) {
+  const splitsOut = [];
+  for (let i = 0; i < outSplits.length; ++i) {
+    const numSplits = outSplits[i].length;
+    const splits = util_exports.getArrayFromDType("int32", numSplits);
+    splitsOut.push(splits);
+    outSplits[i].forEach((value, j) => splits[j] = value);
+  }
+  return splitsOut;
+}
+function computeFlatOuterDims(orig, numOutDims) {
+  const outDims = orig.slice(0, numOutDims);
+  while (outDims.length < numOutDims) {
+    outDims.push(1);
+  }
+  for (let inDim = numOutDims; inDim < orig.length; inDim++) {
+    outDims[numOutDims - 1] *= orig[inDim];
+  }
+  return outDims;
+}
+function writeValueSlices(paramsDenseValues, paramsDenseValuesShape, valueSlices, valueSize, values, valuesShape) {
+  const denseM = computeFlatOuterDims(paramsDenseValuesShape, 2)[1];
+  const valuesM = computeFlatOuterDims(valuesShape, 2)[1];
+  let outPos = 0;
+  for (const slice3 of valueSlices) {
+    for (let i = slice3[0]; i < slice3[1]; ++i) {
+      for (let j = 0; j < valueSize; ++j) {
+        values[outPos * valuesM + j] = paramsDenseValues[i * denseM + j];
+      }
+      ++outPos;
+    }
+  }
+}
+function getValues(paramsDenseValues, paramsDenseValuesShape, paramsDenseValuesDType, valueSlices, numValues) {
+  const valuesShape = paramsDenseValuesShape.slice();
+  valuesShape[0] = numValues;
+  const valuesOut = util_exports.getArrayFromDType(
+    paramsDenseValuesDType,
+    util_exports.sizeFromShape(valuesShape)
+  );
+  const numElements = paramsDenseValues.length;
+  const valueSize = numElements === 0 ? 0 : numElements / paramsDenseValuesShape[0];
+  writeValueSlices(
+    paramsDenseValues,
+    paramsDenseValuesShape,
+    valueSlices,
+    valueSize,
+    valuesOut,
+    valuesShape
+  );
+  return [valuesOut, valuesShape];
+}
+function raggedGatherImpl(paramsNestedSplits, paramsNestedSplitsShapes, paramsDenseValues, paramsDenseValuesShape, paramsDenseValuesDType, indices, indicesShape, outputRaggedRank) {
+  if (paramsNestedSplits.length === 0) {
+    throw new Error("paramsNestedSplits must be non empty");
+  }
+  if (paramsNestedSplitsShapes[0].length === 0) {
+    throw new Error("Split tensors must not be scalars");
+  }
+  const numParams = paramsNestedSplitsShapes[0][0] - 1;
+  validateIndices(indices, indicesShape, numParams);
+  if (paramsDenseValuesShape.length === 0) {
+    throw new Error("params.rank must be nonzero");
+  }
+  const numParamsDenseValues = paramsDenseValuesShape[0];
+  const { outSplits, valueSlices, numValues } = makeSplits(
+    indices,
+    indicesShape,
+    paramsNestedSplits,
+    numParamsDenseValues
+  );
+  const outputNestedSplits = getSplits(outSplits);
+  const outputDenseValues = getValues(
+    paramsDenseValues,
+    paramsDenseValuesShape,
+    paramsDenseValuesDType,
+    valueSlices,
+    numValues
+  );
+  return [outputNestedSplits, outputDenseValues[0], outputDenseValues[1]];
 }
 
 // src/tfjs-backend-cpu/src/kernels/RaggedTensorToTensor_impl.ts
@@ -19954,6 +20134,7 @@ var {
   negImpl: negImplCPU,
   notEqualImpl: notEqualImplCPU,
   prodImpl: prodImplCPU,
+  raggedGatherImpl: raggedGatherImplCPU,
   raggedTensorToTensorImpl: raggedTensorToTensorImplCPU,
   rangeImpl: rangeImplCPU,
   rsqrtImpl: rsqrtImplCPU,
@@ -24521,6 +24702,8 @@ function concat2(args) {
   const { inputs, backend, attrs } = args;
   const { axis } = attrs;
   const $axis = util_exports.parseAxisParam(axis, inputs[0].shape)[0];
+  const shapes = inputs.map((t) => t.shape);
+  backend_util_exports.assertParamsConsistent(shapes, $axis);
   const outShape = backend_util_exports.computeOutShape(inputs.map((t) => t.shape), $axis);
   if (util_exports.sizeFromShape(outShape) === 0) {
     return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
@@ -24529,8 +24712,6 @@ function concat2(args) {
   if ($inputs.length === 1) {
     return identity2({ inputs: { x: $inputs[0] }, backend });
   }
-  const shapes = $inputs.map((t) => t.shape);
-  backend_util_exports.assertParamsConsistent(shapes, $axis);
   return concatImpl2($inputs, $axis, backend);
 }
 var concatConfig = {
@@ -29658,6 +29839,41 @@ var prodConfig = {
   kernelFunc: prod2
 };
 
+// src/tfjs-backend-webgl/src/kernels/RaggedGather.ts
+function raggedGather2(args) {
+  const { inputs, backend, attrs } = args;
+  const { paramsNestedSplits, paramsDenseValues, indices } = inputs;
+  const { outputRaggedRank } = attrs;
+  const $paramsNestedSplits = paramsNestedSplits.map((t) => backend.readSync(t.dataId));
+  const $paramsNestedSplitsShapes = paramsNestedSplits.map((t) => t.shape);
+  const $paramsDenseValues = backend.readSync(paramsDenseValues.dataId);
+  const $indices = backend.readSync(indices.dataId);
+  const [outputNestedSplits, outputDenseValues, outputDenseValuesShape] = raggedGatherImplCPU(
+    $paramsNestedSplits,
+    $paramsNestedSplitsShapes,
+    $paramsDenseValues,
+    paramsDenseValues.shape,
+    paramsDenseValues.dtype,
+    $indices,
+    indices.shape,
+    outputRaggedRank
+  );
+  const outputNestedSplitsTensors = outputNestedSplits.map(
+    (splits) => backend.makeTensorInfo([splits.length], "int32", splits)
+  );
+  const outputDenseValuesTensor = backend.makeTensorInfo(
+    outputDenseValuesShape,
+    paramsDenseValues.dtype,
+    outputDenseValues
+  );
+  return outputNestedSplitsTensors.concat([outputDenseValuesTensor]);
+}
+var raggedGatherConfig = {
+  kernelName: RaggedGather,
+  backendName: "webgl",
+  kernelFunc: raggedGather2
+};
+
 // src/tfjs-backend-webgl/src/kernels/RaggedTensorToTensor.ts
 function raggedTensorToTensor2(args) {
   const { inputs, backend, attrs } = args;
@@ -32261,6 +32477,7 @@ var kernelConfigs = [
   powConfig,
   preluConfig,
   prodConfig,
+  raggedGatherConfig,
   raggedTensorToTensorConfig,
   rangeConfig,
   realConfig,

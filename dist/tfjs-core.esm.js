@@ -1575,6 +1575,7 @@ var Pool = "Pool";
 var Pow = "Pow";
 var Prelu = "Prelu";
 var Prod = "Prod";
+var RaggedGather = "RaggedGather";
 var RaggedTensorToTensor = "RaggedTensorToTensor";
 var Range = "Range";
 var Real = "Real";
@@ -8804,6 +8805,12 @@ function ceil_(x) {
 }
 var ceil = op({ ceil_ });
 
+// src/tfjs-core/src/ops/fill.ts
+function fill(shape, value, dtype) {
+  const attrs = { shape, value, dtype };
+  return ENGINE.runKernel(Fill, {}, attrs);
+}
+
 // src/tfjs-core/src/ops/clip_by_value.ts
 function clipByValue_(x, clipValueMin, clipValueMax) {
   const $x = convertToTensor(x, "x", "clipByValue");
@@ -8811,6 +8818,9 @@ function clipByValue_(x, clipValueMin, clipValueMax) {
     clipValueMin <= clipValueMax,
     () => `Error in clip: min (${clipValueMin}) must be less than or equal to max (${clipValueMax}).`
   );
+  if (clipValueMin === clipValueMax) {
+    return fill($x.shape, clipValueMin, $x.dtype);
+  }
   const inputs = { x: $x };
   const attrs = { clipValueMin, clipValueMax };
   return ENGINE.runKernel(
@@ -9722,12 +9732,6 @@ function eye_(numRows, numColumns, batchShape, dtype = "float32") {
   }
 }
 var eye = op({ eye_ });
-
-// src/tfjs-core/src/ops/fill.ts
-function fill(shape, value, dtype) {
-  const attrs = { shape, value, dtype };
-  return ENGINE.runKernel(Fill, {}, attrs);
-}
 
 // src/tfjs-core/src/ops/floor.ts
 function floor_(x) {
@@ -10732,6 +10736,27 @@ function prod_(x, axis = null, keepDims = false) {
   );
 }
 var prod = op({ prod_ });
+
+// src/tfjs-core/src/ops/ragged_gather.ts
+function raggedGather_(paramsNestedSplits, paramsDenseValues, indices, outputRaggedRank) {
+  const $paramsNestedSplits = paramsNestedSplits.map(
+    (t, i) => convertToTensor(t, `tensors${i}`, "raggedGather", "int32")
+  );
+  const $paramsDenseValues = convertToTensor(paramsDenseValues, "paramsDenseValues", "raggedGather");
+  const $indices = convertToTensor(indices, "indices", "raggedGather", "int32");
+  const inputs = {
+    paramsNestedSplits: $paramsNestedSplits,
+    paramsDenseValues: $paramsDenseValues,
+    indices: $indices
+  };
+  const attrs = { outputRaggedRank };
+  const result = ENGINE.runKernel(RaggedGather, inputs, attrs);
+  return {
+    outputNestedSplits: result.slice(0, result.length - 1),
+    outputDenseValues: result[result.length - 1]
+  };
+}
+var raggedGather = op({ raggedGather_ });
 
 // src/tfjs-core/src/ops/ragged_tensor_to_tensor.ts
 function raggedTensorToTensor_(shape, values, defaultValue, rowPartitionTensors, rowPartitionTypes) {
@@ -15607,6 +15632,7 @@ export {
   Prelu,
   Prod,
   RMSPropOptimizer,
+  RaggedGather,
   RaggedTensorToTensor,
   Range,
   Rank,
@@ -15835,6 +15861,7 @@ export {
   print,
   prod,
   profile,
+  raggedGather,
   raggedTensorToTensor,
   rand,
   randomGamma,

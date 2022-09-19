@@ -4408,6 +4408,7 @@ var PadV2 = "PadV2";
 var Pow = "Pow";
 var Prelu = "Prelu";
 var Prod = "Prod";
+var RaggedGather = "RaggedGather";
 var RaggedTensorToTensor = "RaggedTensorToTensor";
 var Range = "Range";
 var Real = "Real";
@@ -10578,6 +10579,12 @@ function ceil_(x) {
 }
 var ceil = op({ ceil_ });
 
+// src/tfjs-core/src/ops/fill.ts
+function fill(shape, value, dtype) {
+  const attrs = { shape, value, dtype };
+  return ENGINE.runKernel(Fill, {}, attrs);
+}
+
 // src/tfjs-core/src/ops/clip_by_value.ts
 function clipByValue_(x, clipValueMin, clipValueMax) {
   const $x = convertToTensor(x, "x", "clipByValue");
@@ -10585,6 +10592,9 @@ function clipByValue_(x, clipValueMin, clipValueMax) {
     clipValueMin <= clipValueMax,
     () => `Error in clip: min (${clipValueMin}) must be less than or equal to max (${clipValueMax}).`
   );
+  if (clipValueMin === clipValueMax) {
+    return fill($x.shape, clipValueMin, $x.dtype);
+  }
   const inputs = { x: $x };
   const attrs = { clipValueMin, clipValueMax };
   return ENGINE.runKernel(
@@ -11497,12 +11507,6 @@ function eye_(numRows, numColumns, batchShape, dtype = "float32") {
 }
 var eye = op({ eye_ });
 
-// src/tfjs-core/src/ops/fill.ts
-function fill(shape, value, dtype) {
-  const attrs = { shape, value, dtype };
-  return ENGINE.runKernel(Fill, {}, attrs);
-}
-
 // src/tfjs-core/src/ops/floor.ts
 function floor_(x) {
   const $x = convertToTensor(x, "x", "floor", "float32");
@@ -12347,6 +12351,27 @@ function prod_(x, axis = null, keepDims = false) {
   );
 }
 var prod = op({ prod_ });
+
+// src/tfjs-core/src/ops/ragged_gather.ts
+function raggedGather_(paramsNestedSplits, paramsDenseValues, indices, outputRaggedRank) {
+  const $paramsNestedSplits = paramsNestedSplits.map(
+    (t, i) => convertToTensor(t, `tensors${i}`, "raggedGather", "int32")
+  );
+  const $paramsDenseValues = convertToTensor(paramsDenseValues, "paramsDenseValues", "raggedGather");
+  const $indices = convertToTensor(indices, "indices", "raggedGather", "int32");
+  const inputs = {
+    paramsNestedSplits: $paramsNestedSplits,
+    paramsDenseValues: $paramsDenseValues,
+    indices: $indices
+  };
+  const attrs = { outputRaggedRank };
+  const result = ENGINE.runKernel(RaggedGather, inputs, attrs);
+  return {
+    outputNestedSplits: result.slice(0, result.length - 1),
+    outputDenseValues: result[result.length - 1]
+  };
+}
+var raggedGather = op({ raggedGather_ });
 
 // src/tfjs-core/src/ops/ragged_tensor_to_tensor.ts
 function raggedTensorToTensor_(shape, values, defaultValue, rowPartitionTensors, rowPartitionTypes) {
@@ -18054,6 +18079,8 @@ var clipByValueConfig = {
 function concat2(args) {
   const { inputs, backend } = args;
   const axis = util_exports.parseAxisParam(args.attrs.axis, inputs[0].shape)[0];
+  const shapes = inputs.map((t) => t.shape);
+  backend_util_exports.assertParamsConsistent(shapes, axis);
   let outShape = backend_util_exports.computeOutShape(inputs.map((t) => t.shape), axis);
   const $inputs = inputs.filter((t) => util_exports.sizeFromShape(t.shape) > 0);
   if ($inputs.length === 1) {
@@ -18063,8 +18090,6 @@ function concat2(args) {
   if (util_exports.sizeFromShape(outShape) === 0) {
     return out;
   }
-  const shapes = $inputs.map((t) => t.shape);
-  backend_util_exports.assertParamsConsistent(shapes, axis);
   if ($inputs[0].dtype === "string") {
     const inputs2D = $inputs.map((t) => {
       const innerSize = util_exports.sizeFromShape(t.shape.slice(axis));
@@ -21340,40 +21365,43 @@ for (const kernelConfig of kernelConfigs) {
 
 // src/tfjs-backend-wasm/src/flags_wasm.ts
 var ENV3 = env();
-ENV3.registerFlag(
-  "WASM_HAS_SIMD_SUPPORT",
-  async () => WebAssembly.validate(new Uint8Array([
-    0,
-    97,
-    115,
-    109,
-    1,
-    0,
-    0,
-    0,
-    1,
-    4,
-    1,
-    96,
-    0,
-    0,
-    3,
-    2,
-    1,
-    0,
-    10,
-    9,
-    1,
-    7,
-    0,
-    65,
-    0,
-    253,
-    15,
-    26,
-    11
-  ]))
-);
+ENV3.registerFlag("WASM_HAS_SIMD_SUPPORT", async () => {
+  try {
+    return WebAssembly.validate(new Uint8Array([
+      0,
+      97,
+      115,
+      109,
+      1,
+      0,
+      0,
+      0,
+      1,
+      4,
+      1,
+      96,
+      0,
+      0,
+      3,
+      2,
+      1,
+      0,
+      10,
+      9,
+      1,
+      7,
+      0,
+      65,
+      0,
+      253,
+      15,
+      26,
+      11
+    ]));
+  } catch (e) {
+    return false;
+  }
+});
 ENV3.registerFlag("WASM_HAS_MULTITHREAD_SUPPORT", async () => {
   if (ENV3.get("IS_NODE")) {
     return false;
