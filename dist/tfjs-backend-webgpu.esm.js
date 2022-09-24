@@ -13874,6 +13874,7 @@ ENV3.registerFlag("WEBGPU_USE_LOW_POWER_GPU", () => false);
 ENV3.registerFlag("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e3);
 ENV3.registerFlag("WEBGPU_USE_PROFILE_TOOL", () => false);
 ENV3.registerFlag("WEBGPU_IMPORT_EXTERNAL_TEXTURE", () => true);
+ENV3.registerFlag("WEBGPU_USE_NAIVE_CONV2D_DEBUG", () => false);
 
 // src/tfjs-backend-webgpu/src/buffer_manager.ts
 var BufferManager = class {
@@ -20676,6 +20677,88 @@ var Conv2DMMProgram = class {
   }
 };
 
+// src/tfjs-backend-webgpu/src/conv2d_naive_webgpu.ts
+var Conv2DNaiveProgram = class {
+  constructor(convInfo, addBias = false, activation = null, hasPreluActivationWeights = false) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = "filterDims: vec2<i32>, pad: vec2<i32>, stride: vec2<i32>, dilation: vec2<i32>,";
+    this.workGroupSize = [4, 4, 8];
+    this.outputShape = convInfo.outShape;
+    this.isChannelsLast = convInfo.dataFormat === "channelsLast";
+    this.dispatchLayout = this.isChannelsLast ? { x: [2], y: [1], z: [0, 3] } : { x: [3], y: [2], z: [0, 1] };
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workGroupSize
+    );
+    this.addBias = addBias;
+    this.activation = activation;
+    this.hasPreluActivationWeights = hasPreluActivationWeights;
+    if (addBias) {
+      this.variableNames.push("bias");
+    }
+    if (hasPreluActivationWeights) {
+      this.variableNames.push("preluActivationWeights");
+    }
+    this.shaderKey = `conv2dnaive_${this.activation}_${this.isChannelsLast}`;
+  }
+  getUserCode() {
+    const userCode = `
+       ${activationFnSnippet(
+      this.activation,
+      this.hasPreluActivationWeights,
+      false,
+      4
+    )}
+       fn readInp(batch : i32, row : i32, col : i32, chan : i32) -> f32{
+         let coords = vec4<i32>(batch, row, col, chan);
+         if (coordsInBounds4D(coords, uniforms.xShape)) {
+           return  getX(batch, row, col, chan);
+         } else {
+          return 0.0;
+         }
+       }
+       fn readFilt(row : i32, col : i32, xChannel : i32, outChannel : i32) -> f32{
+         let coords = vec4<i32>(row, col, xChannel, outChannel);
+         if(coordsInBounds4D(coords, uniforms.wShape)) {
+           return getW(row, col, xChannel, outChannel);
+          } else {
+            return 0.0;
+          }
+       }
+       fn writeResult(batch : i32, row : i32, col : i32, chan : i32, valueIn : f32) {
+         let coords = ${this.isChannelsLast ? `vec4<i32>(batch, row, col, chan);` : `vec4<i32>(batch, chan, row, col);`}
+         if (coordsInBounds4D(coords, uniforms.outShape)) {
+           var value = valueIn;
+           ${biasActivationSnippet(this.addBias, this.activation)}
+           setOutputAtCoords(coords.x, coords.y, coords.z, coords.w, value);
+         }
+       }
+       ${getMainHeaderString("index")} {
+         let coords = getOutputCoords();
+         let batch = coords[0];
+         let outChannel = ${this.isChannelsLast ? `coords[3];` : `coords[1];`}
+         let outRow = ${this.isChannelsLast ? `coords[1];` : `coords[2];`}
+         let outCol = ${this.isChannelsLast ? `coords[2];` : `coords[3];`}
+         var acc : f32 = 0.0;
+         for (var row = 0; row < uniforms.filterDims[0]; row = row + 1) {
+           for (var col = 0; col < uniforms.filterDims[1]; col = col + 1) {
+             let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0];
+             let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1];
+             for (var xChannel = 0; xChannel < ${this.isChannelsLast ? `uniforms.xShape[3];` : `uniforms.xShape[1];`} xChannel = xChannel + 1) {
+               ${this.isChannelsLast ? `let v = readInp(batch, xRow, xCol, xChannel);` : `let v = readInp(batch, xChannel, xRow, xCol);`}
+               let f = readFilt(row, col, xChannel, outChannel);
+               acc = acc + v * f;
+             }
+           }
+         }
+         writeResult(batch, outRow, outCol, outChannel, acc);
+       }
+     `;
+    return userCode;
+  }
+};
+
 // src/tfjs-backend-webgpu/src/kernels/Conv2D_impl.ts
 function getShapeForBatchMatMul(shape, isChannelsLast) {
   const length = shape.length;
@@ -20800,7 +20883,8 @@ function conv2DImpl({
   const hasPreluActivationWeights = preluActivationWeights != null;
   const isChannelsLast = convInfo.dataFormat === "channelsLast";
   const sameSize = isChannelsLast && convInfo.filterHeight === convInfo.inHeight && convInfo.filterWidth === convInfo.inWidth && convInfo.padInfo.type === "VALID";
-  if (sameSize || convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID")) {
+  const useNaiveConv2d = env().getBool("WEBGPU_USE_NAIVE_CONV2D_DEBUG");
+  if (!useNaiveConv2d && (sameSize || convInfo.filterHeight === 1 && convInfo.filterWidth === 1 && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.strideHeight === 1 && convInfo.strideWidth === 1 && (convInfo.padInfo.type === "SAME" || convInfo.padInfo.type === "VALID"))) {
     return conv2dByMatMul({
       x,
       filter,
@@ -20812,28 +20896,40 @@ function conv2DImpl({
       leakyreluAlpha
     });
   }
-  const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth : convInfo.outChannels;
-  const dimBOuter = isChannelsLast ? convInfo.outChannels : convInfo.outHeight * convInfo.outWidth;
-  const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
+  let program;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     { type: "int32", data: [convInfo.filterHeight, convInfo.filterWidth] },
     { type: "int32", data: [...padInfo] },
     { type: "int32", data: [convInfo.strideHeight, convInfo.strideWidth] },
-    { type: "int32", data: [convInfo.dilationHeight, convInfo.dilationWidth] },
-    { type: "int32", data: [dimAOuter] },
-    { type: "int32", data: [dimBOuter] },
-    { type: "int32", data: [dimInner] }
+    { type: "int32", data: [convInfo.dilationHeight, convInfo.dilationWidth] }
   ];
-  const program = new Conv2DMMProgram(
-    convInfo,
-    dimAOuter,
-    dimBOuter,
-    dimInner,
-    hasBias,
-    activation,
-    hasPreluActivationWeights
-  );
+  if (useNaiveConv2d) {
+    program = new Conv2DNaiveProgram(
+      convInfo,
+      hasBias,
+      activation,
+      hasPreluActivationWeights
+    );
+  } else {
+    const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth : convInfo.outChannels;
+    const dimBOuter = isChannelsLast ? convInfo.outChannels : convInfo.outHeight * convInfo.outWidth;
+    const dimInner = convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
+    dimensions.push(
+      { type: "int32", data: [dimAOuter] },
+      { type: "int32", data: [dimBOuter] },
+      { type: "int32", data: [dimInner] }
+    );
+    program = new Conv2DMMProgram(
+      convInfo,
+      dimAOuter,
+      dimBOuter,
+      dimInner,
+      hasBias,
+      activation,
+      hasPreluActivationWeights
+    );
+  }
   const intermediates = [];
   const inputVar = [x, filter];
   if (hasBias) {
