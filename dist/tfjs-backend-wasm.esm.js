@@ -796,12 +796,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
           return HEAP16;
         }
-        function GROWABLE_HEAP_U16() {
-          if (wasmMemory.buffer != buffer2) {
-            updateGlobalBufferAndViews(wasmMemory.buffer);
-          }
-          return HEAPU16;
-        }
         function GROWABLE_HEAP_I32() {
           if (wasmMemory.buffer != buffer2) {
             updateGlobalBufferAndViews(wasmMemory.buffer);
@@ -860,23 +854,18 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           let toLog = e;
           err2("exiting due to exception: " + toLog);
         }
-        var fs;
-        var nodePath;
-        var requireNodeFS;
         if (ENVIRONMENT_IS_NODE2) {
           if (ENVIRONMENT_IS_WORKER) {
             scriptDirectory = require_path().dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
-          requireNodeFS = () => {
-            if (!nodePath) {
-              fs = require_fs();
-              nodePath = require_path();
-            }
-          };
-          read_ = function shell_read(filename, binary) {
-            requireNodeFS();
+          var fs, nodePath;
+          if (typeof __require === "function") {
+            fs = require_fs();
+            nodePath = require_path();
+          }
+          read_ = (filename, binary) => {
             filename = nodePath["normalize"](filename);
             return fs.readFileSync(filename, binary ? void 0 : "utf8");
           };
@@ -888,7 +877,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return ret;
           };
           readAsync = (filename, onload, onerror) => {
-            requireNodeFS();
             filename = nodePath["normalize"](filename);
             fs.readFile(filename, function(err3, data) {
               if (err3)
@@ -984,7 +972,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var defaultPrint = console.log.bind(console);
         var defaultPrintErr = console.warn.bind(console);
         if (ENVIRONMENT_IS_NODE2) {
-          requireNodeFS();
           defaultPrint = (str) => fs.writeSync(1, str + "\n");
           defaultPrintErr = (str) => fs.writeSync(2, str + "\n");
         }
@@ -1097,23 +1084,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         function stringToUTF8(str, outPtr, maxBytesToWrite) {
           return stringToUTF8Array(str, GROWABLE_HEAP_U8(), outPtr, maxBytesToWrite);
-        }
-        function lengthBytesUTF8(str) {
-          var len = 0;
-          for (var i = 0; i < str.length; ++i) {
-            var c = str.charCodeAt(i);
-            if (c <= 127) {
-              len++;
-            } else if (c <= 2047) {
-              len += 2;
-            } else if (c >= 55296 && c <= 57343) {
-              len += 4;
-              ++i;
-            } else {
-              len += 3;
-            }
-          }
-          return len;
         }
         var buffer2, HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAPF64;
         if (ENVIRONMENT_IS_PTHREAD) {
@@ -1346,7 +1316,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
               return exports2;
             } catch (e) {
               err2("Module.instantiateWasm callback failed with error: " + e);
-              return false;
+              readyPromiseReject(e);
             }
           }
           instantiateAsync().catch(readyPromiseReject);
@@ -1658,9 +1628,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
           return spawnThread(threadParams);
         }
-        function __emscripten_date_now() {
-          return Date.now();
-        }
         function __emscripten_default_pthread_stack_size() {
           return 2097152;
         }
@@ -1712,6 +1679,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           if (ENVIRONMENT_IS_WORKER)
             return;
           warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread");
+        }
+        function _emscripten_date_now() {
+          return Date.now();
         }
         function getHeapMax() {
           return 2147483648;
@@ -1831,86 +1801,6 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           GROWABLE_HEAP_U32()[pnum >> 2] = num;
           return 0;
         }
-        function uleb128Encode(n, target) {
-          if (n < 128) {
-            target.push(n);
-          } else {
-            target.push(n % 128 | 128, n >> 7);
-          }
-        }
-        function sigToWasmTypes(sig) {
-          var typeNames = { "i": "i32", "j": "i64", "f": "f32", "d": "f64", "p": "i32" };
-          var type = { parameters: [], results: sig[0] == "v" ? [] : [typeNames[sig[0]]] };
-          for (var i = 1; i < sig.length; ++i) {
-            type.parameters.push(typeNames[sig[i]]);
-          }
-          return type;
-        }
-        function convertJsFunctionToWasm(func, sig) {
-          if (typeof WebAssembly.Function == "function") {
-            return new WebAssembly.Function(sigToWasmTypes(sig), func);
-          }
-          var typeSectionBody = [1, 96];
-          var sigRet = sig.slice(0, 1);
-          var sigParam = sig.slice(1);
-          var typeCodes = { "i": 127, "p": 127, "j": 126, "f": 125, "d": 124 };
-          uleb128Encode(sigParam.length, typeSectionBody);
-          for (var i = 0; i < sigParam.length; ++i) {
-            typeSectionBody.push(typeCodes[sigParam[i]]);
-          }
-          if (sigRet == "v") {
-            typeSectionBody.push(0);
-          } else {
-            typeSectionBody.push(1, typeCodes[sigRet]);
-          }
-          var bytes = [0, 97, 115, 109, 1, 0, 0, 0, 1];
-          uleb128Encode(typeSectionBody.length, bytes);
-          bytes.push.apply(bytes, typeSectionBody);
-          bytes.push(2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0);
-          var module2 = new WebAssembly.Module(new Uint8Array(bytes));
-          var instance = new WebAssembly.Instance(module2, { "e": { "f": func } });
-          var wrappedFunc = instance.exports["f"];
-          return wrappedFunc;
-        }
-        function updateTableMap(offset, count) {
-          if (functionsInTableMap) {
-            for (var i = offset; i < offset + count; i++) {
-              var item = getWasmTableEntry(i);
-              if (item) {
-                functionsInTableMap.set(item, i);
-              }
-            }
-          }
-        }
-        var functionsInTableMap = void 0;
-        var freeTableIndexes = [];
-        function getEmptyTableSlot() {
-          if (freeTableIndexes.length) {
-            return freeTableIndexes.pop();
-          }
-          try {
-            wasmTable.grow(1);
-          } catch (err3) {
-            if (!(err3 instanceof RangeError)) {
-              throw err3;
-            }
-            throw "Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.";
-          }
-          return wasmTable.length - 1;
-        }
-        function setWasmTableEntry(idx, func) {
-          wasmTable.set(idx, func);
-          wasmTableMirror[idx] = wasmTable.get(idx);
-        }
-        var ALLOC_STACK = 1;
-        function writeAsciiToMemory(str, buffer3, dontAddNull) {
-          for (var i = 0; i < str.length; ++i) {
-            GROWABLE_HEAP_I8()[buffer3++ >> 0] = str.charCodeAt(i);
-          }
-          if (!dontAddNull)
-            GROWABLE_HEAP_I8()[buffer3 >> 0] = 0;
-        }
-        var UTF16Decoder = typeof TextDecoder != "undefined" ? new TextDecoder("utf-16le") : void 0;
         function getCFunc(ident) {
           var func = Module2["_" + ident];
           return func;
@@ -1974,8 +1864,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         PThread.init();
         var proxiedFunctionTable = [null, _proc_exit, exitOnMainThread, pthreadCreateProxied, _fd_close, _fd_seek, _fd_write];
-        var ASSERTIONS = false;
-        var asmLibraryArg = { "__emscripten_init_main_thread_js": ___emscripten_init_main_thread_js, "__emscripten_thread_cleanup": ___emscripten_thread_cleanup, "__pthread_create_js": ___pthread_create_js, "_emscripten_date_now": __emscripten_date_now, "_emscripten_default_pthread_stack_size": __emscripten_default_pthread_stack_size, "_emscripten_get_now_is_monotonic": __emscripten_get_now_is_monotonic, "_emscripten_notify_task_queue": __emscripten_notify_task_queue, "_emscripten_set_offscreencanvas_size": __emscripten_set_offscreencanvas_size, "abort": _abort, "emscripten_check_blocking_allowed": _emscripten_check_blocking_allowed, "emscripten_get_heap_max": _emscripten_get_heap_max, "emscripten_get_now": _emscripten_get_now, "emscripten_memcpy_big": _emscripten_memcpy_big, "emscripten_num_logical_cores": _emscripten_num_logical_cores, "emscripten_receive_on_main_thread_js": _emscripten_receive_on_main_thread_js, "emscripten_resize_heap": _emscripten_resize_heap, "emscripten_unwind_to_js_event_loop": _emscripten_unwind_to_js_event_loop, "exit": _exit, "fd_close": _fd_close, "fd_seek": _fd_seek, "fd_write": _fd_write, "memory": wasmMemory || Module2["wasmMemory"] };
+        var asmLibraryArg = { "__emscripten_init_main_thread_js": ___emscripten_init_main_thread_js, "__emscripten_thread_cleanup": ___emscripten_thread_cleanup, "__pthread_create_js": ___pthread_create_js, "_emscripten_default_pthread_stack_size": __emscripten_default_pthread_stack_size, "_emscripten_get_now_is_monotonic": __emscripten_get_now_is_monotonic, "_emscripten_notify_task_queue": __emscripten_notify_task_queue, "_emscripten_set_offscreencanvas_size": __emscripten_set_offscreencanvas_size, "abort": _abort, "emscripten_check_blocking_allowed": _emscripten_check_blocking_allowed, "emscripten_date_now": _emscripten_date_now, "emscripten_get_heap_max": _emscripten_get_heap_max, "emscripten_get_now": _emscripten_get_now, "emscripten_memcpy_big": _emscripten_memcpy_big, "emscripten_num_logical_cores": _emscripten_num_logical_cores, "emscripten_receive_on_main_thread_js": _emscripten_receive_on_main_thread_js, "emscripten_resize_heap": _emscripten_resize_heap, "emscripten_unwind_to_js_event_loop": _emscripten_unwind_to_js_event_loop, "exit": _exit, "fd_close": _fd_close, "fd_seek": _fd_seek, "fd_write": _fd_write, "memory": wasmMemory || Module2["wasmMemory"] };
         var asm = createWasm();
         var ___wasm_call_ctors = Module2["___wasm_call_ctors"] = function() {
           return (___wasm_call_ctors = Module2["___wasm_call_ctors"] = Module2["asm"]["__wasm_call_ctors"]).apply(null, arguments);
@@ -2470,23 +2359,18 @@ var require_tfjs_backend_wasm = __commonJS({
           let toLog = e;
           err2("exiting due to exception: " + toLog);
         }
-        var fs;
-        var nodePath;
-        var requireNodeFS;
         if (ENVIRONMENT_IS_NODE2) {
           if (ENVIRONMENT_IS_WORKER) {
             scriptDirectory = require_path().dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
-          requireNodeFS = () => {
-            if (!nodePath) {
-              fs = require_fs();
-              nodePath = require_path();
-            }
-          };
-          read_ = function shell_read(filename, binary) {
-            requireNodeFS();
+          var fs, nodePath;
+          if (typeof __require === "function") {
+            fs = require_fs();
+            nodePath = require_path();
+          }
+          read_ = (filename, binary) => {
             filename = nodePath["normalize"](filename);
             return fs.readFileSync(filename, binary ? void 0 : "utf8");
           };
@@ -2498,7 +2382,6 @@ var require_tfjs_backend_wasm = __commonJS({
             return ret;
           };
           readAsync = (filename, onload, onerror) => {
-            requireNodeFS();
             filename = nodePath["normalize"](filename);
             fs.readFile(filename, function(err3, data) {
               if (err3)
@@ -2683,23 +2566,6 @@ var require_tfjs_backend_wasm = __commonJS({
         }
         function stringToUTF8(str, outPtr, maxBytesToWrite) {
           return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
-        }
-        function lengthBytesUTF8(str) {
-          var len = 0;
-          for (var i = 0; i < str.length; ++i) {
-            var c = str.charCodeAt(i);
-            if (c <= 127) {
-              len++;
-            } else if (c <= 2047) {
-              len += 2;
-            } else if (c >= 55296 && c <= 57343) {
-              len += 4;
-              ++i;
-            } else {
-              len += 3;
-            }
-          }
-          return len;
         }
         var buffer2, HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAPF64;
         function updateGlobalBufferAndViews(buf) {
@@ -2891,7 +2757,7 @@ var require_tfjs_backend_wasm = __commonJS({
               return exports2;
             } catch (e) {
               err2("Module.instantiateWasm callback failed with error: " + e);
-              return false;
+              readyPromiseReject(e);
             }
           }
           instantiateAsync().catch(readyPromiseReject);
@@ -3010,106 +2876,6 @@ var require_tfjs_backend_wasm = __commonJS({
           HEAPU32[pnum >> 2] = num;
           return 0;
         }
-        function uleb128Encode(n, target) {
-          if (n < 128) {
-            target.push(n);
-          } else {
-            target.push(n % 128 | 128, n >> 7);
-          }
-        }
-        function sigToWasmTypes(sig) {
-          var typeNames = { "i": "i32", "j": "i64", "f": "f32", "d": "f64", "p": "i32" };
-          var type = { parameters: [], results: sig[0] == "v" ? [] : [typeNames[sig[0]]] };
-          for (var i = 1; i < sig.length; ++i) {
-            type.parameters.push(typeNames[sig[i]]);
-          }
-          return type;
-        }
-        function convertJsFunctionToWasm(func, sig) {
-          if (typeof WebAssembly.Function == "function") {
-            return new WebAssembly.Function(sigToWasmTypes(sig), func);
-          }
-          var typeSectionBody = [1, 96];
-          var sigRet = sig.slice(0, 1);
-          var sigParam = sig.slice(1);
-          var typeCodes = { "i": 127, "p": 127, "j": 126, "f": 125, "d": 124 };
-          uleb128Encode(sigParam.length, typeSectionBody);
-          for (var i = 0; i < sigParam.length; ++i) {
-            typeSectionBody.push(typeCodes[sigParam[i]]);
-          }
-          if (sigRet == "v") {
-            typeSectionBody.push(0);
-          } else {
-            typeSectionBody.push(1, typeCodes[sigRet]);
-          }
-          var bytes = [0, 97, 115, 109, 1, 0, 0, 0, 1];
-          uleb128Encode(typeSectionBody.length, bytes);
-          bytes.push.apply(bytes, typeSectionBody);
-          bytes.push(2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0);
-          var module2 = new WebAssembly.Module(new Uint8Array(bytes));
-          var instance = new WebAssembly.Instance(module2, { "e": { "f": func } });
-          var wrappedFunc = instance.exports["f"];
-          return wrappedFunc;
-        }
-        var wasmTableMirror = [];
-        function getWasmTableEntry(funcPtr) {
-          var func = wasmTableMirror[funcPtr];
-          if (!func) {
-            if (funcPtr >= wasmTableMirror.length)
-              wasmTableMirror.length = funcPtr + 1;
-            wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
-          }
-          return func;
-        }
-        function updateTableMap(offset, count) {
-          if (functionsInTableMap) {
-            for (var i = offset; i < offset + count; i++) {
-              var item = getWasmTableEntry(i);
-              if (item) {
-                functionsInTableMap.set(item, i);
-              }
-            }
-          }
-        }
-        var functionsInTableMap = void 0;
-        var freeTableIndexes = [];
-        function getEmptyTableSlot() {
-          if (freeTableIndexes.length) {
-            return freeTableIndexes.pop();
-          }
-          try {
-            wasmTable.grow(1);
-          } catch (err3) {
-            if (!(err3 instanceof RangeError)) {
-              throw err3;
-            }
-            throw "Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.";
-          }
-          return wasmTable.length - 1;
-        }
-        function setWasmTableEntry(idx, func) {
-          wasmTable.set(idx, func);
-          wasmTableMirror[idx] = wasmTable.get(idx);
-        }
-        var ALLOC_STACK = 1;
-        function writeAsciiToMemory(str, buffer3, dontAddNull) {
-          for (var i = 0; i < str.length; ++i) {
-            HEAP8[buffer3++ >> 0] = str.charCodeAt(i);
-          }
-          if (!dontAddNull)
-            HEAP8[buffer3 >> 0] = 0;
-        }
-        var UTF16Decoder = typeof TextDecoder != "undefined" ? new TextDecoder("utf-16le") : void 0;
-        function warnOnce(text) {
-          if (!warnOnce.shown)
-            warnOnce.shown = {};
-          if (!warnOnce.shown[text]) {
-            warnOnce.shown[text] = 1;
-            if (ENVIRONMENT_IS_NODE2)
-              text = "warning: " + text;
-            err2(text);
-          }
-        }
         function getCFunc(ident) {
           var func = Module2["_" + ident];
           return func;
@@ -3171,7 +2937,6 @@ var require_tfjs_backend_wasm = __commonJS({
             return ccall(ident, returnType, argTypes, arguments, opts);
           };
         }
-        var ASSERTIONS = false;
         var asmLibraryArg = { "abort": _abort, "emscripten_memcpy_big": _emscripten_memcpy_big, "emscripten_resize_heap": _emscripten_resize_heap, "fd_close": _fd_close, "fd_seek": _fd_seek, "fd_write": _fd_write };
         var asm = createWasm();
         var ___wasm_call_ctors = Module2["___wasm_call_ctors"] = function() {
@@ -21554,7 +21319,7 @@ self.onmessage = (e) => {
       } else {
         pendingNotifiedProxyingQueues.push(e.data.queue);
       }
-    } else {
+    } else if (e.data.cmd) {
       err("worker.js received unknown command " + e.data.cmd);
       err(e.data);
     }
