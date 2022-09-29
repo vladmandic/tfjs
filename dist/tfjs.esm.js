@@ -3582,7 +3582,7 @@ function rightPad(a, size) {
   }
   return a + " ".repeat(size - a.length);
 }
-function repeatedTry(checkFn, delayFn = (counter) => 0, maxCounter) {
+function repeatedTry(checkFn, delayFn = (counter) => 0, maxCounter, scheduleFn = setTimeout) {
   return new Promise((resolve, reject) => {
     let tryCount = 0;
     const tryFn = () => {
@@ -3596,7 +3596,7 @@ function repeatedTry(checkFn, delayFn = (counter) => 0, maxCounter) {
         reject();
         return;
       }
-      setTimeout(tryFn, nextBackoff);
+      scheduleFn(tryFn, nextBackoff);
     };
     tryFn();
   });
@@ -7150,6 +7150,7 @@ ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
+ENV2.registerFlag("USE_SETTIMEOUTCUSTOM", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -8261,6 +8262,12 @@ async function moveModel(sourceURL, destURL) {
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
+  constructor() {
+    this.messageName = "setTimeoutCustom";
+    this.functionRefs = [];
+    this.handledMessageCount = 0;
+    this.hasEventListener = false;
+  }
   fetch(path, init2) {
     return fetch(path, init2);
   }
@@ -8280,6 +8287,34 @@ var PlatformBrowser = class {
   }
   decode(bytes, encoding) {
     return new TextDecoder(encoding).decode(bytes);
+  }
+  setTimeoutCustom(functionRef, delay) {
+    if (!window || !env().getBool("USE_SETTIMEOUTCUSTOM")) {
+      setTimeout(functionRef, delay);
+      return;
+    }
+    this.functionRefs.push(functionRef);
+    setTimeout(() => {
+      window.postMessage(
+        { name: this.messageName, index: this.functionRefs.length - 1 },
+        "*"
+      );
+    }, delay);
+    if (!this.hasEventListener) {
+      this.hasEventListener = true;
+      window.addEventListener("message", (event) => {
+        if (event.source === window && event.data.name === this.messageName) {
+          event.stopPropagation();
+          const functionRef2 = this.functionRefs[event.data.index];
+          functionRef2();
+          this.handledMessageCount++;
+          if (this.handledMessageCount === this.functionRefs.length) {
+            this.functionRefs = [];
+            this.handledMessageCount = 0;
+          }
+        }
+      }, true);
+    }
   }
 };
 if (env().get("IS_BROWSER")) {
@@ -54799,6 +54834,7 @@ ENV5.registerFlag("WEBGL_EXP_CONV", () => false);
 ENV5.registerFlag("SOFTWARE_WEBGL_ENABLED", () => ENV5.getBool("IS_TEST"));
 ENV5.registerFlag("WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE", () => Infinity);
 ENV5.registerFlag("WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE", () => false);
+ENV5.registerFlag("WEBGL2_ISNAN_CUSTOM", () => false);
 
 // src/tfjs-backend-webgl/src/glsl_version.ts
 function getGlslDifferences() {
@@ -54820,7 +54856,7 @@ function getGlslDifferences() {
     texture2D = "texture";
     output = "outputColor";
     defineOutput = "out vec4 outputColor;";
-    defineSpecialNaN = `
+    defineSpecialNaN = env().getBool("WEBGL2_ISNAN_CUSTOM") ? `
       bool isnan_custom(float val) {
         uint floatToUint = floatBitsToUint(val);
         return (floatToUint & 0x7fffffffu) > 0x7f800000u;
@@ -54832,7 +54868,7 @@ function getGlslDifferences() {
       }
 
       #define isnan(value) isnan_custom(value)
-    `;
+    ` : "";
     defineSpecialInf = ``;
     defineRound = `
       #define round(value) newRound(value)
@@ -58073,10 +58109,14 @@ var GPGPUContext = class {
     if (this.itemsToPoll.length > 1) {
       return;
     }
+    let scheduleFn = void 0;
+    if ("setTimeoutCustom" in env().platform) {
+      scheduleFn = env().platform.setTimeoutCustom.bind(env().platform);
+    }
     util_exports.repeatedTry(() => {
       this.pollItems();
       return this.itemsToPoll.length === 0;
-    });
+    }, () => 0, null, scheduleFn);
   }
   bindTextureToFrameBuffer(texture) {
     this.throwIfDisposed();
@@ -59679,11 +59719,11 @@ var BinaryOpProgram = class {
 };
 
 // src/tfjs-backend-webgl/src/binaryop_packed_gpu.ts
-var CHECK_NAN_SNIPPET3 = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
+var CHECK_NAN_SNIPPET_PACKED = `
+  result.r = isNaN.r ? NAN : result.r;
+  result.g = isNaN.g ? NAN : result.g;
+  result.b = isNaN.b ? NAN : result.b;
+  result.a = isNaN.a ? NAN : result.a;
 `;
 var BinaryOpPackedProgram = class {
   constructor(op2, aShape, bShape, checkOutOfBounds = false) {
@@ -59841,16 +59881,6 @@ var preluConfig2 = {
 
 // src/tfjs-backend-webgl/src/kernel_utils/kernel_funcs_utils.ts
 var CHECK_NAN_SNIPPET_UNARY = `if (isnan(x)) return x;`;
-var CHECK_NAN_SNIPPET_BINARY = `
-  if (isnan(a)) return a;
-  if (isnan(b)) return b;
-`;
-var CHECK_NAN_SNIPPET_BINARY_PACKED = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
-`;
 function unaryKernelFunc2({ opSnippet, packedOpSnippet, cpuKernelImpl, dtype }) {
   return ({ inputs, backend: backend2 }) => {
     const { x } = inputs;
@@ -61308,13 +61338,15 @@ var atanConfig2 = {
 };
 
 // src/tfjs-backend-webgl/src/kernels/Atan2.ts
-var ATAN2 = CHECK_NAN_SNIPPET_BINARY + `
+var ATAN2 = CHECK_NAN_SNIPPET2 + `
   return atan(a, b);
 `;
 var ATAN2_PACKED = `
   vec4 result = atan(a, b);
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` + CHECK_NAN_SNIPPET_BINARY_PACKED + `
+  bvec4 isNaNA = isnan(a);
+  bvec4 isNaNB = isnan(b);
+  bvec4 isNaN = bvec4(isNaNA.x || isNaNB.x, isNaNA.y || isNaNB.y, isNaNA.z || isNaNB.z, isNaNA.w || isNaNB.w);
+  ` + CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 var atan23 = binaryKernelFunc2({ opSnippet: ATAN2, packedOpSnippet: ATAN2_PACKED });
@@ -66651,8 +66683,10 @@ var MAXIMUM = CHECK_NAN_SNIPPET2 + `
 `;
 var MAXIMUM_PACKED = `
   vec4 result = vec4(max(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` + CHECK_NAN_SNIPPET3 + `
+  bvec4 isNaNA = isnan(a);
+  bvec4 isNaNB = isnan(b);
+  bvec4 isNaN = bvec4(isNaNA.x || isNaNB.x, isNaNA.y || isNaNB.y, isNaNA.z || isNaNB.z, isNaNA.w || isNaNB.w);
+  ` + CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 var maximum4 = binaryKernelFunc2({
@@ -67077,8 +67111,10 @@ var MINIMUM = CHECK_NAN_SNIPPET2 + `
 `;
 var MINIMUM_PACKED = `
   vec4 result = vec4(min(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` + CHECK_NAN_SNIPPET3 + `
+  bvec4 isNaNA = isnan(a);
+  bvec4 isNaNB = isnan(b);
+  bvec4 isNaN = bvec4(isNaNA.x || isNaNB.x, isNaNA.y || isNaNB.y, isNaNA.z || isNaNB.z, isNaNA.w || isNaNB.w);
+  ` + CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 var minimum4 = binaryKernelFunc2({
@@ -67247,8 +67283,8 @@ var MOD = `if (b == 0.0) return NAN;
   return mod(a, b);`;
 var MOD_PACKED = `
   vec4 result = mod(a, b);
-  vec4 isNaN = vec4(equal(b, vec4(0.0)));
-  ` + CHECK_NAN_SNIPPET3 + `
+  bvec4 isNaN = equal(b, vec4(0.0));
+  ` + CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 var mod3 = binaryKernelFunc2({
@@ -67826,8 +67862,10 @@ var POW_PACKED = `
   result.b = isExpZero.b ? 1.0 : result.b;
   result.a = isExpZero.a ? 1.0 : result.a;
 
-  vec4 isNaN = vec4(lessThan(a, vec4(0.0))) * vec4(lessThan(floor(b), b));
-  ` + CHECK_NAN_SNIPPET3 + `
+  bvec4 isNaN1 = lessThan(a, vec4(0.0));
+  bvec4 isNaN2 = lessThan(floor(b), b);
+  bvec4 isNaN = bvec4(isNaN1.x && isNaN2.x, isNaN1.y && isNaN2.y, isNaN1.z && isNaN2.z, isNaN1.w && isNaN2.w);
+  ` + CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 var pow3 = binaryKernelFunc2({ opSnippet: POW, packedOpSnippet: POW_PACKED });
@@ -72241,7 +72279,7 @@ if (isWebGPUSupported()) {
 }
 
 // src/tfjs-backend-webgpu/src/binary_op_util.ts
-var CHECK_NAN_SNIPPET4 = `
+var CHECK_NAN_SNIPPET3 = `
   if (isnan(a)) { return a; }
   if (isnan(b)) { return b; }
   `;
@@ -72367,7 +72405,7 @@ var PRELU_VEC4 = `
   return (aLessThanZero * (b * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
   `;
 function getBinaryWithNanString(op2, useVec4, valueForNaN = "uniforms.NAN") {
-  const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET4;
+  const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET3;
   return useVec4 ? `
     let valueForNaN = ${valueForNaN};
     var resultTemp = vec4<f32>(${op2}(a, b));
@@ -77028,7 +77066,7 @@ function fromPixels3(args) {
     pixels.videoHeight
   ] : [pixels.width, pixels.height];
   const outputShape = [height, width, numChannels];
-  const importVideo = env().getBool("WEBGPU_IMPORT_EXTERNAL_TEXTURE") && isVideo;
+  const importVideo = false;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let textureInfo;
@@ -84411,7 +84449,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.20.0-20220927";
+var externalVersion = "3.20.0-20220929";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

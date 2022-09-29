@@ -964,7 +964,7 @@ function rightPad(a, size) {
   }
   return a + " ".repeat(size - a.length);
 }
-function repeatedTry(checkFn, delayFn = (counter) => 0, maxCounter) {
+function repeatedTry(checkFn, delayFn = (counter) => 0, maxCounter, scheduleFn = setTimeout) {
   return new Promise((resolve, reject) => {
     let tryCount = 0;
     const tryFn = () => {
@@ -978,7 +978,7 @@ function repeatedTry(checkFn, delayFn = (counter) => 0, maxCounter) {
         reject();
         return;
       }
-      setTimeout(tryFn, nextBackoff);
+      scheduleFn(tryFn, nextBackoff);
     };
     tryFn();
   });
@@ -4426,6 +4426,7 @@ ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
+ENV2.registerFlag("USE_SETTIMEOUTCUSTOM", () => false);
 
 // src/tfjs-core/src/tensor_util_env.ts
 function inferShape(val, dtype) {
@@ -5208,6 +5209,12 @@ var ModelStoreManagerRegistry = class {
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
+  constructor() {
+    this.messageName = "setTimeoutCustom";
+    this.functionRefs = [];
+    this.handledMessageCount = 0;
+    this.hasEventListener = false;
+  }
   fetch(path, init) {
     return fetch(path, init);
   }
@@ -5227,6 +5234,34 @@ var PlatformBrowser = class {
   }
   decode(bytes, encoding) {
     return new TextDecoder(encoding).decode(bytes);
+  }
+  setTimeoutCustom(functionRef, delay) {
+    if (!window || !env().getBool("USE_SETTIMEOUTCUSTOM")) {
+      setTimeout(functionRef, delay);
+      return;
+    }
+    this.functionRefs.push(functionRef);
+    setTimeout(() => {
+      window.postMessage(
+        { name: this.messageName, index: this.functionRefs.length - 1 },
+        "*"
+      );
+    }, delay);
+    if (!this.hasEventListener) {
+      this.hasEventListener = true;
+      window.addEventListener("message", (event) => {
+        if (event.source === window && event.data.name === this.messageName) {
+          event.stopPropagation();
+          const functionRef2 = this.functionRefs[event.data.index];
+          functionRef2();
+          this.handledMessageCount++;
+          if (this.handledMessageCount === this.functionRefs.length) {
+            this.functionRefs = [];
+            this.handledMessageCount = 0;
+          }
+        }
+      }, true);
+    }
   }
 };
 if (env().get("IS_BROWSER")) {
@@ -22263,7 +22298,7 @@ function fromPixels2(args) {
     pixels.videoHeight
   ] : [pixels.width, pixels.height];
   const outputShape = [height, width, numChannels];
-  const importVideo = env().getBool("WEBGPU_IMPORT_EXTERNAL_TEXTURE") && isVideo;
+  const importVideo = false;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let textureInfo;
