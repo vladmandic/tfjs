@@ -70633,6 +70633,18 @@ ENV6.registerFlag("WEBGPU_USE_PROFILE_TOOL", () => false);
 ENV6.registerFlag("WEBGPU_IMPORT_EXTERNAL_TEXTURE", () => true);
 ENV6.registerFlag("WEBGPU_USE_NAIVE_CONV2D_DEBUG", () => false);
 
+// src/tfjs-backend-webgpu/src/adapter_info.ts
+var AdapterInfo = class {
+  constructor(adapterInfo) {
+    if (adapterInfo) {
+      this.vendor = adapterInfo.vendor;
+    }
+  }
+  isIntel() {
+    return this.vendor === "intel";
+  }
+};
+
 // src/tfjs-backend-webgpu/src/buffer_manager.ts
 var BufferManager = class {
   constructor(device) {
@@ -71633,7 +71645,7 @@ var reshapeDispatch = (device, program) => {
   }
 };
 var _WebGPUBackend = class extends KernelBackend {
-  constructor(device) {
+  constructor(device, adapterInfo) {
     super();
     this.commandQueueOwnedIds = /* @__PURE__ */ new WeakSet();
     this.dispatchNumberInEncoder = 0;
@@ -71652,6 +71664,7 @@ var _WebGPUBackend = class extends KernelBackend {
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
     this.supportTimeQuery = device.features.has("timestamp-query");
+    this.adapterInfo = new AdapterInfo(adapterInfo);
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager2(this.device);
     this.tensorMap = new DataStorage(this, engine());
@@ -72274,7 +72287,8 @@ if (isWebGPUSupported()) {
       deviceDescriptor.requiredFeatures = ["timestamp-query"];
     }
     const device = await adapter.requestDevice(deviceDescriptor);
-    return new WebGPUBackend(device);
+    const adapterInfo = await adapter.requestAdapterInfo();
+    return new WebGPUBackend(device, adapterInfo);
   }, 3);
 }
 
@@ -72837,7 +72851,7 @@ var writeDataToSubASnippet = (transpose6) => {
 var readDataFromSubASnippet = (transposeA) => {
   return transposeA ? "let ACached = mm_Asub[k][tileRow + innerRow];" : "let ACached = mm_Asub[tileRow + innerRow][k];";
 };
-function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32) {
+function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32, sequentialAccessByThreads = false) {
   const tileAOuter = workPerThread[1] * workGroupSize[1];
   const tileBOuter = workPerThread[0] * workGroupSize[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
@@ -72849,6 +72863,114 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
   const rowPerThreadA = tileAHight / workGroupSize[1];
   const colPerThreadA = tileAWidth / workGroupSize[0];
   const rowPerThreadB = tileInner / workGroupSize[1];
+  const matmulSnippet = sequentialAccessByThreads ? `
+      let localRow = i32(localId.y);
+      let localCol = i32(localId.x);
+      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+      let globalColStart = i32(workgroupId.x) * ${tileBOuter};
+
+      // Loop over shared dimension.
+      for (var t = 0; t < numTiles; t = t + 1) {
+        // Load one tile of A into local memory.
+        for (var inputRow = localRow; inputRow < ${tileAHight}; inputRow = inputRow + ${workGroupSize[1]}) {
+          for (var inputCol = localCol; inputCol < ${tileAWidth}; inputCol = inputCol + ${workGroupSize[0]}) {
+            ${writeDataToSubASnippet(transposeA)}
+          }
+        }
+        // Load one tile of B into local memory.
+        for (var inputRow = localRow; inputRow < ${tileInner}; inputRow = inputRow + ${workGroupSize[1]}) {
+              for (var inputCol = localCol; inputCol < ${tileBOuter}; inputCol = inputCol + ${workGroupSize[0]}) {
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+              kStart + inputRow,
+              globalColStart + inputCol);
+          }
+        }
+        kStart = kStart + TileInner;
+        workgroupBarrier();
+
+        // Compute acc values for a single thread.
+        var BCached : array<f32, ColPerThread>;
+        for (var k = 0; k < TileInner; k = k + 1) {
+          for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
+            BCached[inner] = mm_Bsub[k][localCol + inner * ${workGroupSize[0]}];
+          }
+          for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+            let ACached = ${transposeA ? `mm_Asub[k][localRow + innerRow * ${workGroupSize[1]}];` : `mm_Asub[localRow + innerRow * ${workGroupSize[1]}][k];`}
+            for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+              acc[innerRow][innerCol] = acc[innerRow][innerCol] +
+                  ACached * BCached[innerCol];
+            }
+          }
+        }
+        workgroupBarrier();
+      }
+      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        let gRow = globalRowStart + localRow + innerRow * ${workGroupSize[1]};
+        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+          let gCol = globalColStart + localCol + innerCol * ${workGroupSize[0]};
+          mm_write(batch, gRow, gCol, acc[innerRow][innerCol]);
+        }
+      }
+      ` : `
+  let tileRow = i32(localId.y) * RowPerThread;
+  let tileCol = i32(localId.x) * ColPerThread;
+
+  let globalRow = i32(globalId.y) * RowPerThread;
+  let globalCol = i32(globalId.x) * ColPerThread;
+  let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+
+  let tileRowA = i32(localId.y) * ${rowPerThreadA};
+  let tileColA = i32(localId.x) * ${colPerThreadA};
+  let tileRowB = i32(localId.y) * ${rowPerThreadB};
+  // Loop over shared dimension.
+  for (var t = 0; t < numTiles; t = t + 1) {
+    // Load one tile of A into local memory.
+    for (var innerRow = 0; innerRow < ${rowPerThreadA}; innerRow = innerRow + 1) {
+      for (var innerCol = 0; innerCol < ${colPerThreadA}; innerCol = innerCol + 1) {
+        let inputRow = tileRowA + innerRow;
+        let inputCol = tileColA + innerCol;
+        ${writeDataToSubASnippet(transposeA)}
+      }
+    }
+
+    // Load one tile of B into local memory.
+    for (var innerRow = 0; innerRow < ${rowPerThreadB}; innerRow = innerRow + 1) {
+      for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+        let inputRow = tileRowB + innerRow;
+        let inputCol = tileCol + innerCol;
+        mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+          kStart + inputRow,
+          globalCol + innerCol);
+      }
+    }
+    kStart = kStart + TileInner;
+    workgroupBarrier();
+
+    // Compute acc values for a single thread.
+    var BCached : array<f32, ColPerThread>;
+    for (var k = 0; k < TileInner; k = k + 1) {
+      for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
+        BCached[inner] = mm_Bsub[k][tileCol + inner];
+      }
+
+      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        ${readDataFromSubASnippet(transposeA)}
+        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+          acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
+        }
+      }
+    }
+
+    workgroupBarrier();
+  }
+
+  for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+    for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+      mm_write(batch, globalRow + innerRow, globalCol + innerCol,
+          acc[innerRow][innerCol]);
+    }
+  }
+  `;
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
@@ -72865,14 +72987,7 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
       globalId = GlobalId;
       numWorkgroups = NumWorkgroups;
 
-      let tileRow = i32(localId.y) * RowPerThread;
-      let tileCol = i32(localId.x) * ColPerThread;
-
-      let globalRow = i32(globalId.y) * RowPerThread;
-      let globalCol = i32(globalId.x) * ColPerThread;
       let batch = ${splitK ? "0" : "i32(globalId.z)"};
-      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
-
       let numTiles = ${splitK ? `${Math.ceil(splitedDimInner / tileInner)}` : "(uniforms.dimInner - 1) / TileInner + 1"};
       var kStart = ${splitK ? `i32(globalId.z) * ${splitedDimInner}` : "0"};
 
@@ -72884,58 +72999,7 @@ function makeMatMulPackedSource(workPerThread, workGroupSize, transposeA = false
           acc[innerRow][innerCol] = 0.0;
         }
       }
-
-      let tileRowA = i32(localId.y) * ${rowPerThreadA};
-      let tileColA = i32(localId.x) * ${colPerThreadA};
-      let tileRowB = i32(localId.y) * ${rowPerThreadB};
-      // Loop over shared dimension.
-      for (var t = 0; t < numTiles; t = t + 1) {
-        // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < ${rowPerThreadA}; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ${colPerThreadA}; innerCol = innerCol + 1) {
-            let inputRow = tileRowA + innerRow;
-            let inputCol = tileColA + innerCol;
-            ${writeDataToSubASnippet(transposeA)}
-          }
-        }
-
-        // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < ${rowPerThreadB}; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-            let inputRow = tileRowB + innerRow;
-            let inputCol = tileCol + innerCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
-              kStart + inputRow,
-              globalCol + innerCol);
-          }
-        }
-        kStart = kStart + TileInner;
-        workgroupBarrier();
-
-        // Compute acc values for a single thread.
-        var BCached : array<f32, ColPerThread>;
-        for (var k = 0; k < TileInner; k = k + 1) {
-          for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
-            BCached[inner] = mm_Bsub[k][tileCol + inner];
-          }
-
-          for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-            ${readDataFromSubASnippet(transposeA)}
-            for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-              acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
-            }
-          }
-        }
-
-        workgroupBarrier();
-      }
-
-      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-          mm_write(batch, globalRow + innerRow, globalCol + innerCol,
-              acc[innerRow][innerCol]);
-        }
-      }
+      ${matmulSnippet}
     }
   `;
 }
@@ -72998,7 +73062,7 @@ function makeVectorMatrixProductSource(workGroupSize, transposeA = false) {
   `;
 }
 var MatMulPackedProgram2 = class {
-  constructor(aShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA = false, transposeB = false, bias = null, activation2 = null, preluActivationWeights = null) {
+  constructor(aShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA = false, transposeB = false, bias = null, activation2 = null, preluActivationWeights = null, sequentialAccessByThreads = false) {
     this.variableNames = ["A", "B"];
     this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.outputShape = outputShape;
@@ -73033,6 +73097,7 @@ var MatMulPackedProgram2 = class {
     if (hasPreluActivationWeights) {
       this.variableNames.push("preluActivationWeights");
     }
+    this.sequentialAccessByThreads = sequentialAccessByThreads;
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     this.addBias = addBias;
@@ -73041,7 +73106,7 @@ var MatMulPackedProgram2 = class {
     this.batchAEqualOne = batchAEqualOne;
     this.batchBEqualOne = batchBEqualOne;
     [this.fitAOuter, this.fitBOuter, this.fitInner] = this.getShapeFit(outputShape[1], outputShape[2], dimInner);
-    this.shaderKey = `matMulPacked_${this.elementsPerThread}_${transposeA}_${transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${this.isVectorA}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
+    this.shaderKey = `matMulPacked_${this.elementsPerThread}_${transposeA}_${transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${this.isVectorA}_${this.batchAEqualOne}_${this.batchBEqualOne}_${this.sequentialAccessByThreads}`;
   }
   getShapeFit(dimAOuter, dimBOuter, dimInner) {
     const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
@@ -73090,7 +73155,10 @@ var MatMulPackedProgram2 = class {
       this.elementsPerThread,
       this.workGroupSize,
       this.transposeA,
-      this.tileInner
+      this.tileInner,
+      false,
+      null,
+      this.sequentialAccessByThreads
     )}
     `;
     return userCode;
@@ -73628,6 +73696,7 @@ function batchMatMulImpl2({
       );
       break;
     case 3 /* MatMulPackedProgram */:
+      const sequentialAccessByThreads = backend2.adapterInfo.isIntel();
       program = new MatMulPackedProgram2(
         a3dShape,
         outputShape,
@@ -73637,7 +73706,8 @@ function batchMatMulImpl2({
         transposeB,
         bias,
         activation2,
-        preluActivationWeights
+        preluActivationWeights,
+        sequentialAccessByThreads
       );
       break;
     default:
@@ -75386,7 +75456,7 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
   return userCode;
 }
 var Conv2DMMProgram = class {
-  constructor(convInfo, dimAOuter, dimBOuter, dimInner, addBias = false, activation2 = null, hasPreluActivationWeights = false) {
+  constructor(convInfo, dimAOuter, dimBOuter, dimInner, addBias = false, activation2 = null, hasPreluActivationWeights = false, sequentialAccessByThreads = false) {
     this.variableNames = ["x", "W"];
     this.uniforms = `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.outputShape = convInfo.outShape;
@@ -75434,6 +75504,7 @@ var Conv2DMMProgram = class {
         this.variableNames.push("preluActivationWeights");
       }
     }
+    this.sequentialAccessByThreads = sequentialAccessByThreads;
     this.addBias = addBias;
     this.activation = activation2;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
@@ -75446,7 +75517,7 @@ var Conv2DMMProgram = class {
     this.fitAOuter = dimAOuter % this.tileAOuter === 0;
     this.fitBOuter = dimBOuter % this.tileBOuter === 0;
     this.fitInner = dimInner % this.tileInner === 0;
-    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${this.innerElementSize}_${this.isChannelsLast}`;
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${this.innerElementSize}_${this.isChannelsLast}_${this.sequentialAccessByThreads}`;
   }
   getUserCode() {
     const matMulSource = this.isVec4 ? makeMatMulPackedVec4Source(
@@ -75458,7 +75529,10 @@ var Conv2DMMProgram = class {
       this.elementsPerThread,
       this.workGroupSize,
       !this.isChannelsLast,
-      this.tileInner
+      this.tileInner,
+      false,
+      null,
+      this.sequentialAccessByThreads
     );
     const elementsSize = this.isVec4 ? [this.innerElementSize, 4, 4] : [1, 1, 1];
     const userCode = `
@@ -75723,6 +75797,7 @@ function conv2DImpl({
       { type: "int32", data: [dimBOuter] },
       { type: "int32", data: [dimInner] }
     );
+    const sequentialAccessByThreads = backend2.adapterInfo.isIntel();
     program = new Conv2DMMProgram(
       convInfo,
       dimAOuter,
@@ -75730,7 +75805,8 @@ function conv2DImpl({
       dimInner,
       hasBias,
       activation2,
-      hasPreluActivationWeights
+      hasPreluActivationWeights,
+      sequentialAccessByThreads
     );
   }
   const intermediates = [];
@@ -84449,7 +84525,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "3.20.0-20220929";
+var externalVersion = "3.20.0-20220930";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -85260,6 +85336,22 @@ export {
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file or at
  * https://opensource.org/licenses/MIT.
+ * =============================================================================
+ */
+/**
+ * @license
+ * Copyright 2022 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * =============================================================================
  */
 /**
