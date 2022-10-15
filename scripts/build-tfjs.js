@@ -11,6 +11,7 @@ const buildResolve = { // plugin for esbuild
     f.onResolve({ filter: /^@tensorflow\/tfjs-core$/ }, (args) => ({ path: path.join(__dirname, args.path.replace('@tensorflow/tfjs-core', '../src/tfjs-core/src/index.ts')) }));
     f.onResolve({ filter: /^@tensorflow\/tfjs-core\/dist\// }, (args) => ({ path: path.join(__dirname, args.path.replace('@tensorflow/tfjs-core/dist/', '../src/tfjs-core/src/') + '.ts') }));
     f.onResolve({ filter: /^@tensorflow\/tfjs-backend-cpu\/dist\/shared$/ }, (args) => ({ path: path.join(__dirname, args.path.replace('@tensorflow/tfjs-backend-cpu/dist/shared', '../src/tfjs-backend-cpu/src/shared.ts')) }));
+    f.onResolve({ filter: /^@tensorflow\// }, (args) => { log.warn('resolver:', args); });
   },
 };
 

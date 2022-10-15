@@ -1,7 +1,9 @@
+.tfjs*
+.pnpm-debug.log
+package-lock.json
+pnpm-lock.yaml
 node_modules/**
 src/**
-.tfjs*
-pnpm-lock.yaml
-package-lock.json
-.pnpm-debug.log
-types/lib
+types/lib/**
+types/src/**
+types/node_modules/**

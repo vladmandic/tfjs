@@ -1,23 +1,20 @@
 {
   "name": "@vladmandic/tfjs",
-  "version": "3.20.0-20220930",
+  "version": "4.0.0-20221015",
   "description": "Custom build of Tensorflow/JS for Browsers as pure ESNext",
   "sideEffects": false,
   "main": "dist/tfjs.esm.js",
   "module": "dist/tfjs.esm.js",
   "browser": "dist/tfjs.esm.js",
-  "types": "types/index.d.ts",
+  "types": "types/tfjs.d.ts",
   "scripts": {
+    "clean": "rimraf .tfjs* src/ dist/* types/lib/ types/tfjs-core.d.ts types/tfjs.d.ts",
     "download": "scripts/download.sh",
-    "patch": "scripts/prepare.sh",
     "build-wasm": "scripts/build-wasm.sh",
     "build-tfjs": "node scripts/build-tfjs.js",
-    "clean": "rimraf .tfjs* src/",
-    "build": "npm run download && npm run patch && npm run build-wasm && npm run build-tfjs",
-    "fast": "npm run build-tfjs",
-    "serve": "build --profile serve",
-    "commit": "git status --short && git commit --all --file .tfjs-version && git push && git log --max-count=1",
-    "types": "scripts/build-types.sh"
+    "types": "rimraf types/lib && scripts/build-types.sh",
+    "build": "npm run download && npm run build-wasm && npm run build-tfjs && npm run types",
+    "commit": "git status --short && git commit --all --file .tfjs-version && git push && git log --max-count=1"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -37,33 +34,18 @@
     "tfjs"
   ],
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.29.5",
-    "@tensorflow/tfjs-backend-cpu": "^3.20.0",
-    "@tensorflow/tfjs-backend-wasm": "^3.20.0",
-    "@tensorflow/tfjs-backend-webgl": "^3.20.0",
-    "@tensorflow/tfjs-backend-webgpu": "0.0.1-alpha.13",
-    "@tensorflow/tfjs-converter": "^3.20.0",
-    "@tensorflow/tfjs-core": "^3.20.0",
-    "@tensorflow/tfjs-data": "^3.20.0",
-    "@tensorflow/tfjs-layers": "^3.20.0",
-    "@types/node": "^18.7.14",
-    "@typescript-eslint/eslint-plugin": "^5.36.1",
-    "@typescript-eslint/parser": "^5.36.1",
-    "@vladmandic/build": "^0.7.11",
+    "@types/node": "^18.8.5",
+    "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "@typescript-eslint/parser": "^5.40.0",
+    "@vladmandic/build": "^0.7.14",
     "@vladmandic/pilogger": "^0.4.6",
-    "@webgpu/types": "^0.1.21",
-    "argparse": "^2.0.1",
-    "esbuild": "^0.15.6",
-    "eslint": "8.23.0",
+    "esbuild": "^0.15.10",
+    "eslint": "8.25.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
-    "npm": "^8.18.0",
     "rimraf": "^3.0.2",
     "seedrandom": "^3.0.5",
     "tslib": "^2.4.0",
-    "typescript": "^4.8.2"
-  },
-  "dependencies": {
-    "long": "5.2.0"
+    "typescript": "^4.8.4"
   }
 }

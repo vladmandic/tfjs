@@ -45,7 +45,10 @@
     "useDefineForClassFields": true,
     "useUnknownInCatchVariables": true
   },
+  "types": [
+    "long"
+  ],
   "formatCodeOptions": { "indentSize": 2, "tabSize": 2 },
   "exclude": ["node_modules/", "dist/", "src/e2e/", "*_test.ts", "test_*.ts"],
-  "include": ["scripts", "test"],
+  "include": ["scripts"],
 }

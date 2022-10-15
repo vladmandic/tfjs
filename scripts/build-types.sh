@@ -1,13 +1,22 @@
 #!/bin/bash
-set -e
+# set -e
+cd types/
 
-# build  in types/lib/<module>/<file>.t.ds for all targets
-node_modules/.bin/tsc --project types/tsconfig.json
-# build types/tfjs-core.d.ts
-node_modules/.bin/api-extractor run --local --verbose --config types/api-tfjs-core.json
-# build types/tfjs.d.ts
-node_modules/.bin/api-extractor run --local --verbose --config types/api-tfjs.json
-# patch types/tfjs.d.ts
-sed -i 's/\@tensorflow\/tfjs-core/\.\/tfjs-core/' types/tfjs.d.ts
+echo "Install dependencies"
+pnpm install
 
+echo "Link sources"
+if ! [ -L "src" ]; then echo aaaa; ln -s ../src src; fi
+
+echo "Build types in types/lib"
+node_modules/.bin/tsc
+ln -s ../../src/tfjs-backend-wasm/wasm-out lib/tfjs-backend-wasm/wasm-out
+
+echo "Compile tfjs-core.d.ts"
+node_modules/.bin/api-extractor run --local --verbose --config tfjs-core.json
+
+echo "Compile tfjs.d.ts"
+node_modules/.bin/api-extractor run --local --verbose --config tfjs.json
+
+cd ..
 echo "done..."

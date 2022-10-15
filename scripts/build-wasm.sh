@@ -25,8 +25,9 @@ fi
 
 # build wasm binaries and js bindings
 cd src
-echo "Cleaning Bazel build cache"
-bazel clean
+
+# echo "Cleaning Bazel build cache"
+# bazel clean --expunge
 
 echo "Building: tfjs-backend-wasm"
 bazel build --symlink_prefix="wasm-out/" -c opt --copt="-O3" --copt="-flto" //tfjs-backend-wasm/src/cc:tfjs-backend-wasm
@@ -38,16 +39,26 @@ cd ..
 
 echo "Copying WASM binaries to dist"
 cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/tfjs-backend-wasm.wasm dist/
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/tfjs-backend-wasm.js dist/
 cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd/tfjs-backend-wasm-simd.wasm dist/
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd/tfjs-backend-wasm-simd.js dist/
 cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.wasm dist/
-chmod 644 dist/*.wasm
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js dist/
+chmod 644 dist/*.wasm dist/*.js
 
-echo "Patching loaders"
-cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/* src/tfjs-backend-wasm/wasm-out/
-cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.worker.js src/tfjs-backend-wasm/wasm-out/
-cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js src/tfjs-backend-wasm/wasm-out/
+echo "Copying WASM binaries to wasm-out"
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/tfjs-backend-wasm.js src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.js
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd/tfjs-backend-wasm-simd.js src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.js
+cp src/wasm-out/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm-threaded-simd.js src/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.js
 chmod 644 src/tfjs-backend-wasm/wasm-out/*
-# cd src/tfjs-backend-wasm/scripts
-# node ./create-worker-module.js
-# node ./patch-threaded-simd-module.js
-# cd ../../../
+
+echo "Patching WASM loaders"
+cd src/tfjs-backend-wasm/scripts
+node ./create-worker-module.js ../../../dist/tfjs-backend-wasm.js ../wasm-out/tfjs-backend-wasm.worker.js
+node ./create-worker-module.js ../../../dist/tfjs-backend-wasm-simd.js ../wasm-out/tfjs-backend-wasm-simd.worker.js
+node ./create-worker-module.js ../../../dist/tfjs-backend-wasm-threaded-simd.js ../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js
+cd ../../../
+chmod 644 src/tfjs-backend-wasm/wasm-out/*
+cp src/tfjs-backend-wasm/wasm-out/*.js dist/
+
+echo "Done"
