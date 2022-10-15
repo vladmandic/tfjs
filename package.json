@@ -34,6 +34,7 @@
     "tfjs"
   ],
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.33.1",
     "@types/node": "^18.8.5",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@typescript-eslint/parser": "^5.40.0",
