@@ -17,3 +17,6 @@ node_modules/.bin/api-extractor run --local --verbose --config scripts/tfjs-core
 
 echo "Compile tfjs.d.ts"
 node_modules/.bin/api-extractor run --local --verbose --config scripts/tfjs.json 2>&1 | grep -vi 'extractor' | grep -v '^$'
+
+echo "Hack tfjs.d.ts"
+sed 's/\@tensorflow\/tfjs-core/\.\/tfjs-core/' types/lib/tfjs.d.ts | grep -v '///' > types/tfjs.d.ts

@@ -1,9 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "mainEntryPointFilePath": "./tfjs-template.d.ts",
-  "bundledPackages": [
-    "@tensorflow/tfjs-core"
-  ],
+  "bundledPackages": [],
   "compiler": {
     "skipLibCheck": false,
     "tsconfigFilePath": "../scripts/types.json"
@@ -11,7 +9,7 @@
   "newlineKind": "lf",
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "../types/tfjs.d.ts"
+    "untrimmedFilePath": "../types/lib/tfjs.d.ts"
   },
   "docModel": { "enabled": false },
   "tsdocMetadata": {
