@@ -4,6 +4,7 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod3) => function __require() {
   return mod3 || (0, cb[__getOwnPropNames(cb)[0]])((mod3 = { exports: {} }).exports, mod3), mod3.exports;
 };
@@ -23,6 +24,10 @@ var __toESM = (mod3, isNodeMode, target) => (target = mod3 != null ? __create(__
   isNodeMode || !mod3 || !mod3.__esModule ? __defProp(target, "default", { value: mod3, enumerable: true }) : target,
   mod3
 ));
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
 
 // src/node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
 var require_long = __commonJS({
@@ -1586,9 +1591,9 @@ var DataStorage = class {
   constructor(backend, dataMover) {
     this.backend = backend;
     this.dataMover = dataMover;
-    this.data = /* @__PURE__ */ new WeakMap();
-    this.dataIdsCount = 0;
   }
+  data = /* @__PURE__ */ new WeakMap();
+  dataIdsCount = 0;
   get(dataId) {
     if (!this.data.has(dataId)) {
       this.dataMover.moveData(this.backend, dataId);
@@ -2144,12 +2149,14 @@ var TENSORFLOWJS_FLAGS_PREFIX = "tfjsflags";
 var Environment = class {
   constructor(global2) {
     this.global = global2;
-    this.flags = {};
-    this.flagRegistry = {};
-    this.urlFlags = {};
-    this.getQueryParams = getQueryParams;
     this.populateURLFlags();
   }
+  flags = {};
+  flagRegistry = {};
+  urlFlags = {};
+  platformName;
+  platform;
+  getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
       if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
@@ -3207,6 +3214,10 @@ var TensorBuffer = class {
     this.values = values || getArrayFromDType(dtype, this.size);
     this.strides = computeStrides(shape);
   }
+  size;
+  shape;
+  strides;
+  values;
   set(value, ...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -3282,9 +3293,16 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
+  id;
+  dataId;
+  shape;
+  size;
+  dtype;
+  rankType;
+  kept = false;
+  scopeId;
+  strides;
   constructor(shape, dtype, dataId, id) {
-    this.kept = false;
-    this.isDisposedInternal = false;
     this.shape = shape.slice();
     this.dtype = dtype || "float32";
     this.size = sizeFromShape(shape);
@@ -3363,6 +3381,7 @@ var Tensor = class {
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
+  isDisposedInternal = false;
   get isDisposed() {
     return this.isDisposedInternal;
   }
@@ -3413,6 +3432,7 @@ var Variable = class extends Tensor {
     this.trainable = trainable;
     this.name = name;
   }
+  name;
   assign(newValue) {
     if (newValue.dtype !== this.dtype) {
       throw new Error(
@@ -3536,31 +3556,31 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
-  constructor() {
-    this.registeredVariables = {};
-    this.nextTapeNodeId = 0;
-    this.numBytes = 0;
-    this.numTensors = 0;
-    this.numStringTensors = 0;
-    this.numDataBuffers = 0;
-    this.gradientDepth = 0;
-    this.kernelDepth = 0;
-    this.scopeStack = [];
-    this.numDataMovesStack = [];
-    this.nextScopeId = 0;
-    this.tensorInfo = /* @__PURE__ */ new WeakMap();
-    this.profiling = false;
-    this.activeProfile = {
-      newBytes: 0,
-      newTensors: 0,
-      peakBytes: 0,
-      kernels: [],
-      result: null,
-      get kernelNames() {
-        return Array.from(new Set(this.kernels.map((k) => k.name)));
-      }
-    };
-  }
+  registeredVariables = {};
+  nextTapeNodeId = 0;
+  numBytes = 0;
+  numTensors = 0;
+  numStringTensors = 0;
+  numDataBuffers = 0;
+  activeTape;
+  gradientDepth = 0;
+  kernelDepth = 0;
+  activeScope;
+  scopeStack = [];
+  numDataMovesStack = [];
+  nextScopeId = 0;
+  tensorInfo = /* @__PURE__ */ new WeakMap();
+  profiling = false;
+  activeProfile = {
+    newBytes: 0,
+    newTensors: 0,
+    peakBytes: 0,
+    kernels: [],
+    result: null,
+    get kernelNames() {
+      return Array.from(new Set(this.kernels.map((k) => k.name)));
+    }
+  };
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
@@ -3570,11 +3590,16 @@ var EngineState = class {
 var _Engine = class {
   constructor(ENV4) {
     this.ENV = ENV4;
-    this.registry = {};
-    this.registryFactory = {};
-    this.pendingBackendInitId = 0;
     this.state = new EngineState();
   }
+  state;
+  backendName;
+  registry = {};
+  registryFactory = {};
+  profiler;
+  backendInstance;
+  pendingBackendInit;
+  pendingBackendInitId = 0;
   async ready() {
     if (this.pendingBackendInit != null) {
       return this.pendingBackendInit.then(() => {
@@ -4348,8 +4373,8 @@ var _Engine = class {
   }
 };
 var Engine = _Engine;
-Engine.nextTensorId = 0;
-Engine.nextVariableId = 0;
+__publicField(Engine, "nextTensorId", 0);
+__publicField(Engine, "nextVariableId", 0);
 function ones(shape) {
   const values = makeOnesTypedArray(sizeFromShape(shape), "float32");
   return ENGINE.makeTensor(values, shape, "float32");
@@ -4774,32 +4799,34 @@ function getWeightSpecs(weightsManifest) {
 }
 
 // src/tfjs-core/src/io/router_registry.ts
-var IORouterRegistry = class {
+var _IORouterRegistry = class {
+  saveRouters;
+  loadRouters;
   constructor() {
     this.saveRouters = [];
     this.loadRouters = [];
   }
   static getInstance() {
-    if (IORouterRegistry.instance == null) {
-      IORouterRegistry.instance = new IORouterRegistry();
+    if (_IORouterRegistry.instance == null) {
+      _IORouterRegistry.instance = new _IORouterRegistry();
     }
-    return IORouterRegistry.instance;
+    return _IORouterRegistry.instance;
   }
   static registerSaveRouter(saveRouter) {
-    IORouterRegistry.getInstance().saveRouters.push(saveRouter);
+    _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
   static registerLoadRouter(loadRouter) {
-    IORouterRegistry.getInstance().loadRouters.push(loadRouter);
+    _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
   static getSaveHandlers(url) {
-    return IORouterRegistry.getHandlers(url, "save");
+    return _IORouterRegistry.getHandlers(url, "save");
   }
   static getLoadHandlers(url, loadOptions) {
-    return IORouterRegistry.getHandlers(url, "load", loadOptions);
+    return _IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
   static getHandlers(url, handlerType, loadOptions) {
     const validHandlers = [];
-    const routers = handlerType === "load" ? IORouterRegistry.getInstance().loadRouters : IORouterRegistry.getInstance().saveRouters;
+    const routers = handlerType === "load" ? _IORouterRegistry.getInstance().loadRouters : _IORouterRegistry.getInstance().saveRouters;
     routers.forEach((router) => {
       const handler = router(url, loadOptions);
       if (handler !== null) {
@@ -4809,6 +4836,8 @@ var IORouterRegistry = class {
     return validHandlers;
   }
 };
+var IORouterRegistry = _IORouterRegistry;
+__publicField(IORouterRegistry, "instance");
 
 // src/tfjs-core/src/io/indexed_db.ts
 var DATABASE_NAME = "tensorflowjs";
@@ -4836,6 +4865,8 @@ function setUpDatabase(openRequest) {
   db.createObjectStore(INFO_STORE_NAME, { keyPath: "modelPath" });
 }
 var BrowserIndexedDB = class {
+  indexedDB;
+  modelPath;
   constructor(modelPath) {
     this.indexedDB = getIndexedDBFactory();
     if (modelPath == null || !modelPath) {
@@ -4926,7 +4957,7 @@ var BrowserIndexedDB = class {
     });
   }
 };
-BrowserIndexedDB.URL_SCHEME = "indexeddb://";
+__publicField(BrowserIndexedDB, "URL_SCHEME", "indexeddb://");
 var indexedDBRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -4947,6 +4978,7 @@ function maybeStripScheme(key) {
   return key.startsWith(BrowserIndexedDB.URL_SCHEME) ? key.slice(BrowserIndexedDB.URL_SCHEME.length) : key;
 }
 var BrowserIndexedDBManager = class {
+  indexedDB;
   constructor() {
     this.indexedDB = getIndexedDBFactory();
   }
@@ -5061,6 +5093,9 @@ function maybeStripScheme2(key) {
   return key.startsWith(BrowserLocalStorage.URL_SCHEME) ? key.slice(BrowserLocalStorage.URL_SCHEME.length) : key;
 }
 var BrowserLocalStorage = class {
+  LS;
+  modelPath;
+  keys;
   constructor(modelPath) {
     if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
       throw new Error(
@@ -5172,7 +5207,7 @@ var BrowserLocalStorage = class {
     return out;
   }
 };
-BrowserLocalStorage.URL_SCHEME = "localstorage://";
+__publicField(BrowserLocalStorage, "URL_SCHEME", "localstorage://");
 var localStorageRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5192,6 +5227,7 @@ function browserLocalStorage(modelPath) {
   return new BrowserLocalStorage(modelPath);
 }
 var BrowserLocalStorageManager = class {
+  LS;
   constructor() {
     assert(
       env().getBool("IS_BROWSER"),
@@ -5230,15 +5266,16 @@ var BrowserLocalStorageManager = class {
 
 // src/tfjs-core/src/io/model_management.ts
 var URL_SCHEME_SUFFIX = "://";
-var ModelStoreManagerRegistry = class {
+var _ModelStoreManagerRegistry = class {
+  managers;
   constructor() {
     this.managers = {};
   }
   static getInstance() {
-    if (ModelStoreManagerRegistry.instance == null) {
-      ModelStoreManagerRegistry.instance = new ModelStoreManagerRegistry();
+    if (_ModelStoreManagerRegistry.instance == null) {
+      _ModelStoreManagerRegistry.instance = new _ModelStoreManagerRegistry();
     }
-    return ModelStoreManagerRegistry.instance;
+    return _ModelStoreManagerRegistry.instance;
   }
   static registerManager(scheme, manager) {
     assert(scheme != null, () => "scheme must not be undefined or null.");
@@ -5246,7 +5283,7 @@ var ModelStoreManagerRegistry = class {
       scheme = scheme.slice(0, scheme.indexOf(URL_SCHEME_SUFFIX));
     }
     assert(scheme.length > 0, () => "scheme must not be an empty string.");
-    const registry = ModelStoreManagerRegistry.getInstance();
+    const registry = _ModelStoreManagerRegistry.getInstance();
     assert(
       registry.managers[scheme] == null,
       () => `A model store manager is already registered for scheme '${scheme}'.`
@@ -5254,25 +5291,26 @@ var ModelStoreManagerRegistry = class {
     registry.managers[scheme] = manager;
   }
   static getManager(scheme) {
-    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
+    const manager = _ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
     return manager;
   }
   static getSchemes() {
-    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
+    return Object.keys(_ModelStoreManagerRegistry.getInstance().managers);
   }
 };
+var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
+__publicField(ModelStoreManagerRegistry, "instance");
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
-  constructor() {
-    this.messageName = "setTimeoutCustom";
-    this.functionRefs = [];
-    this.handledMessageCount = 0;
-    this.hasEventListener = false;
-  }
+  textEncoder;
+  messageName = "setTimeoutCustom";
+  functionRefs = [];
+  handledMessageCount = 0;
+  hasEventListener = false;
   fetch(path, init) {
     return fetch(path, init);
   }
@@ -5346,6 +5384,8 @@ var getNodeFetch = {
 };
 var systemFetch;
 var PlatformNode = class {
+  textEncoder;
+  util;
   constructor() {
     this.util = require_util();
     this.textEncoder = new this.util.TextEncoder();
@@ -5439,6 +5479,10 @@ function defer(f) {
   return new Promise((resolve) => setTimeout(resolve)).then(f);
 }
 var _BrowserDownloads = class {
+  modelJsonFileName;
+  weightDataFileName;
+  modelJsonAnchor;
+  weightDataAnchor;
   constructor(fileNamePrefix) {
     if (!env().getBool("IS_BROWSER")) {
       throw new Error(
@@ -5494,7 +5538,7 @@ var _BrowserDownloads = class {
   }
 };
 var BrowserDownloads = _BrowserDownloads;
-BrowserDownloads.URL_SCHEME = "downloads://";
+__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
 var browserDownloadsRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5582,8 +5626,14 @@ async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
 var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
 var JSON_TYPE = "application/json";
 var HTTPRequest = class {
+  path;
+  requestInit;
+  fetch;
+  weightUrlConverter;
+  DEFAULT_METHOD = "POST";
+  weightPathPrefix;
+  onProgress;
   constructor(path, loadOptions) {
-    this.DEFAULT_METHOD = "POST";
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -5715,7 +5765,7 @@ var HTTPRequest = class {
     return [weightSpecs, concatenateArrayBuffers(buffers)];
   }
 };
-HTTPRequest.URL_SCHEME_REGEX = /^https?:\/\//;
+__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
 function parseUrl(url) {
   const lastSlash = url.lastIndexOf("/");
   const lastSearchParam = url.lastIndexOf("?");
@@ -6725,20 +6775,23 @@ var Serializable = class {
     return new cls(config);
   }
 };
-var SerializationMap = class {
+var _SerializationMap = class {
+  classNameMap;
   constructor() {
     this.classNameMap = {};
   }
   static getMap() {
-    if (SerializationMap.instance == null) {
-      SerializationMap.instance = new SerializationMap();
+    if (_SerializationMap.instance == null) {
+      _SerializationMap.instance = new _SerializationMap();
     }
-    return SerializationMap.instance;
+    return _SerializationMap.instance;
   }
   static register(cls) {
-    SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
   }
 };
+var SerializationMap = _SerializationMap;
+__publicField(SerializationMap, "instance");
 function registerClass(cls) {
   assert(
     cls.className != null,
@@ -9673,6 +9726,14 @@ var rand = op({ rand_ });
 // src/tfjs-core/src/ops/rand_util.ts
 var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
+  mean;
+  stdDev;
+  nextVal;
+  dtype;
+  truncated;
+  upper;
+  lower;
+  random;
   constructor(mean2, stdDeviation, dtype, truncated, seed) {
     this.mean = mean2;
     this.stdDev = stdDeviation;
@@ -9724,6 +9785,13 @@ var MPRandGauss = class {
   }
 };
 var RandGamma = class {
+  alpha;
+  beta;
+  d;
+  c;
+  dtype;
+  randu;
+  randn;
   constructor(alpha, beta, dtype, seed) {
     this.alpha = alpha;
     this.beta = 1 / beta;
@@ -9768,8 +9836,11 @@ var RandGamma = class {
   }
 };
 var UniformRandom = class {
+  min;
+  range;
+  random;
+  dtype;
   constructor(min3 = 0, max3 = 1, dtype, seed) {
-    this.canReturnFloat = () => this.dtype == null || this.dtype === "float32";
     this.min = min3;
     this.range = max3 - min3;
     this.dtype = dtype;
@@ -9786,6 +9857,7 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
+  canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
       return value;
@@ -12449,6 +12521,7 @@ var stringToHashBucketFast = op({ stringToHashBucketFast_ });
 
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
+  iterations_;
   minimize(f, returnCost = false, varList) {
     const { value, grads: grads2 } = this.computeGradients(f, varList);
     if (varList != null) {
@@ -12517,12 +12590,12 @@ var AdadeltaOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.rho = rho;
     this.epsilon = epsilon;
-    this.accumulatedGrads = [];
-    this.accumulatedUpdates = [];
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
   }
+  accumulatedGrads = [];
+  accumulatedUpdates = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12608,7 +12681,7 @@ var AdadeltaOptimizer = class extends Optimizer {
     return new cls(config["learningRate"], config["rho"], config["epsilon"]);
   }
 };
-AdadeltaOptimizer.className = "Adadelta";
+__publicField(AdadeltaOptimizer, "className", "Adadelta");
 registerClass(AdadeltaOptimizer);
 
 // src/tfjs-core/src/optimizers/adagrad_optimizer.ts
@@ -12617,8 +12690,8 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
-    this.accumulatedGrads = [];
   }
+  accumulatedGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12682,7 +12755,7 @@ var AdagradOptimizer = class extends Optimizer {
     return new cls(config["learningRate"], config["initialAccumulatorValue"]);
   }
 };
-AdagradOptimizer.className = "Adagrad";
+__publicField(AdagradOptimizer, "className", "Adagrad");
 registerClass(AdagradOptimizer);
 
 // src/tfjs-core/src/optimizers/adam_optimizer.ts
@@ -12693,8 +12766,6 @@ var AdamOptimizer = class extends Optimizer {
     this.beta1 = beta1;
     this.beta2 = beta2;
     this.epsilon = epsilon;
-    this.accumulatedFirstMoment = [];
-    this.accumulatedSecondMoment = [];
     tidy(() => {
       this.accBeta1 = scalar(beta1).variable();
       this.accBeta2 = scalar(beta2).variable();
@@ -12703,6 +12774,10 @@ var AdamOptimizer = class extends Optimizer {
       this.epsilon = ENGINE.backend.epsilon();
     }
   }
+  accBeta1;
+  accBeta2;
+  accumulatedFirstMoment = [];
+  accumulatedSecondMoment = [];
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -12807,7 +12882,7 @@ var AdamOptimizer = class extends Optimizer {
     );
   }
 };
-AdamOptimizer.className = "Adam";
+__publicField(AdamOptimizer, "className", "Adam");
 registerClass(AdamOptimizer);
 
 // src/tfjs-core/src/optimizers/adamax_optimizer.ts
@@ -12819,8 +12894,6 @@ var AdamaxOptimizer = class extends Optimizer {
     this.beta2 = beta2;
     this.epsilon = epsilon;
     this.decay = decay;
-    this.accumulatedFirstMoment = [];
-    this.accumulatedWeightedInfNorm = [];
     tidy(() => {
       this.iteration = scalar(0).variable();
       this.accBeta1 = scalar(beta1).variable();
@@ -12829,6 +12902,10 @@ var AdamaxOptimizer = class extends Optimizer {
       this.epsilon = ENGINE.backend.epsilon();
     }
   }
+  accBeta1;
+  iteration;
+  accumulatedFirstMoment = [];
+  accumulatedWeightedInfNorm = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -12910,7 +12987,7 @@ var AdamaxOptimizer = class extends Optimizer {
     );
   }
 };
-AdamaxOptimizer.className = "Adamax";
+__publicField(AdamaxOptimizer, "className", "Adamax");
 registerClass(AdamaxOptimizer);
 
 // src/tfjs-core/src/optimizers/sgd_optimizer.ts
@@ -12920,6 +12997,7 @@ var SGDOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.setLearningRate(learningRate);
   }
+  c;
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     varNames.forEach((name, i) => {
@@ -12961,7 +13039,7 @@ var SGDOptimizer = class extends Optimizer {
     return new cls(config["learningRate"]);
   }
 };
-SGDOptimizer.className = "SGD";
+__publicField(SGDOptimizer, "className", "SGD");
 registerClass(SGDOptimizer);
 
 // src/tfjs-core/src/optimizers/momentum_optimizer.ts
@@ -12971,9 +13049,10 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.learningRate = learningRate;
     this.momentum = momentum;
     this.useNesterov = useNesterov;
-    this.accumulations = [];
     this.m = scalar(this.momentum);
   }
+  m;
+  accumulations = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -13043,7 +13122,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
     );
   }
 };
-MomentumOptimizer.className = "Momentum";
+__publicField(MomentumOptimizer, "className", "Momentum");
 registerClass(MomentumOptimizer);
 
 // src/tfjs-core/src/optimizers/rmsprop_optimizer.ts
@@ -13054,9 +13133,6 @@ var RMSPropOptimizer = class extends Optimizer {
     this.decay = decay;
     this.momentum = momentum;
     this.epsilon = epsilon;
-    this.accumulatedMeanSquares = [];
-    this.accumulatedMoments = [];
-    this.accumulatedMeanGrads = [];
     this.centered = centered;
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
@@ -13065,6 +13141,10 @@ var RMSPropOptimizer = class extends Optimizer {
       throw new Error(`learningRate for RMSPropOptimizer must be defined.`);
     }
   }
+  centered;
+  accumulatedMeanSquares = [];
+  accumulatedMoments = [];
+  accumulatedMeanGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -13201,7 +13281,7 @@ var RMSPropOptimizer = class extends Optimizer {
     );
   }
 };
-RMSPropOptimizer.className = "RMSProp";
+__publicField(RMSPropOptimizer, "className", "RMSProp");
 registerClass(RMSPropOptimizer);
 
 // src/tfjs-core/src/optimizers/optimizer_constructors.ts
@@ -17069,12 +17149,15 @@ function useShapeUniforms(rank) {
 
 // src/tfjs-backend-webgl/src/decode_matrix_gpu.ts
 var DecodeMatrixProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  packedInputs = false;
+  packedOutput = true;
+  outPackingScheme = 0 /* DENSE */;
+  enableShapeUniforms;
+  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = false;
-    this.packedOutput = true;
-    this.outPackingScheme = 0 /* DENSE */;
-    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -17110,12 +17193,15 @@ var DecodeMatrixProgram = class {
 
 // src/tfjs-backend-webgl/src/decode_matrix_packed_gpu.ts
 var DecodeMatrixPackedProgram = class {
+  variableNames = ["A"];
+  userCode;
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  outPackingScheme = 0 /* DENSE */;
+  enableShapeUniforms;
+  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.outPackingScheme = 0 /* DENSE */;
-    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -17151,9 +17237,11 @@ var DecodeMatrixPackedProgram = class {
 
 // src/tfjs-backend-webgl/src/encode_float_gpu.ts
 var EncodeFloatProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  outTexUsage = 3 /* DOWNLOAD */;
   constructor(outputShape) {
-    this.variableNames = ["A"];
-    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -17169,11 +17257,13 @@ var EncodeFloatProgram = class {
 
 // src/tfjs-backend-webgl/src/encode_float_packed_gpu.ts
 var EncodeFloatPackedProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  packedInputs = true;
+  packedOutput = false;
+  outTexUsage = 3 /* DOWNLOAD */;
   constructor(outputShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = false;
-    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -17196,9 +17286,12 @@ var CHANNEL_CHAR_TO_INDEX_MAP = {
   "A": 3
 };
 var EncodeMatrixProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  enableShapeUniforms;
+  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape, inputIsUnsignedByte = false, usedChannels = "RGBA") {
-    this.variableNames = ["A"];
-    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -17240,11 +17333,14 @@ var EncodeMatrixProgram = class {
 
 // src/tfjs-backend-webgl/src/encode_matrix_packed_gpu.ts
 var EncodeMatrixPackedProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  packedInputs = false;
+  packedOutput = true;
+  enableShapeUniforms;
+  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape, inputIsUnsignedByte = false) {
-    this.variableNames = ["A"];
-    this.packedInputs = false;
-    this.packedOutput = true;
-    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -17693,12 +17789,23 @@ function downloadMatrixFromPackedOutputTexture(gl, physicalRows, physicalCols) {
 
 // src/tfjs-backend-webgl/src/gpgpu_context.ts
 var GPGPUContext = class {
+  gl;
+  textureFloatExtension;
+  textureHalfFloatExtension;
+  colorBufferFloatExtension;
+  colorBufferHalfFloatExtension;
+  disjointQueryTimerExtension;
+  parallelCompilationExtension;
+  vertexBuffer;
+  indexBuffer;
+  framebuffer;
+  outputTexture = null;
+  program = null;
+  disposed = false;
+  disjoint;
+  vertexShader;
+  textureConfig;
   constructor(gl) {
-    this.outputTexture = null;
-    this.program = null;
-    this.disposed = false;
-    this.vertexAttrsAreBound = false;
-    this.itemsToPoll = [];
     const glVersion = env().getNumber("WEBGL_VERSION");
     if (gl != null) {
       this.gl = gl;
@@ -17915,6 +18022,7 @@ var GPGPUContext = class {
       )
     );
   }
+  vertexAttrsAreBound = false;
   createProgram(fragmentShader) {
     this.throwIfDisposed();
     const gl = this.gl;
@@ -18130,6 +18238,7 @@ var GPGPUContext = class {
       this.addItemToPoll(() => fenceContext.isFencePassed(), () => resolve());
     });
   }
+  itemsToPoll = [];
   pollItems() {
     const index = linearSearchLastTrue(this.itemsToPoll.map((x) => x.isDoneFn));
     for (let i = 0; i <= index; ++i) {
@@ -19096,6 +19205,8 @@ var RaggedTensorToTensorOp = class {
     this.rowPartitionTypes = backend_util_exports.getRowPartitionTypesHelper(rowPartitionTypeStrings);
     this.raggedRank = backend_util_exports.getRaggedRank(this.rowPartitionTypes);
   }
+  rowPartitionTypes;
+  raggedRank;
   getRowPartitionTypeByDimension(dimension) {
     if (this.rowPartitionTypes[0] === RowPartitionType2.FIRST_DIM_SIZE) {
       return this.rowPartitionTypes[dimension + 1];
@@ -19854,6 +19965,12 @@ function stridedSliceImpl(outShape, xBuf, strides, begin) {
 
 // src/tfjs-backend-cpu/src/kernels/StringNGrams_impl.ts
 var StringNGramsOp = class {
+  separator;
+  nGramWidths;
+  padWidth;
+  leftPad;
+  rightPad;
+  preserveShort;
   constructor(separator, nGramWidths, leftPad, rightPad2, padWidth, preserveShortSequences) {
     this.separator = util_exports.encodeString(separator);
     this.nGramWidths = nGramWidths;
@@ -20325,10 +20442,14 @@ function getSourceCoords(rank, dims) {
 
 // src/tfjs-backend-webgl/src/pack_gpu.ts
 var PackProgram = class {
+  variableNames = ["A"];
+  outputShape;
+  userCode;
+  packedInputs = false;
+  packedOutput = true;
+  enableShapeUniforms;
+  rank;
   constructor(outputShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = false;
-    this.packedOutput = true;
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -20417,11 +20538,14 @@ var PackProgram = class {
 
 // src/tfjs-backend-webgl/src/reshape_packed_gpu.ts
 var ReshapePackedProgram = class {
+  variableNames = ["A"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
+  enableShapeUniforms;
+  customUniforms = [{ name: "inputShape", type: "ivec3" }];
   constructor(outputShape, inputShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.customUniforms = [{ name: "inputShape", type: "ivec3" }];
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     let mainLoop = ``;
@@ -20483,14 +20607,14 @@ function getReshapedInputCoords(shape, enableShapeUniforms) {
 var TextureManager = class {
   constructor(gpgpu) {
     this.gpgpu = gpgpu;
-    this.numUsedTextures = 0;
-    this.numFreeTextures = 0;
-    this._numBytesAllocated = 0;
-    this._numBytesFree = 0;
-    this.freeTextures = {};
-    this.logEnabled = false;
-    this.usedTextures = {};
   }
+  numUsedTextures = 0;
+  numFreeTextures = 0;
+  _numBytesAllocated = 0;
+  _numBytesFree = 0;
+  freeTextures = {};
+  logEnabled = false;
+  usedTextures = {};
   acquireTexture(shapeRC, usage, isPacked) {
     const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
     const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
@@ -20692,8 +20816,11 @@ function getKeyFromTextureShape(shapeRowsCol, physicalTexType, isPacked) {
 
 // src/tfjs-backend-webgl/src/unaryop_gpu.ts
 var UnaryOpProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  enableShapeUniforms;
   constructor(aShape, opSnippet) {
-    this.variableNames = ["A"];
     this.outputShape = aShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
@@ -20759,10 +20886,13 @@ var RELU62 = `
 `;
 var SIGMOID2 = `return 1.0 / (1.0 + exp(-1.0 * x));`;
 var UnaryOpPackedProgram = class {
+  variableNames = ["A"];
+  userCode;
+  enableShapeUniforms;
+  outputShape;
+  packedInputs = true;
+  packedOutput = true;
   constructor(aShape, opSnippet) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
     this.outputShape = aShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
@@ -20782,10 +20912,13 @@ var UnaryOpPackedProgram = class {
 
 // src/tfjs-backend-webgl/src/unpack_gpu.ts
 var UnpackProgram = class {
+  variableNames = ["A"];
+  packedInputs = true;
+  packedOutput = false;
+  outputShape;
+  userCode;
+  enableShapeUniforms;
   constructor(outputShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = false;
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = outputShape.length;
@@ -20826,18 +20959,29 @@ function numMBBeforeWarning() {
   return env().global.screen.height * env().global.screen.width * window.devicePixelRatio * BEFORE_PAGING_CONSTANT / 1024 / 1024;
 }
 var _MathBackendWebGL = class extends KernelBackend {
+  texData;
+  gpgpu;
+  nextDataId() {
+    return _MathBackendWebGL.nextDataId++;
+  }
+  pendingRead = /* @__PURE__ */ new WeakMap();
+  pendingDisposal = /* @__PURE__ */ new WeakSet();
+  dataRefCount = /* @__PURE__ */ new WeakMap();
+  numBytesInGPU = 0;
+  canvas;
+  programTimersStack;
+  activeTimers;
+  uploadWaitMs = 0;
+  downloadWaitMs = 0;
+  lastGlFlushTime = 0;
+  floatPrecisionValue;
+  textureManager;
+  binaryCache;
+  gpgpuCreatedLocally;
+  numMBBeforeWarning;
+  warnedAboutMemory = false;
   constructor(gpuResource) {
     super();
-    this.pendingRead = /* @__PURE__ */ new WeakMap();
-    this.pendingDisposal = /* @__PURE__ */ new WeakSet();
-    this.dataRefCount = /* @__PURE__ */ new WeakMap();
-    this.numBytesInGPU = 0;
-    this.uploadWaitMs = 0;
-    this.downloadWaitMs = 0;
-    this.lastGlFlushTime = 0;
-    this.warnedAboutMemory = false;
-    this.pendingDeletes = 0;
-    this.disposed = false;
     if (!env().getBool("HAS_WEBGL")) {
       throw new Error("WebGL is not supported on this device");
     }
@@ -20862,9 +21006,6 @@ var _MathBackendWebGL = class extends KernelBackend {
     this.textureManager = new TextureManager(this.gpgpu);
     this.numMBBeforeWarning = numMBBeforeWarning();
     this.texData = new DataStorage(this, engine());
-  }
-  nextDataId() {
-    return _MathBackendWebGL.nextDataId++;
   }
   numDataIds() {
     return this.texData.numDataIds() - this.pendingDeletes;
@@ -21212,6 +21353,7 @@ var _MathBackendWebGL = class extends KernelBackend {
     const timerQuery = query;
     return timerQuery.endMs - timerQuery.startMs;
   }
+  pendingDeletes = 0;
   disposeData(dataId, force = false) {
     if (this.pendingDisposal.has(dataId)) {
       return false;
@@ -21509,6 +21651,7 @@ var _MathBackendWebGL = class extends KernelBackend {
   getTextureManager() {
     return this.textureManager;
   }
+  disposed = false;
   dispose() {
     if (this.disposed) {
       return;
@@ -21746,7 +21889,7 @@ var _MathBackendWebGL = class extends KernelBackend {
   }
 };
 var MathBackendWebGL = _MathBackendWebGL;
-MathBackendWebGL.nextDataId = 0;
+__publicField(MathBackendWebGL, "nextDataId", 0);
 function float32ToTypedArray(a, dtype) {
   if (dtype === "float32" || dtype === "complex64") {
     return a;
@@ -21781,8 +21924,11 @@ var CHECK_NAN_SNIPPET2 = `
   if (isnan(b)) return b;
 `;
 var BinaryOpProgram = class {
+  variableNames = ["A", "B"];
+  outputShape;
+  userCode;
+  enableShapeUniforms;
   constructor(op2, aShape, bShape) {
-    this.variableNames = ["A", "B"];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
@@ -21807,11 +21953,14 @@ var CHECK_NAN_SNIPPET_PACKED = `
   result.a = isNaN.a ? NAN : result.a;
 `;
 var BinaryOpPackedProgram = class {
+  variableNames = ["A", "B"];
+  outputShape;
+  userCode;
+  supportsBroadcasting = true;
+  packedInputs = true;
+  packedOutput = true;
+  enableShapeUniforms;
   constructor(op2, aShape, bShape, checkOutOfBounds = false) {
-    this.variableNames = ["A", "B"];
-    this.supportsBroadcasting = true;
-    this.packedInputs = true;
-    this.packedOutput = true;
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     const rank = this.outputShape.length;
     this.enableShapeUniforms = useShapeUniforms(rank);
@@ -22092,10 +22241,13 @@ function mapActivationToShaderProgram(activation, packed = false) {
 
 // src/tfjs-backend-webgl/src/mulmat_packed_gpu.ts
 var MatMulPackedProgram = class {
+  variableNames = ["matrixA", "matrixB"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
+  enableShapeUniforms;
   constructor(aShape, bShape, outputShape, transposeA = false, transposeB = false, addBias = false, activation = null, hasPreluActivation = false, hasLeakyreluActivation = false) {
-    this.variableNames = ["matrixA", "matrixB"];
-    this.packedInputs = true;
-    this.packedOutput = true;
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const sharedDim = transposeA ? aShape[1] : aShape[2];
@@ -22181,8 +22333,10 @@ var COMPLEX_MULTIPLY = {
   IMAG: "return areal * bimag + aimag * breal;"
 };
 var BinaryOpComplexProgram = class {
+  variableNames = ["AReal", "AImag", "BReal", "BImag"];
+  userCode;
+  outputShape;
   constructor(op2, aShape, bShape) {
-    this.variableNames = ["AReal", "AImag", "BReal", "BImag"];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.userCode = `
       float binaryOpComplex(
@@ -22334,8 +22488,10 @@ var reshapeConfig = {
 
 // src/tfjs-backend-webgl/src/mean_gpu.ts
 var MeanProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
   constructor(reduceInfo, divisor) {
-    this.variableNames = ["x"];
     const { windowSize, batchSize, inSize, outSize } = reduceInfo;
     this.outputShape = [batchSize, outSize];
     const windowSizeNearestVec4 = Math.floor(windowSize / 4) * 4;
@@ -22408,8 +22564,10 @@ var MeanProgram = class {
 
 // src/tfjs-backend-webgl/src/reduce_gpu.ts
 var ReduceProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
   constructor(reduceInfo, reduceType) {
-    this.variableNames = ["x"];
     const { windowSize, batchSize, inSize, outSize } = reduceInfo;
     this.outputShape = [batchSize, outSize];
     let initializationValue = "0.0";
@@ -22589,8 +22747,11 @@ function reduce(x, dtype, reductionType, backend) {
 
 // src/tfjs-backend-webgl/src/transpose_gpu.ts
 var TransposeProgram = class {
+  variableNames = ["A"];
+  outputShape;
+  userCode;
+  rank;
   constructor(aShape, newDim) {
-    this.variableNames = ["A"];
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];
@@ -22622,10 +22783,13 @@ function getSwitchedCoords(newDim) {
 
 // src/tfjs-backend-webgl/src/transpose_packed_gpu.ts
 var TransposePackedProgram = class {
+  variableNames = ["A"];
+  outputShape;
+  userCode;
+  rank;
+  packedInputs = true;
+  packedOutput = true;
   constructor(aShape, newDim) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];
@@ -22959,8 +23123,10 @@ var addConfig = {
 
 // src/tfjs-backend-webgl/src/addn_gpu.ts
 var AddNProgram = class {
+  variableNames;
+  outputShape = [];
+  userCode;
   constructor(outputShape, shapes) {
-    this.outputShape = [];
     this.outputShape = outputShape;
     this.variableNames = shapes.map((_, i) => `T${i}`);
     const snippets = [];
@@ -22983,10 +23149,12 @@ var AddNProgram = class {
 
 // src/tfjs-backend-webgl/src/addn_packed_gpu.ts
 var AddNPackedProgram = class {
+  variableNames;
+  outputShape = [];
+  userCode;
+  packedInputs = true;
+  packedOutput = true;
   constructor(outputShape, shapes) {
-    this.outputShape = [];
-    this.packedInputs = true;
-    this.packedOutput = true;
     this.outputShape = outputShape;
     this.variableNames = shapes.map((_, i) => `T${i}`);
     const snippets = [];
@@ -23112,8 +23280,10 @@ var anyConfig = {
 
 // src/tfjs-backend-webgl/src/argminmax_gpu.ts
 var ArgMinMaxProgram = class {
+  variableNames = ["A"];
+  outputShape;
+  userCode;
   constructor(reduceInfo, op2, firstPass) {
-    this.variableNames = ["A"];
     const { windowSize, batchSize, outSize } = reduceInfo;
     if (!firstPass) {
       this.variableNames.push("bestIndicesA");
@@ -23147,10 +23317,12 @@ var ArgMinMaxProgram = class {
 
 // src/tfjs-backend-webgl/src/argminmax_packed_gpu.ts
 var ArgMinMaxPackedProgram = class {
+  variableNames = ["A"];
+  outputShape;
+  userCode;
+  packedInputs = true;
+  packedOutput = true;
   constructor(shape, windowSize, op2, firstPass) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
     util_exports.assert(
       shape.length > 2,
       () => `Packed arg${op2.charAt(0).toUpperCase() + op2.slice(1)} supports only inputs with rank above 2.`
@@ -23450,8 +23622,10 @@ var atanhConfig = {
 
 // src/tfjs-backend-webgl/src/pool_gpu.ts
 var Pool2DProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
   constructor(convInfo, poolType, computePositions, flattenPositions = false, includeBatchInIndex = false) {
-    this.variableNames = ["x"];
     if (poolType === "avg" && computePositions) {
       throw new Error("Cannot compute positions for average pool.");
     }
@@ -23630,8 +23804,10 @@ var Pool2DProgram = class {
   }
 };
 var Pool3DProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
   constructor(convInfo, poolType, computePositions, flattenPositions = false, includeBatchInIndex = false) {
-    this.variableNames = ["x"];
     if (poolType === "avg" && computePositions) {
       throw new Error("Cannot compute positions for average pool.");
     }
@@ -23891,8 +24067,10 @@ var avgPool3DConfig = {
 
 // src/tfjs-backend-webgl/src/avg_pool_backprop_gpu.ts
 var AvgPool2DBackpropProgram = class {
+  variableNames = ["dy"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["dy"];
     this.outputShape = convInfo.inShape;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
@@ -23951,8 +24129,10 @@ var AvgPool2DBackpropProgram = class {
   }
 };
 var AvgPool3DBackpropProgram = class {
+  variableNames = ["dy"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["dy"];
     this.outputShape = convInfo.inShape;
     const filterDepth = convInfo.filterDepth;
     const filterHeight = convInfo.filterHeight;
@@ -24092,8 +24272,10 @@ var batchMatMulConfig = {
 
 // src/tfjs-backend-webgl/src/batchnorm_gpu.ts
 var BatchNormProgram = class {
+  variableNames;
+  outputShape = [];
+  userCode;
   constructor(xShape, meanShape, varianceShape, offsetShape, scaleShape, varianceEpsilon) {
-    this.outputShape = [];
     this.variableNames = ["x", "mean", "variance"];
     backend_util_exports.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util_exports.assertAndGetBroadcastShape(xShape, varianceShape);
@@ -24126,9 +24308,12 @@ var BatchNormProgram = class {
 
 // src/tfjs-backend-webgl/src/batchnorm_packed_gpu.ts
 var BatchNormPackedProgram = class {
+  variableNames;
+  outputShape;
+  userCode;
+  packedInputs = true;
+  packedOutput = true;
   constructor(xShape, meanShape, varianceShape, offsetShape, scaleShape, varianceEpsilon) {
-    this.packedInputs = true;
-    this.packedOutput = true;
     this.variableNames = ["x", "mean", "variance"];
     backend_util_exports.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util_exports.assertAndGetBroadcastShape(xShape, varianceShape);
@@ -24218,8 +24403,12 @@ var batchNormConfig = {
 
 // src/tfjs-backend-webgl/src/slice_gpu.ts
 var SliceProgram = class {
+  variableNames = ["source"];
+  outputShape;
+  userCode;
+  rank;
+  customUniforms;
   constructor(destSize) {
-    this.variableNames = ["source"];
     this.outputShape = destSize;
     this.rank = destSize.length;
     const dtype = getCoordsDataType(this.rank);
@@ -24255,10 +24444,14 @@ function getCoords(rank) {
 
 // src/tfjs-backend-webgl/src/slice_packed_gpu.ts
 var SlicePackedProgram = class {
+  variableNames = ["source"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
+  rank;
+  customUniforms;
   constructor(destSize) {
-    this.variableNames = ["source"];
-    this.packedInputs = true;
-    this.packedOutput = true;
     this.outputShape = destSize;
     this.rank = destSize.length;
     this.customUniforms = [{ name: "start", arrayIndex: this.rank, type: "int" }];
@@ -24537,12 +24730,14 @@ var ceilConfig = {
 
 // src/tfjs-backend-webgl/src/clip_gpu.ts
 var ClipProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  customUniforms = [
+    { name: "minVal", type: "float" },
+    { name: "maxVal", type: "float" }
+  ];
   constructor(aShape) {
-    this.variableNames = ["A"];
-    this.customUniforms = [
-      { name: "minVal", type: "float" },
-      { name: "maxVal", type: "float" }
-    ];
     this.outputShape = aShape;
     this.userCode = `
 
@@ -24561,14 +24756,16 @@ var ClipProgram = class {
 
 // src/tfjs-backend-webgl/src/clip_packed_gpu.ts
 var ClipPackedProgram = class {
+  variableNames = ["A"];
+  packedInputs = true;
+  packedOutput = true;
+  userCode;
+  outputShape;
+  customUniforms = [
+    { name: "minVal", type: "float" },
+    { name: "maxVal", type: "float" }
+  ];
   constructor(aShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.customUniforms = [
-      { name: "minVal", type: "float" },
-      { name: "maxVal", type: "float" }
-    ];
     this.outputShape = aShape;
     this.userCode = `
       void main() {
@@ -24607,8 +24804,10 @@ var clipByValueConfig = {
 
 // src/tfjs-backend-webgl/src/complex_abs_gpu.ts
 var ComplexAbsProgram = class {
+  variableNames = ["real", "imag"];
+  userCode;
+  outputShape;
   constructor(shape) {
-    this.variableNames = ["real", "imag"];
     this.outputShape = shape;
     this.userCode = `
       void main() {
@@ -24658,8 +24857,10 @@ var complexAbsConfig = {
 
 // src/tfjs-backend-webgl/src/concat_gpu.ts
 var ConcatProgram = class {
+  variableNames;
+  outputShape = [];
+  userCode;
   constructor(shapes) {
-    this.outputShape = [];
     this.outputShape = backend_util_exports.computeOutShape(shapes, 1);
     this.variableNames = shapes.map((_, i) => `T${i}`);
     const offsets = new Array(shapes.length - 1);
@@ -24691,10 +24892,12 @@ var ConcatProgram = class {
 
 // src/tfjs-backend-webgl/src/concat_packed_gpu.ts
 var ConcatPackedProgram = class {
+  variableNames;
+  packedInputs = true;
+  packedOutput = true;
+  outputShape = [];
+  userCode;
   constructor(shapes, axis) {
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.outputShape = [];
     this.outputShape = backend_util_exports.computeOutShape(shapes, axis);
     const shape = this.outputShape;
     const rank = shape.length;
@@ -24887,8 +25090,10 @@ var concatConfig = {
 
 // src/tfjs-backend-webgl/src/conv_gpu.ts
 var Conv2DProgram = class {
+  variableNames = ["x", "W"];
+  outputShape;
+  userCode;
   constructor(convInfo, addBias = false, activation = null, hasPreluActivationWeights = false, hasLeakyreluAlpha = false) {
-    this.variableNames = ["x", "W"];
     this.outputShape = convInfo.outShape;
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
@@ -25063,8 +25268,10 @@ var Conv2DProgram = class {
   }
 };
 var Conv3DProgram = class {
+  variableNames = ["x", "W"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["x", "W"];
     this.outputShape = convInfo.outShape;
     const padFront = convInfo.padInfo.front;
     const padTop = convInfo.padInfo.top;
@@ -25174,16 +25381,19 @@ var Conv3DProgram = class {
 
 // src/tfjs-backend-webgl/src/conv_packed_gpu.ts
 var Conv2DPackedProgram = class {
+  variableNames = ["x", "W"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
+  enableShapeUniforms;
+  customUniforms = [
+    { name: "pads", type: "ivec2" },
+    { name: "strides", type: "ivec2" },
+    { name: "dilations", type: "ivec2" },
+    { name: "inDims", type: "ivec2" }
+  ];
   constructor(convInfo, addBias = false, activation = null, hasPreluActivation = false, hasLeakyReluAlpha = false) {
-    this.variableNames = ["x", "W"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.customUniforms = [
-      { name: "pads", type: "ivec2" },
-      { name: "strides", type: "ivec2" },
-      { name: "dilations", type: "ivec2" },
-      { name: "inDims", type: "ivec2" }
-    ];
     this.outputShape = convInfo.outShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const padLeft = convInfo.padInfo.left;
@@ -25482,19 +25692,22 @@ var Conv2DPackedProgram = class {
 
 // src/tfjs-backend-webgl/src/im2col_packed_gpu.ts
 var Im2ColPackedProgram = class {
+  variableNames = ["A"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
+  enableShapeUniforms;
+  customUniforms = [
+    { name: "inputShape", type: "ivec4" },
+    { name: "pad", type: "ivec2" },
+    { name: "stride", type: "ivec2" },
+    { name: "dilation", type: "ivec2" },
+    { name: "inChannels", type: "int" },
+    { name: "itemsPerBlockRow", type: "int" },
+    { name: "outWidth", type: "int" }
+  ];
   constructor(outputShape, convInfo) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.customUniforms = [
-      { name: "inputShape", type: "ivec4" },
-      { name: "pad", type: "ivec2" },
-      { name: "stride", type: "ivec2" },
-      { name: "dilation", type: "ivec2" },
-      { name: "inChannels", type: "int" },
-      { name: "itemsPerBlockRow", type: "int" },
-      { name: "outWidth", type: "int" }
-    ];
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const { dataFormat } = convInfo;
@@ -25848,8 +26061,10 @@ var conv2DConfig = {
 
 // src/tfjs-backend-webgl/src/conv_backprop_gpu.ts
 var Conv2DDerFilterProgram = class {
+  variableNames = ["x", "dy"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["x", "dy"];
     this.outputShape = convInfo.filterShape;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -25902,8 +26117,10 @@ var Conv2DDerFilterProgram = class {
   }
 };
 var Conv2DDerInputProgram = class {
+  variableNames = ["dy", "W"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["dy", "W"];
     this.outputShape = convInfo.inShape;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
@@ -25972,8 +26189,10 @@ var Conv2DDerInputProgram = class {
   }
 };
 var Conv3DDerFilterProgram = class {
+  variableNames = ["x", "dy"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["x", "dy"];
     this.outputShape = convInfo.filterShape;
     const strideDepth = convInfo.strideDepth;
     const strideHeight = convInfo.strideHeight;
@@ -26027,8 +26246,10 @@ var Conv3DDerFilterProgram = class {
   }
 };
 var Conv3DDerInputProgram = class {
+  variableNames = ["dy", "W"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["dy", "W"];
     this.outputShape = convInfo.inShape;
     const filterDepth = convInfo.filterDepth;
     const filterHeight = convInfo.filterHeight;
@@ -26238,9 +26459,10 @@ var coshConfig = {
 
 // src/tfjs-backend-webgl/src/crop_and_resize_gpu.ts
 var CropAndResizeProgram = class {
+  variableNames = ["Image", "Boxes", "BoxInd"];
+  outputShape = [];
+  userCode;
   constructor(imageShape, boxShape, cropSize, method, extrapolationValue) {
-    this.variableNames = ["Image", "Boxes", "BoxInd"];
-    this.outputShape = [];
     const [batch, imageHeight, imageWidth, depth] = imageShape;
     const [numBoxes] = boxShape;
     const [cropHeight, cropWidth] = cropSize;
@@ -26355,8 +26577,6 @@ var CumProgram = class {
   constructor(op2, outputShape, exclusive, reverse3) {
     this.op = op2;
     this.outputShape = outputShape;
-    this.variableNames = ["x"];
-    this.customUniforms = [{ name: "index", type: "float" }];
     const rank = this.outputShape.length;
     const initVal = this.op === "*" /* Prod */ ? "1.0" : "0.0";
     const val = exclusive ? initVal : `getX(${getCoords2(rank, "coords", this.op)})`;
@@ -26385,6 +26605,9 @@ var CumProgram = class {
       }
     `;
   }
+  variableNames = ["x"];
+  userCode;
+  customUniforms = [{ name: "index", type: "float" }];
 };
 function getCoords2(rank, name, op2) {
   if (rank === 1) {
@@ -26508,9 +26731,12 @@ var denseBincountConfig = {
 
 // src/tfjs-backend-webgl/src/depth_to_space_gpu.ts
 var DepthToSpaceProgram = class {
+  variableNames = ["x"];
+  outputShape = [];
+  userCode;
+  blockSize;
+  dataFormat;
   constructor(outputShape, blockSize, dataFormat) {
-    this.variableNames = ["x"];
-    this.outputShape = [];
     this.outputShape = outputShape;
     this.blockSize = blockSize;
     this.dataFormat = dataFormat;
@@ -26596,14 +26822,17 @@ var depthToSpaceConfig = {
 
 // src/tfjs-backend-webgl/src/conv_gpu_depthwise.ts
 var DepthwiseConv2DProgram = class {
+  variableNames = ["x", "W"];
+  outputShape;
+  userCode;
+  enableShapeUniforms;
+  customUniforms = [
+    { name: "pads", type: "ivec2" },
+    { name: "strides", type: "ivec2" },
+    { name: "dilations", type: "ivec2" },
+    { name: "inDims", type: "ivec2" }
+  ];
   constructor(convInfo, addBias = false, activation = null, hasPreluActivation = false, hasLeakyReluAlpha = false) {
-    this.variableNames = ["x", "W"];
-    this.customUniforms = [
-      { name: "pads", type: "ivec2" },
-      { name: "strides", type: "ivec2" },
-      { name: "dilations", type: "ivec2" },
-      { name: "inDims", type: "ivec2" }
-    ];
     this.outputShape = convInfo.outShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const filterHeight = convInfo.filterHeight;
@@ -26689,16 +26918,19 @@ var DepthwiseConv2DProgram = class {
 
 // src/tfjs-backend-webgl/src/conv_packed_gpu_depthwise.ts
 var DepthwiseConvPacked2DProgram = class {
+  variableNames = ["x", "W"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
+  enableShapeUniforms;
+  customUniforms = [
+    { name: "pads", type: "ivec2" },
+    { name: "strides", type: "ivec2" },
+    { name: "dilations", type: "ivec2" },
+    { name: "inDims", type: "ivec2" }
+  ];
   constructor(convInfo, addBias = false, activation = null, hasPreluActivation = false, hasLeakyReluAlpha = false) {
-    this.variableNames = ["x", "W"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.customUniforms = [
-      { name: "pads", type: "ivec2" },
-      { name: "strides", type: "ivec2" },
-      { name: "dilations", type: "ivec2" },
-      { name: "inDims", type: "ivec2" }
-    ];
     this.outputShape = convInfo.outShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const channelMul = convInfo.outChannels / convInfo.inChannels;
@@ -27032,8 +27264,10 @@ var depthwiseConv2dNativeConfig = {
 
 // src/tfjs-backend-webgl/src/conv_backprop_gpu_depthwise.ts
 var DepthwiseConv2DDerFilterProgram = class {
+  variableNames = ["x", "dy"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["x", "dy"];
     this.outputShape = convInfo.filterShape;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -27079,8 +27313,10 @@ var DepthwiseConv2DDerFilterProgram = class {
   }
 };
 var DepthwiseConv2DDerInputProgram = class {
+  variableNames = ["dy", "W"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["dy", "W"];
     this.outputShape = convInfo.inShape;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
@@ -27186,8 +27422,10 @@ var depthwiseConv2dNativeBackpropInputConfig = {
 
 // src/tfjs-backend-webgl/src/diag_gpu.ts
 var DiagProgram = class {
+  variableNames = ["X"];
+  outputShape;
+  userCode;
   constructor(size) {
-    this.variableNames = ["X"];
     this.outputShape = [size, size];
     this.userCode = `
       void main() {
@@ -27221,8 +27459,10 @@ var diagConfig = {
 
 // src/tfjs-backend-webgl/src/dilation_gpu.ts
 var Dilation2DProgram = class {
+  variableNames = ["x", "W"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["x", "W"];
     this.outputShape = convInfo.outShape;
     const {
       inHeight,
@@ -27511,8 +27751,10 @@ var expm1Config = {
 
 // src/tfjs-backend-webgl/src/fft_gpu.ts
 var FFTProgram = class {
+  variableNames = ["real", "imag"];
+  outputShape;
+  userCode;
   constructor(component, inputShape, inverse) {
-    this.variableNames = ["real", "imag"];
     const innerDim = inputShape[1];
     this.outputShape = inputShape;
     const exponentMultiplierSnippet = inverse ? `2.0 * ${Math.PI}` : `-2.0 * ${Math.PI}`;
@@ -27613,9 +27855,11 @@ var fftConfig = {
 
 // src/tfjs-backend-webgl/src/fill_gpu.ts
 var FillProgram = class {
+  variableNames;
+  outputShape = [];
+  userCode;
+  customUniforms = [{ name: "value", type: "float" }];
   constructor(shape, value) {
-    this.outputShape = [];
-    this.customUniforms = [{ name: "value", type: "float" }];
     this.variableNames = ["x"];
     this.outputShape = shape;
     this.userCode = `
@@ -27651,9 +27895,10 @@ var fillConfig = {
 
 // src/tfjs-backend-webgl/src/flip_left_right_gpu.ts
 var FlipLeftRightProgram = class {
+  variableNames = ["Image"];
+  outputShape = [];
+  userCode;
   constructor(imageShape) {
-    this.variableNames = ["Image"];
-    this.outputShape = [];
     const imageWidth = imageShape[2];
     this.outputShape = imageShape;
     this.userCode = `
@@ -27743,8 +27988,10 @@ var floorDivConfig = {
 
 // src/tfjs-backend-webgl/src/kernels/FromPixels_utils/from_pixels_gpu.ts
 var FromPixelsProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
   constructor(outputShape) {
-    this.variableNames = ["A"];
     const glsl = getGlslDifferences();
     const [height, width] = outputShape;
     this.outputShape = outputShape;
@@ -27776,10 +28023,12 @@ var FromPixelsProgram = class {
 
 // src/tfjs-backend-webgl/src/kernels/FromPixels_utils/from_pixels_packed_gpu.ts
 var FromPixelsPackedProgram = class {
+  variableNames = ["A"];
+  userCode;
+  outputShape;
+  packedInputs = false;
+  packedOutput = true;
   constructor(outputShape) {
-    this.variableNames = ["A"];
-    this.packedInputs = false;
-    this.packedOutput = true;
     const glsl = getGlslDifferences();
     const [height, width] = outputShape;
     this.outputShape = outputShape;
@@ -28079,7 +28328,6 @@ var GatherNDProgram = class {
     this.sliceDim = sliceDim;
     this.strides = strides;
     this.paramsShape = paramsShape;
-    this.variableNames = ["x", "indices"];
     this.outputShape = shape;
     const dtype = getCoordsDataType(shape.length);
     let mainLoop = `
@@ -28103,6 +28351,9 @@ var GatherNDProgram = class {
         }
       `;
   }
+  variableNames = ["x", "indices"];
+  outputShape;
+  userCode;
 };
 
 // src/tfjs-backend-webgl/src/kernels/GatherNd.ts
@@ -28162,8 +28413,11 @@ var gatherNdConfig = {
 
 // src/tfjs-backend-webgl/src/gather_gpu.ts
 var GatherProgram = class {
+  variableNames = ["A", "indices"];
+  outputShape;
+  userCode;
+  rank;
   constructor(aShape, outputShape) {
-    this.variableNames = ["A", "indices"];
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     const dtype = getCoordsDataType(this.rank);
@@ -28473,9 +28727,10 @@ var logicalOrConfig = {
 
 // src/tfjs-backend-webgl/src/lrn_gpu.ts
 var LRNProgram = class {
+  variableNames = ["x"];
+  outputShape = [];
+  userCode;
   constructor(xShape, radius, bias, alpha, beta) {
-    this.variableNames = ["x"];
-    this.outputShape = [];
     const rad = radius;
     const maxD = xShape[3] - 1;
     this.outputShape = xShape;
@@ -28513,11 +28768,12 @@ var LRNProgram = class {
 
 // src/tfjs-backend-webgl/src/lrn_packed_gpu.ts
 var LRNPackedProgram = class {
+  variableNames = ["x"];
+  outputShape = [];
+  userCode;
+  packedInputs = true;
+  packedOutput = true;
   constructor(xShape, radius, bias, alpha, beta) {
-    this.variableNames = ["x"];
-    this.outputShape = [];
-    this.packedInputs = true;
-    this.packedOutput = true;
     const rad = radius;
     const maxD = xShape[3] - 1;
     this.outputShape = xShape;
@@ -28612,9 +28868,15 @@ var LRNConfig = {
 
 // src/tfjs-backend-webgl/src/lrn_grad_gpu.ts
 var LRNGradProgram = class {
+  variableNames = ["inputImage", "outputImage", "dy"];
+  outputShape = [];
+  userCode;
+  depthRadius;
+  bias;
+  alpha;
+  beta;
+  depth;
   constructor(inputShape, depthRadius, bias, alpha, beta) {
-    this.variableNames = ["inputImage", "outputImage", "dy"];
-    this.outputShape = [];
     this.outputShape = inputShape;
     this.depth = inputShape[3];
     this.depthRadius = depthRadius;
@@ -28844,8 +29106,10 @@ var maxPool3DConfig = {
 
 // src/tfjs-backend-webgl/src/max_pool_backprop_gpu.ts
 var MaxPool2DBackpropProgram = class {
+  variableNames = ["dy", "maxPos"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["dy", "maxPos"];
     this.outputShape = convInfo.inShape;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -28905,8 +29169,10 @@ var MaxPool2DBackpropProgram = class {
   }
 };
 var MaxPool3DBackpropProgram = class {
+  variableNames = ["dy", "maxPos"];
+  outputShape;
+  userCode;
   constructor(convInfo) {
-    this.variableNames = ["dy", "maxPos"];
     this.outputShape = convInfo.inShape;
     const strideDepth = convInfo.strideDepth;
     const strideHeight = convInfo.strideHeight;
@@ -29217,8 +29483,10 @@ var minimumConfig = {
 
 // src/tfjs-backend-webgl/src/mirror_pad_gpu.ts
 var MirrorPadProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
   constructor(xShape, paddings, mode) {
-    this.variableNames = ["x"];
     this.outputShape = paddings.map(
       (p, i) => p[0] + xShape[i] + p[1]
     );
@@ -29267,10 +29535,12 @@ var MirrorPadProgram = class {
 
 // src/tfjs-backend-webgl/src/mirror_pad_packed_gpu.ts
 var MirrorPadPackedProgram = class {
+  variableNames = ["x"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
   constructor(xShape, paddings, mode) {
-    this.variableNames = ["x"];
-    this.packedInputs = true;
-    this.packedOutput = true;
     this.outputShape = paddings.map(
       (p, i) => p[0] + xShape[i] + p[1]
     );
@@ -29386,9 +29656,11 @@ var modConfig = {
 
 // src/tfjs-backend-webgl/src/multinomial_gpu.ts
 var MultinomialProgram = class {
+  variableNames = ["probs"];
+  outputShape;
+  userCode;
+  customUniforms = [{ name: "seed", type: "float" }];
   constructor(batchSize, numOutcomes, numSamples) {
-    this.variableNames = ["probs"];
-    this.customUniforms = [{ name: "seed", type: "float" }];
     this.outputShape = [batchSize, numSamples];
     this.userCode = `
       void main() {
@@ -29663,8 +29935,11 @@ var nonMaxSuppressionV5Config = {
 
 // src/tfjs-backend-webgl/src/onehot_gpu.ts
 var OneHotProgram = class {
+  variableNames = ["indices"];
+  outputShape;
+  userCode;
+  seedLoc;
   constructor(numIndices, depth, onValue, offValue) {
-    this.variableNames = ["indices"];
     this.outputShape = [numIndices, depth];
     this.userCode = `
       void main() {
@@ -29799,9 +30074,11 @@ var packConfig = {
 
 // src/tfjs-backend-webgl/src/pad_gpu.ts
 var PadProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
+  customUniforms = [{ name: "value", type: "float" }];
   constructor(xShape, paddings, constantValue) {
-    this.variableNames = ["x"];
-    this.customUniforms = [{ name: "value", type: "float" }];
     this.outputShape = paddings.map(
       (p, i) => p[0] + xShape[i] + p[1]
     );
@@ -29845,11 +30122,13 @@ var PadProgram = class {
 
 // src/tfjs-backend-webgl/src/pad_packed_gpu.ts
 var PadPackedProgram = class {
+  variableNames = ["x"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape;
+  userCode;
+  customUniforms = [{ name: "value", type: "float" }];
   constructor(xShape, paddings, constantValue) {
-    this.variableNames = ["x"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.customUniforms = [{ name: "value", type: "float" }];
     this.outputShape = paddings.map(
       (p, i) => p[0] + xShape[i] + p[1]
     );
@@ -30177,9 +30456,10 @@ var relu6Config = {
 
 // src/tfjs-backend-webgl/src/resize_bilinear_gpu.ts
 var ResizeBilinearProgram = class {
+  variableNames = ["A"];
+  outputShape = [];
+  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
-    this.variableNames = ["A"];
-    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -30235,11 +30515,12 @@ var ResizeBilinearProgram = class {
 
 // src/tfjs-backend-webgl/src/resize_bilinear_packed_gpu.ts
 var ResizeBilinearPackedProgram = class {
+  variableNames = ["A"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape = [];
+  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -30366,9 +30647,10 @@ var resizeBilinearConfig = {
 
 // src/tfjs-backend-webgl/src/resize_bilinear_backprop_gpu.ts
 var ResizeBilinearBackpropProgram = class {
+  variableNames = ["dy"];
+  outputShape = [];
+  userCode;
   constructor(dyShape, inputShape, alignCorners) {
-    this.variableNames = ["dy"];
-    this.outputShape = [];
     this.outputShape = inputShape;
     const [, xHeight, xWidth] = inputShape;
     const [, yHeight, yWidth] = dyShape;
@@ -30491,9 +30773,10 @@ var resizeBilinearGradConfig = {
 
 // src/tfjs-backend-webgl/src/resize_nearest_neighbor_gpu.ts
 var ResizeNearestNeighborProgram = class {
+  variableNames = ["A"];
+  outputShape = [];
+  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
-    this.variableNames = ["A"];
-    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -30539,11 +30822,12 @@ var ResizeNearestNeighborProgram = class {
 
 // src/tfjs-backend-webgl/src/resize_nearest_neighbor_packed_gpu.ts
 var ResizeNearestNeighborPackedProgram = class {
+  variableNames = ["A"];
+  packedInputs = true;
+  packedOutput = true;
+  outputShape = [];
+  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
-    this.variableNames = ["A"];
-    this.packedInputs = true;
-    this.packedOutput = true;
-    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -30635,9 +30919,10 @@ var resizeNearestNeighborConfig = {
 
 // src/tfjs-backend-webgl/src/resize_nearest_neighbor_backprop_gpu.ts
 var ResizeNearestNeigborBackpropProgram = class {
+  variableNames = ["dy"];
+  outputShape = [];
+  userCode;
   constructor(dyShape, inputShape, alignCorners) {
-    this.variableNames = ["dy"];
-    this.outputShape = [];
     this.outputShape = inputShape;
     const [, xHeight, xWidth] = inputShape;
     const [, yHeight, yWidth] = dyShape;
@@ -30749,8 +31034,10 @@ var resizeNearestNeighborGradConfig = {
 
 // src/tfjs-backend-webgl/src/reverse_gpu.ts
 var ReverseProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
   constructor(xShape, axis) {
-    this.variableNames = ["x"];
     const rank = xShape.length;
     if (rank > 4) {
       throw new Error(
@@ -30786,10 +31073,12 @@ var ReverseProgram = class {
 
 // src/tfjs-backend-webgl/src/reverse_packed_gpu.ts
 var ReversePackedProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
+  packedInputs = true;
+  packedOutput = true;
   constructor(xShape, axis) {
-    this.variableNames = ["x"];
-    this.packedInputs = true;
-    this.packedOutput = true;
     const rank = xShape.length;
     if (rank > 4) {
       throw new Error(
@@ -30887,10 +31176,11 @@ var reverseConfig = {
 
 // src/tfjs-backend-webgl/src/rotate_gpu.ts
 var RotateProgram = class {
+  variableNames = ["Image"];
+  outputShape = [];
+  userCode;
+  customUniforms = [{ name: "params", type: "vec4" }];
   constructor(imageShape, fillValue) {
-    this.variableNames = ["Image"];
-    this.outputShape = [];
-    this.customUniforms = [{ name: "params", type: "vec4" }];
     const imageHeight = imageShape[1];
     const imageWidth = imageShape[2];
     this.outputShape = imageShape;
@@ -30979,8 +31269,10 @@ var rsqrtConfig = {
 
 // src/tfjs-backend-webgl/src/scatter_gpu.ts
 var ScatterProgram = class {
+  variableNames = ["updates", "indices", "defaultValue"];
+  outputShape;
+  userCode;
   constructor(updateSize, sliceDim, indicesRank, updatesRank, strides, shape, summingDupeIndex = true) {
-    this.variableNames = ["updates", "indices", "defaultValue"];
     this.outputShape = shape;
     const stridesType = getCoordsDataType(strides.length);
     const dtype = getCoordsDataType(shape.length);
@@ -31072,9 +31364,11 @@ var scatterNdConfig = {
 
 // src/tfjs-backend-webgl/src/search_sorted_gpu.ts
 var SearchSortedProgram = class {
+  variableNames = ["sortedSequence", "values"];
+  outputShape;
+  userCode;
+  customUniforms = [{ name: "numInputs", type: "int" }];
   constructor(batchSize, numInputs, numValues, side) {
-    this.variableNames = ["sortedSequence", "values"];
-    this.customUniforms = [{ name: "numInputs", type: "int" }];
     this.outputShape = [batchSize, numValues];
     const webGL2LoopHead = "while (left < right) {";
     const webGL1LoopHead = `for (int i = 0; i < ${Math.ceil(Math.log2(numInputs + 1))}; ++i) { if (left >= right) break;`;
@@ -31136,8 +31430,10 @@ var searchSortedConfig = {
 
 // src/tfjs-backend-webgl/src/select_gpu.ts
 var SelectProgram = class {
+  variableNames = ["c", "a", "b"];
+  outputShape;
+  userCode;
   constructor(cRank, shape, rank) {
-    this.variableNames = ["c", "a", "b"];
     this.outputShape = shape;
     let cCoords;
     let abCoords;
@@ -31646,8 +31942,10 @@ var stepConfig = {
 
 // src/tfjs-backend-webgl/src/strided_slice_gpu.ts
 var StridedSliceProgram = class {
+  variableNames = ["x"];
+  outputShape;
+  userCode;
   constructor(begin, strides, size) {
-    this.variableNames = ["x"];
     this.outputShape = size;
     const rank = size.length;
     const inputDtype = getCoordsDataType(size.length);
@@ -31853,8 +32151,11 @@ var tanhConfig = {
 
 // src/tfjs-backend-webgl/src/tile_gpu.ts
 var TileProgram = class {
+  variableNames = ["A"];
+  outputShape;
+  userCode;
+  rank;
   constructor(aShape, reps) {
-    this.variableNames = ["A"];
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[i] * reps[i];
@@ -31911,15 +32212,17 @@ var tileConfig = {
 
 // src/tfjs-backend-webgl/src/top_k_gpu.ts
 var SwapProgram = class {
+  variableNames = ["x", "indices"];
+  outputShape;
+  userCode;
+  customUniforms = [
+    { name: "n", type: "int" },
+    { name: "firstPass", type: "int" },
+    { name: "negativeInf", type: "float" },
+    { name: "dir", type: "int" },
+    { name: "inc", type: "int" }
+  ];
   constructor(shape) {
-    this.variableNames = ["x", "indices"];
-    this.customUniforms = [
-      { name: "n", type: "int" },
-      { name: "firstPass", type: "int" },
-      { name: "negativeInf", type: "float" },
-      { name: "dir", type: "int" },
-      { name: "inc", type: "int" }
-    ];
     this.outputShape = shape;
     this.userCode = `
        void main() {
@@ -31965,13 +32268,15 @@ var SwapProgram = class {
   }
 };
 var MergeProgram = class {
+  variableNames = ["x", "indices"];
+  outputShape;
+  userCode;
+  customUniforms = [
+    { name: "n", type: "int" },
+    { name: "firstPass", type: "int" },
+    { name: "k", type: "int" }
+  ];
   constructor(shape) {
-    this.variableNames = ["x", "indices"];
-    this.customUniforms = [
-      { name: "n", type: "int" },
-      { name: "firstPass", type: "int" },
-      { name: "k", type: "int" }
-    ];
     this.outputShape = shape;
     this.userCode = `
     void main() {
@@ -32132,8 +32437,10 @@ var topKConfig = {
 
 // src/tfjs-backend-webgl/src/transform_gpu.ts
 var TransformProgram = class {
+  variableNames = ["Image", "Transforms"];
+  outputShape;
+  userCode;
   constructor(imageHeight, imageWidth, interpolation, fillMode, fillValue, outShape) {
-    this.variableNames = ["Image", "Transforms"];
     this.outputShape = outShape;
     const interpolationModeId = interpolation === "nearest" ? 1 : 2;
     let fillModeId;
@@ -32363,8 +32670,10 @@ var unpackConfig = {
 
 // src/tfjs-backend-webgl/src/segment_gpu.ts
 var SegmentOpProgram = class {
+  variableNames = ["x", "segmentIds"];
+  outputShape;
+  userCode;
   constructor(segOpInfo, segOpType) {
-    this.variableNames = ["x", "segmentIds"];
     const windowSize = segOpInfo.windowSize;
     const batchSize = segOpInfo.batchSize;
     const inSize = segOpInfo.inSize;
@@ -32752,181 +33061,4 @@ export {
   webgl,
   webgl_util_exports as webgl_util
 };
-/**
- * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the License);
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an AS IS BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2022 Google LLC.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/** @license See the LICENSE file. */
 //# sourceMappingURL=tfjs-backend-webgl.esm.js.map

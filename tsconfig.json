@@ -13,6 +13,7 @@
     "alwaysStrict": true,
     "declaration": true,
     "declarationMap": true,
+    "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": false,
     "exactOptionalPropertyTypes": true,

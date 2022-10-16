@@ -4,6 +4,7 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod3) => function __require() {
   return mod3 || (0, cb[__getOwnPropNames(cb)[0]])((mod3 = { exports: {} }).exports, mod3), mod3.exports;
 };
@@ -23,6 +24,10 @@ var __toESM = (mod3, isNodeMode, target) => (target = mod3 != null ? __create(__
   isNodeMode || !mod3 || !mod3.__esModule ? __defProp(target, "default", { value: mod3, enumerable: true }) : target,
   mod3
 ));
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
 
 // src/node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
 var require_long = __commonJS({
@@ -1586,9 +1591,9 @@ var DataStorage = class {
   constructor(backend, dataMover) {
     this.backend = backend;
     this.dataMover = dataMover;
-    this.data = /* @__PURE__ */ new WeakMap();
-    this.dataIdsCount = 0;
   }
+  data = /* @__PURE__ */ new WeakMap();
+  dataIdsCount = 0;
   get(dataId) {
     if (!this.data.has(dataId)) {
       this.dataMover.moveData(this.backend, dataId);
@@ -2144,12 +2149,14 @@ var TENSORFLOWJS_FLAGS_PREFIX = "tfjsflags";
 var Environment = class {
   constructor(global2) {
     this.global = global2;
-    this.flags = {};
-    this.flagRegistry = {};
-    this.urlFlags = {};
-    this.getQueryParams = getQueryParams;
     this.populateURLFlags();
   }
+  flags = {};
+  flagRegistry = {};
+  urlFlags = {};
+  platformName;
+  platform;
+  getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
       if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
@@ -3209,6 +3216,10 @@ var TensorBuffer = class {
     this.values = values || getArrayFromDType(dtype, this.size);
     this.strides = computeStrides(shape);
   }
+  size;
+  shape;
+  strides;
+  values;
   set(value, ...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -3284,9 +3295,16 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
+  id;
+  dataId;
+  shape;
+  size;
+  dtype;
+  rankType;
+  kept = false;
+  scopeId;
+  strides;
   constructor(shape, dtype, dataId, id) {
-    this.kept = false;
-    this.isDisposedInternal = false;
     this.shape = shape.slice();
     this.dtype = dtype || "float32";
     this.size = sizeFromShape(shape);
@@ -3365,6 +3383,7 @@ var Tensor = class {
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
+  isDisposedInternal = false;
   get isDisposed() {
     return this.isDisposedInternal;
   }
@@ -3415,6 +3434,7 @@ var Variable = class extends Tensor {
     this.trainable = trainable;
     this.name = name;
   }
+  name;
   assign(newValue) {
     if (newValue.dtype !== this.dtype) {
       throw new Error(
@@ -3535,31 +3555,31 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
-  constructor() {
-    this.registeredVariables = {};
-    this.nextTapeNodeId = 0;
-    this.numBytes = 0;
-    this.numTensors = 0;
-    this.numStringTensors = 0;
-    this.numDataBuffers = 0;
-    this.gradientDepth = 0;
-    this.kernelDepth = 0;
-    this.scopeStack = [];
-    this.numDataMovesStack = [];
-    this.nextScopeId = 0;
-    this.tensorInfo = /* @__PURE__ */ new WeakMap();
-    this.profiling = false;
-    this.activeProfile = {
-      newBytes: 0,
-      newTensors: 0,
-      peakBytes: 0,
-      kernels: [],
-      result: null,
-      get kernelNames() {
-        return Array.from(new Set(this.kernels.map((k) => k.name)));
-      }
-    };
-  }
+  registeredVariables = {};
+  nextTapeNodeId = 0;
+  numBytes = 0;
+  numTensors = 0;
+  numStringTensors = 0;
+  numDataBuffers = 0;
+  activeTape;
+  gradientDepth = 0;
+  kernelDepth = 0;
+  activeScope;
+  scopeStack = [];
+  numDataMovesStack = [];
+  nextScopeId = 0;
+  tensorInfo = /* @__PURE__ */ new WeakMap();
+  profiling = false;
+  activeProfile = {
+    newBytes: 0,
+    newTensors: 0,
+    peakBytes: 0,
+    kernels: [],
+    result: null,
+    get kernelNames() {
+      return Array.from(new Set(this.kernels.map((k) => k.name)));
+    }
+  };
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
@@ -3569,11 +3589,16 @@ var EngineState = class {
 var _Engine = class {
   constructor(ENV3) {
     this.ENV = ENV3;
-    this.registry = {};
-    this.registryFactory = {};
-    this.pendingBackendInitId = 0;
     this.state = new EngineState();
   }
+  state;
+  backendName;
+  registry = {};
+  registryFactory = {};
+  profiler;
+  backendInstance;
+  pendingBackendInit;
+  pendingBackendInitId = 0;
   async ready() {
     if (this.pendingBackendInit != null) {
       return this.pendingBackendInit.then(() => {
@@ -4347,8 +4372,8 @@ var _Engine = class {
   }
 };
 var Engine = _Engine;
-Engine.nextTensorId = 0;
-Engine.nextVariableId = 0;
+__publicField(Engine, "nextTensorId", 0);
+__publicField(Engine, "nextVariableId", 0);
 function ones(shape) {
   const values = makeOnesTypedArray(sizeFromShape(shape), "float32");
   return ENGINE.makeTensor(values, shape, "float32");
@@ -4740,32 +4765,34 @@ function getWeightSpecs(weightsManifest) {
 }
 
 // src/tfjs-core/src/io/router_registry.ts
-var IORouterRegistry = class {
+var _IORouterRegistry = class {
+  saveRouters;
+  loadRouters;
   constructor() {
     this.saveRouters = [];
     this.loadRouters = [];
   }
   static getInstance() {
-    if (IORouterRegistry.instance == null) {
-      IORouterRegistry.instance = new IORouterRegistry();
+    if (_IORouterRegistry.instance == null) {
+      _IORouterRegistry.instance = new _IORouterRegistry();
     }
-    return IORouterRegistry.instance;
+    return _IORouterRegistry.instance;
   }
   static registerSaveRouter(saveRouter) {
-    IORouterRegistry.getInstance().saveRouters.push(saveRouter);
+    _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
   static registerLoadRouter(loadRouter) {
-    IORouterRegistry.getInstance().loadRouters.push(loadRouter);
+    _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
   static getSaveHandlers(url) {
-    return IORouterRegistry.getHandlers(url, "save");
+    return _IORouterRegistry.getHandlers(url, "save");
   }
   static getLoadHandlers(url, loadOptions) {
-    return IORouterRegistry.getHandlers(url, "load", loadOptions);
+    return _IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
   static getHandlers(url, handlerType, loadOptions) {
     const validHandlers = [];
-    const routers = handlerType === "load" ? IORouterRegistry.getInstance().loadRouters : IORouterRegistry.getInstance().saveRouters;
+    const routers = handlerType === "load" ? _IORouterRegistry.getInstance().loadRouters : _IORouterRegistry.getInstance().saveRouters;
     routers.forEach((router) => {
       const handler = router(url, loadOptions);
       if (handler !== null) {
@@ -4775,6 +4802,8 @@ var IORouterRegistry = class {
     return validHandlers;
   }
 };
+var IORouterRegistry = _IORouterRegistry;
+__publicField(IORouterRegistry, "instance");
 
 // src/tfjs-core/src/io/indexed_db.ts
 var DATABASE_NAME = "tensorflowjs";
@@ -4802,6 +4831,8 @@ function setUpDatabase(openRequest) {
   db.createObjectStore(INFO_STORE_NAME, { keyPath: "modelPath" });
 }
 var BrowserIndexedDB = class {
+  indexedDB;
+  modelPath;
   constructor(modelPath) {
     this.indexedDB = getIndexedDBFactory();
     if (modelPath == null || !modelPath) {
@@ -4892,7 +4923,7 @@ var BrowserIndexedDB = class {
     });
   }
 };
-BrowserIndexedDB.URL_SCHEME = "indexeddb://";
+__publicField(BrowserIndexedDB, "URL_SCHEME", "indexeddb://");
 var indexedDBRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -4913,6 +4944,7 @@ function maybeStripScheme(key) {
   return key.startsWith(BrowserIndexedDB.URL_SCHEME) ? key.slice(BrowserIndexedDB.URL_SCHEME.length) : key;
 }
 var BrowserIndexedDBManager = class {
+  indexedDB;
   constructor() {
     this.indexedDB = getIndexedDBFactory();
   }
@@ -5027,6 +5059,9 @@ function maybeStripScheme2(key) {
   return key.startsWith(BrowserLocalStorage.URL_SCHEME) ? key.slice(BrowserLocalStorage.URL_SCHEME.length) : key;
 }
 var BrowserLocalStorage = class {
+  LS;
+  modelPath;
+  keys;
   constructor(modelPath) {
     if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
       throw new Error(
@@ -5138,7 +5173,7 @@ var BrowserLocalStorage = class {
     return out;
   }
 };
-BrowserLocalStorage.URL_SCHEME = "localstorage://";
+__publicField(BrowserLocalStorage, "URL_SCHEME", "localstorage://");
 var localStorageRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5158,6 +5193,7 @@ function browserLocalStorage(modelPath) {
   return new BrowserLocalStorage(modelPath);
 }
 var BrowserLocalStorageManager = class {
+  LS;
   constructor() {
     assert(
       env().getBool("IS_BROWSER"),
@@ -5196,15 +5232,16 @@ var BrowserLocalStorageManager = class {
 
 // src/tfjs-core/src/io/model_management.ts
 var URL_SCHEME_SUFFIX = "://";
-var ModelStoreManagerRegistry = class {
+var _ModelStoreManagerRegistry = class {
+  managers;
   constructor() {
     this.managers = {};
   }
   static getInstance() {
-    if (ModelStoreManagerRegistry.instance == null) {
-      ModelStoreManagerRegistry.instance = new ModelStoreManagerRegistry();
+    if (_ModelStoreManagerRegistry.instance == null) {
+      _ModelStoreManagerRegistry.instance = new _ModelStoreManagerRegistry();
     }
-    return ModelStoreManagerRegistry.instance;
+    return _ModelStoreManagerRegistry.instance;
   }
   static registerManager(scheme, manager) {
     assert(scheme != null, () => "scheme must not be undefined or null.");
@@ -5212,7 +5249,7 @@ var ModelStoreManagerRegistry = class {
       scheme = scheme.slice(0, scheme.indexOf(URL_SCHEME_SUFFIX));
     }
     assert(scheme.length > 0, () => "scheme must not be an empty string.");
-    const registry = ModelStoreManagerRegistry.getInstance();
+    const registry = _ModelStoreManagerRegistry.getInstance();
     assert(
       registry.managers[scheme] == null,
       () => `A model store manager is already registered for scheme '${scheme}'.`
@@ -5220,25 +5257,26 @@ var ModelStoreManagerRegistry = class {
     registry.managers[scheme] = manager;
   }
   static getManager(scheme) {
-    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
+    const manager = _ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
     return manager;
   }
   static getSchemes() {
-    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
+    return Object.keys(_ModelStoreManagerRegistry.getInstance().managers);
   }
 };
+var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
+__publicField(ModelStoreManagerRegistry, "instance");
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
-  constructor() {
-    this.messageName = "setTimeoutCustom";
-    this.functionRefs = [];
-    this.handledMessageCount = 0;
-    this.hasEventListener = false;
-  }
+  textEncoder;
+  messageName = "setTimeoutCustom";
+  functionRefs = [];
+  handledMessageCount = 0;
+  hasEventListener = false;
   fetch(path, init) {
     return fetch(path, init);
   }
@@ -5312,6 +5350,8 @@ var getNodeFetch = {
 };
 var systemFetch;
 var PlatformNode = class {
+  textEncoder;
+  util;
   constructor() {
     this.util = require_util();
     this.textEncoder = new this.util.TextEncoder();
@@ -5405,6 +5445,10 @@ function defer(f) {
   return new Promise((resolve) => setTimeout(resolve)).then(f);
 }
 var _BrowserDownloads = class {
+  modelJsonFileName;
+  weightDataFileName;
+  modelJsonAnchor;
+  weightDataAnchor;
   constructor(fileNamePrefix) {
     if (!env().getBool("IS_BROWSER")) {
       throw new Error(
@@ -5460,7 +5504,7 @@ var _BrowserDownloads = class {
   }
 };
 var BrowserDownloads = _BrowserDownloads;
-BrowserDownloads.URL_SCHEME = "downloads://";
+__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
 var browserDownloadsRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5548,8 +5592,14 @@ async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
 var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
 var JSON_TYPE = "application/json";
 var HTTPRequest = class {
+  path;
+  requestInit;
+  fetch;
+  weightUrlConverter;
+  DEFAULT_METHOD = "POST";
+  weightPathPrefix;
+  onProgress;
   constructor(path, loadOptions) {
-    this.DEFAULT_METHOD = "POST";
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -5681,7 +5731,7 @@ var HTTPRequest = class {
     return [weightSpecs, concatenateArrayBuffers(buffers)];
   }
 };
-HTTPRequest.URL_SCHEME_REGEX = /^https?:\/\//;
+__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
 function parseUrl(url) {
   const lastSlash = url.lastIndexOf("/");
   const lastSearchParam = url.lastIndexOf("?");
@@ -6691,20 +6741,23 @@ var Serializable = class {
     return new cls(config);
   }
 };
-var SerializationMap = class {
+var _SerializationMap = class {
+  classNameMap;
   constructor() {
     this.classNameMap = {};
   }
   static getMap() {
-    if (SerializationMap.instance == null) {
-      SerializationMap.instance = new SerializationMap();
+    if (_SerializationMap.instance == null) {
+      _SerializationMap.instance = new _SerializationMap();
     }
-    return SerializationMap.instance;
+    return _SerializationMap.instance;
   }
   static register(cls) {
-    SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
   }
 };
+var SerializationMap = _SerializationMap;
+__publicField(SerializationMap, "instance");
 function registerClass(cls) {
   assert(
     cls.className != null,
@@ -9639,6 +9692,14 @@ var rand = op({ rand_ });
 // src/tfjs-core/src/ops/rand_util.ts
 var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
+  mean;
+  stdDev;
+  nextVal;
+  dtype;
+  truncated;
+  upper;
+  lower;
+  random;
   constructor(mean3, stdDeviation, dtype, truncated, seed) {
     this.mean = mean3;
     this.stdDev = stdDeviation;
@@ -9690,6 +9751,13 @@ var MPRandGauss = class {
   }
 };
 var RandGamma = class {
+  alpha;
+  beta;
+  d;
+  c;
+  dtype;
+  randu;
+  randn;
   constructor(alpha, beta, dtype, seed) {
     this.alpha = alpha;
     this.beta = 1 / beta;
@@ -9734,8 +9802,11 @@ var RandGamma = class {
   }
 };
 var UniformRandom = class {
+  min;
+  range;
+  random;
+  dtype;
   constructor(min3 = 0, max3 = 1, dtype, seed) {
-    this.canReturnFloat = () => this.dtype == null || this.dtype === "float32";
     this.min = min3;
     this.range = max3 - min3;
     this.dtype = dtype;
@@ -9752,6 +9823,7 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
+  canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
       return value;
@@ -12415,6 +12487,7 @@ var stringToHashBucketFast = op({ stringToHashBucketFast_ });
 
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
+  iterations_;
   minimize(f, returnCost = false, varList) {
     const { value, grads: grads2 } = this.computeGradients(f, varList);
     if (varList != null) {
@@ -12483,12 +12556,12 @@ var AdadeltaOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.rho = rho;
     this.epsilon = epsilon2;
-    this.accumulatedGrads = [];
-    this.accumulatedUpdates = [];
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
   }
+  accumulatedGrads = [];
+  accumulatedUpdates = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12574,7 +12647,7 @@ var AdadeltaOptimizer = class extends Optimizer {
     return new cls(config["learningRate"], config["rho"], config["epsilon"]);
   }
 };
-AdadeltaOptimizer.className = "Adadelta";
+__publicField(AdadeltaOptimizer, "className", "Adadelta");
 registerClass(AdadeltaOptimizer);
 
 // src/tfjs-core/src/optimizers/adagrad_optimizer.ts
@@ -12583,8 +12656,8 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
-    this.accumulatedGrads = [];
   }
+  accumulatedGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12648,7 +12721,7 @@ var AdagradOptimizer = class extends Optimizer {
     return new cls(config["learningRate"], config["initialAccumulatorValue"]);
   }
 };
-AdagradOptimizer.className = "Adagrad";
+__publicField(AdagradOptimizer, "className", "Adagrad");
 registerClass(AdagradOptimizer);
 
 // src/tfjs-core/src/optimizers/adam_optimizer.ts
@@ -12659,8 +12732,6 @@ var AdamOptimizer = class extends Optimizer {
     this.beta1 = beta1;
     this.beta2 = beta2;
     this.epsilon = epsilon2;
-    this.accumulatedFirstMoment = [];
-    this.accumulatedSecondMoment = [];
     tidy(() => {
       this.accBeta1 = scalar(beta1).variable();
       this.accBeta2 = scalar(beta2).variable();
@@ -12669,6 +12740,10 @@ var AdamOptimizer = class extends Optimizer {
       this.epsilon = ENGINE.backend.epsilon();
     }
   }
+  accBeta1;
+  accBeta2;
+  accumulatedFirstMoment = [];
+  accumulatedSecondMoment = [];
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -12773,7 +12848,7 @@ var AdamOptimizer = class extends Optimizer {
     );
   }
 };
-AdamOptimizer.className = "Adam";
+__publicField(AdamOptimizer, "className", "Adam");
 registerClass(AdamOptimizer);
 
 // src/tfjs-core/src/optimizers/adamax_optimizer.ts
@@ -12785,8 +12860,6 @@ var AdamaxOptimizer = class extends Optimizer {
     this.beta2 = beta2;
     this.epsilon = epsilon2;
     this.decay = decay;
-    this.accumulatedFirstMoment = [];
-    this.accumulatedWeightedInfNorm = [];
     tidy(() => {
       this.iteration = scalar(0).variable();
       this.accBeta1 = scalar(beta1).variable();
@@ -12795,6 +12868,10 @@ var AdamaxOptimizer = class extends Optimizer {
       this.epsilon = ENGINE.backend.epsilon();
     }
   }
+  accBeta1;
+  iteration;
+  accumulatedFirstMoment = [];
+  accumulatedWeightedInfNorm = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -12876,7 +12953,7 @@ var AdamaxOptimizer = class extends Optimizer {
     );
   }
 };
-AdamaxOptimizer.className = "Adamax";
+__publicField(AdamaxOptimizer, "className", "Adamax");
 registerClass(AdamaxOptimizer);
 
 // src/tfjs-core/src/optimizers/sgd_optimizer.ts
@@ -12886,6 +12963,7 @@ var SGDOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.setLearningRate(learningRate);
   }
+  c;
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     varNames.forEach((name, i) => {
@@ -12927,7 +13005,7 @@ var SGDOptimizer = class extends Optimizer {
     return new cls(config["learningRate"]);
   }
 };
-SGDOptimizer.className = "SGD";
+__publicField(SGDOptimizer, "className", "SGD");
 registerClass(SGDOptimizer);
 
 // src/tfjs-core/src/optimizers/momentum_optimizer.ts
@@ -12937,9 +13015,10 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.learningRate = learningRate;
     this.momentum = momentum;
     this.useNesterov = useNesterov;
-    this.accumulations = [];
     this.m = scalar(this.momentum);
   }
+  m;
+  accumulations = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -13009,7 +13088,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
     );
   }
 };
-MomentumOptimizer.className = "Momentum";
+__publicField(MomentumOptimizer, "className", "Momentum");
 registerClass(MomentumOptimizer);
 
 // src/tfjs-core/src/optimizers/rmsprop_optimizer.ts
@@ -13020,9 +13099,6 @@ var RMSPropOptimizer = class extends Optimizer {
     this.decay = decay;
     this.momentum = momentum;
     this.epsilon = epsilon2;
-    this.accumulatedMeanSquares = [];
-    this.accumulatedMoments = [];
-    this.accumulatedMeanGrads = [];
     this.centered = centered;
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
@@ -13031,6 +13107,10 @@ var RMSPropOptimizer = class extends Optimizer {
       throw new Error(`learningRate for RMSPropOptimizer must be defined.`);
     }
   }
+  centered;
+  accumulatedMeanSquares = [];
+  accumulatedMoments = [];
+  accumulatedMeanGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -13167,7 +13247,7 @@ var RMSPropOptimizer = class extends Optimizer {
     );
   }
 };
-RMSPropOptimizer.className = "RMSProp";
+__publicField(RMSPropOptimizer, "className", "RMSProp");
 registerClass(RMSPropOptimizer);
 
 // src/tfjs-core/src/optimizers/optimizer_constructors.ts
@@ -13956,14 +14036,15 @@ function assertNotComplex(tensor2, opName) {
 // src/tfjs-backend-cpu/src/backend_cpu.ts
 var whereImpl2 = kernel_impls_exports.whereImpl;
 var _MathBackendCPU = class extends KernelBackend {
-  constructor() {
-    super();
-    this.blockSize = 48;
-    this.firstUse = true;
-    this.data = new DataStorage(this, engine());
-  }
+  blockSize = 48;
+  data;
+  firstUse = true;
   nextDataId() {
     return _MathBackendCPU.nextDataId++;
+  }
+  constructor() {
+    super();
+    this.data = new DataStorage(this, engine());
   }
   write(values, shape, dtype) {
     if (this.firstUse) {
@@ -14086,7 +14167,7 @@ var _MathBackendCPU = class extends KernelBackend {
   }
 };
 var MathBackendCPU = _MathBackendCPU;
-MathBackendCPU.nextDataId = 0;
+__publicField(MathBackendCPU, "nextDataId", 0);
 
 // src/tfjs-backend-cpu/src/shared.ts
 var shared_exports = {};
@@ -15118,6 +15199,8 @@ var RaggedTensorToTensorOp = class {
     this.rowPartitionTypes = backend_util_exports.getRowPartitionTypesHelper(rowPartitionTypeStrings);
     this.raggedRank = backend_util_exports.getRaggedRank(this.rowPartitionTypes);
   }
+  rowPartitionTypes;
+  raggedRank;
   getRowPartitionTypeByDimension(dimension) {
     if (this.rowPartitionTypes[0] === RowPartitionType2.FIRST_DIM_SIZE) {
       return this.rowPartitionTypes[dimension + 1];
@@ -15912,6 +15995,12 @@ function stridedSliceImpl(outShape, xBuf, strides, begin) {
 
 // src/tfjs-backend-cpu/src/kernels/StringNGrams_impl.ts
 var StringNGramsOp = class {
+  separator;
+  nGramWidths;
+  padWidth;
+  leftPad;
+  rightPad;
+  preserveShort;
   constructor(separator, nGramWidths, leftPad, rightPad2, padWidth, preserveShortSequences) {
     this.separator = util_exports.encodeString(separator);
     this.nGramWidths = nGramWidths;
@@ -22305,181 +22394,4 @@ export {
   shared_exports as shared,
   version2 as version_cpu
 };
-/**
- * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the License);
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an AS IS BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2022 Google LLC.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/**
- * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-/** @license See the LICENSE file. */
 //# sourceMappingURL=tfjs-backend-cpu.esm.js.map

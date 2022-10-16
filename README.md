@@ -27,51 +27,28 @@ Node packages (`tfjs-node` and `tfjs-node-gpu`) are not covered
 ## Install
 
 1. Internal dependencies: `npm install`
-2. External dependencies: `git`, `bazel`, `python`
+2. External dependencies:  
    **Git**: assumed to be already installed if you're here :)  
    **Bazel**: requires `bazel 4.x` <https://docs.bazel.build/versions/4.2.1/install-ubuntu.html>  
    **Python**: requires `python 3.x` aliased as `python`, not compatible with `python 2.x`  
+   **EmScripten SDK**: auto-downloaded during first build  
 
-## Steps
+## Run
 
-### Full Build
-Downloads sources and performs full build of all **TFJS** modules
 > `npm run build` executes steps:
 
-1. `scripts/download.sh`  
+1. **download**: `scripts/download.sh`  
    on first run it clones `@tensorflow/tfjs` from git into `./src`  
    on subsequent runs it rolls forward cloned copy of `@tensorflow/tfjs`
-2. `scripts/prepare.sh`  
+2. **prepare**: `scripts/prepare.sh`  
    creates versioned `.tfjs-*.ts` from build templates  
    and `.js` imports from `.json` files
-3. `scripts/build-wasm.sh`  
+3. **build wasm**: `scripts/wasm.sh`  
    build wasm binaries and wasm `.js` exports using `bazel`  
-4. `node scripts/build-tfjs.js`  
+4. **build js packages**: `node scripts/bundle.js`  
    build targets in `/dist` using `esbuild` with custom resolver plugins and TypeScript compiler settings  
+5. **build typedefs**: `scripts/types.sh`  
+   build typedefs bundle in `/lib` using `tsc` & `api-extractor`  
 
-### Fast Build
-
-Available once full build has been completed
-> `npm run build` executes steps:
-1. `node scripts/build-tfjs.js`  
-   build targets in `/dist` using `esbuild` with custom resolver plugins and TypeScript compiler settings  
-
-### TypeDefs
-Default typedefs in `types/index.d.ts` are re-exports of official `@tensorflow/*` modules
-Buildinging typedefs from sources is an experimental feature
-> `npm run types` executes steps:
-1. compile all modules using `TSC` to `types/lib`
-2. build rollup using `API-Extractor` to `types/tfjs-core.d.ts` and `types/tfjs.d.ts`
-3. patch rollup
-
-### Clean
-Remove currently downloaded version of **TFJS** and reset all cached info
+To remove currently downloaded version of **TFJS** and reset all cached info
 > `npm run clean`
-
-### Notes
-- `/dist`: all **JS** modules, **MAP** files and **WASM** binaries  
-- `/dist/tfjs.esm.js` is default **TFJS bundle** that includes all available backends
-- `/types/index.d.ts` re-exports TypeScript **type definitions** from `@tensorflor/tfjs` as a single bundle
-- `npm run fast` can be used after completed initial build as it executes last build step only
-
-<br><hr><br>

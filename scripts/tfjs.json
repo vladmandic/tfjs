@@ -1,0 +1,41 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "mainEntryPointFilePath": "./tfjs-template.d.ts",
+  "bundledPackages": [
+    "@tensorflow/tfjs-core"
+  ],
+  "compiler": {
+    "skipLibCheck": false,
+    "tsconfigFilePath": "../scripts/types.json"
+  },
+  "newlineKind": "lf",
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "../types/tfjs.d.ts"
+  },
+  "docModel": { "enabled": false },
+  "tsdocMetadata": {
+    "enabled": false
+  },
+  "apiReport": { "enabled": false },
+  "messages": {
+    "compilerMessageReporting": {
+      "default": {
+        "logLevel": "warning"
+      }
+    },
+    "extractorMessageReporting": {
+      "default": {
+        "logLevel": "none"
+      },
+      "ae-forgotten-export": {
+        "logLevel": "none"
+      }
+    },
+    "tsdocMessageReporting": {
+      "default": {
+        "logLevel": "none"
+      }
+    }
+  }
+}
