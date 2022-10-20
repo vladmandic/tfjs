@@ -8,9 +8,9 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __commonJS = (cb, mod2) => function __require() {
   return mod2 || (0, cb[__getOwnPropNames(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
 };
-var __export = (target, all2) => {
-  for (var name in all2)
-    __defProp(target, name, { get: all2[name], enumerable: true });
+var __export = (target, all3) => {
+  for (var name in all3)
+    __defProp(target, name, { get: all3[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -14372,7 +14372,7 @@ function makeShader(inputInfo, outputData, program) {
       getStartHeaderString(useGlobalIndex2)
     ].join("\n");
   }
-  let uniformDeclaration = "struct Uniforms { NAN : f32, ";
+  let uniformDeclaration = "struct Uniforms { NAN : f32, INFINITY : f32, ";
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
@@ -14413,7 +14413,7 @@ function makeShader(inputInfo, outputData, program) {
   }
   const coordsSnippet = getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
   const sources = [
-    commonSnippet,
+    commonSnippet + isInfSnippet,
     prefixSnippets.join("\n"),
     getCoordsFromIndexSnippet(outputData.shape),
     coordsSnippet,
@@ -14509,6 +14509,11 @@ var commonSnippet = `
   }
   fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
     return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
+  }
+`;
+var isInfSnippet = `
+  fn isinf(val: f32) -> bool {
+    return abs(val) == uniforms.INFINITY;
   }
 `;
 function getCoordsFromIndexSnippet(shape) {
@@ -15541,7 +15546,10 @@ var _WebGPUBackend = class extends KernelBackend {
     let programUniform = [];
     let bufferShapes = [];
     if (!program.isFromPixels) {
-      programUniform.push({ type: "float32", data: [NaN] });
+      programUniform.push(
+        { type: "float32", data: [NaN] },
+        { type: "float32", data: [Infinity] }
+      );
       bufferShapes = inputs.concat(output).map((d) => d.shape);
       const uniformsType = "int32";
       bufferShapes.map((d) => {
@@ -15891,6 +15899,43 @@ function getBinaryOpString(type, useVec4) {
 
 // src/tfjs-backend-webgpu/src/unary_op_util.ts
 var ABS = `return abs(a);`;
+var ACOS = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  return acos(a);
+`;
+var ACOSH = `
+  if (a < 1.) {
+    return uniforms.NAN;
+  }
+  return acosh(a);
+`;
+var ASIN = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  return asin(a);
+`;
+var ASINH = `return asinh(a);`;
+var ATAN = `
+  if (isnan(a)) {
+    return uniforms.NAN;
+  }
+  return atan(a);
+`;
+var ATANH = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  if (a == 1.) {
+    return uniforms.INFINITY;
+  }
+  if (a == -1.) {
+    return -uniforms.INFINITY;
+  }
+  return atanh(a);
+`;
 var CEIL = `return ceil(a);`;
 var COS = `return cos(a);`;
 var COSH = `
@@ -15917,6 +15962,8 @@ var ELU_VEC4 = `
 `;
 var EXP = `return exp(a);`;
 var FLOOR = `return floor(a);`;
+var IS_FINITE = `return f32(!isnan(a) && !isinf(a));`;
+var IS_INF = `return f32(isinf(a));`;
 var IS_NAN = `return f32(isnan(a));`;
 var LINEAR = `return a;`;
 var LOG = `if (a < 0.0) { return uniforms.NAN; }
@@ -15944,6 +15991,7 @@ var SINH = `
 `;
 var SQRT = `return sqrt(a);`;
 var SQUARE = `return a * a;`;
+var TAN = `return tan(a);`;
 var TANH = `
   let e2x = exp(-2.0 * abs(a));
   return sign(a) * (1.0 - e2x) / (1.0 + e2x);
@@ -15953,53 +16001,71 @@ function getUnaryOpString(type, useVec4) {
   switch (type) {
     case 0 /* ABS */:
       return ABS;
-    case 2 /* COS */:
+    case 1 /* ACOS */:
+      return ACOS;
+    case 2 /* ACOSH */:
+      return ACOSH;
+    case 3 /* ASIN */:
+      return ASIN;
+    case 4 /* ASINH */:
+      return ASINH;
+    case 5 /* ATAN */:
+      return ATAN;
+    case 6 /* ATANH */:
+      return ATANH;
+    case 8 /* COS */:
       return COS;
-    case 3 /* COSH */:
+    case 9 /* COSH */:
       return COSH;
-    case 1 /* CEIL */:
+    case 7 /* CEIL */:
       return CEIL;
-    case 4 /* ELU */:
+    case 10 /* ELU */:
       return useVec4 ? ELU_VEC4 : ELU;
-    case 5 /* EXP */:
+    case 11 /* EXP */:
       return EXP;
-    case 6 /* EXPM1 */:
+    case 12 /* EXPM1 */:
       return EXPM1;
-    case 7 /* FLOOR */:
+    case 13 /* FLOOR */:
       return FLOOR;
-    case 8 /* IS_NAN */:
+    case 14 /* IS_FINITE */:
+      return IS_FINITE;
+    case 15 /* IS_INF */:
+      return IS_INF;
+    case 16 /* IS_NAN */:
       return IS_NAN;
-    case 9 /* LINEAR */:
+    case 17 /* LINEAR */:
       return LINEAR;
-    case 10 /* LOG */:
+    case 18 /* LOG */:
       return LOG;
-    case 11 /* LOGICAL_NOT */:
+    case 19 /* LOGICAL_NOT */:
       return LOGICAL_NOT;
-    case 12 /* NEG */:
+    case 20 /* NEG */:
       return NEG;
-    case 15 /* LEAKYRELU */:
+    case 23 /* LEAKYRELU */:
       return useVec4 ? LEAKYRELU_VEC4 : LEAKYRELU;
-    case 16 /* RECIPROCAL */:
+    case 24 /* RECIPROCAL */:
       return RECIPROCAL;
-    case 13 /* RELU */:
+    case 21 /* RELU */:
       return useVec4 ? RELU_VEC4 : RELU;
-    case 14 /* RELU6 */:
+    case 22 /* RELU6 */:
       return useVec4 ? RELU6_VEC4 : RELU6;
-    case 17 /* RSQRT */:
+    case 25 /* RSQRT */:
       return RSQRT;
-    case 20 /* SIGMOID */:
+    case 28 /* SIGMOID */:
       return SIGMOID;
-    case 18 /* SIN */:
+    case 26 /* SIN */:
       return SIN;
-    case 19 /* SINH */:
+    case 27 /* SINH */:
       return SINH;
-    case 21 /* SQRT */:
+    case 29 /* SQRT */:
       return SQRT;
-    case 22 /* SQUARE */:
+    case 30 /* SQUARE */:
       return SQUARE;
-    case 23 /* TANH */:
+    case 31 /* TAN */:
+      return TAN;
+    case 32 /* TANH */:
       return TANH;
-    case 24 /* TO_INT */:
+    case 33 /* TO_INT */:
       return TO_INT;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
@@ -16027,19 +16093,19 @@ function activationFnSnippet(activation, hasPreluActivationWeights = false, pack
   }
   let activationOpSnippet = "";
   if (activation === "linear") {
-    activationOpSnippet = getUnaryOpString(9 /* LINEAR */);
+    activationOpSnippet = getUnaryOpString(17 /* LINEAR */);
   } else if (activation === "relu") {
-    activationOpSnippet = getUnaryOpString(13 /* RELU */, packed);
+    activationOpSnippet = getUnaryOpString(21 /* RELU */, packed);
   } else if (activation === "elu") {
-    activationOpSnippet = getUnaryOpString(4 /* ELU */, packed);
+    activationOpSnippet = getUnaryOpString(10 /* ELU */, packed);
   } else if (activation === "relu6") {
-    activationOpSnippet = getUnaryOpString(14 /* RELU6 */, packed);
+    activationOpSnippet = getUnaryOpString(22 /* RELU6 */, packed);
   } else if (activation === "prelu") {
     activationOpSnippet = getBinaryOpString(15 /* PRELU */, packed);
   } else if (activation === "sigmoid") {
-    activationOpSnippet = getUnaryOpString(20 /* SIGMOID */, packed);
+    activationOpSnippet = getUnaryOpString(28 /* SIGMOID */, packed);
   } else if (activation === "leakyrelu") {
-    activationOpSnippet = getUnaryOpString(15 /* LEAKYRELU */, packed);
+    activationOpSnippet = getUnaryOpString(23 /* LEAKYRELU */, packed);
   } else {
     throw new Error(`Activation ${activation} has not been implemented for the WebGPU backend.`);
   }
@@ -19597,6 +19663,22 @@ var absConfig = {
   kernelFunc: abs2
 };
 
+// src/tfjs-backend-webgpu/src/kernels/Acos.ts
+var acos2 = unaryKernelFunc({ opType: 1 /* ACOS */ });
+var acosConfig = {
+  kernelName: Acos,
+  backendName: "webgpu",
+  kernelFunc: acos2
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Acosh.ts
+var acosh2 = unaryKernelFunc({ opType: 2 /* ACOSH */ });
+var acoshConfig = {
+  kernelName: Acosh,
+  backendName: "webgpu",
+  kernelFunc: acosh2
+};
+
 // src/tfjs-backend-webgpu/src/kernels/Add.ts
 var addKernelFunc = binaryKernelFunc(
   { opType: 1 /* ADD */, cpuKernelImpl: addImplCPU, supportsComplex: true }
@@ -19669,6 +19751,325 @@ var addNConfig = {
   kernelName: AddN,
   backendName: "webgpu",
   kernelFunc: addN2
+};
+
+// src/tfjs-backend-webgpu/src/transpose_shared_webgpu.ts
+var TransposeSharedProgram = class {
+  variableNames = ["A"];
+  outputShape;
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  workgroupSize = [16, 16, 1];
+  constructor(aShape, newDim) {
+    const outputShape = new Array(aShape.length);
+    for (let i = 0; i < outputShape.length; i++) {
+      outputShape[i] = aShape[newDim[i]];
+    }
+    this.outputShape = outputShape;
+    this.dispatchLayout = { x: [0], y: [1] };
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize,
+      [1, 1, 1]
+    );
+    this.shaderKey = "transposeShared";
+  }
+  getUserCode() {
+    util_exports.assert(
+      this.workgroupSize[0] === this.workgroupSize[1],
+      () => `Must be a square tile, current tile shape is ${this.workgroupSize[0]} x ${this.workgroupSize[1]}`
+    );
+    const userCode = `
+      const tileSize = ${this.workgroupSize[0]};
+      var<workgroup> tile : array<array<f32, ${this.workgroupSize[0] + 1}>, ${this.workgroupSize[0]}>;
+      ${getMainHeaderString()} {
+        var x = i32(workgroupId.x) * tileSize + i32(localId.x);
+        var y = i32(workgroupId.y) * tileSize + i32(localId.y);
+        let width = uniforms.outShape[0];
+        let height = uniforms.outShape[1];
+        if (x < width && y < height) {
+          tile[localId.y][localId.x] = f32(A[y * width + x]);
+        }
+        workgroupBarrier();
+
+        x = i32(workgroupId.y) * tileSize + i32(localId.x);
+        y = i32(workgroupId.x) * tileSize + i32(localId.y);
+        if (x < height && y < width) {
+          setOutputAtIndex((y * height + x), tile[localId.x]
+            [localId.y]);
+        }
+      }
+    `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/transpose_webgpu.ts
+var TransposeProgram = class {
+  variableNames = ["A"];
+  shaderKey;
+  outputShape;
+  dispatchLayout;
+  dispatch;
+  workPerThread = 1;
+  workgroupSize = [64, 1, 1];
+  newDim;
+  size = true;
+  constructor(aShape, newDim) {
+    const outputShape = new Array(aShape.length);
+    for (let i = 0; i < outputShape.length; i++) {
+      outputShape[i] = aShape[newDim[i]];
+    }
+    this.outputShape = outputShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize,
+      [this.workPerThread, 1, 1]
+    );
+    this.newDim = newDim;
+    this.shaderKey = `transpose_${newDim}`;
+  }
+  getUserCode() {
+    const dtype = getCoordsDataType(this.outputShape.length);
+    const switched = getSwitchedCoords(this.newDim);
+    const userCode = `
+      ${getMainHeaderString("index")} {
+        for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
+          let flatIndex = index * ${this.workPerThread} + i;
+          if(flatIndex < uniforms.size) {
+            let resRC = getCoordsFromIndex(flatIndex);
+            setOutputAtIndex(flatIndex, A[getIndexFromCoords${this.outputShape.length}D(
+              ${dtype}(${switched}), uniforms.aShape)]);
+          }
+        }
+      }
+    `;
+    return userCode;
+  }
+};
+function getSwitchedCoords(newDim) {
+  const rank = newDim.length;
+  if (rank > 6) {
+    throw Error(`Transpose for rank ${rank} is not yet supported`);
+  }
+  const switchedCoords = new Array(rank);
+  for (let i = 0; i < newDim.length; i++) {
+    switchedCoords[newDim[i]] = `resRC.${getCoordsXYZ(i)}`;
+  }
+  return switchedCoords.join();
+}
+
+// src/tfjs-backend-webgpu/src/kernels/Transpose.ts
+function transpose3(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { perm } = attrs;
+  const webgpuBackend = backend;
+  const xRank = x.shape.length;
+  const newShape = new Array(xRank);
+  for (let i = 0; i < newShape.length; i++) {
+    newShape[i] = x.shape[perm[i]];
+  }
+  if (backend.shouldExecuteOnCPU([x])) {
+    const xData = webgpuBackend.tensorMap.get(x.dataId);
+    const values = xData.values;
+    const outValues = transposeImplCPU(values, x.shape, x.dtype, perm, newShape);
+    return backend.makeTensorInfo(newShape, x.dtype, outValues);
+  }
+  if (x.shape.length === 2 && util_exports.arraysEqual(perm, [1, 0])) {
+    const program2 = new TransposeSharedProgram(x.shape, perm);
+    return webgpuBackend.runWebGPUProgram(program2, [x], x.dtype);
+  }
+  const program = new TransposeProgram(x.shape, perm);
+  return webgpuBackend.runWebGPUProgram(program, [x], x.dtype);
+}
+var transposeConfig = {
+  kernelName: Transpose,
+  backendName: "webgpu",
+  kernelFunc: transpose3
+};
+
+// src/tfjs-backend-webgpu/src/reduce_webgpu.ts
+var ReduceProgram = class {
+  outputShape;
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  workgroupSize = [64, 1, 1];
+  variableNames = ["x"];
+  uniforms = "reduceSize : i32,";
+  reduceType;
+  inputShape;
+  size = true;
+  constructor(reduceInfo, reduceType) {
+    this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
+    const [outputShape] = backend_util_exports.computeOutAndReduceShapes(this.inputShape, [1]);
+    this.outputShape = outputShape.length === 0 ? [1] : outputShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
+    this.reduceType = reduceType;
+    this.shaderKey = `reduce_${reduceType}`;
+  }
+  getUserCode() {
+    let reduceOp = ``;
+    let initValue = "0.0";
+    if (this.reduceType === "min" || this.reduceType === "max") {
+      reduceOp = `
+         if (isnan(candidate)) {
+          bestValue = uniforms.NAN;
+         } else if (!isnan(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
+           {  bestValue = candidate; }`;
+      initValue = "f32(x[offset])";
+    } else if (this.reduceType === "sum" || this.reduceType === "mean") {
+      reduceOp = " bestValue = bestValue + candidate; ";
+    } else if (this.reduceType === "prod") {
+      reduceOp = " bestValue = bestValue * candidate; ";
+      initValue = "1.0";
+    } else if (this.reduceType === "all") {
+      reduceOp = " bestValue = f32(bestValue >= 1.0 && candidate >= 1.0); ";
+      initValue = "1.0";
+    } else if (this.reduceType === "any") {
+      reduceOp = " bestValue = f32(bestValue >= 1.0 || candidate >= 1.0); ";
+      initValue = "0.0";
+    }
+    const outputSnippet = this.reduceType === "mean" ? `setOutputAtIndex(outputIndex, bestValue / f32(uniforms.reduceSize));` : `setOutputAtIndex(outputIndex, bestValue);`;
+    const sharedMemorySnippet = `
+         var<workgroup> xBestValues : array<f32, ${this.workgroupSize[0]}>;
+       `;
+    const userCode = `
+       fn DIV_CEIL(a : u32, b : u32) -> u32 {
+        return ((a - 1u) / b + 1u);
+       }
+
+       ${sharedMemorySnippet}
+       fn getOffset(outputIndex : i32) -> i32 {
+         let outputCoords = getCoordsFromIndex(outputIndex);
+         let offset = ${this.outputShape.length === 1 ? "outputCoords" : "outputCoords[0]"} * uniforms.reduceSize;
+          return offset;
+       }
+       ${getMainHeaderString("index")} {
+         let outputIndex = index / i32(workgroupSizeX);
+         let offset = getOffset(outputIndex);
+         var bestValue = ${initValue};
+         let Length = uniforms.reduceSize;
+         let WorkPerThread = DIV_CEIL(u32(Length), workgroupSizeX);
+         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
+             k = k + i32(workgroupSizeX)) {
+           let candidate = f32(x[offset + k]);
+           ${reduceOp}
+         }
+         xBestValues[localId.x] = bestValue;
+         workgroupBarrier();
+
+         var reduceSize = min(u32(Length), workgroupSizeX);
+         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
+             currentSize = reduceSize / 2u) {
+           let interval = DIV_CEIL(reduceSize, 2u);
+           if (localId.x < currentSize) {
+            let candidate = xBestValues[localId.x + interval];
+            ${reduceOp}
+            xBestValues[localId.x] = bestValue;
+           }
+           reduceSize = interval;
+           workgroupBarrier();
+         }
+
+         if (localId.x == 0u && outputIndex < uniforms.size) {
+          ${outputSnippet}
+        }
+       }
+     `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernel_utils/reduce.ts
+function reduce(x, axis, keepDims, reduceType, backend) {
+  const xRank = x.shape.length;
+  const toDispose = [];
+  const origAxes = util_exports.parseAxisParam(axis, x.shape);
+  let axes = origAxes;
+  const permutedAxes = backend_util_exports.getAxesPermutation(axes, xRank);
+  let input = x;
+  if (permutedAxes != null) {
+    input = transpose3({ inputs: { x }, attrs: { perm: permutedAxes }, backend });
+    axes = backend_util_exports.getInnerMostAxes(axes.length, xRank);
+    toDispose.push(input);
+  }
+  backend_util_exports.assertAxesAreInnerMostDims(reduceType, axes, xRank);
+  const [reduceOutShape, reduceShape] = backend_util_exports.computeOutAndReduceShapes(input.shape, axes);
+  let resOutShape = reduceOutShape;
+  if (keepDims) {
+    resOutShape = backend_util_exports.expandShapeToKeepDim(reduceOutShape, origAxes);
+  }
+  let res;
+  if ((reduceType === "max" || reduceType === "prod") && backend.shouldExecuteOnCPU([input])) {
+    const xVals = backend.tensorMap.get(input.dataId).values;
+    switch (reduceType) {
+      case "max":
+        const outValues = maxImplCPU(
+          xVals,
+          util_exports.sizeFromShape(reduceShape),
+          resOutShape,
+          x.dtype
+        );
+        res = backend.makeTensorInfo(resOutShape, x.dtype, outValues);
+        break;
+      case "prod":
+        const { outVals, outShape, outDtype } = prodImplCPU(input.shape, input.dtype, xVals, axes);
+        res = backend.makeTensorInfo(outShape, outDtype, outVals);
+        break;
+      default:
+        throw new Error(
+          `${reduceType} CPU implementation is not yet supported.`
+        );
+    }
+  } else {
+    const inSize = util_exports.sizeFromShape(reduceShape);
+    const xSize = util_exports.sizeFromShape(input.shape);
+    const batchSize = xSize / inSize;
+    const reduceInfo = { windowSize: inSize, inSize, batchSize, outSize: 1 };
+    const dtype = reduceType === "mean" ? "float32" : sumOutType(x.dtype);
+    const uniformData = [
+      { type: "int32", data: [inSize] }
+    ];
+    const program = new ReduceProgram(reduceInfo, reduceType);
+    const reduced = backend.runWebGPUProgram(program, [input], dtype, uniformData);
+    toDispose.push(reduced);
+    res = reshape2({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend });
+  }
+  toDispose.forEach((t) => backend.disposeData(t.dataId));
+  return res;
+}
+
+// src/tfjs-backend-webgpu/src/kernels/All.ts
+function all2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { keepDims, axis } = attrs;
+  return reduce(x, axis, keepDims, "all", backend);
+}
+var allConfig = {
+  kernelName: All,
+  backendName: "webgpu",
+  kernelFunc: all2
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Any.ts
+function any2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { keepDims, axis } = attrs;
+  return reduce(x, axis, keepDims, "any", backend);
+}
+var anyConfig = {
+  kernelName: Any,
+  backendName: "webgpu",
+  kernelFunc: any2
 };
 
 // src/tfjs-backend-webgpu/src/argminmax_webgpu.ts
@@ -19803,146 +20204,6 @@ var ArgMinMaxProgram = class {
   }
 };
 
-// src/tfjs-backend-webgpu/src/transpose_shared_webgpu.ts
-var TransposeSharedProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [16, 16, 1];
-  constructor(aShape, newDim) {
-    const outputShape = new Array(aShape.length);
-    for (let i = 0; i < outputShape.length; i++) {
-      outputShape[i] = aShape[newDim[i]];
-    }
-    this.outputShape = outputShape;
-    this.dispatchLayout = { x: [0], y: [1] };
-    this.dispatch = computeDispatch(
-      this.dispatchLayout,
-      this.outputShape,
-      this.workgroupSize,
-      [1, 1, 1]
-    );
-    this.shaderKey = "transposeShared";
-  }
-  getUserCode() {
-    util_exports.assert(
-      this.workgroupSize[0] === this.workgroupSize[1],
-      () => `Must be a square tile, current tile shape is ${this.workgroupSize[0]} x ${this.workgroupSize[1]}`
-    );
-    const userCode = `
-      const tileSize = ${this.workgroupSize[0]};
-      var<workgroup> tile : array<array<f32, ${this.workgroupSize[0] + 1}>, ${this.workgroupSize[0]}>;
-      ${getMainHeaderString()} {
-        var x = i32(workgroupId.x) * tileSize + i32(localId.x);
-        var y = i32(workgroupId.y) * tileSize + i32(localId.y);
-        let width = uniforms.outShape[0];
-        let height = uniforms.outShape[1];
-        if (x < width && y < height) {
-          tile[localId.y][localId.x] = A[y * width + x];
-        }
-        workgroupBarrier();
-
-        x = i32(workgroupId.y) * tileSize + i32(localId.x);
-        y = i32(workgroupId.x) * tileSize + i32(localId.y);
-        if (x < height && y < width) {
-          setOutputAtIndex((y * height + x), tile[localId.x]
-            [localId.y]);
-        }
-      }
-    `;
-    return userCode;
-  }
-};
-
-// src/tfjs-backend-webgpu/src/transpose_webgpu.ts
-var TransposeProgram = class {
-  variableNames = ["A"];
-  shaderKey;
-  outputShape;
-  dispatchLayout;
-  dispatch;
-  workPerThread = 1;
-  workgroupSize = [64, 1, 1];
-  newDim;
-  size = true;
-  constructor(aShape, newDim) {
-    const outputShape = new Array(aShape.length);
-    for (let i = 0; i < outputShape.length; i++) {
-      outputShape[i] = aShape[newDim[i]];
-    }
-    this.outputShape = outputShape;
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(
-      this.dispatchLayout,
-      this.outputShape,
-      this.workgroupSize,
-      [this.workPerThread, 1, 1]
-    );
-    this.newDim = newDim;
-    this.shaderKey = `transpose_${newDim}`;
-  }
-  getUserCode() {
-    const dtype = getCoordsDataType(this.outputShape.length);
-    const switched = getSwitchedCoords(this.newDim);
-    const userCode = `
-      ${getMainHeaderString("index")} {
-        for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
-          let flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < uniforms.size) {
-            let resRC = getCoordsFromIndex(flatIndex);
-            setOutputAtIndex(flatIndex, A[getIndexFromCoords${this.outputShape.length}D(
-              ${dtype}(${switched}), uniforms.aShape)]);
-          }
-        }
-      }
-    `;
-    return userCode;
-  }
-};
-function getSwitchedCoords(newDim) {
-  const rank = newDim.length;
-  if (rank > 6) {
-    throw Error(`Transpose for rank ${rank} is not yet supported`);
-  }
-  const switchedCoords = new Array(rank);
-  for (let i = 0; i < newDim.length; i++) {
-    switchedCoords[newDim[i]] = `resRC.${getCoordsXYZ(i)}`;
-  }
-  return switchedCoords.join();
-}
-
-// src/tfjs-backend-webgpu/src/kernels/Transpose.ts
-function transpose3(args) {
-  const { inputs, backend, attrs } = args;
-  const { x } = inputs;
-  const { perm } = attrs;
-  const webgpuBackend = backend;
-  const xRank = x.shape.length;
-  const newShape = new Array(xRank);
-  for (let i = 0; i < newShape.length; i++) {
-    newShape[i] = x.shape[perm[i]];
-  }
-  if (backend.shouldExecuteOnCPU([x])) {
-    const xData = webgpuBackend.tensorMap.get(x.dataId);
-    const values = xData.values;
-    const outValues = transposeImplCPU(values, x.shape, x.dtype, perm, newShape);
-    return backend.makeTensorInfo(newShape, x.dtype, outValues);
-  }
-  if (x.shape.length === 2 && util_exports.arraysEqual(perm, [1, 0])) {
-    const program2 = new TransposeSharedProgram(x.shape, perm);
-    return webgpuBackend.runWebGPUProgram(program2, [x], x.dtype);
-  }
-  const program = new TransposeProgram(x.shape, perm);
-  return webgpuBackend.runWebGPUProgram(program, [x], x.dtype);
-}
-var transposeConfig = {
-  kernelName: Transpose,
-  backendName: "webgpu",
-  kernelFunc: transpose3
-};
-
 // src/tfjs-backend-webgpu/src/kernels/ArgMax.ts
 function argMax2(args) {
   const { inputs, backend, attrs } = args;
@@ -19997,12 +20258,44 @@ var argMinConfig = {
   kernelFunc: argMin2
 };
 
+// src/tfjs-backend-webgpu/src/kernels/Asin.ts
+var asin2 = unaryKernelFunc({ opType: 3 /* ASIN */ });
+var asinConfig = {
+  kernelName: Asin,
+  backendName: "webgpu",
+  kernelFunc: asin2
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Asinh.ts
+var asinh2 = unaryKernelFunc({ opType: 4 /* ASINH */ });
+var asinhConfig = {
+  kernelName: Asinh,
+  backendName: "webgpu",
+  kernelFunc: asinh2
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Atan.ts
+var atan3 = unaryKernelFunc({ opType: 5 /* ATAN */ });
+var atanConfig = {
+  kernelName: Atan,
+  backendName: "webgpu",
+  kernelFunc: atan3
+};
+
 // src/tfjs-backend-webgpu/src/kernels/Atan2.ts
 var atan22 = binaryKernelFunc({ opType: 2 /* ATAN2 */ });
 var atan2Config = {
   kernelName: Atan2,
   backendName: "webgpu",
   kernelFunc: atan22
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Atanh.ts
+var atanh2 = unaryKernelFunc({ opType: 6 /* ATANH */ });
+var atanhConfig = {
+  kernelName: Atanh,
+  backendName: "webgpu",
+  kernelFunc: atanh2
 };
 
 // src/tfjs-backend-webgpu/src/pool2d_webgpu.ts
@@ -20114,153 +20407,6 @@ var PoolWithFilterSizeEqualsOneProgram = class {
     return userCode;
   }
 };
-
-// src/tfjs-backend-webgpu/src/reduce_webgpu.ts
-var ReduceProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  variableNames = ["x"];
-  uniforms = "reduceSize : i32,";
-  reduceType;
-  inputShape;
-  size = true;
-  constructor(reduceInfo, reduceType) {
-    this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
-    const [outputShape] = backend_util_exports.computeOutAndReduceShapes(this.inputShape, [1]);
-    this.outputShape = outputShape.length === 0 ? [1] : outputShape;
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
-    this.reduceType = reduceType;
-    this.shaderKey = `reduce_${reduceType}`;
-  }
-  getUserCode() {
-    let reduceOp = ``;
-    let initValue = "0.0";
-    if (this.reduceType === "min" || this.reduceType === "max") {
-      reduceOp = `
-         if (isnan(candidate)) {
-          bestValue = uniforms.NAN;
-         } else if (!isnan(bestValue) && candidate ${this.reduceType === "min" ? "<" : ">"} bestValue)
-           {  bestValue = candidate; }`;
-      initValue = "f32(x[offset])";
-    } else if (this.reduceType === "sum" || this.reduceType === "mean") {
-      reduceOp = " bestValue = bestValue + candidate; ";
-    } else if (this.reduceType === "prod") {
-      reduceOp = " bestValue = bestValue * candidate; ";
-      initValue = "1.0";
-    }
-    const outputSnippet = this.reduceType === "mean" ? `setOutputAtIndex(outputIndex, bestValue / f32(uniforms.reduceSize));` : `setOutputAtIndex(outputIndex, bestValue);`;
-    const sharedMemorySnippet = `
-         var<workgroup> xBestValues : array<f32, ${this.workgroupSize[0]}>;
-       `;
-    const userCode = `
-       fn DIV_CEIL(a : u32, b : u32) -> u32 {
-        return ((a - 1u) / b + 1u);
-       }
-
-       ${sharedMemorySnippet}
-       fn getOffset(outputIndex : i32) -> i32 {
-         let outputCoords = getCoordsFromIndex(outputIndex);
-         let offset = ${this.outputShape.length === 1 ? "outputCoords" : "outputCoords[0]"} * uniforms.reduceSize;
-          return offset;
-       }
-       ${getMainHeaderString("index")} {
-         let outputIndex = index / i32(workgroupSizeX);
-         let offset = getOffset(outputIndex);
-         var bestValue = ${initValue};
-         let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(u32(Length), workgroupSizeX);
-         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
-             k = k + i32(workgroupSizeX)) {
-           let candidate = f32(x[offset + k]);
-           ${reduceOp}
-         }
-         xBestValues[localId.x] = bestValue;
-         workgroupBarrier();
-
-         var reduceSize = min(u32(Length), workgroupSizeX);
-         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
-             currentSize = reduceSize / 2u) {
-           let interval = DIV_CEIL(reduceSize, 2u);
-           if (localId.x < currentSize) {
-            let candidate = xBestValues[localId.x + interval];
-            ${reduceOp}
-            xBestValues[localId.x] = bestValue;
-           }
-           reduceSize = interval;
-           workgroupBarrier();
-         }
-
-         if (localId.x == 0u && outputIndex < uniforms.size) {
-          ${outputSnippet}
-        }
-       }
-     `;
-    return userCode;
-  }
-};
-
-// src/tfjs-backend-webgpu/src/kernel_utils/reduce.ts
-function reduce(x, axis, keepDims, reduceType, backend) {
-  const xRank = x.shape.length;
-  const toDispose = [];
-  const origAxes = util_exports.parseAxisParam(axis, x.shape);
-  let axes = origAxes;
-  const permutedAxes = backend_util_exports.getAxesPermutation(axes, xRank);
-  let input = x;
-  if (permutedAxes != null) {
-    input = transpose3({ inputs: { x }, attrs: { perm: permutedAxes }, backend });
-    axes = backend_util_exports.getInnerMostAxes(axes.length, xRank);
-    toDispose.push(input);
-  }
-  backend_util_exports.assertAxesAreInnerMostDims(reduceType, axes, xRank);
-  const [reduceOutShape, reduceShape] = backend_util_exports.computeOutAndReduceShapes(input.shape, axes);
-  let resOutShape = reduceOutShape;
-  if (keepDims) {
-    resOutShape = backend_util_exports.expandShapeToKeepDim(reduceOutShape, origAxes);
-  }
-  let res;
-  if ((reduceType === "max" || reduceType === "prod") && backend.shouldExecuteOnCPU([input])) {
-    const xVals = backend.tensorMap.get(input.dataId).values;
-    switch (reduceType) {
-      case "max":
-        const outValues = maxImplCPU(
-          xVals,
-          util_exports.sizeFromShape(reduceShape),
-          resOutShape,
-          x.dtype
-        );
-        res = backend.makeTensorInfo(resOutShape, x.dtype, outValues);
-        break;
-      case "prod":
-        const { outVals, outShape, outDtype } = prodImplCPU(input.shape, input.dtype, xVals, axes);
-        res = backend.makeTensorInfo(outShape, outDtype, outVals);
-        break;
-      default:
-        throw new Error(
-          `${reduceType} CPU implementation is not yet supported.`
-        );
-    }
-  } else {
-    const inSize = util_exports.sizeFromShape(reduceShape);
-    const xSize = util_exports.sizeFromShape(input.shape);
-    const batchSize = xSize / inSize;
-    const reduceInfo = { windowSize: inSize, inSize, batchSize, outSize: 1 };
-    const dtype = reduceType === "mean" ? "float32" : sumOutType(x.dtype);
-    const uniformData = [
-      { type: "int32", data: [inSize] }
-    ];
-    const program = new ReduceProgram(reduceInfo, reduceType);
-    const reduced = backend.runWebGPUProgram(program, [input], dtype, uniformData);
-    toDispose.push(reduced);
-    res = reshape2({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend });
-  }
-  toDispose.forEach((t) => backend.disposeData(t.dataId));
-  return res;
-}
 
 // src/tfjs-backend-webgpu/src/kernels/Max.ts
 function max2(args) {
@@ -20551,7 +20697,7 @@ var realConfig = {
 
 // src/tfjs-backend-webgpu/src/kernel_utils/int.ts
 function int(input, backend) {
-  const program = new UnaryOpProgram(input.shape, 24 /* TO_INT */);
+  const program = new UnaryOpProgram(input.shape, 33 /* TO_INT */);
   const output = backend.runWebGPUProgram(program, [input], "int32");
   return { dataId: output.dataId, shape: output.shape, dtype: output.dtype };
 }
@@ -20610,7 +20756,7 @@ var castConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Ceil.ts
-var ceil3 = unaryKernelFunc({ opType: 1 /* CEIL */, cpuKernelImpl: ceilImplCPU });
+var ceil3 = unaryKernelFunc({ opType: 7 /* CEIL */, cpuKernelImpl: ceilImplCPU });
 var ceilConfig = {
   kernelName: Ceil,
   backendName: "webgpu",
@@ -21737,7 +21883,7 @@ var conv2DBackpropInputConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Cos.ts
-var cos2 = unaryKernelFunc({ opType: 2 /* COS */ });
+var cos2 = unaryKernelFunc({ opType: 8 /* COS */ });
 var cosConfig = {
   kernelName: Cos,
   backendName: "webgpu",
@@ -21745,7 +21891,7 @@ var cosConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Cosh.ts
-var cosh2 = unaryKernelFunc({ opType: 3 /* COSH */ });
+var cosh2 = unaryKernelFunc({ opType: 9 /* COSH */ });
 var coshConfig = {
   kernelName: Cosh,
   backendName: "webgpu",
@@ -22620,7 +22766,7 @@ var einsumConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Elu.ts
-var elu2 = unaryKernelFunc({ opType: 4 /* ELU */ });
+var elu2 = unaryKernelFunc({ opType: 10 /* ELU */ });
 var eluConfig = {
   kernelName: Elu,
   backendName: "webgpu",
@@ -22639,7 +22785,7 @@ var equalConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/Exp.ts
 var exp3 = unaryKernelFunc({
-  opType: 5 /* EXP */,
+  opType: 11 /* EXP */,
   cpuKernelImpl: expImplCPU,
   dtype: "float32"
 });
@@ -22674,7 +22820,7 @@ var expandDimsConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Expm1.ts
-var expm13 = unaryKernelFunc({ opType: 6 /* EXPM1 */, cpuKernelImpl: expm1ImplCPU });
+var expm13 = unaryKernelFunc({ opType: 12 /* EXPM1 */, cpuKernelImpl: expm1ImplCPU });
 var expm1Config = {
   kernelName: Expm1,
   backendName: "webgpu",
@@ -22729,7 +22875,7 @@ var flipLeftRightConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Floor.ts
-var floor3 = unaryKernelFunc({ opType: 7 /* FLOOR */, cpuKernelImpl: floorImplCPU });
+var floor3 = unaryKernelFunc({ opType: 13 /* FLOOR */, cpuKernelImpl: floorImplCPU });
 var floorConfig = {
   kernelName: Floor,
   backendName: "webgpu",
@@ -23359,8 +23505,24 @@ var greaterEqualConfig = {
   kernelFunc: greaterEqual3
 };
 
+// src/tfjs-backend-webgpu/src/kernels/IsFinite.ts
+var isFinite3 = unaryKernelFunc({ opType: 14 /* IS_FINITE */, dtype: "bool" });
+var isFiniteConfig = {
+  kernelName: IsFinite,
+  backendName: "webgpu",
+  kernelFunc: isFinite3
+};
+
+// src/tfjs-backend-webgpu/src/kernels/IsInf.ts
+var isInf2 = unaryKernelFunc({ opType: 15 /* IS_INF */, dtype: "bool" });
+var isInfConfig = {
+  kernelName: IsInf,
+  backendName: "webgpu",
+  kernelFunc: isInf2
+};
+
 // src/tfjs-backend-webgpu/src/kernels/IsNaN.ts
-var isNaN3 = unaryKernelFunc({ opType: 8 /* IS_NAN */, dtype: "bool" });
+var isNaN3 = unaryKernelFunc({ opType: 16 /* IS_NAN */, dtype: "bool" });
 var isNaNConfig = {
   kernelName: IsNan,
   backendName: "webgpu",
@@ -23373,7 +23535,7 @@ function leakyRelu2(args) {
   const { x } = inputs;
   const { alpha } = attrs;
   const uniformData = [{ type: "float32", data: [alpha] }];
-  const program = new UnaryOpProgram(x.shape, 15 /* LEAKYRELU */);
+  const program = new UnaryOpProgram(x.shape, 23 /* LEAKYRELU */);
   program.uniforms = "alpha : f32,";
   return backend.runWebGPUProgram(program, [x], "float32", uniformData);
 }
@@ -23406,7 +23568,7 @@ var lessEqualConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Log.ts
-var log4 = unaryKernelFunc({ opType: 10 /* LOG */, cpuKernelImpl: logImplCPU });
+var log4 = unaryKernelFunc({ opType: 18 /* LOG */, cpuKernelImpl: logImplCPU });
 var logConfig = {
   kernelName: Log,
   backendName: "webgpu",
@@ -23422,7 +23584,7 @@ var logicalAndConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalNot.ts
-var logicalNot2 = unaryKernelFunc({ opType: 11 /* LOGICAL_NOT */ });
+var logicalNot2 = unaryKernelFunc({ opType: 19 /* LOGICAL_NOT */ });
 var logicalNotConfig = {
   kernelName: LogicalNot,
   backendName: "webgpu",
@@ -23573,7 +23735,7 @@ function neg2(args) {
     const [outValues, newShape] = negImplCPU(xData.values, x.shape, x.dtype);
     return backend.makeTensorInfo(newShape, x.dtype, outValues);
   }
-  const program = new UnaryOpProgram(x.shape, 12 /* NEG */);
+  const program = new UnaryOpProgram(x.shape, 20 /* NEG */);
   return backend.runWebGPUProgram(program, [x], x.dtype);
 }
 var negConfig = {
@@ -23894,7 +24056,7 @@ var realDivConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Reciprocal.ts
-var reciprocal2 = unaryKernelFunc({ opType: 16 /* RECIPROCAL */ });
+var reciprocal2 = unaryKernelFunc({ opType: 24 /* RECIPROCAL */ });
 var reciprocalConfig = {
   kernelName: Reciprocal,
   backendName: "webgpu",
@@ -23902,7 +24064,7 @@ var reciprocalConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Relu.ts
-var relu2 = unaryKernelFunc({ opType: 13 /* RELU */ });
+var relu2 = unaryKernelFunc({ opType: 21 /* RELU */ });
 var reluConfig = {
   kernelName: Relu,
   backendName: "webgpu",
@@ -23910,7 +24072,7 @@ var reluConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Relu6.ts
-var relu62 = unaryKernelFunc({ opType: 14 /* RELU6 */ });
+var relu62 = unaryKernelFunc({ opType: 22 /* RELU6 */ });
 var relu6Config = {
   kernelName: Relu6,
   backendName: "webgpu",
@@ -24197,7 +24359,7 @@ var rotateWithOffsetConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Rsqrt.ts
-var rsqrt3 = unaryKernelFunc({ opType: 17 /* RSQRT */, cpuKernelImpl: rsqrtImplCPU });
+var rsqrt3 = unaryKernelFunc({ opType: 25 /* RSQRT */, cpuKernelImpl: rsqrtImplCPU });
 var rsqrtConfig = {
   kernelName: Rsqrt,
   backendName: "webgpu",
@@ -24444,7 +24606,7 @@ var selectConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sigmoid.ts
-var sigmoid3 = unaryKernelFunc({ opType: 20 /* SIGMOID */ });
+var sigmoid3 = unaryKernelFunc({ opType: 28 /* SIGMOID */ });
 var sigmoidConfig = {
   kernelName: Sigmoid,
   backendName: "webgpu",
@@ -24452,7 +24614,7 @@ var sigmoidConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sin.ts
-var sin2 = unaryKernelFunc({ opType: 18 /* SIN */ });
+var sin2 = unaryKernelFunc({ opType: 26 /* SIN */ });
 var sinConfig = {
   kernelName: Sin,
   backendName: "webgpu",
@@ -24460,7 +24622,7 @@ var sinConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sinh.ts
-var sinh2 = unaryKernelFunc({ opType: 19 /* SINH */ });
+var sinh2 = unaryKernelFunc({ opType: 27 /* SINH */ });
 var sinhConfig = {
   kernelName: Sinh,
   backendName: "webgpu",
@@ -24789,7 +24951,7 @@ var splitVConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sqrt.ts
-var sqrt3 = unaryKernelFunc({ opType: 21 /* SQRT */ });
+var sqrt3 = unaryKernelFunc({ opType: 29 /* SQRT */ });
 var sqrtConfig = {
   kernelName: Sqrt,
   backendName: "webgpu",
@@ -24803,7 +24965,7 @@ var squareConfig = {
   kernelFunc: ({ inputs, backend }) => {
     const { x } = inputs;
     const webGPUBackend = backend;
-    const program = new UnaryOpProgram(x.shape, 22 /* SQUARE */);
+    const program = new UnaryOpProgram(x.shape, 30 /* SQUARE */);
     return webGPUBackend.runWebGPUProgram(program, [x], x.dtype);
   }
 };
@@ -24972,8 +25134,16 @@ var stringNGramsConfig = {
   kernelFunc: stringNGrams2
 };
 
+// src/tfjs-backend-webgpu/src/kernels/Tan.ts
+var tan2 = unaryKernelFunc({ opType: 31 /* TAN */ });
+var tanConfig = {
+  kernelName: Tan,
+  backendName: "webgpu",
+  kernelFunc: tan2
+};
+
 // src/tfjs-backend-webgpu/src/kernels/Tanh.ts
-var tanh3 = unaryKernelFunc({ opType: 23 /* TANH */ });
+var tanh3 = unaryKernelFunc({ opType: 32 /* TANH */ });
 var tanhConfig = {
   kernelName: Tanh,
   backendName: "webgpu",
@@ -25524,11 +25694,19 @@ var unpackConfig = {
 var kernelConfigs = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
+  allConfig,
+  anyConfig,
   argMaxConfig,
   argMinConfig,
+  asinConfig,
+  asinhConfig,
+  atanConfig,
   atan2Config,
+  atanhConfig,
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
@@ -25566,6 +25744,8 @@ var kernelConfigs = [
   greaterEqualConfig,
   identityConfig,
   imagConfig,
+  isFiniteConfig,
+  isInfConfig,
   isNaNConfig,
   leakyReluConfig,
   lessConfig,
@@ -25619,6 +25799,7 @@ var kernelConfigs = [
   squaredDifferenceConfig,
   subConfig,
   sumConfig,
+  tanConfig,
   tanhConfig,
   tileConfig,
   topKConfig,

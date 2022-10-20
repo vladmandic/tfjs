@@ -21921,239 +21921,6 @@ function makeBatches(size, batchSize) {
   }
   return output;
 }
-async function fitLoop(model2, f, ins, outLabels, batchSize, epochs, verbose, callbacks2, valF, valIns, shuffle2, callbackMetrics, initialEpoch, stepsPerEpoch, validationSteps) {
-  if (batchSize == null) {
-    batchSize = 32;
-  }
-  if (epochs == null) {
-    epochs = 1;
-  }
-  if (shuffle2 == null) {
-    shuffle2 = true;
-  }
-  if (initialEpoch == null) {
-    initialEpoch = 0;
-  }
-  let doValidation = false;
-  if (valF != null && valIns != null) {
-    doValidation = true;
-  }
-  if (validationSteps != null) {
-    doValidation = true;
-    if (stepsPerEpoch == null) {
-      throw new ValueError(
-        "Can only use `validationSteps` when doing step-wise training, i.e., `stepsPerEpoch` must be set."
-      );
-    }
-  }
-  const numTrainSamples = model2.checkNumSamples(ins, batchSize, stepsPerEpoch, "steps_per_epoch");
-  let indexArray;
-  if (numTrainSamples != null) {
-    indexArray = range2(0, numTrainSamples);
-  }
-  if (verbose == null) {
-    verbose = 1;
-  }
-  const { callbackList, history } = configureCallbacks(
-    callbacks2,
-    verbose,
-    epochs,
-    initialEpoch,
-    numTrainSamples,
-    stepsPerEpoch,
-    batchSize,
-    doValidation,
-    callbackMetrics
-  );
-  callbackList.setModel(model2);
-  model2.history = history;
-  await callbackList.onTrainBegin();
-  model2.stopTraining_ = false;
-  for (let epoch = initialEpoch; epoch < epochs; ++epoch) {
-    await callbackList.onEpochBegin(epoch);
-    const epochLogs = {};
-    if (stepsPerEpoch != null) {
-      throw new NotImplementedError(
-        "stepsPerEpoch mode is not implemented yet."
-      );
-    } else {
-      if (shuffle2 === "batch") {
-        throw new NotImplementedError("batch shuffling is not implemneted yet");
-      } else if (shuffle2) {
-        util_exports.shuffle(indexArray);
-      }
-      const epochIndexArray1D = tensor1d(indexArray);
-      const batches = makeBatches(numTrainSamples, batchSize);
-      for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
-        const batchLogs = {};
-        await callbackList.onBatchBegin(batchIndex, batchLogs);
-        tidy(() => {
-          const batchStart = batches[batchIndex][0];
-          const batchEnd = batches[batchIndex][1];
-          const batchIds = sliceAlongFirstAxis(
-            epochIndexArray1D,
-            batchStart,
-            batchEnd - batchStart
-          );
-          batchLogs["batch"] = batchIndex;
-          batchLogs["size"] = batchEnd - batchStart;
-          const insBatch = sliceArraysByIndices(ins, batchIds);
-          const outs = f(insBatch);
-          for (let i = 0; i < outLabels.length; ++i) {
-            const label = outLabels[i];
-            const out = outs[i];
-            batchLogs[label] = out;
-            keep(out);
-          }
-          if (batchIndex === batches.length - 1) {
-            if (doValidation) {
-              const valOuts = model2.testLoop(valF, valIns, batchSize);
-              for (let i = 0; i < outLabels.length; ++i) {
-                const label = outLabels[i];
-                const out = valOuts[i];
-                keep(out);
-                epochLogs["val_" + label] = out;
-              }
-            }
-          }
-        });
-        await callbackList.onBatchEnd(batchIndex, batchLogs);
-        disposeTensorsInLogs(batchLogs);
-        if (model2.stopTraining_) {
-          break;
-        }
-      }
-      epochIndexArray1D.dispose();
-    }
-    await callbackList.onEpochEnd(epoch, epochLogs);
-    if (model2.stopTraining_) {
-      break;
-    }
-  }
-  await callbackList.onTrainEnd();
-  await model2.history.syncData();
-  return model2.history;
-}
-async function fitTensors(model2, x, y, args = {}) {
-  if (model2.isTraining) {
-    throw new Error(
-      "Cannot start training because another fit() call is ongoing."
-    );
-  }
-  model2.isTraining = true;
-  let inputs;
-  let targets;
-  let originalInputs;
-  let originalTargets;
-  let inputValX;
-  let inputValY;
-  let valX;
-  let valY;
-  let sampleWeights;
-  try {
-    const batchSize = args.batchSize == null ? 32 : args.batchSize;
-    checkBatchSize(batchSize);
-    const checkBatchAxis = false;
-    const standardizedOuts = await model2.standardizeUserData(
-      x,
-      y,
-      args.sampleWeight,
-      args.classWeight,
-      checkBatchAxis,
-      batchSize
-    );
-    inputs = standardizedOuts[0];
-    targets = standardizedOuts[1];
-    sampleWeights = standardizedOuts[2];
-    let doValidation = false;
-    let valIns;
-    if (args.validationData != null && args.validationData.length > 0) {
-      doValidation = true;
-      if (args.validationData.length === 2) {
-        inputValX = args.validationData[0];
-        inputValY = args.validationData[1];
-      } else if (args.validationData.length === 3) {
-        throw new NotImplementedError(
-          "validationData including sample weights is not supported yet."
-        );
-      } else {
-        throw new ValueError(
-          `When passing validation data, it must contain 2 (valX, valY) or 3 (valX, valY, valSampleWeight) items; ${args.validationData} is invalid.`
-        );
-      }
-      const checkBatchAxis2 = true;
-      const valStandardized = await model2.standardizeUserData(
-        inputValX,
-        inputValY,
-        null,
-        null,
-        checkBatchAxis2,
-        batchSize
-      );
-      valX = valStandardized[0];
-      valY = valStandardized[1];
-      valIns = valX.concat(valY);
-    } else if (args.validationSplit != null && args.validationSplit > 0 && args.validationSplit < 1) {
-      doValidation = true;
-      const splitAt = Math.floor(inputs[0].shape[0] * (1 - args.validationSplit));
-      const originalBatchSize = inputs[0].shape[0];
-      valX = sliceArrays(inputs, splitAt, originalBatchSize);
-      originalInputs = inputs;
-      inputs = sliceArrays(inputs, 0, splitAt);
-      valY = sliceArrays(targets, splitAt, originalBatchSize);
-      originalTargets = targets;
-      targets = sliceArrays(targets, 0, splitAt);
-      valIns = valX.concat(valY);
-    } else if (args.validationSteps != null) {
-      doValidation = true;
-    }
-    const ins = inputs.concat(targets).concat(sampleWeights);
-    model2.checkTrainableWeightsConsistency();
-    const trainFunction = model2.makeTrainFunction();
-    const outLabels = model2.getDedupedMetricsNames();
-    let valFunction;
-    let callbackMetrics;
-    if (doValidation) {
-      model2.makeTestFunction();
-      valFunction = model2.testFunction;
-      callbackMetrics = outLabels.slice().concat(outLabels.map((n) => "val_" + n));
-    } else {
-      valFunction = null;
-      valIns = [];
-      callbackMetrics = outLabels.slice();
-    }
-    const callbacks2 = standardizeCallbacks(args.callbacks, args.yieldEvery);
-    const out = await fitLoop(
-      model2,
-      trainFunction,
-      ins,
-      outLabels,
-      batchSize,
-      args.epochs,
-      args.verbose,
-      callbacks2,
-      valFunction,
-      valIns,
-      args.shuffle,
-      callbackMetrics,
-      args.initialEpoch,
-      null,
-      null
-    );
-    return out;
-  } finally {
-    model2.isTraining = false;
-    disposeNewTensors(inputs, x);
-    disposeNewTensors(targets, y);
-    disposeNewTensors(originalInputs, x);
-    disposeNewTensors(originalTargets, y);
-    disposeNewTensors(valX, inputValX);
-    disposeNewTensors(valY, inputValY);
-    if (sampleWeights != null) {
-      dispose(sampleWeights);
-    }
-  }
-}
 function ensureTensorsRank2OrHigher(tensors) {
   const outs = [];
   if (tensors instanceof Tensor) {
@@ -22998,7 +22765,236 @@ var LayersModel = class extends Container {
     };
   }
   async fit(x, y, args = {}) {
-    return fitTensors(this, x, y, args);
+    if (this.isTraining) {
+      throw new Error(
+        "Cannot start training because another fit() call is ongoing."
+      );
+    }
+    this.isTraining = true;
+    let inputs;
+    let targets;
+    let originalInputs;
+    let originalTargets;
+    let inputValX;
+    let inputValY;
+    let valX;
+    let valY;
+    let sampleWeights;
+    try {
+      const batchSize = args.batchSize == null ? 32 : args.batchSize;
+      checkBatchSize(batchSize);
+      const checkBatchAxis = false;
+      const standardizedOuts = await this.standardizeUserData(
+        x,
+        y,
+        args.sampleWeight,
+        args.classWeight,
+        checkBatchAxis,
+        batchSize
+      );
+      inputs = standardizedOuts[0];
+      targets = standardizedOuts[1];
+      sampleWeights = standardizedOuts[2];
+      let doValidation = false;
+      let valIns;
+      if (args.validationData != null && args.validationData.length > 0) {
+        doValidation = true;
+        if (args.validationData.length === 2) {
+          inputValX = args.validationData[0];
+          inputValY = args.validationData[1];
+        } else if (args.validationData.length === 3) {
+          throw new NotImplementedError(
+            "validationData including sample weights is not supported yet."
+          );
+        } else {
+          throw new ValueError(
+            `When passing validation data, it must contain 2 (valX, valY) or 3 (valX, valY, valSampleWeight) items; ${args.validationData} is invalid.`
+          );
+        }
+        const checkBatchAxis2 = true;
+        const valStandardized = await this.standardizeUserData(
+          inputValX,
+          inputValY,
+          null,
+          null,
+          checkBatchAxis2,
+          batchSize
+        );
+        valX = valStandardized[0];
+        valY = valStandardized[1];
+        valIns = valX.concat(valY);
+      } else if (args.validationSplit != null && args.validationSplit > 0 && args.validationSplit < 1) {
+        doValidation = true;
+        const splitAt = Math.floor(inputs[0].shape[0] * (1 - args.validationSplit));
+        const originalBatchSize = inputs[0].shape[0];
+        valX = sliceArrays(inputs, splitAt, originalBatchSize);
+        originalInputs = inputs;
+        inputs = sliceArrays(inputs, 0, splitAt);
+        valY = sliceArrays(targets, splitAt, originalBatchSize);
+        originalTargets = targets;
+        targets = sliceArrays(targets, 0, splitAt);
+        valIns = valX.concat(valY);
+      } else if (args.validationSteps != null) {
+        doValidation = true;
+      }
+      const ins = inputs.concat(targets).concat(sampleWeights);
+      this.checkTrainableWeightsConsistency();
+      const trainFunction = this.makeTrainFunction();
+      const outLabels = this.getDedupedMetricsNames();
+      let valFunction;
+      let callbackMetrics;
+      if (doValidation) {
+        this.makeTestFunction();
+        valFunction = this.testFunction;
+        callbackMetrics = outLabels.slice().concat(outLabels.map((n) => "val_" + n));
+      } else {
+        valFunction = null;
+        valIns = [];
+        callbackMetrics = outLabels.slice();
+      }
+      const callbacks2 = standardizeCallbacks(args.callbacks, args.yieldEvery);
+      const out = await this.fitLoop(
+        trainFunction,
+        ins,
+        outLabels,
+        batchSize,
+        args.epochs,
+        args.verbose,
+        callbacks2,
+        valFunction,
+        valIns,
+        args.shuffle,
+        callbackMetrics,
+        args.initialEpoch,
+        null,
+        null
+      );
+      return out;
+    } finally {
+      this.isTraining = false;
+      disposeNewTensors(inputs, x);
+      disposeNewTensors(targets, y);
+      disposeNewTensors(originalInputs, x);
+      disposeNewTensors(originalTargets, y);
+      disposeNewTensors(valX, inputValX);
+      disposeNewTensors(valY, inputValY);
+      if (sampleWeights != null) {
+        dispose(sampleWeights);
+      }
+    }
+  }
+  async fitLoop(f, ins, outLabels, batchSize, epochs, verbose, callbacks2, valF, valIns, shuffle2, callbackMetrics, initialEpoch, stepsPerEpoch, validationSteps) {
+    if (batchSize == null) {
+      batchSize = 32;
+    }
+    if (epochs == null) {
+      epochs = 1;
+    }
+    if (shuffle2 == null) {
+      shuffle2 = true;
+    }
+    if (initialEpoch == null) {
+      initialEpoch = 0;
+    }
+    let doValidation = false;
+    if (valF != null && valIns != null) {
+      doValidation = true;
+    }
+    if (validationSteps != null) {
+      doValidation = true;
+      if (stepsPerEpoch == null) {
+        throw new ValueError(
+          "Can only use `validationSteps` when doing step-wise training, i.e., `stepsPerEpoch` must be set."
+        );
+      }
+    }
+    const numTrainSamples = this.checkNumSamples(ins, batchSize, stepsPerEpoch, "steps_per_epoch");
+    let indexArray;
+    if (numTrainSamples != null) {
+      indexArray = range2(0, numTrainSamples);
+    }
+    if (verbose == null) {
+      verbose = 1;
+    }
+    const { callbackList, history } = configureCallbacks(
+      callbacks2,
+      verbose,
+      epochs,
+      initialEpoch,
+      numTrainSamples,
+      stepsPerEpoch,
+      batchSize,
+      doValidation,
+      callbackMetrics
+    );
+    callbackList.setModel(this);
+    this.history = history;
+    await callbackList.onTrainBegin();
+    this.stopTraining_ = false;
+    for (let epoch = initialEpoch; epoch < epochs; ++epoch) {
+      await callbackList.onEpochBegin(epoch);
+      const epochLogs = {};
+      if (stepsPerEpoch != null) {
+        throw new NotImplementedError(
+          "stepsPerEpoch mode is not implemented yet."
+        );
+      } else {
+        if (shuffle2 === "batch") {
+          throw new NotImplementedError("batch shuffling is not implemneted yet");
+        } else if (shuffle2) {
+          util_exports.shuffle(indexArray);
+        }
+        const epochIndexArray1D = tensor1d(indexArray);
+        const batches = makeBatches(numTrainSamples, batchSize);
+        for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
+          const batchLogs = {};
+          await callbackList.onBatchBegin(batchIndex, batchLogs);
+          tidy(() => {
+            const batchStart = batches[batchIndex][0];
+            const batchEnd = batches[batchIndex][1];
+            const batchIds = sliceAlongFirstAxis(
+              epochIndexArray1D,
+              batchStart,
+              batchEnd - batchStart
+            );
+            batchLogs["batch"] = batchIndex;
+            batchLogs["size"] = batchEnd - batchStart;
+            const insBatch = sliceArraysByIndices(ins, batchIds);
+            const outs = f(insBatch);
+            for (let i = 0; i < outLabels.length; ++i) {
+              const label = outLabels[i];
+              const out = outs[i];
+              batchLogs[label] = out;
+              keep(out);
+            }
+            if (batchIndex === batches.length - 1) {
+              if (doValidation) {
+                const valOuts = this.testLoop(valF, valIns, batchSize);
+                for (let i = 0; i < outLabels.length; ++i) {
+                  const label = outLabels[i];
+                  const out = valOuts[i];
+                  keep(out);
+                  epochLogs["val_" + label] = out;
+                }
+              }
+            }
+          });
+          await callbackList.onBatchEnd(batchIndex, batchLogs);
+          disposeTensorsInLogs(batchLogs);
+          if (this.stopTraining_) {
+            break;
+          }
+        }
+        epochIndexArray1D.dispose();
+      }
+      await callbackList.onEpochEnd(epoch, epochLogs);
+      if (this.stopTraining_) {
+        break;
+      }
+    }
+    await callbackList.onTrainEnd();
+    await this.history.syncData();
+    return this.history;
   }
   async fitDataset(dataset, args) {
     return fitDataset(this, dataset, args);
@@ -24551,7 +24547,6 @@ var Conv3D2 = _Conv3D;
 __publicField(Conv3D2, "className", "Conv3D");
 serialization_exports.registerClass(Conv3D2);
 var Conv2DTranspose = class extends Conv2D2 {
-  inputSpec;
   constructor(args) {
     super(args);
     this.inputSpec = [new InputSpec({ ndim: 4 })];
@@ -24682,7 +24677,6 @@ var Conv2DTranspose = class extends Conv2D2 {
 __publicField(Conv2DTranspose, "className", "Conv2DTranspose");
 serialization_exports.registerClass(Conv2DTranspose);
 var Conv3DTranspose = class extends Conv3D2 {
-  inputSpec;
   constructor(args) {
     super(args);
     this.inputSpec = [new InputSpec({ ndim: 5 })];
@@ -26566,7 +26560,6 @@ function generateDropoutMask(args) {
 
 // src/tfjs-layers/src/layers/convolutional_recurrent.ts
 var ConvRNN2D = class extends RNN {
-  cell;
   constructor(args) {
     if (args.unroll) {
       throw new NotImplementedError(

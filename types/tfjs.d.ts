@@ -1,3 +1,4 @@
+
 import { backend_util } from './tfjs-core';
 import { BackendTimingInfo } from './tfjs-core';
 import { BackendValues } from './tfjs-core';
@@ -130,9 +131,25 @@ declare type AdamOptimizerConfig = {
 
 declare type AdamSerialization = BaseSerialization<'Adam', AdamOptimizerConfig>;
 
+/**
+ * @license
+ * Copyright 2022 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 declare class AdapterInfo {
     private vendor;
-    constructor(adapterInfo: GPUAdapterInfo_2);
+    constructor(adapterInfo: GPUAdapterInfo);
     isIntel(): boolean;
 }
 
@@ -1644,7 +1661,6 @@ declare function conv2d(args: ConvLayerArgs): Conv2D;
 declare class Conv2DTranspose extends Conv2D {
     /** @nocollapse */
     static className: string;
-    inputSpec: InputSpec[];
     constructor(args: ConvLayerArgs);
     build(inputShape: Shape | Shape[]): void;
     call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[];
@@ -3160,27 +3176,6 @@ export declare interface GPGPUProgram {
         arrayIndex?: number;
         type: UniformType;
     }>;
-}
-
-/**
- * @license
- * Copyright 2022 Google LLC.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-declare interface GPUAdapterInfo_2 {
-    vendor: string;
-    architecture: string;
 }
 
 declare function GPUBytesPerElement(dtype: DataType): number;
@@ -5006,6 +5001,34 @@ export declare class LayersModel extends Container implements tfc.InferenceModel
     }, y: Tensor | Tensor[] | {
         [inputName: string]: Tensor;
     }, args?: ModelFitArgs): Promise<History_2>;
+    /**
+     * Abstract fit function for `f(ins)`.
+     * @param f A Function returning a list of tensors. For training, this
+     *   function is expected to perform the updates to the variables.
+     * @param ins List of tensors to be fed to `f`.
+     * @param outLabels List of strings, display names of the outputs of `f`.
+     * @param batchSize Integer batch size or `== null` if unknown. Default : 32.
+     * @param epochs Number of times to iterate over the data. Default : 1.
+     * @param verbose Verbosity mode: 0, 1, or 2. Default: 1.
+     * @param callbacks List of callbacks to be called during training.
+     * @param valF Function to call for validation.
+     * @param valIns List of tensors to be fed to `valF`.
+     * @param shuffle Whether to shuffle the data at the beginning of every
+     * epoch. Default : true.
+     * @param callbackMetrics List of strings, the display names of the metrics
+     *   passed to the callbacks. They should be the concatenation of the
+     *   display names of the outputs of `f` and the list of display names
+     *   of the outputs of `valF`.
+     * @param initialEpoch Epoch at which to start training (useful for
+     *   resuming a previous training run). Default : 0.
+     * @param stepsPerEpoch Total number of steps (batches on samples) before
+     *   declaring one epoch finished and starting the next epoch. Ignored with
+     *   the default value of `undefined` or `null`.
+     * @param validationSteps Number of steps to run validation for (only if
+     *   doing validation from data tensors). Not applicable for tfjs-layers.
+     * @returns A `History` object.
+     */
+    fitLoop(f: (data: Tensor[]) => Scalar[], ins: Tensor[], outLabels?: string[], batchSize?: number, epochs?: number, verbose?: number, callbacks?: BaseCallback[], valF?: (data: Tensor[]) => Scalar[], valIns?: Tensor[], shuffle?: boolean | string, callbackMetrics?: string[], initialEpoch?: number, stepsPerEpoch?: number, validationSteps?: number): Promise<History_2>;
     /**
      * Trains the model using a dataset object.
      *
@@ -9682,7 +9705,7 @@ export declare class WebGPUBackend extends KernelBackend {
     private uniformPendingDisposal;
     private uploadWaitMs;
     private nextDataId;
-    constructor(device: GPUDevice, adapterInfo?: GPUAdapterInfo_2);
+    constructor(device: GPUDevice, adapterInfo?: GPUAdapterInfo);
     floatPrecision(): 32;
     defaultGpuBufferUsage(): number;
     /**
