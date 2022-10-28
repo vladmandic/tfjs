@@ -617,6 +617,8 @@ export declare type AvgPool3DInputs = Pick<NamedTensorInfoMap, 'x'>;
  *         https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
 declare function avgPool_<T extends Tensor3D | Tensor4D>(x: T | TensorLike, filterSize: [number, number] | number, strides: [number, number] | number, pad: 'valid' | 'same' | number | conv_util.ExplicitPadding, dimRoundingMode?: 'floor' | 'round' | 'ceil'): T;
 

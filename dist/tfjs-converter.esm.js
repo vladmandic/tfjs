@@ -22591,8 +22591,55 @@ var executeOp13 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
   }
 };
 
-// src/tfjs-converter/src/operations/executors/reduction_executor.ts
+// src/tfjs-converter/src/operations/executors/ragged_executor.ts
 var executeOp14 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
+  switch (node.op) {
+    case "RaggedGather": {
+      const {
+        outputNestedSplits,
+        outputDenseValues
+      } = ops.raggedGather(
+        getParamValue(
+          "paramsNestedSplits",
+          node,
+          tensorMap,
+          context
+        ),
+        getParamValue(
+          "paramsDenseValues",
+          node,
+          tensorMap,
+          context
+        ),
+        getParamValue("indices", node, tensorMap, context),
+        getParamValue("outputRaggedRank", node, tensorMap, context)
+      );
+      return outputNestedSplits.concat(outputDenseValues);
+    }
+    case "RaggedRange": {
+      const { rtNestedSplits, rtDenseValues } = ops.raggedRange(
+        getParamValue("starts", node, tensorMap, context),
+        getParamValue("limits", node, tensorMap, context),
+        getParamValue("splits", node, tensorMap, context)
+      );
+      return [rtNestedSplits, rtDenseValues];
+    }
+    case "RaggedTensorToTensor": {
+      return [ops.raggedTensorToTensor(
+        getParamValue("shape", node, tensorMap, context),
+        getParamValue("values", node, tensorMap, context),
+        getParamValue("defaultValue", node, tensorMap, context),
+        getParamValue("rowPartitionTensors", node, tensorMap, context),
+        getParamValue("rowPartitionTypes", node, tensorMap, context)
+      )];
+    }
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+};
+
+// src/tfjs-converter/src/operations/executors/reduction_executor.ts
+var executeOp15 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
   switch (node.op) {
     case "Max": {
       const axis = getParamValue("axis", node, tensorMap, context);
@@ -22711,7 +22758,7 @@ var executeOp14 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
 };
 
 // src/tfjs-converter/src/operations/executors/slice_join_executor.ts
-var executeOp15 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
+var executeOp16 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
   switch (node.op) {
     case "ConcatV2":
     case "Concat": {
@@ -22852,7 +22899,7 @@ var executeOp15 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
 };
 
 // src/tfjs-converter/src/operations/executors/sparse_executor.ts
-var executeOp16 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
+var executeOp17 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
   switch (node.op) {
     case "SparseFillEmptyRows": {
       const {
@@ -22903,7 +22950,7 @@ var executeOp16 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
 };
 
 // src/tfjs-converter/src/operations/executors/spectral_executor.ts
-var executeOp17 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
+var executeOp18 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
   switch (node.op) {
     case "FFT": {
       return [ops.fft(
@@ -22931,7 +22978,7 @@ var executeOp17 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
 };
 
 // src/tfjs-converter/src/operations/executors/string_executor.ts
-var executeOp18 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
+var executeOp19 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
   switch (node.op) {
     case "StringNGrams": {
       const { nGrams, nGramsSplits } = ops.string.stringNGrams(
@@ -22972,7 +23019,7 @@ var executeOp18 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
 };
 
 // src/tfjs-converter/src/operations/executors/transformation_executor.ts
-var executeOp19 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
+var executeOp20 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
   switch (node.op) {
     case "Cast": {
       return [ops.cast(
@@ -23060,7 +23107,7 @@ var executeOp19 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
 };
 
 // src/tfjs-converter/src/operations/operation_executor.ts
-function executeOp20(node, tensorMap, context, resourceManager, tidy2 = tidy) {
+function executeOp21(node, tensorMap, context, resourceManager, tidy2 = tidy) {
   const value = ((node2, tensorMap2, context2) => {
     switch (node2.category) {
       case "arithmetic":
@@ -23089,19 +23136,21 @@ function executeOp20(node, tensorMap, context, resourceManager, tidy2 = tidy) {
         return tidy2(
           () => executeOp13(node2, tensorMap2, context2)
         );
-      case "reduction":
+      case "ragged":
         return tidy2(() => executeOp14(node2, tensorMap2, context2));
-      case "slice_join":
+      case "reduction":
         return tidy2(() => executeOp15(node2, tensorMap2, context2));
-      case "sparse":
+      case "slice_join":
         return tidy2(() => executeOp16(node2, tensorMap2, context2));
-      case "spectral":
+      case "sparse":
         return tidy2(() => executeOp17(node2, tensorMap2, context2));
-      case "string":
+      case "spectral":
         return tidy2(() => executeOp18(node2, tensorMap2, context2));
+      case "string":
+        return tidy2(() => executeOp19(node2, tensorMap2, context2));
       case "transformation":
         return tidy2(
-          () => executeOp19(node2, tensorMap2, context2)
+          () => executeOp20(node2, tensorMap2, context2)
         );
       case "hash_table":
         return executeOp9(
@@ -23505,7 +23554,7 @@ var GraphExecutor = class {
       for (let i = 0; i < orderedNodes.length; i++) {
         const node = orderedNodes[i];
         if (!tensorsMap[node.name]) {
-          const tensors = executeOp20(node, tensorsMap, context, this._resourceManager);
+          const tensors = executeOp21(node, tensorsMap, context, this._resourceManager);
           if (util_exports.isPromise(tensors)) {
             throw new Error(
               `The execution of the op '${node.op}' returned a promise. Please use model.executeAsync() instead.`
@@ -23735,7 +23784,7 @@ var GraphExecutor = class {
         [nodeName] = getNodeNameAndIndex(item.node.name, context);
       }
       if (tensorMap[item.node.name] == null) {
-        const tensors = executeOp20(item.node, tensorMap, context, this._resourceManager);
+        const tensors = executeOp21(item.node, tensorMap, context, this._resourceManager);
         if (!nodeName) {
           [nodeName] = getNodeNameAndIndex(item.node.name, context);
         }
@@ -23848,8 +23897,8 @@ var GraphExecutor = class {
   mapInputs(inputs) {
     const result = {};
     for (const inputName in inputs) {
-      if (this._signature != null && this._signature.inputs != null && this._signature.inputs[inputName] != null) {
-        const tensor2 = this._signature.inputs[inputName];
+      const tensor2 = this._signature?.inputs?.[inputName];
+      if (tensor2 != null) {
         result[tensor2.name] = inputs[inputName];
       } else {
         result[inputName] = inputs[inputName];
@@ -23870,8 +23919,8 @@ var GraphExecutor = class {
   }
   mapOutputs(outputs) {
     return outputs.map((name) => {
-      if (this._signature != null && this._signature.outputs != null && this._signature.outputs[name] != null) {
-        const tensor2 = this._signature.outputs[name];
+      const tensor2 = this._signature?.outputs?.[name];
+      if (tensor2 != null) {
         return tensor2.name;
       }
       return name;
@@ -24056,8 +24105,7 @@ var GraphModel = class {
     }
     return handlerOrURL.save(this.artifacts);
   }
-  predict(inputs, config) {
-    const outputTensors = this.execute(inputs, this.outputNodes);
+  addStructuredOutputNames(outputTensors) {
     if (this.structuredOutputKeys) {
       const outputTensorsArray = outputTensors instanceof Tensor ? [outputTensors] : outputTensors;
       const outputTensorMap = {};
@@ -24068,11 +24116,20 @@ var GraphModel = class {
     }
     return outputTensors;
   }
+  predict(inputs, config) {
+    const outputTensors = this.execute(inputs, this.outputNodes);
+    return this.addStructuredOutputNames(outputTensors);
+  }
+  async predictAsync(inputs, config) {
+    const outputTensors = await this.executeAsync(inputs, this.outputNodes);
+    return this.addStructuredOutputNames(outputTensors);
+  }
   normalizeInputs(inputs) {
     if (!(inputs instanceof Tensor) && !Array.isArray(inputs)) {
-      if (this.signature != null && this.signature.inputs != null) {
-        for (const input in this.signature.inputs) {
-          const tensor2 = this.signature.inputs[input];
+      const signatureInputs = this.signature?.inputs;
+      if (signatureInputs != null) {
+        for (const input in signatureInputs) {
+          const tensor2 = signatureInputs[input];
           if (tensor2.resourceId != null) {
             inputs[input] = this.resourceIdToCapturedInput[tensor2.resourceId];
           }
@@ -24087,9 +24144,9 @@ var GraphModel = class {
     }
     let inputIndex = 0;
     return this.inputNodes.reduce((map, inputName) => {
-      const signature = this.signature ? this.signature.inputs[inputName] : null;
-      if (signature != null && signature.resourceId != null) {
-        map[inputName] = this.resourceIdToCapturedInput[signature.resourceId];
+      const resourceId = this.signature?.inputs?.[inputName]?.resourceId;
+      if (resourceId != null) {
+        map[inputName] = this.resourceIdToCapturedInput[resourceId];
       } else {
         map[inputName] = inputs[inputIndex++];
       }
@@ -24129,10 +24186,11 @@ var GraphModel = class {
   setResourceIdToCapturedInput(outputs) {
     this.resourceIdToCapturedInput = {};
     if (this.initializerSignature) {
-      const outputNames = Object.keys(this.initializerSignature.outputs);
+      const signatureOutputs = this.initializerSignature.outputs;
+      const outputNames = Object.keys(signatureOutputs);
       for (let i = 0; i < outputNames.length; i++) {
         const outputName = outputNames[i];
-        const tensorInfo = this.initializerSignature.outputs[outputName];
+        const tensorInfo = signatureOutputs[outputName];
         this.resourceIdToCapturedInput[tensorInfo.resourceId] = outputs[i];
       }
     }
@@ -24209,7 +24267,9 @@ function loadGraphModelSync(modelSource) {
       throw new Error("modelJSON must be the first element of the array");
     }
     if (!weights || !(weights instanceof ArrayBuffer)) {
-      throw new Error("An ArrayBuffer of weights must be the second element of the array");
+      throw new Error(
+        "An ArrayBuffer of weights must be the second element of the array"
+      );
     }
     if (!("modelTopology" in modelJSON)) {
       throw new Error("Model JSON is missing 'modelTopology'");
@@ -24218,11 +24278,7 @@ function loadGraphModelSync(modelSource) {
       throw new Error("Model JSON is missing 'weightsManifest'");
     }
     const weightSpecs = io_exports.getWeightSpecs(modelJSON.weightsManifest);
-    const modelArtifacts = io_exports.getModelArtifactsForJSONSync(
-      modelJSON,
-      weightSpecs,
-      weights
-    );
+    const modelArtifacts = io_exports.getModelArtifactsForJSONSync(modelJSON, weightSpecs, weights);
     ioHandler = io_exports.fromMemorySync(modelArtifacts);
   } else if ("load" in modelSource) {
     ioHandler = modelSource;

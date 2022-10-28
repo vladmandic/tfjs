@@ -149,7 +149,10 @@ declare type AdamSerialization = BaseSerialization<'Adam', AdamOptimizerConfig>;
  */
 declare class AdapterInfo {
     private vendor;
+    private architecture;
+    intelGPUGeneration: number;
     constructor(adapterInfo: GPUAdapterInfo);
+    private getIntelGPUGeneration;
     isIntel(): boolean;
 }
 
@@ -3093,11 +3096,15 @@ export declare class GPGPUContext {
     indexBuffer: WebGLBuffer;
     framebuffer: WebGLFramebuffer;
     outputTexture: WebGLTexture | null;
-    program: WebGLProgram | null;
+    program: GPGPUContextProgram | null;
     private disposed;
     private disjoint;
     private vertexShader;
     textureConfig: TextureConfig;
+    createVertexArray: () => WebGLVao | null;
+    bindVertexArray: (vao: WebGLVao | null) => void;
+    deleteVertexArray: (vao: WebGLVao | null) => void;
+    getVertexArray: () => WebGLVao | null;
     constructor(gl?: WebGLRenderingContext);
     private get debug();
     dispose(): void;
@@ -3116,10 +3123,9 @@ export declare class GPGPUContext {
     createAndWaitForFence(): Promise<void>;
     private createFence;
     downloadMatrixFromPackedTexture(texture: WebGLTexture, physicalRows: number, physicalCols: number): Float32Array;
-    private vertexAttrsAreBound;
-    createProgram(fragmentShader: WebGLShader): WebGLProgram;
-    deleteProgram(program: WebGLProgram): void;
-    setProgram(program: WebGLProgram | null): void;
+    createProgram(fragmentShader: WebGLShader): GPGPUContextProgram;
+    deleteProgram(program: GPGPUContextProgram): void;
+    setProgram(program: GPGPUContextProgram | null): void;
     getUniformLocation(program: WebGLProgram, uniformName: string, shouldThrow?: boolean): WebGLUniformLocation;
     getAttributeLocation(program: WebGLProgram, attribute: string): number;
     getUniformLocationNoThrow(program: WebGLProgram, uniformName: string): WebGLUniformLocation;
@@ -3150,6 +3156,10 @@ export declare class GPGPUContext {
     private setOutputMatrixWriteRegionDriver;
     private throwIfDisposed;
     private throwIfNoProgram;
+}
+
+declare interface GPGPUContextProgram extends WebGLProgram {
+    vao: WebGLVao;
 }
 
 export declare interface GPGPUProgram {
@@ -3281,6 +3291,7 @@ export declare class GraphModel<ModelURL extends Url = string | io.IOHandler> im
      * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
      */
     save(handlerOrURL: io.IOHandler | string, config?: io.SaveConfig): Promise<io.SaveResult>;
+    private addStructuredOutputNames;
     /**
      * Execute the inference for the input tensors.
      *
@@ -3321,6 +3332,47 @@ export declare class GraphModel<ModelURL extends Url = string | io.IOHandler> im
      * @doc {heading: 'Models', subheading: 'Classes'}
      */
     predict(inputs: Tensor | Tensor[] | NamedTensorMap, config?: ModelPredictConfig): Tensor | Tensor[] | NamedTensorMap;
+    /**
+     * Execute the inference for the input tensors in async fashion, use this
+     * method when your model contains control flow ops.
+     *
+     * @param input The input tensors, when there is single input for the model,
+     * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
+     * inputs params should be in either `tf.Tensor`[] if the input order is
+     * fixed, or otherwise NamedTensorMap format.
+     *
+     * For model with multiple inputs, we recommend you use NamedTensorMap as the
+     * input type, if you use `tf.Tensor`[], the order of the array needs to
+     * follow the
+     * order of inputNodes array. @see {@link GraphModel.inputNodes}
+     *
+     * You can also feed any intermediate nodes using the NamedTensorMap as the
+     * input type. For example, given the graph
+     *    InputNode => Intermediate => OutputNode,
+     * you can execute the subgraph Intermediate => OutputNode by calling
+     *    model.execute('IntermediateNode' : tf.tensor(...));
+     *
+     * This is useful for models that uses tf.dynamic_rnn, where the intermediate
+     * state needs to be fed manually.
+     *
+     * For batch inference execution, the tensors for each input need to be
+     * concatenated together. For example with mobilenet, the required input shape
+     * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
+     * If we are provide a batched data of 100 images, the input tensor should be
+     * in the shape of [100, 244, 244, 3].
+     *
+     * @param config Prediction configuration for specifying the batch size.
+     * Currently the batch size option is ignored for graph model.
+     *
+     * @returns A Promise of inference result tensors. If the model is converted
+     * and it originally had structured_outputs in tensorflow, then a
+     * NamedTensorMap will be returned matching the structured_outputs. If no
+     * structured_outputs are present, the output will be single `tf.Tensor` if
+     * the model has single output node, otherwise Tensor[].
+     *
+     * @doc {heading: 'Models', subheading: 'Classes'}
+     */
+    predictAsync(inputs: Tensor | Tensor[] | NamedTensorMap, config?: ModelPredictConfig): Promise<Tensor | Tensor[] | NamedTensorMap>;
     private normalizeInputs;
     private normalizeOutputs;
     private executeInitializerGraph;
@@ -9646,6 +9698,8 @@ export declare interface WebGLTimingInfo extends TimingInfo {
     uploadWaitMs: number;
     downloadWaitMs: number;
 }
+
+declare type WebGLVao = WebGLVertexArrayObject | WebGLVertexArrayObjectOES;
 
 declare namespace webgpu_program {
     export {

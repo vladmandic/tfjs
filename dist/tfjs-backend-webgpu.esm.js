@@ -5,8 +5,8 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __commonJS = (cb, mod2) => function __require() {
-  return mod2 || (0, cb[__getOwnPropNames(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
+var __commonJS = (cb, mod3) => function __require() {
+  return mod3 || (0, cb[__getOwnPropNames(cb)[0]])((mod3 = { exports: {} }).exports, mod3), mod3.exports;
 };
 var __export = (target, all3) => {
   for (var name in all3)
@@ -20,9 +20,9 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod2, isNodeMode, target) => (target = mod2 != null ? __create(__getProtoOf(mod2)) : {}, __copyProps(
-  isNodeMode || !mod2 || !mod2.__esModule ? __defProp(target, "default", { value: mod2, enumerable: true }) : target,
-  mod2
+var __toESM = (mod3, isNodeMode, target) => (target = mod3 != null ? __create(__getProtoOf(mod3)) : {}, __copyProps(
+  isNodeMode || !mod3 || !mod3.__esModule ? __defProp(target, "default", { value: mod3, enumerable: true }) : target,
+  mod3
 ));
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
@@ -8163,10 +8163,10 @@ function cosh_(x) {
 var cosh = op({ cosh_ });
 
 // src/tfjs-core/src/ops/cumprod.ts
-function cumprod_(x, axis = 0, exclusive = false, reverse2 = false) {
+function cumprod_(x, axis = 0, exclusive = false, reverse3 = false) {
   const $x = convertToTensor(x, "x", "cumprod");
   const inputs = { x: $x };
-  const attrs = { axis, exclusive, reverse: reverse2 };
+  const attrs = { axis, exclusive, reverse: reverse3 };
   return ENGINE.runKernel(
     Cumprod,
     inputs,
@@ -8176,10 +8176,10 @@ function cumprod_(x, axis = 0, exclusive = false, reverse2 = false) {
 var cumprod = op({ cumprod_ });
 
 // src/tfjs-core/src/ops/cumsum.ts
-function cumsum_(x, axis = 0, exclusive = false, reverse2 = false) {
+function cumsum_(x, axis = 0, exclusive = false, reverse3 = false) {
   const $x = convertToTensor(x, "x", "cumsum");
   const inputs = { x: $x };
-  const attrs = { axis, exclusive, reverse: reverse2 };
+  const attrs = { axis, exclusive, reverse: reverse3 };
   return ENGINE.runKernel(
     Cumsum,
     inputs,
@@ -14020,14 +14020,29 @@ ENV3.registerFlag("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e3);
 ENV3.registerFlag("WEBGPU_USE_PROFILE_TOOL", () => false);
 ENV3.registerFlag("WEBGPU_IMPORT_EXTERNAL_TEXTURE", () => true);
 ENV3.registerFlag("WEBGPU_USE_NAIVE_CONV2D_DEBUG", () => false);
+ENV3.registerFlag("WEBGPU_INTEL_EU_COUNT", () => 96);
 
 // src/tfjs-backend-webgpu/src/adapter_info.ts
 var AdapterInfo = class {
   vendor;
+  architecture;
+  intelGPUGeneration;
   constructor(adapterInfo) {
     if (adapterInfo) {
       this.vendor = adapterInfo.vendor;
+      this.architecture = adapterInfo.architecture;
+      this.intelGPUGeneration = this.getIntelGPUGeneration();
     }
+  }
+  getIntelGPUGeneration() {
+    if (this.isIntel()) {
+      if (this.architecture.startsWith("gen")) {
+        return Number(this.architecture.match(/\d+/));
+      } else if (this.architecture.startsWith("xe")) {
+        return 12;
+      }
+    }
+    return 0;
   }
   isIntel() {
     return this.vendor === "intel";
@@ -15740,28 +15755,18 @@ var ADD = "return a + b;";
 var COMPLEX_MULTIPLY_REAL = "return areal * breal - aimag * bimag;";
 var COMPLEX_MULTIPLY_IMAG = "return areal * bimag + aimag * breal;";
 var DIV = "return a / b;";
-var MUL = "return a * b;";
-var SQUARED_DIFFERENCE = "return (a - b) * (a - b);";
-var SUB = "return a - b;";
 var EQUAL = "return f32(a == b);";
 var EQUAL_VEC4 = "return vec4<f32>(a == b);";
 var GREATER = "return f32(a > b);";
 var GREATER_VEC4 = "return vec4<f32>(a > b);";
 var GREATER_EQUAL = "return f32(a >= b);";
 var GREATER_EQUAL_VEC4 = "return vec4<f32>(a >= b);";
-var LESS = "return f32(a < b);";
-var LESS_VEC4 = "return vec4<f32>(a < b);";
-var LESS_EQUAL = "return f32(a <= b);";
-var LESS_EQUAL_VEC4 = "return vec4<f32>(a <= b);";
-var LOGICAL_AND = "return f32(f32(a) >= 1.0 && f32(b) >= 1.0);";
-var LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
-  vec4<f32>(b >= vec4<f32>(1.0)));`;
 var INT_DIV = `
   let s = sign(a) * sign(b);
   let ia = i32(round(a));
   let ib = i32(round(b));
   return f32(idiv(ia, ib, s));
-  `;
+`;
 var INT_DIV_VEC4 = `
   let ia = vec4<i32>(round(a));
   let ib = vec4<i32>(round(b));
@@ -15783,7 +15788,60 @@ var INT_DIV_VEC4 = `
     resultTemp[3] = idiv(ia[3], ib[3], s[3]);
   }
   return vec4<f32>(resultTemp);
-  `;
+`;
+var LESS = "return f32(a < b);";
+var LESS_VEC4 = "return vec4<f32>(a < b);";
+var LESS_EQUAL = "return f32(a <= b);";
+var LESS_EQUAL_VEC4 = "return vec4<f32>(a <= b);";
+var LOGICAL_AND = "return f32(f32(a) >= 1.0 && f32(b) >= 1.0);";
+var LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
+  vec4<f32>(b >= vec4<f32>(1.0)));`;
+var MOD = `
+  ${CHECK_NAN_SNIPPET}
+  if (b == 0.) {
+    return uniforms.NAN;
+  }
+  var resultTemp = a % b;
+  if ((a < 0. && b < 0.) || (a >= 0. && b > 0.)) {
+    return resultTemp;
+  } else {
+    return (resultTemp + b) % b;
+  }
+`;
+var MOD_VEC4 = `
+  let valueForNaN = uniforms.NAN;
+  var resultTemp = vec4<f32>(a % b);
+  ${CHECK_NAN_SNIPPET_VEC4}
+
+  if (b[0] == 0.) {
+    resultTemp[0] = uniforms.NAN;
+  }
+  if (b[1] == 0.) {
+    resultTemp[1] = uniforms.NAN;
+  }
+  if (b[2] == 0.) {
+    resultTemp[2] = uniforms.NAN;
+  }
+  if (b[3] == 0.) {
+    resultTemp[3] = uniforms.NAN;
+  }
+
+  if (!((a[0] < 0. && b[0] < 0.) || (a[0] >= 0. && b[0] > 0.))) {
+    resultTemp[0] = (resultTemp[0] + b[0]) % b[0];
+  }
+  if (!((a[1] < 0. && b[1] < 0.) || (a[1] >= 0. && b[1] > 0.))) {
+    resultTemp[1] = (resultTemp[1] + b[1]) % b[1];
+  }
+  if (!((a[2] < 0. && b[2] < 0.) || (a[2] >= 0. && b[2] > 0.))) {
+    resultTemp[2] = (resultTemp[2] + b[2]) % b[2];
+  }
+  if (!((a[3] < 0. && b[3] < 0.) || (a[3] >= 0. && b[3] > 0.))) {
+    resultTemp[3] = (resultTemp[3] + b[3]) % b[3];
+  }
+
+  return resultTemp;
+`;
+var MUL = "return a * b;";
 var NOT_EQUAL = `
   if (isnan(a) || isnan(b)) {
     return 1.0;
@@ -15808,7 +15866,7 @@ var POW = `
     return pow(abs(a), b);
   }
   return sign(a) * pow(abs(a), b);
-  `;
+`;
 var POW_VEC4 = `
   let isModRound1Bool = vec4<i32>(round(abs(b) % vec4<f32>(2.0))) == vec4<i32>(1);
   let isModRound1 = vec4<f32>(isModRound1Bool);
@@ -15833,12 +15891,14 @@ var POW_VEC4 = `
   let valueForNaN = uniforms.NAN;
   ${CHECK_NAN_SNIPPET_VEC4_INNER}
   return resultTemp;
-  `;
+`;
 var PRELU = `if (a < 0.0) { return b * a; }  return a;`;
 var PRELU_VEC4 = `
   let aLessThanZero = vec4<f32>(a < vec4<f32>(0.0));
   return (aLessThanZero * (b * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
-  `;
+`;
+var SQUARED_DIFFERENCE = "return (a - b) * (a - b);";
+var SUB = "return a - b;";
 function getBinaryWithNanString(op2, useVec4, valueForNaN = "uniforms.NAN") {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
@@ -15852,14 +15912,14 @@ function getBinaryWithNanString(op2, useVec4, valueForNaN = "uniforms.NAN") {
 }
 function getBinaryOpString(type, useVec4) {
   switch (type) {
-    case 0 /* MUL */:
-      return MUL;
-    case 1 /* ADD */:
+    case 0 /* ADD */:
       return ADD;
-    case 2 /* ATAN2 */:
+    case 1 /* ATAN2 */:
       return getBinaryWithNanString("atan2", useVec4);
-    case 3 /* SUB */:
-      return SUB;
+    case 2 /* COMPLEX_MULTIPLY_IMAG */:
+      return COMPLEX_MULTIPLY_IMAG;
+    case 3 /* COMPLEX_MULTIPLY_REAL */:
+      return COMPLEX_MULTIPLY_REAL;
     case 4 /* DIV */:
       return DIV;
     case 5 /* EQUAL */:
@@ -15868,30 +15928,32 @@ function getBinaryOpString(type, useVec4) {
       return useVec4 ? GREATER_VEC4 : GREATER;
     case 7 /* GREATER_EQUAL */:
       return useVec4 ? GREATER_EQUAL_VEC4 : GREATER_EQUAL;
-    case 8 /* LESS */:
-      return useVec4 ? LESS_VEC4 : LESS;
-    case 9 /* LESS_EQUAL */:
-      return useVec4 ? LESS_EQUAL_VEC4 : LESS_EQUAL;
-    case 10 /* LOGICAL_AND */:
-      return useVec4 ? LOGICAL_AND_VEC4 : LOGICAL_AND;
-    case 11 /* NOT_EQUAL */:
-      return useVec4 ? NOT_EQUAL_VEC4 : NOT_EQUAL;
-    case 12 /* SQUARED_DIFFERENCE */:
-      return SQUARED_DIFFERENCE;
-    case 13 /* INT_DIV */:
+    case 8 /* INT_DIV */:
       return useVec4 ? INT_DIV_VEC4 : INT_DIV;
-    case 15 /* PRELU */:
-      return useVec4 ? PRELU_VEC4 : PRELU;
-    case 16 /* MAX */:
+    case 9 /* LESS */:
+      return useVec4 ? LESS_VEC4 : LESS;
+    case 10 /* LESS_EQUAL */:
+      return useVec4 ? LESS_EQUAL_VEC4 : LESS_EQUAL;
+    case 11 /* LOGICAL_AND */:
+      return useVec4 ? LOGICAL_AND_VEC4 : LOGICAL_AND;
+    case 12 /* MAX */:
       return getBinaryWithNanString("max", useVec4);
-    case 17 /* MIN */:
+    case 13 /* MIN */:
       return getBinaryWithNanString("min", useVec4);
-    case 14 /* POW */:
+    case 14 /* MOD */:
+      return useVec4 ? MOD_VEC4 : MOD;
+    case 15 /* MUL */:
+      return MUL;
+    case 16 /* NOT_EQUAL */:
+      return useVec4 ? NOT_EQUAL_VEC4 : NOT_EQUAL;
+    case 17 /* POW */:
       return useVec4 ? POW_VEC4 : POW;
-    case 18 /* COMPLEX_MULTIPLY_REAL */:
-      return COMPLEX_MULTIPLY_REAL;
-    case 19 /* COMPLEX_MULTIPLY_IMAG */:
-      return COMPLEX_MULTIPLY_IMAG;
+    case 18 /* PRELU */:
+      return useVec4 ? PRELU_VEC4 : PRELU;
+    case 19 /* SQUARED_DIFFERENCE */:
+      return SQUARED_DIFFERENCE;
+    case 20 /* SUB */:
+      return SUB;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
   }
@@ -16101,7 +16163,7 @@ function activationFnSnippet(activation, hasPreluActivationWeights = false, pack
   } else if (activation === "relu6") {
     activationOpSnippet = getUnaryOpString(22 /* RELU6 */, packed);
   } else if (activation === "prelu") {
-    activationOpSnippet = getBinaryOpString(15 /* PRELU */, packed);
+    activationOpSnippet = getBinaryOpString(18 /* PRELU */, packed);
   } else if (activation === "sigmoid") {
     activationOpSnippet = getUnaryOpString(28 /* SIGMOID */, packed);
   } else if (activation === "leakyrelu") {
@@ -17134,12 +17196,17 @@ function batchMatMulImpl({
   const outputShape = [batchDim, outerShapeA, outerShapeB];
   let matmulProgramType = env().get("WEBGPU_MATMUL_PROGRAM_TYPE");
   if (matmulProgramType < 0) {
-    if (outerShapeA * outerShapeB <= 128) {
-      matmulProgramType = 0 /* MatMulReduceProgram */;
-    } else if (batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 48 && innerShapeB >= 2e3) {
-      matmulProgramType = 1 /* MatMulSplitKProgram */;
-    } else if (outerShapeA <= 16 && (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB) || outerShapeB <= 16 && (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA)) {
-      matmulProgramType = 2 /* MatMulSmallOutputSizeProgram */;
+    const thresholdToIncreaseWorkgroups = backend.adapterInfo.intelGPUGeneration >= 12 && env().get("WEBGPU_INTEL_EU_COUNT") >= 96 ? 16 : 8;
+    const workgroupsBy32x32 = batchDim * Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
+    const hasFewWorkgroups = workgroupsBy32x32 <= thresholdToIncreaseWorkgroups || outerShapeA <= 8 && workgroupsBy32x32 <= thresholdToIncreaseWorkgroups * 2;
+    if (hasFewWorkgroups) {
+      if (batchDim * outerShapeA * outerShapeB <= 128) {
+        matmulProgramType = 0 /* MatMulReduceProgram */;
+      } else if (batchDim === 1 && innerShapeB >= 2e3) {
+        matmulProgramType = 1 /* MatMulSplitKProgram */;
+      } else {
+        matmulProgramType = 2 /* MatMulSmallOutputSizeProgram */;
+      }
     } else {
       matmulProgramType = 3 /* MatMulPackedProgram */;
     }
@@ -17510,7 +17577,7 @@ function binaryKernelFunc({ opType, cpuKernelImpl, supportsComplex = false, dtyp
       const aData = webgpuBackend.tensorMap.get(a.dataId);
       const bData = webgpuBackend.tensorMap.get(b.dataId);
       let real4, imag3;
-      if (opType !== 0 /* MUL */) {
+      if (opType !== 15 /* MUL */) {
         [real4, imag3] = [
           [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
           [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
@@ -17535,12 +17602,12 @@ function binaryKernelFunc({ opType, cpuKernelImpl, supportsComplex = false, dtyp
         });
       } else {
         const realProgram = new BinaryOpComplexProgram(
-          18 /* COMPLEX_MULTIPLY_REAL */,
+          3 /* COMPLEX_MULTIPLY_REAL */,
           a.shape,
           b.shape
         );
         const imagProgram = new BinaryOpComplexProgram(
-          19 /* COMPLEX_MULTIPLY_IMAG */,
+          2 /* COMPLEX_MULTIPLY_IMAG */,
           a.shape,
           b.shape
         );
@@ -19681,7 +19748,7 @@ var acoshConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/Add.ts
 var addKernelFunc = binaryKernelFunc(
-  { opType: 1 /* ADD */, cpuKernelImpl: addImplCPU, supportsComplex: true }
+  { opType: 0 /* ADD */, cpuKernelImpl: addImplCPU, supportsComplex: true }
 );
 var addConfig = {
   kernelName: Add,
@@ -20283,7 +20350,7 @@ var atanConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Atan2.ts
-var atan22 = binaryKernelFunc({ opType: 2 /* ATAN2 */ });
+var atan22 = binaryKernelFunc({ opType: 1 /* ATAN2 */ });
 var atan2Config = {
   kernelName: Atan2,
   backendName: "webgpu",
@@ -20672,7 +20739,7 @@ var batchToSpaceNDConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/NotEqual.ts
 var notEqual3 = binaryKernelFunc({
-  opType: 11 /* NOT_EQUAL */,
+  opType: 16 /* NOT_EQUAL */,
   dtype: "bool",
   cpuKernelImpl: notEqualImplCPU
 });
@@ -22044,7 +22111,7 @@ var CumProgram = class {
   exclusive;
   reverse;
   op;
-  constructor(op2, shape, exclusive, reverse2) {
+  constructor(op2, shape, exclusive, reverse3) {
     this.workgroupSize = [128, 1, 1];
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -22054,7 +22121,7 @@ var CumProgram = class {
       this.workgroupSize
     );
     this.exclusive = exclusive;
-    this.reverse = reverse2;
+    this.reverse = reverse3;
     this.op = op2;
     this.shaderKey = `cum_${this.op}_${this.exclusive}_${this.reverse}`;
   }
@@ -22119,7 +22186,7 @@ function getFinalCoord(rank, name, op2) {
 }
 
 // src/tfjs-backend-webgpu/src/kernels/Cum_impl.ts
-function cumImpl(op2, x, backend, axis, exclusive, reverse2) {
+function cumImpl(op2, x, backend, axis, exclusive, reverse3) {
   const xRank = x.shape.length;
   const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
   let permutedX = x;
@@ -22135,14 +22202,14 @@ function cumImpl(op2, x, backend, axis, exclusive, reverse2) {
   const size = permutedX.shape[permutedAxis];
   let result = identity({ inputs: { x: permutedX }, backend });
   for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
-    const program = new CumProgram(op2, permutedX.shape, false, reverse2);
+    const program = new CumProgram(op2, permutedX.shape, false, reverse3);
     const prevResult = result;
     const uniformData = [{ type: "float32", data: [i] }];
     result = backend.runWebGPUProgram(program, [result], result.dtype, uniformData);
     backend.disposeData(prevResult.dataId);
   }
   if (exclusive) {
-    const program = new CumProgram(op2, permutedX.shape, exclusive, reverse2);
+    const program = new CumProgram(op2, permutedX.shape, exclusive, reverse3);
     const prevResult = result;
     const uniformData = [{ type: "float32", data: [0] }];
     result = backend.runWebGPUProgram(program, [result], result.dtype, uniformData);
@@ -22164,8 +22231,8 @@ function cumImpl(op2, x, backend, axis, exclusive, reverse2) {
 function cumprod2(args) {
   const { inputs, backend, attrs } = args;
   const { x } = inputs;
-  const { axis, exclusive, reverse: reverse2 } = attrs;
-  return cumImpl("*" /* Prod */, x, backend, axis, exclusive, reverse2);
+  const { axis, exclusive, reverse: reverse3 } = attrs;
+  return cumImpl("*" /* Prod */, x, backend, axis, exclusive, reverse3);
 }
 var cumprodConfig = {
   kernelName: Cumprod,
@@ -22177,8 +22244,8 @@ var cumprodConfig = {
 function cumsum2(args) {
   const { inputs, backend, attrs } = args;
   const { x } = inputs;
-  const { axis, exclusive, reverse: reverse2 } = attrs;
-  return cumImpl("+" /* Sum */, x, backend, axis, exclusive, reverse2);
+  const { axis, exclusive, reverse: reverse3 } = attrs;
+  return cumImpl("+" /* Sum */, x, backend, axis, exclusive, reverse3);
 }
 var cumsumConfig = {
   kernelName: Cumsum,
@@ -22676,7 +22743,7 @@ var depthwiseConv2dNativeConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/Multiply.ts
 var multiplyKernelFunc = binaryKernelFunc({
-  opType: 0 /* MUL */,
+  opType: 15 /* MUL */,
   cpuKernelImpl: multiplyImplCPU,
   supportsComplex: true
 });
@@ -22883,7 +22950,7 @@ var floorConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/FloorDiv.ts
-var floorDiv2 = binaryKernelFunc({ opType: 13 /* INT_DIV */, dtype: "int32" });
+var floorDiv2 = binaryKernelFunc({ opType: 8 /* INT_DIV */, dtype: "int32" });
 var floorDivConfig = {
   kernelName: FloorDiv,
   backendName: "webgpu",
@@ -23547,7 +23614,7 @@ var leakyReluConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/Less.ts
 var less3 = binaryKernelFunc(
-  { opType: 8 /* LESS */, dtype: "bool", cpuKernelImpl: lessImplCPU }
+  { opType: 9 /* LESS */, dtype: "bool", cpuKernelImpl: lessImplCPU }
 );
 var lessConfig = {
   kernelName: Less,
@@ -23557,7 +23624,7 @@ var lessConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/LessEqual.ts
 var lessEqual3 = binaryKernelFunc({
-  opType: 9 /* LESS_EQUAL */,
+  opType: 10 /* LESS_EQUAL */,
   dtype: "bool",
   cpuKernelImpl: lessEqualImplCPU
 });
@@ -23576,7 +23643,7 @@ var logConfig = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalAnd.ts
-var logicalAnd2 = binaryKernelFunc({ opType: 10 /* LOGICAL_AND */, dtype: "bool" });
+var logicalAnd2 = binaryKernelFunc({ opType: 11 /* LOGICAL_AND */, dtype: "bool" });
 var logicalAndConfig = {
   kernelName: LogicalAnd,
   backendName: "webgpu",
@@ -23593,7 +23660,7 @@ var logicalNotConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/Maximum.ts
 var maximum3 = binaryKernelFunc({
-  opType: 16 /* MAX */,
+  opType: 12 /* MAX */,
   cpuKernelImpl: maximumImplCPU
 });
 var maximumConfig = {
@@ -23639,7 +23706,7 @@ var minConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/Minimum.ts
 var minimum3 = binaryKernelFunc({
-  opType: 17 /* MIN */,
+  opType: 13 /* MIN */,
   cpuKernelImpl: minimumImplCPU
 });
 var minimumConfig = {
@@ -23724,6 +23791,14 @@ var mirrorPadConfig = {
     const output = webGPUBackend.runWebGPUProgram(program, [x], x.dtype, uniformData);
     return output;
   }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Mod.ts
+var mod2 = binaryKernelFunc({ opType: 14 /* MOD */ });
+var modConfig = {
+  kernelName: Mod,
+  backendName: "webgpu",
+  kernelFunc: mod2
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Neg.ts
@@ -23812,6 +23887,62 @@ var nonMaxSuppressionV5Config = {
   kernelName: NonMaxSuppressionV5,
   backendName: "webgpu",
   kernelFunc: nonMaxSuppressionV5
+};
+
+// src/tfjs-backend-webgpu/src/onehot_webgpu.ts
+var OneHotProgram = class {
+  outputShape;
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  variableNames = ["x"];
+  uniforms = "onValue : f32, offValue : f32,";
+  workgroupSize = [64, 1, 1];
+  size = true;
+  constructor(numIndices, depth) {
+    this.outputShape = [numIndices, depth];
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize
+    );
+    this.shaderKey = "onehot";
+  }
+  getUserCode() {
+    const userCode = `
+      ${getMainHeaderString("index")} {
+        if(index < uniforms.size) {
+          let coords = getCoordsFromIndex(index);
+          setOutputAtIndex(index, mix(uniforms.offValue, uniforms.onValue,
+                                      f32(i32(round(getX(coords.x))) == coords.y)));
+        }
+      }
+    `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/OneHot.ts
+function oneHot2(args) {
+  const { inputs, backend, attrs } = args;
+  const { indices } = inputs;
+  const { dtype, depth, onValue, offValue } = attrs;
+  const indicesSize = util_exports.sizeFromShape(indices.shape);
+  const program = new OneHotProgram(indicesSize, depth);
+  const reshaped = reshape2({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
+  const uniformData = [{ type: "float32", data: [onValue] }, { type: "float32", data: [offValue] }];
+  const result = backend.runWebGPUProgram(program, [reshaped], dtype, uniformData);
+  backend.disposeData(reshaped.dataId);
+  const outShape = [...indices.shape, depth];
+  const out = reshape2({ inputs: { x: result }, backend, attrs: { shape: outShape } });
+  backend.disposeData(result.dataId);
+  return out;
+}
+var oneHotConfig = {
+  kernelName: OneHot,
+  backendName: "webgpu",
+  kernelFunc: oneHot2
 };
 
 // src/tfjs-backend-webgpu/src/kernels/ZerosLike.ts
@@ -24000,7 +24131,7 @@ var padV2Config = {
 
 // src/tfjs-backend-webgpu/src/kernels/Pow.ts
 var pow2 = binaryKernelFunc({
-  opType: 14 /* POW */
+  opType: 17 /* POW */
 });
 var powConfig = {
   kernelName: Pow,
@@ -24012,7 +24143,7 @@ var powConfig = {
 function prelu2(args) {
   const { inputs, backend } = args;
   const { x, alpha } = inputs;
-  const program = new BinaryOpProgram(15 /* PRELU */, x.shape, alpha.shape);
+  const program = new BinaryOpProgram(18 /* PRELU */, x.shape, alpha.shape);
   return backend.runWebGPUProgram(program, [x, alpha], "float32");
 }
 var preluConfig = {
@@ -24264,6 +24395,105 @@ var resizeNearestNeighborConfig = {
   kernelName: ResizeNearestNeighbor,
   backendName: "webgpu",
   kernelFunc: resizeNearestNeighbor2
+};
+
+// src/tfjs-backend-webgpu/src/reverse_webgpu.ts
+var ReverseProgram = class {
+  outputShape;
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  variableNames = ["x"];
+  uniforms;
+  workgroupSize = [64, 1, 1];
+  size = true;
+  constructor(xShape) {
+    this.outputShape = xShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize
+    );
+    this.uniforms = ` axis : vec4<i32>,`;
+    this.shaderKey = "reverse";
+  }
+  getUserCode() {
+    const reverseCoordsSnippet = `
+      // Using uniform variables as judging conditions, so the function has
+      // coherent execution within all threads.
+      fn getReverseCoords(coords : vec4<i32>) -> vec4<i32> {
+        var reverseCoords = coords;
+        if (uniforms.axis[0] == 1) {
+          reverseCoords[0] = uniforms.xShape[0] - coords[0] - 1;
+        }
+        if (uniforms.axis[1] == 1) {
+          reverseCoords[1] = uniforms.xShape[1] - coords[1] - 1;
+        }
+        if (uniforms.axis[2] == 1) {
+          reverseCoords[2] = uniforms.xShape[2] - coords[2] - 1;
+        }
+        if (uniforms.axis[3] == 1) {
+          reverseCoords[3] = uniforms.xShape[3] - coords[3] - 1;
+        }
+
+        return reverseCoords;
+      }
+    `;
+    const userCode = `
+      ${reverseCoordsSnippet}
+      ${getMainHeaderString("index")} {
+        if (index < uniforms.size) {
+          let coords = getCoordsFromIndex(index);
+          let reverseCoords = getReverseCoords(coords);
+          setOutputAtIndex(index, getX(reverseCoords[0],
+              reverseCoords[1], reverseCoords[2], reverseCoords[3]));
+        }
+      }
+    `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Reverse.ts
+function reverse2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { dims } = attrs;
+  const xRank = x.shape.length;
+  if (xRank === 0) {
+    return identity({ inputs: { x }, backend });
+  }
+  const xShape = x.shape;
+  const xShape4D = [1, 1, 1, 1];
+  xShape.forEach((d, i) => {
+    const index = i + 4 - xRank;
+    xShape4D[index] = d;
+  });
+  const axes = util_exports.parseAxisParam(dims, x.shape);
+  const dims4D = [0, 0, 0, 0];
+  axes.forEach((ax) => {
+    const index = ax + 4 - xRank;
+    dims4D[index] = 1;
+  });
+  const uniformData = [{ type: "int32", data: dims4D }];
+  const xReshaped = reshape2({ inputs: { x }, backend, attrs: { shape: xShape4D } });
+  const program = new ReverseProgram(xShape4D);
+  const values = backend.runWebGPUProgram(
+    program,
+    [xReshaped],
+    xReshaped.dtype,
+    uniformData
+  );
+  backend.disposeData(xReshaped.dataId);
+  const result = reshape2({ inputs: { x: values }, backend, attrs: { shape: xShape } });
+  backend.disposeData(values.dataId);
+  return result;
+}
+var reverseConfig = {
+  kernelName: Reverse,
+  backendName: "webgpu",
+  kernelFunc: reverse2
 };
 
 // src/tfjs-backend-webgpu/src/rotate_webgpu.ts
@@ -24631,7 +24861,7 @@ var sinhConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/Sub.ts
 var sub3 = binaryKernelFunc(
-  { opType: 3 /* SUB */, cpuKernelImpl: subImplCPU, supportsComplex: true }
+  { opType: 20 /* SUB */, cpuKernelImpl: subImplCPU, supportsComplex: true }
 );
 var subConfig = {
   kernelName: Sub,
@@ -24972,7 +25202,7 @@ var squareConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/SquaredDifference.ts
 var squaredDifference3 = binaryKernelFunc({
-  opType: 12 /* SQUARED_DIFFERENCE */
+  opType: 19 /* SQUARED_DIFFERENCE */
 });
 var squaredDifferenceConfig = {
   kernelName: SquaredDifference,
@@ -25760,11 +25990,13 @@ var kernelConfigs = [
   minConfig,
   minimumConfig,
   mirrorPadConfig,
+  modConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   onesLikeConfig,
   packConfig,
   padV2Config,
@@ -25780,6 +26012,7 @@ var kernelConfigs = [
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
+  reverseConfig,
   rotateWithOffsetConfig,
   rsqrtConfig,
   scatterNdConfig,
