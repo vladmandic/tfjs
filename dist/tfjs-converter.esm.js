@@ -4371,7 +4371,6 @@ ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
-ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 ENV2.registerFlag("USE_SETTIMEOUTCUSTOM", () => false);
 
@@ -7573,9 +7572,7 @@ var broadcastArgs = op({ broadcastArgs_ });
 function broadcastTo_(x, shape) {
   let input = convertToTensor(x, "broadcastTo", "x");
   const xShape = input.shape;
-  if (shape.some((d) => !(d > 0) || d % 1 !== 0)) {
-    throw new Error(`broadcastTo(): Invalid broadcast shape [${shape}].`);
-  }
+  assertNonNegativeIntegerDimensions(shape);
   if (shape.length < input.rank) {
     throw new Error(`broadcastTo(): shape.length=${shape.length} < input.rank=${input.rank}.`);
   }
@@ -7621,6 +7618,7 @@ var ceil = op({ ceil_ });
 
 // src/tfjs-core/src/ops/fill.ts
 function fill(shape, value, dtype) {
+  assertNonNegativeIntegerDimensions(shape);
   const attrs = { shape, value, dtype };
   return ENGINE.runKernel(Fill, {}, attrs);
 }
@@ -8975,6 +8973,7 @@ var mean = op({ mean_ });
 
 // src/tfjs-core/src/ops/zeros.ts
 function zeros(shape, dtype = "float32") {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype === "complex64") {
     const real2 = zeros(shape, "float32");
     const imag2 = zeros(shape, "float32");
@@ -8986,6 +8985,7 @@ function zeros(shape, dtype = "float32") {
 
 // src/tfjs-core/src/ops/ones.ts
 function ones2(shape, dtype = "float32") {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype === "complex64") {
     const real2 = ones2(shape, "float32");
     const imag2 = zeros(shape, "float32");
@@ -9466,6 +9466,7 @@ var raggedTensorToTensor = op({ raggedTensorToTensor_ });
 
 // src/tfjs-core/src/ops/rand.ts
 function rand_(shape, randFunction, dtype) {
+  assertNonNegativeIntegerDimensions(shape);
   const size = sizeFromShape(shape);
   let values = null;
   if (dtype == null || dtype === "float32") {
@@ -9632,6 +9633,7 @@ var UniformRandom = class {
 
 // src/tfjs-core/src/ops/random_gamma.ts
 function randomGamma_(shape, alpha, beta = 1, dtype = "float32", seed) {
+  assertNonNegativeIntegerDimensions(shape);
   if (beta == null) {
     beta = 1;
   }
@@ -9652,6 +9654,7 @@ var randomGamma = op({ randomGamma_ });
 
 // src/tfjs-core/src/ops/random_normal.ts
 function randomNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type ${dtype}`);
   }
@@ -9675,6 +9678,7 @@ var randomStandardNormal = op({ randomStandardNormal_ });
 
 // src/tfjs-core/src/ops/random_uniform.ts
 function randomUniform_(shape, minval = 0, maxval = 1, dtype = "float32", seed) {
+  assertNonNegativeIntegerDimensions(shape);
   const res = buffer(shape, dtype);
   const random = new UniformRandom(minval, maxval, null, seed);
   for (let i = 0; i < res.values.length; i++) {
@@ -10309,6 +10313,7 @@ var topk = op({ topk_ });
 
 // src/tfjs-core/src/ops/truncated_normal.ts
 function truncatedNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type $ { dtype }`);
   }
@@ -10472,6 +10477,7 @@ var movingAverage = op({ movingAverage_ });
 
 // src/tfjs-core/src/ops/scatter_nd.ts
 function scatterND_(indices, updates, shape) {
+  assertNonNegativeIntegerDimensions(shape);
   const $indices = convertToTensor(indices, "indices", "scatterND", "int32");
   const $updates = convertToTensor(updates, "updates", "scatterND");
   validateInput($updates, $indices, shape);
@@ -10517,6 +10523,7 @@ function validateInput2(sparseIndices, sparseValues, outputShape, defaultValues)
 
 // src/tfjs-core/src/ops/sparse_to_dense.ts
 function sparseToDense_(sparseIndices, sparseValues, outputShape, defaultValue = 0) {
+  assertNonNegativeIntegerDimensions(outputShape);
   const $sparseIndices = convertToTensor(sparseIndices, "sparseIndices", "sparseToDense", "int32");
   const $sparseValues = convertToTensor(
     sparseValues,
@@ -17572,6 +17579,48 @@ var json9 = [
         "type": "tensor"
       }
     ]
+  },
+  {
+    "tfOpName": "InitializeTable",
+    "category": "hash_table",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tableHandle",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "keys",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "values",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "InitializeTableV2",
+    "category": "hash_table",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tableHandle",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "keys",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "values",
+        "type": "tensor"
+      }
+    ]
   }
 ];
 
@@ -22295,6 +22344,8 @@ var executeOp9 = async (node, tensorMap, context, resourceManager) => {
         return [hashTable.handle];
       }
     }
+    case "InitializeTable":
+    case "InitializeTableV2":
     case "LookupTableImport":
     case "LookupTableImportV2": {
       const handle = getParamValue(
@@ -23431,10 +23482,8 @@ var GraphExecutor = class {
   _functions = {};
   _functionExecutorMap = {};
   _resourceManager;
-  intermediateTensors = {};
-  keepIds;
-  tensorsMap;
-  keepTensorForDebug = false;
+  clonedTensorsMap;
+  keepIntermediateTensors = false;
   get weightIds() {
     return this.parent ? this.parent.weightIds : this._weightIds;
   }
@@ -23513,7 +23562,32 @@ var GraphExecutor = class {
       executionInfo
     );
   }
+  cloneAndKeepTensor(tensor2) {
+    if (tensor2 == null) {
+      return null;
+    }
+    const clone2 = tensor2.clone();
+    keep(clone2);
+    return clone2;
+  }
+  cloneTensorList(tensors) {
+    if (!tensors) {
+      return null;
+    }
+    const clonedTensor = tensors.map((tensor2) => {
+      return this.cloneAndKeepTensor(tensor2);
+    });
+    return clonedTensor;
+  }
+  cloneTensorMap(tensorsMap) {
+    return Object.fromEntries(
+      Object.entries(tensorsMap).map(([name, tensorsList]) => {
+        return [name, this.cloneTensorList(tensorsList)];
+      })
+    );
+  }
   execute(inputs, outputs) {
+    this.disposeIntermediateTensors();
     inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
@@ -23523,7 +23597,6 @@ var GraphExecutor = class {
     const inputNodes = names.map((name) => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputs.map((name) => parseNodeName(name)[0]);
     let outputNodes = outputNodeNames.map((name) => this.graph.nodes[name]);
-    this.resetIntermediateTensors();
     if (outputNodes.length === 0) {
       outputNodes = this._outputs;
     }
@@ -23532,6 +23605,12 @@ var GraphExecutor = class {
     if (orderedNodes == null) {
       orderedNodes = this.compile(inputs, outputNodes);
       this.compiledMap.set(compilationKey, orderedNodes);
+    }
+    try {
+      this.keepIntermediateTensors = env().getBool("KEEP_INTERMEDIATE_TENSORS");
+    } catch (e) {
+      this.keepIntermediateTensors = false;
+      console.warn(e.message);
     }
     const tensorArrayMap = {};
     const tensorListMap = {};
@@ -23543,11 +23622,17 @@ var GraphExecutor = class {
         this.functionExecutorMap
       );
       const tensorsMap = { ...this.weightMap };
+      if (this.keepIntermediateTensors) {
+        this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
+      }
       Object.keys(inputs).forEach((name) => {
         const [nodeName, index] = parseNodeName(name);
         const tensors = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
+        if (this.keepIntermediateTensors) {
+          this.clonedTensorsMap[nodeName] = this.cloneTensorList(tensors);
+        }
       });
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
       const intermediateTensorConsumerCount = {};
@@ -23561,6 +23646,9 @@ var GraphExecutor = class {
             );
           }
           tensorsMap[node.name] = tensors;
+          if (this.keepIntermediateTensors) {
+            this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
+          }
           this.checkTensorForDisposal(
             node.name,
             node,
@@ -23602,17 +23690,7 @@ var GraphExecutor = class {
             if (tensor2 && !tensor2.kept && !tensorsToKeep.has(tensor2.id)) {
               const count = intermediateTensorConsumerCount[tensor2.id];
               if (count === 1) {
-                if (!this.keepTensorForDebug) {
-                  tensor2.dispose();
-                } else {
-                  const [nodeName2, index] = getNodeNameAndIndex(node.name, context);
-                  if (this.intermediateTensors[nodeName2]) {
-                    this.intermediateTensors[nodeName2][index] = tensor2;
-                  } else {
-                    this.intermediateTensors[nodeName2] = [];
-                    this.intermediateTensors[nodeName2][index] = tensor2;
-                  }
-                }
+                tensor2.dispose();
                 delete intermediateTensorConsumerCount[tensor2.id];
               } else if (count != null) {
                 intermediateTensorConsumerCount[tensor2.id]--;
@@ -23627,39 +23705,23 @@ var GraphExecutor = class {
     return this._executeAsync(inputs, outputs);
   }
   disposeIntermediateTensors() {
-    if (!this.intermediateTensors) {
+    if (!this.clonedTensorsMap) {
       return;
     }
-    Object.keys(this.intermediateTensors).forEach(
-      (key) => this.intermediateTensors[key].forEach(
-        (tensor2) => tensor2.dispose()
-      )
-    );
-    this.disposeTensorsMap();
-  }
-  disposeTensorsMap() {
-    if (!this.tensorsMap) {
-      return;
-    }
-    Object.keys(this.tensorsMap).forEach((key) => {
-      const tensorArray = this.tensorsMap[key];
-      tensorArray.forEach((tensor2) => {
-        if (tensor2 && !tensor2.kept && !tensor2.isDisposed && !this.keepIds.has(tensor2.id)) {
+    Object.values(this.clonedTensorsMap).forEach((tensorsList) => {
+      for (const tensor2 of tensorsList) {
+        if (tensor2 && !tensor2.isDisposed) {
           tensor2.dispose();
         }
-      });
+      }
     });
+    this.clonedTensorsMap = null;
   }
   getIntermediateTensors() {
-    return this.tensorsMap;
-  }
-  resetIntermediateTensors() {
-    for (const key in this.intermediateTensors) {
-      this.intermediateTensors[key].forEach((tensor2) => tensor2.dispose());
-      delete this.intermediateTensors[key];
-    }
+    return this.clonedTensorsMap;
   }
   async _executeAsync(inputs, outputs, isFunctionExecution = false, tensorArrayMap = {}, tensorListMap = {}) {
+    this.disposeIntermediateTensors();
     if (!isFunctionExecution) {
       inputs = this.mapInputs(inputs);
       this.checkInputs(inputs);
@@ -23668,32 +23730,39 @@ var GraphExecutor = class {
       this.checkOutputs(outputs);
     }
     try {
-      this.keepTensorForDebug = env().getBool("KEEP_INTERMEDIATE_TENSORS");
+      this.keepIntermediateTensors = env().getBool("KEEP_INTERMEDIATE_TENSORS");
     } catch (e) {
+      this.keepIntermediateTensors = false;
       console.warn(e.message);
     }
-    this.resetIntermediateTensors();
     const context = new ExecutionContext(
       this.weightMap,
       tensorArrayMap,
       tensorListMap,
       this.functionExecutorMap
     );
-    this.tensorsMap = await this.executeWithControlFlow(
+    if (this.keepIntermediateTensors) {
+      this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
+    }
+    const tensorsMap = await this.executeWithControlFlow(
       inputs,
       context,
       outputs,
       isFunctionExecution
     );
-    const results = outputs.map((name) => getTensor(name, this.tensorsMap, context));
+    const results = outputs.map((name) => getTensor(name, tensorsMap, context));
     const outputIds = results.map((t) => t.id);
     const inputIds = Object.keys(inputs).map((name) => inputs[name].id);
-    this.keepIds = /* @__PURE__ */ new Set([...outputIds, ...inputIds, ...this.weightIds]);
-    if (!this.keepTensorForDebug) {
-      this.disposeTensorsMap();
-    }
+    const keepIds = /* @__PURE__ */ new Set([...outputIds, ...inputIds, ...this.weightIds]);
+    Object.values(tensorsMap).forEach((tensorsList) => {
+      tensorsList.forEach((tensor2) => {
+        if (tensor2 && !tensor2.isDisposed && !keepIds.has(tensor2.id)) {
+          tensor2.dispose();
+        }
+      });
+    });
     if (this.parent == null) {
-      context.dispose(this.keepIds);
+      context.dispose(keepIds);
     }
     return results;
   }
@@ -23792,6 +23861,9 @@ var GraphExecutor = class {
         if (util_exports.isPromise(tensors)) {
           promises.push(tensors.then((t) => {
             tensorMap[nodeName] = t;
+            if (this.keepIntermediateTensors) {
+              this.clonedTensorsMap[nodeName] = this.cloneTensorList(t);
+            }
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
               nodeName,
@@ -23814,6 +23886,9 @@ var GraphExecutor = class {
           }));
         } else {
           tensorMap[nodeName] = tensors;
+          if (this.keepIntermediateTensors) {
+            this.clonedTensorsMap[nodeName] = this.cloneTensorList(tensors);
+          }
           this.checkTensorForDisposal(
             nodeName,
             item.node,

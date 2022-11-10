@@ -2216,8 +2216,6 @@ declare type CustomGradientFunc<T extends Tensor> = (...inputs: Array<Tensor | G
     gradFunc: (dy: T, saved: Tensor[]) => Tensor | Tensor[];
 };
 
-export declare type DataId = object;
-
 /**
  * We wrap data id since we use weak map to avoid memory leaks.
  * Since we have our own memory management, we have a reference counter
@@ -2226,7 +2224,7 @@ export declare type DataId = object;
  * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/
  * Global_Objects/WeakMap
  */
-declare type DataId_2 = object;
+export declare type DataId = object;
 
 export declare interface DataMover {
     /**
@@ -2234,7 +2232,7 @@ export declare interface DataMover {
      * Upon calling this method, the mover will fetch the tensor from another
      * backend and register it with the current active backend.
      */
-    moveData(backend: KernelBackend, dataId: DataId_2): void;
+    moveData(backend: KernelBackend, dataId: DataId): void;
 }
 
 /** Convenient class for storing tensor-related data. */
@@ -2244,10 +2242,10 @@ export declare class DataStorage<T> {
     private data;
     private dataIdsCount;
     constructor(backend: KernelBackend, dataMover: DataMover);
-    get(dataId: DataId_2): T;
-    set(dataId: DataId_2, value: T): void;
-    has(dataId: DataId_2): boolean;
-    delete(dataId: DataId_2): boolean;
+    get(dataId: DataId): T;
+    set(dataId: DataId, value: T): void;
+    has(dataId: DataId): boolean;
+    delete(dataId: DataId): boolean;
     numDataIds(): number;
 }
 
@@ -2934,7 +2932,7 @@ declare class Engine implements TensorTracker, DataMover {
     removeBackend(backendName: string): void;
     private getSortedBackends;
     private initializeBackendsAndReturnBest;
-    moveData(backend: KernelBackend, dataId: DataId_2): void;
+    moveData(backend: KernelBackend, dataId: DataId): void;
     tidy<T extends TensorContainer>(nameOrFn: string | ScopeFn<T>, fn?: ScopeFn<T>): T;
     private scopedRun;
     private static nextTensorId;
@@ -2996,7 +2994,7 @@ declare class Engine implements TensorTracker, DataMover {
      * a new data id, only increments the ref count used in memory tracking.
      * @deprecated
      */
-    makeTensorFromDataId(dataId: DataId_2, shape: number[], dtype: DataType, backend?: KernelBackend): Tensor;
+    makeTensorFromDataId(dataId: DataId, shape: number[], dtype: DataType, backend?: KernelBackend): Tensor;
     /**
      * Internal method used by backends. Makes a new tensor that is a wrapper
      * around an existing data id in TensorInfo. It doesn't create a new data id,
@@ -3006,7 +3004,7 @@ declare class Engine implements TensorTracker, DataMover {
     makeVariable(initialValue: Tensor, trainable?: boolean, name?: string, dtype?: DataType): Variable;
     trackTensor(a: Tensor, backend: KernelBackend): void;
     incRef(a: Tensor, backend: KernelBackend): void;
-    removeDataId(dataId: DataId_2, backend: KernelBackend): void;
+    removeDataId(dataId: DataId, backend: KernelBackend): void;
     disposeTensor(a: Tensor): void;
     disposeVariables(): void;
     disposeVariable(v: Variable): void;
@@ -3038,9 +3036,9 @@ declare class Engine implements TensorTracker, DataMover {
         grads: Tensor[];
     };
     customGrad<T extends Tensor>(f: CustomGradientFunc<T>): (...args: Array<Tensor | GradSaveFunc>) => T;
-    readSync(dataId: DataId_2): BackendValues;
-    read(dataId: DataId_2): Promise<BackendValues>;
-    readToGPU(dataId: DataId_2, options?: DataToGPUOptions): GPUData;
+    readSync(dataId: DataId): BackendValues;
+    read(dataId: DataId): Promise<BackendValues>;
+    readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData;
     time(query: () => void): Promise<TimingInfo>;
     /**
      * Tracks a Tensor in the current scope to be automatically cleaned up
@@ -5057,8 +5055,8 @@ export { kernel_impls }
  * methods).
  */
 export declare class KernelBackend implements TensorStorage, Backend, BackendTimer {
-    refCount(dataId: DataId_2): number;
-    incRef(dataId: DataId_2): void;
+    refCount(dataId: DataId): number;
+    incRef(dataId: DataId): void;
     timerAvailable(): boolean;
     time(f: () => void): Promise<BackendTimingInfo>;
     read(dataId: object): Promise<BackendValues>;
@@ -5066,8 +5064,8 @@ export declare class KernelBackend implements TensorStorage, Backend, BackendTim
     readToGPU(dataId: object, options?: DataToGPUOptions): GPUData;
     numDataIds(): number;
     disposeData(dataId: object, force?: boolean): boolean;
-    write(values: BackendValues, shape: number[], dtype: DataType): DataId_2;
-    move(dataId: DataId_2, values: BackendValues, shape: number[], dtype: DataType, refCount: number): void;
+    write(values: BackendValues, shape: number[], dtype: DataType): DataId;
+    move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType, refCount: number): void;
     createTensorFromTexture(values: WebGLData, shape: number[], dtype: DataType): Tensor;
     memory(): {
         unreliable: boolean;
@@ -9894,14 +9892,14 @@ export declare namespace Tensor { }
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-export declare class Tensor<R extends Rank = Rank> {
+export declare class Tensor<R extends Rank = Rank> implements TensorInfo {
     /** Unique id of this tensor. */
     readonly id: number;
     /**
      * Id of the bucket holding the data for this tensor. Multiple arrays can
      * point to the same bucket (e.g. when calling array.reshape()).
      */
-    dataId: DataId_2;
+    dataId: DataId;
     /** The shape of the tensor. */
     readonly shape: ShapeMap[R];
     /** Number of elements in the tensor. */
@@ -9920,7 +9918,7 @@ export declare class Tensor<R extends Rank = Rank> {
      * numpy.ndarray.strides.html
      */
     readonly strides: number[];
-    constructor(shape: ShapeMap[R], dtype: DataType, dataId: DataId_2, id: number);
+    constructor(shape: ShapeMap[R], dtype: DataType, dataId: DataId, id: number);
     get rank(): number;
     /**
      * Returns a promise of `tf.TensorBuffer` that holds the underlying data.
@@ -10381,17 +10379,17 @@ declare type TensorLike5D = TypedArray | number[] | number[][][][][] | boolean[]
 declare type TensorLike6D = TypedArray | number[] | number[][][][][][] | boolean[] | boolean[][][][][][] | string[] | string[][][][][][] | Uint8Array[] | Uint8Array[][][][][];
 
 declare interface TensorStorage {
-    read(dataId: DataId_2): Promise<BackendValues>;
-    readSync(dataId: DataId_2): BackendValues;
-    disposeData(dataId: DataId_2, force?: boolean): boolean;
-    write(values: BackendValues, shape: number[], dtype: DataType): DataId_2;
-    move(dataId: DataId_2, values: BackendValues, shape: number[], dtype: DataType, refCount: number): void;
+    read(dataId: DataId): Promise<BackendValues>;
+    readSync(dataId: DataId): BackendValues;
+    disposeData(dataId: DataId, force?: boolean): boolean;
+    write(values: BackendValues, shape: number[], dtype: DataType): DataId;
+    move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType, refCount: number): void;
     memory(): {
         unreliable: boolean;
     };
     /** Returns number of data ids currently in the storage. */
     numDataIds(): number;
-    refCount(dataId: DataId_2): number;
+    refCount(dataId: DataId): number;
 }
 
 declare interface TensorTracker {
@@ -10400,9 +10398,9 @@ declare interface TensorTracker {
     incRef(a: Tensor, backend: Backend): void;
     disposeTensor(t: Tensor): void;
     disposeVariable(v: Variable): void;
-    read(dataId: DataId_2): Promise<BackendValues>;
-    readSync(dataId: DataId_2): BackendValues;
-    readToGPU(dataId: DataId_2, options?: DataToGPUOptions): GPUData;
+    read(dataId: DataId): Promise<BackendValues>;
+    readSync(dataId: DataId): BackendValues;
+    readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData;
 }
 
 declare const TEST_EPSILON_FLOAT16 = 0.1;

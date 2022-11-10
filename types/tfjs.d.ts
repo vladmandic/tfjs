@@ -9740,6 +9740,7 @@ export declare class WebGPUBackend extends KernelBackend {
     queue: GPUQueue;
     tensorMap: DataStorage<TensorData_3>;
     textureManager: TextureManager_2;
+    thresholdToIncreaseWorkgroups: number;
     private activeTimers;
     private currentCommandEncoder;
     private currentComputePass;

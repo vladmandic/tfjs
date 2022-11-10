@@ -4523,7 +4523,6 @@ ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
 ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
-ENV2.registerFlag("ENGINE_COMPILE_ONLY", () => false);
 ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 ENV2.registerFlag("USE_SETTIMEOUTCUSTOM", () => false);
 
@@ -8865,9 +8864,7 @@ var broadcastArgs = op({ broadcastArgs_ });
 function broadcastTo_(x, shape) {
   let input = convertToTensor(x, "broadcastTo", "x");
   const xShape = input.shape;
-  if (shape.some((d) => !(d > 0) || d % 1 !== 0)) {
-    throw new Error(`broadcastTo(): Invalid broadcast shape [${shape}].`);
-  }
+  assertNonNegativeIntegerDimensions(shape);
   if (shape.length < input.rank) {
     throw new Error(`broadcastTo(): shape.length=${shape.length} < input.rank=${input.rank}.`);
   }
@@ -8913,6 +8910,7 @@ var ceil = op({ ceil_ });
 
 // src/tfjs-core/src/ops/fill.ts
 function fill(shape, value, dtype) {
+  assertNonNegativeIntegerDimensions(shape);
   const attrs = { shape, value, dtype };
   return ENGINE.runKernel(Fill, {}, attrs);
 }
@@ -10417,6 +10415,7 @@ var mean = op({ mean_ });
 
 // src/tfjs-core/src/ops/zeros.ts
 function zeros(shape, dtype = "float32") {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype === "complex64") {
     const real2 = zeros(shape, "float32");
     const imag2 = zeros(shape, "float32");
@@ -10428,6 +10427,7 @@ function zeros(shape, dtype = "float32") {
 
 // src/tfjs-core/src/ops/ones.ts
 function ones2(shape, dtype = "float32") {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype === "complex64") {
     const real2 = ones2(shape, "float32");
     const imag2 = zeros(shape, "float32");
@@ -10908,6 +10908,7 @@ var raggedTensorToTensor = op({ raggedTensorToTensor_ });
 
 // src/tfjs-core/src/ops/rand.ts
 function rand_(shape, randFunction, dtype) {
+  assertNonNegativeIntegerDimensions(shape);
   const size = sizeFromShape(shape);
   let values = null;
   if (dtype == null || dtype === "float32") {
@@ -11074,6 +11075,7 @@ var UniformRandom = class {
 
 // src/tfjs-core/src/ops/random_gamma.ts
 function randomGamma_(shape, alpha, beta = 1, dtype = "float32", seed) {
+  assertNonNegativeIntegerDimensions(shape);
   if (beta == null) {
     beta = 1;
   }
@@ -11094,6 +11096,7 @@ var randomGamma = op({ randomGamma_ });
 
 // src/tfjs-core/src/ops/random_normal.ts
 function randomNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type ${dtype}`);
   }
@@ -11117,6 +11120,7 @@ var randomStandardNormal = op({ randomStandardNormal_ });
 
 // src/tfjs-core/src/ops/random_uniform.ts
 function randomUniform_(shape, minval = 0, maxval = 1, dtype = "float32", seed) {
+  assertNonNegativeIntegerDimensions(shape);
   const res = buffer(shape, dtype);
   const random = new UniformRandom(minval, maxval, null, seed);
   for (let i = 0; i < res.values.length; i++) {
@@ -11751,6 +11755,7 @@ var topk = op({ topk_ });
 
 // src/tfjs-core/src/ops/truncated_normal.ts
 function truncatedNormal_(shape, mean2 = 0, stdDev = 1, dtype, seed) {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype != null && dtype === "bool") {
     throw new Error(`Unsupported data type $ { dtype }`);
   }
@@ -11914,6 +11919,7 @@ var movingAverage = op({ movingAverage_ });
 
 // src/tfjs-core/src/ops/scatter_nd.ts
 function scatterND_(indices, updates, shape) {
+  assertNonNegativeIntegerDimensions(shape);
   const $indices = convertToTensor(indices, "indices", "scatterND", "int32");
   const $updates = convertToTensor(updates, "updates", "scatterND");
   validateInput($updates, $indices, shape);
@@ -11959,6 +11965,7 @@ function validateInput2(sparseIndices, sparseValues, outputShape, defaultValues)
 
 // src/tfjs-core/src/ops/sparse_to_dense.ts
 function sparseToDense_(sparseIndices, sparseValues, outputShape, defaultValue = 0) {
+  assertNonNegativeIntegerDimensions(outputShape);
   const $sparseIndices = convertToTensor(sparseIndices, "sparseIndices", "sparseToDense", "int32");
   const $sparseValues = convertToTensor(
     sparseValues,
