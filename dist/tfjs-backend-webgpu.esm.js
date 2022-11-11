@@ -23226,6 +23226,123 @@ var expm1Config = {
   kernelFunc: expm13
 };
 
+// src/tfjs-backend-webgpu/src/fft_webgpu.ts
+var FFTProgram = class {
+  variableNames = ["real", "imag"];
+  outputShape = [];
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  uniforms = "exponentMultiplier : f32, denominator: f32,";
+  workgroupSize = [64, 1, 1];
+  size = true;
+  component;
+  constructor(component, shape) {
+    this.outputShape = shape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize
+    );
+    this.component = component;
+    this.shaderKey = `fft_${component}`;
+  }
+  getUserCode() {
+    const opString = this.component === "real" ? "return real * expR - imag * expI;" : "return real * expI + imag * expR;";
+    const userCode = `
+    fn unaryOpComplex(real: f32, expR: f32, imag: f32, expI: f32) -> f32 {
+      ${opString}
+    }
+
+    fn mulMatDFT(batch: i32, index: i32) -> f32 {
+      let indexRatio = f32(index) / f32(uniforms.realShape[1]);
+      let exponentMultiplierTimesIndexRatio =
+          uniforms.exponentMultiplier * indexRatio;
+
+      var result = 0.0;
+
+      for (var i = 0; i < uniforms.realShape[1]; i = i + 1) {
+        // x = (-2|2 * PI / N) * index * i;
+        let x = exponentMultiplierTimesIndexRatio * f32(i);
+        let expR = cos(x);
+        let expI = sin(x);
+        let real = getReal(batch, i);
+        let imag = getImag(batch, i);
+
+        result = result +
+            unaryOpComplex(real, expR, imag, expI) / uniforms.denominator;
+      }
+
+      return result;
+    }
+
+    ${getMainHeaderString("index")} {
+      if (index < uniforms.size) {
+        let coords = getOutputCoords();
+        setOutputAtIndex(index, mulMatDFT(coords[0], coords[1]));
+      }
+    }
+  `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/FFT_impl.ts
+function fftImpl(x, inverse, backend) {
+  const xData = backend.tensorMap.get(x.dataId);
+  const inputSize = util_exports.sizeFromShape(x.shape);
+  const innerDimensionSize = x.shape[x.shape.length - 1];
+  const batch = inputSize / innerDimensionSize;
+  const toDispose = [];
+  const input2D = reshape2(
+    { inputs: { x }, backend, attrs: { shape: [batch, innerDimensionSize] } }
+  );
+  toDispose.push(input2D);
+  const xShape = input2D.shape;
+  const realProgram = new FFTProgram("real", xShape);
+  const imagProgram = new FFTProgram("imag", xShape);
+  const inputs = [
+    {
+      dataId: xData.complexTensorInfos.real.dataId,
+      dtype: xData.complexTensorInfos.real.dtype,
+      shape: xShape
+    },
+    {
+      dataId: xData.complexTensorInfos.imag.dataId,
+      dtype: xData.complexTensorInfos.imag.dtype,
+      shape: xShape
+    }
+  ];
+  const exponentMultiplier = inverse ? 2 * Math.PI : -2 * Math.PI;
+  const denominator = inverse ? xShape[1] : 1;
+  const uniformData = [
+    { type: "float32", data: [exponentMultiplier] },
+    { type: "float32", data: [denominator] }
+  ];
+  const realPart = backend.runWebGPUProgram(realProgram, inputs, "float32", uniformData);
+  toDispose.push(realPart);
+  const imagPart = backend.runWebGPUProgram(imagProgram, inputs, "float32", uniformData);
+  toDispose.push(imagPart);
+  const complexOutput = complex2({ inputs: { real: realPart, imag: imagPart }, backend });
+  toDispose.push(complexOutput);
+  const complexOutputReshaped = reshape2({ inputs: { x: complexOutput }, backend, attrs: { shape: x.shape } });
+  toDispose.forEach((t) => backend.disposeData(t.dataId));
+  return complexOutputReshaped;
+}
+
+// src/tfjs-backend-webgpu/src/kernels/FFT.ts
+function fft2(args) {
+  const { inputs, backend } = args;
+  const { input } = inputs;
+  return fftImpl(input, false, backend);
+}
+var fftConfig = {
+  kernelName: FFT,
+  backendName: "webgpu",
+  kernelFunc: fft2
+};
+
 // src/tfjs-backend-webgpu/src/flip_left_right_webgpu.ts
 var FlipLeftRightProgram = class {
   outputShape = [];
@@ -23902,6 +24019,18 @@ var greaterEqualConfig = {
   kernelName: GreaterEqual,
   backendName: "webgpu",
   kernelFunc: greaterEqual3
+};
+
+// src/tfjs-backend-webgpu/src/kernels/IFFT.ts
+function ifft2(args) {
+  const { inputs, backend } = args;
+  const { input } = inputs;
+  return fftImpl(input, true, backend);
+}
+var ifftConfig = {
+  kernelName: IFFT,
+  backendName: "webgpu",
+  kernelFunc: ifft2
 };
 
 // src/tfjs-backend-webgpu/src/kernels/IsFinite.ts
@@ -26295,6 +26424,7 @@ var kernelConfigs = [
   expConfig,
   expandDimsConfig,
   expm1Config,
+  fftConfig,
   fillConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
@@ -26308,6 +26438,7 @@ var kernelConfigs = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  ifftConfig,
   imagConfig,
   isFiniteConfig,
   isInfConfig,
