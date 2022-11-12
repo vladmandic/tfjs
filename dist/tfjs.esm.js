@@ -87169,7 +87169,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "4.0.0-20221111";
+var externalVersion = "4.0.0-20221112";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
