@@ -21865,7 +21865,6 @@ var _MathBackendWebGL = class extends KernelBackend {
   convertAndCacheOnCPU(dataId, float32Values) {
     const texData = this.texData.get(dataId);
     const { dtype } = texData;
-    this.releaseGPUData(dataId);
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype);
     }

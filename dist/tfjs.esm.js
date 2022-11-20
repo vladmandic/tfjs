@@ -60854,7 +60854,6 @@ var _MathBackendWebGL = class extends KernelBackend {
   convertAndCacheOnCPU(dataId, float32Values) {
     const texData = this.texData.get(dataId);
     const { dtype } = texData;
-    this.releaseGPUData(dataId);
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype);
     }
@@ -74174,6 +74173,10 @@ var IS_NAN2 = `return f32(isnan(a));`;
 var LINEAR3 = `return a;`;
 var LOG2 = `if (a < 0.0) { return uniforms.NAN; }
   return log(a);`;
+var LOG1P2 = `
+  if (isnan(a)) { return a; }
+  return log(1.0 + a);
+`;
 var LOGICAL_NOT2 = `return f32(!(a >= 1.0));`;
 var NEG2 = `return -a;`;
 var LEAKYRELU2 = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
@@ -74245,35 +74248,37 @@ function getUnaryOpString(type, useVec4) {
       return LINEAR3;
     case 19 /* LOG */:
       return LOG2;
-    case 20 /* LOGICAL_NOT */:
+    case 20 /* LOG1P */:
+      return LOG1P2;
+    case 21 /* LOGICAL_NOT */:
       return LOGICAL_NOT2;
-    case 21 /* NEG */:
+    case 22 /* NEG */:
       return NEG2;
-    case 24 /* LEAKYRELU */:
+    case 25 /* LEAKYRELU */:
       return useVec4 ? LEAKYRELU_VEC4 : LEAKYRELU2;
-    case 25 /* RECIPROCAL */:
+    case 26 /* RECIPROCAL */:
       return RECIPROCAL2;
-    case 22 /* RELU */:
+    case 23 /* RELU */:
       return useVec4 ? RELU_VEC4 : RELU4;
-    case 23 /* RELU6 */:
+    case 24 /* RELU6 */:
       return useVec4 ? RELU6_VEC4 : RELU64;
-    case 26 /* RSQRT */:
+    case 27 /* RSQRT */:
       return RSQRT2;
-    case 29 /* SIGMOID */:
+    case 30 /* SIGMOID */:
       return SIGMOID4;
-    case 27 /* SIN */:
+    case 28 /* SIN */:
       return SIN2;
-    case 28 /* SINH */:
+    case 29 /* SINH */:
       return SINH2;
-    case 30 /* SQRT */:
+    case 31 /* SQRT */:
       return SQRT2;
-    case 31 /* SQUARE */:
+    case 32 /* SQUARE */:
       return SQUARE2;
-    case 32 /* TAN */:
+    case 33 /* TAN */:
       return TAN2;
-    case 33 /* TANH */:
+    case 34 /* TANH */:
       return TANH2;
-    case 34 /* TO_INT */:
+    case 35 /* TO_INT */:
       return TO_INT2;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
@@ -74303,17 +74308,17 @@ function activationFnSnippet(activation2, hasPreluActivationWeights = false, pac
   if (activation2 === "linear") {
     activationOpSnippet = getUnaryOpString(18 /* LINEAR */);
   } else if (activation2 === "relu") {
-    activationOpSnippet = getUnaryOpString(22 /* RELU */, packed);
+    activationOpSnippet = getUnaryOpString(23 /* RELU */, packed);
   } else if (activation2 === "elu") {
     activationOpSnippet = getUnaryOpString(10 /* ELU */, packed);
   } else if (activation2 === "relu6") {
-    activationOpSnippet = getUnaryOpString(23 /* RELU6 */, packed);
+    activationOpSnippet = getUnaryOpString(24 /* RELU6 */, packed);
   } else if (activation2 === "prelu") {
     activationOpSnippet = getBinaryOpString(18 /* PRELU */, packed);
   } else if (activation2 === "sigmoid") {
-    activationOpSnippet = getUnaryOpString(29 /* SIGMOID */, packed);
+    activationOpSnippet = getUnaryOpString(30 /* SIGMOID */, packed);
   } else if (activation2 === "leakyrelu") {
-    activationOpSnippet = getUnaryOpString(24 /* LEAKYRELU */, packed);
+    activationOpSnippet = getUnaryOpString(25 /* LEAKYRELU */, packed);
   } else {
     throw new Error(`Activation ${activation2} has not been implemented for the WebGPU backend.`);
   }
@@ -76988,7 +76993,7 @@ var realConfig3 = {
 
 // src/tfjs-backend-webgpu/src/kernel_utils/int.ts
 function int2(input2, backend2) {
-  const program = new UnaryOpProgram2(input2.shape, 34 /* TO_INT */);
+  const program = new UnaryOpProgram2(input2.shape, 35 /* TO_INT */);
   const output = backend2.runWebGPUProgram(program, [input2], "int32");
   return { dataId: output.dataId, shape: output.shape, dtype: output.dtype };
 }
@@ -80150,7 +80155,7 @@ function leakyRelu4(args) {
   const { x } = inputs;
   const { alpha } = attrs;
   const uniformData = [{ type: "float32", data: [alpha] }];
-  const program = new UnaryOpProgram2(x.shape, 24 /* LEAKYRELU */);
+  const program = new UnaryOpProgram2(x.shape, 25 /* LEAKYRELU */);
   program.uniforms = "alpha : f32,";
   return backend2.runWebGPUProgram(program, [x], "float32", uniformData);
 }
@@ -80190,6 +80195,14 @@ var logConfig3 = {
   kernelFunc: log5
 };
 
+// src/tfjs-backend-webgpu/src/kernels/Log1p.ts
+var log1p4 = unaryKernelFunc3({ opType: 20 /* LOG1P */ });
+var log1pConfig3 = {
+  kernelName: Log1p,
+  backendName: "webgpu",
+  kernelFunc: log1p4
+};
+
 // src/tfjs-backend-webgpu/src/kernels/LogicalAnd.ts
 var logicalAnd4 = binaryKernelFunc3({ opType: 11 /* LOGICAL_AND */, dtype: "bool" });
 var logicalAndConfig3 = {
@@ -80199,7 +80212,7 @@ var logicalAndConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/LogicalNot.ts
-var logicalNot4 = unaryKernelFunc3({ opType: 20 /* LOGICAL_NOT */ });
+var logicalNot4 = unaryKernelFunc3({ opType: 21 /* LOGICAL_NOT */ });
 var logicalNotConfig3 = {
   kernelName: LogicalNot,
   backendName: "webgpu",
@@ -80358,7 +80371,7 @@ function neg4(args) {
     const [outValues, newShape] = negImplCPU2(xData.values, x.shape, x.dtype);
     return backend2.makeTensorInfo(newShape, x.dtype, outValues);
   }
-  const program = new UnaryOpProgram2(x.shape, 21 /* NEG */);
+  const program = new UnaryOpProgram2(x.shape, 22 /* NEG */);
   return backend2.runWebGPUProgram(program, [x], x.dtype);
 }
 var negConfig3 = {
@@ -80735,7 +80748,7 @@ var realDivConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Reciprocal.ts
-var reciprocal4 = unaryKernelFunc3({ opType: 25 /* RECIPROCAL */ });
+var reciprocal4 = unaryKernelFunc3({ opType: 26 /* RECIPROCAL */ });
 var reciprocalConfig3 = {
   kernelName: Reciprocal,
   backendName: "webgpu",
@@ -80743,7 +80756,7 @@ var reciprocalConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Relu.ts
-var relu4 = unaryKernelFunc3({ opType: 22 /* RELU */ });
+var relu4 = unaryKernelFunc3({ opType: 23 /* RELU */ });
 var reluConfig3 = {
   kernelName: Relu,
   backendName: "webgpu",
@@ -80751,7 +80764,7 @@ var reluConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Relu6.ts
-var relu64 = unaryKernelFunc3({ opType: 23 /* RELU6 */ });
+var relu64 = unaryKernelFunc3({ opType: 24 /* RELU6 */ });
 var relu6Config3 = {
   kernelName: Relu6,
   backendName: "webgpu",
@@ -81137,7 +81150,7 @@ var rotateWithOffsetConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Rsqrt.ts
-var rsqrt4 = unaryKernelFunc3({ opType: 26 /* RSQRT */, cpuKernelImpl: rsqrtImplCPU2 });
+var rsqrt4 = unaryKernelFunc3({ opType: 27 /* RSQRT */, cpuKernelImpl: rsqrtImplCPU2 });
 var rsqrtConfig3 = {
   kernelName: Rsqrt,
   backendName: "webgpu",
@@ -81304,6 +81317,77 @@ var scatterNdConfig3 = {
   kernelFunc: scatterNd3
 };
 
+// src/tfjs-backend-webgpu/src/search_sorted_webgpu.ts
+var SearchSortedProgram2 = class {
+  outputShape = [];
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  variableNames = ["sortedSequence", "values"];
+  uniforms = "numInputs : i32,";
+  workgroupSize = [64, 1, 1];
+  size = true;
+  side;
+  constructor(outputShape, side) {
+    this.outputShape = outputShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize
+    );
+    this.side = side;
+    this.shaderKey = `search_sorted_${side}`;
+  }
+  getUserCode() {
+    const boundComparator = this.side === "left" ? "<" : "<=";
+    const userCode = `
+      fn findBound(batch: i32, value: f32) -> i32 {
+        var left = i32(0);
+        var right = uniforms.numInputs;
+        while (left < right) {
+          var mid = (left + right) / 2;
+          if (getSortedSequence(batch, mid) ${boundComparator} value) {
+            left = mid + 1;
+          } else {
+            right = mid;
+          }
+        }
+        return right;
+      }
+
+      ${getMainHeaderString("index")} {
+        if (index < uniforms.size) {
+          let coords = getCoordsFromIndex(index);
+          let value = getValuesByOutputIndex(index);
+          setOutputAtIndexI32(index, findBound(coords[0], value));
+        }
+      }
+    `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/SearchSorted.ts
+function searchSorted4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { sortedSequence, values } = inputs;
+  const { side } = attrs;
+  const program = new SearchSortedProgram2([values.shape[0], values.shape[1]], side);
+  const uniformData = [{ type: "int32", data: [sortedSequence.shape[1]] }];
+  return backend2.runWebGPUProgram(
+    program,
+    [sortedSequence, values],
+    "int32",
+    uniformData
+  );
+}
+var searchSortedConfig3 = {
+  kernelName: SearchSorted,
+  backendName: "webgpu",
+  kernelFunc: searchSorted4
+};
+
 // src/tfjs-backend-webgpu/src/select_webgpu.ts
 var SelectProgram2 = class {
   variableNames = ["c", "a", "b"];
@@ -81384,7 +81468,7 @@ var selectConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sigmoid.ts
-var sigmoid4 = unaryKernelFunc3({ opType: 29 /* SIGMOID */ });
+var sigmoid4 = unaryKernelFunc3({ opType: 30 /* SIGMOID */ });
 var sigmoidConfig3 = {
   kernelName: Sigmoid,
   backendName: "webgpu",
@@ -81392,7 +81476,7 @@ var sigmoidConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sin.ts
-var sin4 = unaryKernelFunc3({ opType: 27 /* SIN */ });
+var sin4 = unaryKernelFunc3({ opType: 28 /* SIN */ });
 var sinConfig3 = {
   kernelName: Sin,
   backendName: "webgpu",
@@ -81400,7 +81484,7 @@ var sinConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sinh.ts
-var sinh4 = unaryKernelFunc3({ opType: 28 /* SINH */ });
+var sinh4 = unaryKernelFunc3({ opType: 29 /* SINH */ });
 var sinhConfig3 = {
   kernelName: Sinh,
   backendName: "webgpu",
@@ -81729,7 +81813,7 @@ var splitVConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Sqrt.ts
-var sqrt4 = unaryKernelFunc3({ opType: 30 /* SQRT */ });
+var sqrt4 = unaryKernelFunc3({ opType: 31 /* SQRT */ });
 var sqrtConfig3 = {
   kernelName: Sqrt,
   backendName: "webgpu",
@@ -81743,7 +81827,7 @@ var squareConfig3 = {
   kernelFunc: ({ inputs, backend: backend2 }) => {
     const { x } = inputs;
     const webGPUBackend = backend2;
-    const program = new UnaryOpProgram2(x.shape, 31 /* SQUARE */);
+    const program = new UnaryOpProgram2(x.shape, 32 /* SQUARE */);
     return webGPUBackend.runWebGPUProgram(program, [x], x.dtype);
   }
 };
@@ -81913,7 +81997,7 @@ var stringNGramsConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Tan.ts
-var tan4 = unaryKernelFunc3({ opType: 32 /* TAN */ });
+var tan4 = unaryKernelFunc3({ opType: 33 /* TAN */ });
 var tanConfig3 = {
   kernelName: Tan,
   backendName: "webgpu",
@@ -81921,7 +82005,7 @@ var tanConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Tanh.ts
-var tanh5 = unaryKernelFunc3({ opType: 33 /* TANH */ });
+var tanh5 = unaryKernelFunc3({ opType: 34 /* TANH */ });
 var tanhConfig3 = {
   kernelName: Tanh,
   backendName: "webgpu",
@@ -82533,6 +82617,7 @@ var kernelConfigs3 = [
   leakyReluConfig3,
   lessConfig3,
   lessEqualConfig3,
+  log1pConfig3,
   logConfig3,
   logicalAndConfig3,
   logicalNotConfig3,
@@ -82569,6 +82654,7 @@ var kernelConfigs3 = [
   rotateWithOffsetConfig3,
   rsqrtConfig3,
   scatterNdConfig3,
+  searchSortedConfig3,
   selectConfig3,
   sigmoidConfig3,
   sinConfig3,
@@ -87169,7 +87255,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "4.0.0-20221114";
+var externalVersion = "4.1.0-20221120";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
