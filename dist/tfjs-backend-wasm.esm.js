@@ -5,14 +5,7 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined")
-    return require.apply(this, arguments);
-  throw new Error('Dynamic require of "' + x + '" is not supported');
-});
-var __commonJS = (cb, mod2) => function __require2() {
+var __commonJS = (cb, mod2) => function __require() {
   return mod2 || (0, cb[__getOwnPropNames(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
 };
 var __export = (target, all3) => {
@@ -28,6 +21,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod2, isNodeMode, target) => (target = mod2 != null ? __create(__getProtoOf(mod2)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod2 || !mod2.__esModule ? __defProp(target, "default", { value: mod2, enumerable: true }) : target,
   mod2
 ));
@@ -543,25 +540,40 @@ var require_long = __commonJS({
     };
     LongPrototype.eq = LongPrototype.equals;
     LongPrototype.notEquals = function notEquals(other) {
-      return !this.eq(other);
+      return !this.eq(
+        /* validates */
+        other
+      );
     };
     LongPrototype.neq = LongPrototype.notEquals;
     LongPrototype.ne = LongPrototype.notEquals;
     LongPrototype.lessThan = function lessThan(other) {
-      return this.comp(other) < 0;
+      return this.comp(
+        /* validates */
+        other
+      ) < 0;
     };
     LongPrototype.lt = LongPrototype.lessThan;
     LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
-      return this.comp(other) <= 0;
+      return this.comp(
+        /* validates */
+        other
+      ) <= 0;
     };
     LongPrototype.lte = LongPrototype.lessThanOrEqual;
     LongPrototype.le = LongPrototype.lessThanOrEqual;
     LongPrototype.greaterThan = function greaterThan(other) {
-      return this.comp(other) > 0;
+      return this.comp(
+        /* validates */
+        other
+      ) > 0;
     };
     LongPrototype.gt = LongPrototype.greaterThan;
     LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
-      return this.comp(other) >= 0;
+      return this.comp(
+        /* validates */
+        other
+      ) >= 0;
     };
     LongPrototype.gte = LongPrototype.greaterThanOrEqual;
     LongPrototype.ge = LongPrototype.greaterThanOrEqual;
@@ -884,9 +896,9 @@ var require_long = __commonJS({
   }
 });
 
-// (disabled):src/node_modules/.pnpm/node-fetch@2.6.7/node_modules/node-fetch/browser.js
+// (disabled):src/node_modules/.pnpm/node-fetch@2.6.9/node_modules/node-fetch/browser.js
 var require_browser = __commonJS({
-  "(disabled):src/node_modules/.pnpm/node-fetch@2.6.7/node_modules/node-fetch/browser.js"() {
+  "(disabled):src/node_modules/.pnpm/node-fetch@2.6.9/node_modules/node-fetch/browser.js"() {
   }
 });
 
@@ -981,7 +993,9 @@ var require_alea = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1053,7 +1067,9 @@ var require_xor128 = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1132,7 +1148,9 @@ var require_xorwow = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1227,7 +1245,9 @@ var require_xorshift7 = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1336,8 +1356,11 @@ var require_xor4096 = __commonJS({
       }
     })(
       exports,
+      // window object or global
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1415,7 +1438,9 @@ var require_tychei = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1564,9 +1589,13 @@ var require_seedrandom = __commonJS({
         math["seed" + rngname] = seedrandom2;
       }
     })(
+      // global: `self` in browsers (including strict mode and web workers),
+      // otherwise `this` in Node and other environments
       typeof self !== "undefined" ? self : exports,
       [],
+      // pool: entropy pool starts empty
       Math
+      // math: package containing random, pow, and seedrandom
     );
   }
 });
@@ -1591,15 +1620,15 @@ var require_seedrandom2 = __commonJS({
   }
 });
 
-// (disabled):path
-var require_path = __commonJS({
-  "(disabled):path"() {
-  }
-});
-
 // (disabled):fs
 var require_fs = __commonJS({
   "(disabled):fs"() {
+  }
+});
+
+// (disabled):path
+var require_path = __commonJS({
+  "(disabled):path"() {
   }
 });
 
@@ -1708,18 +1737,15 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           err("exiting due to exception: " + toLog);
         }
         if (ENVIRONMENT_IS_NODE) {
+          var fs = require_fs();
+          var nodePath = require_path();
           if (ENVIRONMENT_IS_WORKER) {
-            scriptDirectory = require_path().dirname(scriptDirectory) + "/";
+            scriptDirectory = nodePath.dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
-          var fs, nodePath;
-          if (typeof __require === "function") {
-            fs = require_fs();
-            nodePath = require_path();
-          }
           read_ = (filename, binary) => {
-            filename = nodePath["normalize"](filename);
+            filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
             return fs.readFileSync(filename, binary ? void 0 : "utf8");
           };
           readBinary = (filename) => {
@@ -1730,7 +1756,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return ret;
           };
           readAsync = (filename, onload, onerror) => {
-            filename = nodePath["normalize"](filename);
+            filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
             fs.readFile(filename, function(err2, data) {
               if (err2)
                 onerror(err2);
@@ -1965,7 +1991,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             if (!(wasmMemory.buffer instanceof SharedArrayBuffer)) {
               err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");
               if (ENVIRONMENT_IS_NODE) {
-                console.log("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and also use a recent version)");
+                err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)");
               }
               throw Error("bad memory");
             }
@@ -2048,12 +2074,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
         }
         function abort(what) {
-          if (ENVIRONMENT_IS_PTHREAD) {
-            postMessage({ "cmd": "onAbort", "arg": what });
-          } else {
-            if (Module["onAbort"]) {
-              Module["onAbort"](what);
-            }
+          if (Module["onAbort"]) {
+            Module["onAbort"](what);
           }
           what = "Aborted(" + what + ")";
           err(what);
@@ -2210,12 +2232,14 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           worker.pthread_ptr = threadParams.pthread_ptr;
           var msg = { "cmd": "run", "start_routine": threadParams.startRoutine, "arg": threadParams.arg, "pthread_ptr": threadParams.pthread_ptr };
           worker.runPthread = () => {
-            msg.time = performance.now();
+            if (ENVIRONMENT_IS_NODE) {
+              worker.ref();
+            }
             worker.postMessage(msg, threadParams.transferList);
+            delete worker.runPthread;
           };
           if (worker.loaded) {
             worker.runPthread();
-            delete worker.runPthread;
           }
           return 0;
         }
@@ -2286,6 +2310,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           PThread.unusedWorkers.push(worker);
           PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker), 1);
           worker.pthread_ptr = 0;
+          if (ENVIRONMENT_IS_NODE) {
+            worker.unref();
+          }
           __emscripten_thread_free_data(pthread_ptr);
         }, receiveObjectTransfer: function(data) {
         }, threadInitTLS: function() {
@@ -2318,11 +2345,13 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
               cancelThread(d["thread"]);
             } else if (cmd === "loaded") {
               worker.loaded = true;
+              if (ENVIRONMENT_IS_NODE) {
+                worker.unref();
+              }
               if (onFinishedLoading)
                 onFinishedLoading(worker);
               if (worker.runPthread) {
                 worker.runPthread();
-                delete worker.runPthread;
               }
             } else if (cmd === "print") {
               out("Thread " + d["threadId"] + ": " + d["text"]);
@@ -2332,10 +2361,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
               alert("Thread " + d["threadId"] + ": " + d["text"]);
             } else if (d.target === "setimmediate") {
               worker.postMessage(d);
-            } else if (cmd === "onAbort") {
-              if (Module["onAbort"]) {
-                Module["onAbort"](d["arg"]);
-              }
+            } else if (cmd === "callHandler") {
+              Module[d["handler"]](...d["args"]);
             } else if (cmd) {
               err("worker sent an unknown command " + cmd);
             }
@@ -2356,10 +2383,19 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             worker.on("detachedExit", function() {
             });
           }
-          worker.postMessage({ "cmd": "load", "urlOrBlob": Module["mainScriptUrlOrBlob"] || _scriptDir, "wasmMemory": wasmMemory, "wasmModule": wasmModule });
+          var handlers = [];
+          var knownHandlers = ["onExit", "onAbort", "print", "printErr"];
+          for (var handler of knownHandlers) {
+            if (Module.hasOwnProperty(handler)) {
+              handlers.push(handler);
+            }
+          }
+          worker.postMessage({ "cmd": "load", "handlers": handlers, "urlOrBlob": Module["mainScriptUrlOrBlob"] || _scriptDir, "wasmMemory": wasmMemory, "wasmModule": wasmModule });
         }, allocateUnusedWorker: function() {
+          var worker;
           var pthreadMainJs = locateFile("tfjs-backend-wasm-threaded-simd.worker.js");
-          PThread.unusedWorkers.push(new Worker(pthreadMainJs));
+          worker = new Worker(pthreadMainJs);
+          PThread.unusedWorkers.push(worker);
         }, getNewWorker: function() {
           if (PThread.unusedWorkers.length == 0) {
             PThread.allocateUnusedWorker();
@@ -2373,26 +2409,10 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             callbacks.shift()(Module);
           }
         }
-        function withStackSave(f) {
-          var stack2 = stackSave();
-          var ret = f();
-          stackRestore(stack2);
-          return ret;
-        }
-        function demangle(func) {
-          return func;
-        }
-        function demangleAll(text) {
-          var regex = /\b_Z[\w\d_]+/g;
-          return text.replace(regex, function(x) {
-            var y = demangle(x);
-            return x === y ? x : y + " [" + x + "]";
-          });
-        }
         function establishStackSpace() {
           var pthread_ptr = _pthread_self();
-          var stackTop = GROWABLE_HEAP_I32()[pthread_ptr + 44 >> 2];
-          var stackSize = GROWABLE_HEAP_I32()[pthread_ptr + 48 >> 2];
+          var stackTop = GROWABLE_HEAP_I32()[pthread_ptr + 52 >> 2];
+          var stackSize = GROWABLE_HEAP_I32()[pthread_ptr + 56 >> 2];
           var stackMax = stackTop - stackSize;
           _emscripten_stack_set_limits(stackTop, stackMax);
           stackRestore(stackTop);
@@ -2426,25 +2446,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           }
         }
         Module["invokeEntryPoint"] = invokeEntryPoint;
-        function jsStackTrace() {
-          var error = new Error();
-          if (!error.stack) {
-            try {
-              throw new Error();
-            } catch (e) {
-              error = e;
-            }
-            if (!error.stack) {
-              return "(no stack trace available)";
-            }
-          }
-          return error.stack.toString();
-        }
         function registerTLSInit(tlsInitFunc) {
           PThread.tlsInitFunctions.push(tlsInitFunc);
-        }
-        function writeArrayToMemory(array, buffer3) {
-          GROWABLE_HEAP_I8().set(array, buffer3);
         }
         function ___emscripten_init_main_thread_js(tb) {
           __emscripten_thread_init(tb, !ENVIRONMENT_IS_WORKER, 1, !ENVIRONMENT_IS_WEB);
@@ -2482,7 +2485,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return spawnThread(threadParams);
         }
         function __emscripten_default_pthread_stack_size() {
-          return 2097152;
+          return 65536;
         }
         var nowIsMonotonic = true;
         function __emscripten_get_now_is_monotonic() {
@@ -2548,10 +2551,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             var t = process["hrtime"]();
             return t[0] * 1e3 + t[1] / 1e6;
           };
-        } else if (ENVIRONMENT_IS_PTHREAD) {
-          _emscripten_get_now = () => performance.now() - Module["__performance_now_clock_drift"];
         } else
-          _emscripten_get_now = () => performance.now();
+          _emscripten_get_now = () => performance.timeOrigin + performance.now();
         function _emscripten_memcpy_big(dest, src, num) {
           GROWABLE_HEAP_U8().copyWithin(dest, src, src + num);
         }
@@ -2559,6 +2560,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           if (ENVIRONMENT_IS_NODE)
             return require_os().cpus().length;
           return navigator["hardwareConcurrency"];
+        }
+        function withStackSave(f) {
+          var stack2 = stackSave();
+          var ret = f();
+          stackRestore(stack2);
+          return ret;
         }
         function _emscripten_proxy_to_main_thread_js(index, sync) {
           var numCallArgs = arguments.length - 2;
@@ -2658,6 +2665,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           var func = Module["_" + ident];
           return func;
         }
+        function writeArrayToMemory(array, buffer3) {
+          GROWABLE_HEAP_I8().set(array, buffer3);
+        }
         function ccall(ident, returnType, argTypes, args, opts) {
           var toC = { "string": (str) => {
             var ret2 = 0;
@@ -2743,6 +2753,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _Abs = Module["_Abs"] = function() {
           return (_Abs = Module["_Abs"] = Module["asm"]["Abs"]).apply(null, arguments);
         };
+        var _Acos = Module["_Acos"] = function() {
+          return (_Acos = Module["_Acos"] = Module["asm"]["Acos"]).apply(null, arguments);
+        };
+        var _Acosh = Module["_Acosh"] = function() {
+          return (_Acosh = Module["_Acosh"] = Module["asm"]["Acosh"]).apply(null, arguments);
+        };
         var _Add = Module["_Add"] = function() {
           return (_Add = Module["_Add"] = Module["asm"]["Add"]).apply(null, arguments);
         };
@@ -2758,11 +2774,38 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _ArgMax = Module["_ArgMax"] = function() {
           return (_ArgMax = Module["_ArgMax"] = Module["asm"]["ArgMax"]).apply(null, arguments);
         };
+        var _ArgMin = Module["_ArgMin"] = function() {
+          return (_ArgMin = Module["_ArgMin"] = Module["asm"]["ArgMin"]).apply(null, arguments);
+        };
+        var _Asin = Module["_Asin"] = function() {
+          return (_Asin = Module["_Asin"] = Module["asm"]["Asin"]).apply(null, arguments);
+        };
+        var _Asinh = Module["_Asinh"] = function() {
+          return (_Asinh = Module["_Asinh"] = Module["asm"]["Asinh"]).apply(null, arguments);
+        };
+        var _Atan = Module["_Atan"] = function() {
+          return (_Atan = Module["_Atan"] = Module["asm"]["Atan"]).apply(null, arguments);
+        };
+        var _Atan2 = Module["_Atan2"] = function() {
+          return (_Atan2 = Module["_Atan2"] = Module["asm"]["Atan2"]).apply(null, arguments);
+        };
+        var _Atanh = Module["_Atanh"] = function() {
+          return (_Atanh = Module["_Atanh"] = Module["asm"]["Atanh"]).apply(null, arguments);
+        };
         var _AvgPool = Module["_AvgPool"] = function() {
           return (_AvgPool = Module["_AvgPool"] = Module["asm"]["AvgPool"]).apply(null, arguments);
         };
+        var _AvgPool3D = Module["_AvgPool3D"] = function() {
+          return (_AvgPool3D = Module["_AvgPool3D"] = Module["asm"]["AvgPool3D"]).apply(null, arguments);
+        };
+        var _AvgPool3DGrad = Module["_AvgPool3DGrad"] = function() {
+          return (_AvgPool3DGrad = Module["_AvgPool3DGrad"] = Module["asm"]["AvgPool3DGrad"]).apply(null, arguments);
+        };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
           return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
+        };
+        var _Bincount = Module["_Bincount"] = function() {
+          return (_Bincount = Module["_Bincount"] = Module["asm"]["Bincount"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
           return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
@@ -2775,6 +2818,15 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = function() {
           return (_Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = Module["asm"]["Conv2DBackpropInput"]).apply(null, arguments);
+        };
+        var _Conv3D = Module["_Conv3D"] = function() {
+          return (_Conv3D = Module["_Conv3D"] = Module["asm"]["Conv3D"]).apply(null, arguments);
+        };
+        var _Conv3DBackpropFilterV2 = Module["_Conv3DBackpropFilterV2"] = function() {
+          return (_Conv3DBackpropFilterV2 = Module["_Conv3DBackpropFilterV2"] = Module["asm"]["Conv3DBackpropFilterV2"]).apply(null, arguments);
+        };
+        var _Conv3DBackpropInputV2 = Module["_Conv3DBackpropInputV2"] = function() {
+          return (_Conv3DBackpropInputV2 = Module["_Conv3DBackpropInputV2"] = Module["asm"]["Conv3DBackpropInputV2"]).apply(null, arguments);
         };
         var _Cos = Module["_Cos"] = function() {
           return (_Cos = Module["_Cos"] = Module["asm"]["Cos"]).apply(null, arguments);
@@ -2791,20 +2843,41 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _Cumsum = Module["_Cumsum"] = function() {
           return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
         };
+        var _DenseBincount = Module["_DenseBincount"] = function() {
+          return (_DenseBincount = Module["_DenseBincount"] = Module["asm"]["DenseBincount"]).apply(null, arguments);
+        };
         var _DepthToSpace = Module["_DepthToSpace"] = function() {
           return (_DepthToSpace = Module["_DepthToSpace"] = Module["asm"]["DepthToSpace"]).apply(null, arguments);
         };
         var _DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = function() {
           return (_DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = Module["asm"]["DepthwiseConv2dNative"]).apply(null, arguments);
         };
+        var _Diag = Module["_Diag"] = function() {
+          return (_Diag = Module["_Diag"] = Module["asm"]["Diag"]).apply(null, arguments);
+        };
+        var _Dilation2D = Module["_Dilation2D"] = function() {
+          return (_Dilation2D = Module["_Dilation2D"] = Module["asm"]["Dilation2D"]).apply(null, arguments);
+        };
+        var _Dilation2DBackpropFilter = Module["_Dilation2DBackpropFilter"] = function() {
+          return (_Dilation2DBackpropFilter = Module["_Dilation2DBackpropFilter"] = Module["asm"]["Dilation2DBackpropFilter"]).apply(null, arguments);
+        };
+        var _Dilation2DBackpropInput = Module["_Dilation2DBackpropInput"] = function() {
+          return (_Dilation2DBackpropInput = Module["_Dilation2DBackpropInput"] = Module["asm"]["Dilation2DBackpropInput"]).apply(null, arguments);
+        };
         var _Elu = Module["_Elu"] = function() {
           return (_Elu = Module["_Elu"] = Module["asm"]["Elu"]).apply(null, arguments);
+        };
+        var _EluGrad = Module["_EluGrad"] = function() {
+          return (_EluGrad = Module["_EluGrad"] = Module["asm"]["EluGrad"]).apply(null, arguments);
         };
         var _Equal = Module["_Equal"] = function() {
           return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
           return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
+        };
+        var _Expm1 = Module["_Expm1"] = function() {
+          return (_Expm1 = Module["_Expm1"] = Module["asm"]["Expm1"]).apply(null, arguments);
         };
         var _FlipLeftRight = Module["_FlipLeftRight"] = function() {
           return (_FlipLeftRight = Module["_FlipLeftRight"] = Module["asm"]["FlipLeftRight"]).apply(null, arguments);
@@ -2836,8 +2909,20 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _GreaterEqual = Module["_GreaterEqual"] = function() {
           return (_GreaterEqual = Module["_GreaterEqual"] = Module["asm"]["GreaterEqual"]).apply(null, arguments);
         };
+        var _IsFinite = Module["_IsFinite"] = function() {
+          return (_IsFinite = Module["_IsFinite"] = Module["asm"]["IsFinite"]).apply(null, arguments);
+        };
+        var _IsInf = Module["_IsInf"] = function() {
+          return (_IsInf = Module["_IsInf"] = Module["asm"]["IsInf"]).apply(null, arguments);
+        };
         var _IsNan = Module["_IsNan"] = function() {
           return (_IsNan = Module["_IsNan"] = Module["asm"]["IsNan"]).apply(null, arguments);
+        };
+        var _LRN = Module["_LRN"] = function() {
+          return (_LRN = Module["_LRN"] = Module["asm"]["LRN"]).apply(null, arguments);
+        };
+        var _LRNGrad = Module["_LRNGrad"] = function() {
+          return (_LRNGrad = Module["_LRNGrad"] = Module["asm"]["LRNGrad"]).apply(null, arguments);
         };
         var _LeakyRelu = Module["_LeakyRelu"] = function() {
           return (_LeakyRelu = Module["_LeakyRelu"] = Module["asm"]["LeakyRelu"]).apply(null, arguments);
@@ -2848,8 +2933,14 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _LessEqual = Module["_LessEqual"] = function() {
           return (_LessEqual = Module["_LessEqual"] = Module["asm"]["LessEqual"]).apply(null, arguments);
         };
+        var _LinSpace = Module["_LinSpace"] = function() {
+          return (_LinSpace = Module["_LinSpace"] = Module["asm"]["LinSpace"]).apply(null, arguments);
+        };
         var _Log = Module["_Log"] = function() {
           return (_Log = Module["_Log"] = Module["asm"]["Log"]).apply(null, arguments);
+        };
+        var _Log1p = Module["_Log1p"] = function() {
+          return (_Log1p = Module["_Log1p"] = Module["asm"]["Log1p"]).apply(null, arguments);
         };
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
           return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
@@ -2869,6 +2960,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _MaxPool = Module["_MaxPool"] = function() {
           return (_MaxPool = Module["_MaxPool"] = Module["asm"]["MaxPool"]).apply(null, arguments);
         };
+        var _MaxPool3D = Module["_MaxPool3D"] = function() {
+          return (_MaxPool3D = Module["_MaxPool3D"] = Module["asm"]["MaxPool3D"]).apply(null, arguments);
+        };
+        var _MaxPool3DGrad = Module["_MaxPool3DGrad"] = function() {
+          return (_MaxPool3DGrad = Module["_MaxPool3DGrad"] = Module["asm"]["MaxPool3DGrad"]).apply(null, arguments);
+        };
         var _Maximum = Module["_Maximum"] = function() {
           return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
@@ -2883,6 +2980,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
           return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
+        };
+        var _Multinomial = Module["_Multinomial"] = function() {
+          return (_Multinomial = Module["_Multinomial"] = Module["asm"]["Multinomial"]).apply(null, arguments);
         };
         var _Multiply = Module["_Multiply"] = function() {
           return (_Multiply = Module["_Multiply"] = Module["asm"]["Multiply"]).apply(null, arguments);
@@ -2932,8 +3032,14 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _ResizeBilinear = Module["_ResizeBilinear"] = function() {
           return (_ResizeBilinear = Module["_ResizeBilinear"] = Module["asm"]["ResizeBilinear"]).apply(null, arguments);
         };
+        var _ResizeBilinearGrad = Module["_ResizeBilinearGrad"] = function() {
+          return (_ResizeBilinearGrad = Module["_ResizeBilinearGrad"] = Module["asm"]["ResizeBilinearGrad"]).apply(null, arguments);
+        };
         var _ResizeNearestNeighbor = Module["_ResizeNearestNeighbor"] = function() {
           return (_ResizeNearestNeighbor = Module["_ResizeNearestNeighbor"] = Module["asm"]["ResizeNearestNeighbor"]).apply(null, arguments);
+        };
+        var _ResizeNearestNeighborGrad = Module["_ResizeNearestNeighborGrad"] = function() {
+          return (_ResizeNearestNeighborGrad = Module["_ResizeNearestNeighborGrad"] = Module["asm"]["ResizeNearestNeighborGrad"]).apply(null, arguments);
         };
         var _Reverse = Module["_Reverse"] = function() {
           return (_Reverse = Module["_Reverse"] = Module["asm"]["Reverse"]).apply(null, arguments);
@@ -2950,17 +3056,29 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _ScatterNd = Module["_ScatterNd"] = function() {
           return (_ScatterNd = Module["_ScatterNd"] = Module["asm"]["ScatterNd"]).apply(null, arguments);
         };
+        var _SearchSorted = Module["_SearchSorted"] = function() {
+          return (_SearchSorted = Module["_SearchSorted"] = Module["asm"]["SearchSorted"]).apply(null, arguments);
+        };
         var _SelectV2 = Module["_SelectV2"] = function() {
           return (_SelectV2 = Module["_SelectV2"] = Module["asm"]["SelectV2"]).apply(null, arguments);
         };
+        var _Selu = Module["_Selu"] = function() {
+          return (_Selu = Module["_Selu"] = Module["asm"]["Selu"]).apply(null, arguments);
+        };
         var _Sigmoid = Module["_Sigmoid"] = function() {
           return (_Sigmoid = Module["_Sigmoid"] = Module["asm"]["Sigmoid"]).apply(null, arguments);
+        };
+        var _Sign = Module["_Sign"] = function() {
+          return (_Sign = Module["_Sign"] = Module["asm"]["Sign"]).apply(null, arguments);
         };
         var _Sin = Module["_Sin"] = function() {
           return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
+        };
+        var _Softplus = Module["_Softplus"] = function() {
+          return (_Softplus = Module["_Softplus"] = Module["asm"]["Softplus"]).apply(null, arguments);
         };
         var _SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = function() {
           return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["SparseFillEmptyRows"]).apply(null, arguments);
@@ -2970,6 +3088,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _SparseSegmentReduction = Module["_SparseSegmentReduction"] = function() {
           return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["SparseSegmentReduction"]).apply(null, arguments);
+        };
+        var _SparseToDense = Module["_SparseToDense"] = function() {
+          return (_SparseToDense = Module["_SparseToDense"] = Module["asm"]["SparseToDense"]).apply(null, arguments);
         };
         var _Sqrt = Module["_Sqrt"] = function() {
           return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Sqrt"]).apply(null, arguments);
@@ -2997,6 +3118,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _Tanh = Module["_Tanh"] = function() {
           return (_Tanh = Module["_Tanh"] = Module["asm"]["Tanh"]).apply(null, arguments);
+        };
+        var _TensorScatterUpdate = Module["_TensorScatterUpdate"] = function() {
+          return (_TensorScatterUpdate = Module["_TensorScatterUpdate"] = Module["asm"]["TensorScatterUpdate"]).apply(null, arguments);
         };
         var _Tile = Module["_Tile"] = function() {
           return (_Tile = Module["_Tile"] = Module["asm"]["Tile"]).apply(null, arguments);
@@ -3093,7 +3217,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           if (ENVIRONMENT_IS_PTHREAD) {
             readyPromiseResolve(Module);
             initRuntime();
-            postMessage({ "cmd": "loaded" });
+            startWorker(Module);
             return;
           }
           preRun();
@@ -3219,18 +3343,15 @@ var require_tfjs_backend_wasm = __commonJS({
           err("exiting due to exception: " + toLog);
         }
         if (ENVIRONMENT_IS_NODE) {
+          var fs = require_fs();
+          var nodePath = require_path();
           if (ENVIRONMENT_IS_WORKER) {
-            scriptDirectory = require_path().dirname(scriptDirectory) + "/";
+            scriptDirectory = nodePath.dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
           }
-          var fs, nodePath;
-          if (typeof __require === "function") {
-            fs = require_fs();
-            nodePath = require_path();
-          }
           read_ = (filename, binary) => {
-            filename = nodePath["normalize"](filename);
+            filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
             return fs.readFileSync(filename, binary ? void 0 : "utf8");
           };
           readBinary = (filename) => {
@@ -3241,7 +3362,7 @@ var require_tfjs_backend_wasm = __commonJS({
             return ret;
           };
           readAsync = (filename, onload, onerror) => {
-            filename = nodePath["normalize"](filename);
+            filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
             fs.readFile(filename, function(err2, data) {
               if (err2)
                 onerror(err2);
@@ -3507,10 +3628,8 @@ var require_tfjs_backend_wasm = __commonJS({
           }
         }
         function abort(what) {
-          {
-            if (Module["onAbort"]) {
-              Module["onAbort"](what);
-            }
+          if (Module["onAbort"]) {
+            Module["onAbort"](what);
           }
           what = "Aborted(" + what + ")";
           err(what);
@@ -3634,33 +3753,6 @@ var require_tfjs_backend_wasm = __commonJS({
             callbacks.shift()(Module);
           }
         }
-        function demangle(func) {
-          return func;
-        }
-        function demangleAll(text) {
-          var regex = /\b_Z[\w\d_]+/g;
-          return text.replace(regex, function(x) {
-            var y = demangle(x);
-            return x === y ? x : y + " [" + x + "]";
-          });
-        }
-        function jsStackTrace() {
-          var error = new Error();
-          if (!error.stack) {
-            try {
-              throw new Error();
-            } catch (e) {
-              error = e;
-            }
-            if (!error.stack) {
-              return "(no stack trace available)";
-            }
-          }
-          return error.stack.toString();
-        }
-        function writeArrayToMemory(array, buffer3) {
-          HEAP8.set(array, buffer3);
-        }
         function _abort() {
           abort("");
         }
@@ -3738,6 +3830,9 @@ var require_tfjs_backend_wasm = __commonJS({
         function getCFunc(ident) {
           var func = Module["_" + ident];
           return func;
+        }
+        function writeArrayToMemory(array, buffer3) {
+          HEAP8.set(array, buffer3);
         }
         function ccall(ident, returnType, argTypes, args, opts) {
           var toC = { "string": (str) => {
@@ -3822,6 +3917,12 @@ var require_tfjs_backend_wasm = __commonJS({
         var _Abs = Module["_Abs"] = function() {
           return (_Abs = Module["_Abs"] = Module["asm"]["Abs"]).apply(null, arguments);
         };
+        var _Acos = Module["_Acos"] = function() {
+          return (_Acos = Module["_Acos"] = Module["asm"]["Acos"]).apply(null, arguments);
+        };
+        var _Acosh = Module["_Acosh"] = function() {
+          return (_Acosh = Module["_Acosh"] = Module["asm"]["Acosh"]).apply(null, arguments);
+        };
         var _Add = Module["_Add"] = function() {
           return (_Add = Module["_Add"] = Module["asm"]["Add"]).apply(null, arguments);
         };
@@ -3837,11 +3938,38 @@ var require_tfjs_backend_wasm = __commonJS({
         var _ArgMax = Module["_ArgMax"] = function() {
           return (_ArgMax = Module["_ArgMax"] = Module["asm"]["ArgMax"]).apply(null, arguments);
         };
+        var _ArgMin = Module["_ArgMin"] = function() {
+          return (_ArgMin = Module["_ArgMin"] = Module["asm"]["ArgMin"]).apply(null, arguments);
+        };
+        var _Asin = Module["_Asin"] = function() {
+          return (_Asin = Module["_Asin"] = Module["asm"]["Asin"]).apply(null, arguments);
+        };
+        var _Asinh = Module["_Asinh"] = function() {
+          return (_Asinh = Module["_Asinh"] = Module["asm"]["Asinh"]).apply(null, arguments);
+        };
+        var _Atan = Module["_Atan"] = function() {
+          return (_Atan = Module["_Atan"] = Module["asm"]["Atan"]).apply(null, arguments);
+        };
+        var _Atan2 = Module["_Atan2"] = function() {
+          return (_Atan2 = Module["_Atan2"] = Module["asm"]["Atan2"]).apply(null, arguments);
+        };
+        var _Atanh = Module["_Atanh"] = function() {
+          return (_Atanh = Module["_Atanh"] = Module["asm"]["Atanh"]).apply(null, arguments);
+        };
         var _AvgPool = Module["_AvgPool"] = function() {
           return (_AvgPool = Module["_AvgPool"] = Module["asm"]["AvgPool"]).apply(null, arguments);
         };
+        var _AvgPool3D = Module["_AvgPool3D"] = function() {
+          return (_AvgPool3D = Module["_AvgPool3D"] = Module["asm"]["AvgPool3D"]).apply(null, arguments);
+        };
+        var _AvgPool3DGrad = Module["_AvgPool3DGrad"] = function() {
+          return (_AvgPool3DGrad = Module["_AvgPool3DGrad"] = Module["asm"]["AvgPool3DGrad"]).apply(null, arguments);
+        };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
           return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
+        };
+        var _Bincount = Module["_Bincount"] = function() {
+          return (_Bincount = Module["_Bincount"] = Module["asm"]["Bincount"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
           return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
@@ -3854,6 +3982,15 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = function() {
           return (_Conv2DBackpropInput = Module["_Conv2DBackpropInput"] = Module["asm"]["Conv2DBackpropInput"]).apply(null, arguments);
+        };
+        var _Conv3D = Module["_Conv3D"] = function() {
+          return (_Conv3D = Module["_Conv3D"] = Module["asm"]["Conv3D"]).apply(null, arguments);
+        };
+        var _Conv3DBackpropFilterV2 = Module["_Conv3DBackpropFilterV2"] = function() {
+          return (_Conv3DBackpropFilterV2 = Module["_Conv3DBackpropFilterV2"] = Module["asm"]["Conv3DBackpropFilterV2"]).apply(null, arguments);
+        };
+        var _Conv3DBackpropInputV2 = Module["_Conv3DBackpropInputV2"] = function() {
+          return (_Conv3DBackpropInputV2 = Module["_Conv3DBackpropInputV2"] = Module["asm"]["Conv3DBackpropInputV2"]).apply(null, arguments);
         };
         var _Cos = Module["_Cos"] = function() {
           return (_Cos = Module["_Cos"] = Module["asm"]["Cos"]).apply(null, arguments);
@@ -3870,20 +4007,41 @@ var require_tfjs_backend_wasm = __commonJS({
         var _Cumsum = Module["_Cumsum"] = function() {
           return (_Cumsum = Module["_Cumsum"] = Module["asm"]["Cumsum"]).apply(null, arguments);
         };
+        var _DenseBincount = Module["_DenseBincount"] = function() {
+          return (_DenseBincount = Module["_DenseBincount"] = Module["asm"]["DenseBincount"]).apply(null, arguments);
+        };
         var _DepthToSpace = Module["_DepthToSpace"] = function() {
           return (_DepthToSpace = Module["_DepthToSpace"] = Module["asm"]["DepthToSpace"]).apply(null, arguments);
         };
         var _DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = function() {
           return (_DepthwiseConv2dNative = Module["_DepthwiseConv2dNative"] = Module["asm"]["DepthwiseConv2dNative"]).apply(null, arguments);
         };
+        var _Diag = Module["_Diag"] = function() {
+          return (_Diag = Module["_Diag"] = Module["asm"]["Diag"]).apply(null, arguments);
+        };
+        var _Dilation2D = Module["_Dilation2D"] = function() {
+          return (_Dilation2D = Module["_Dilation2D"] = Module["asm"]["Dilation2D"]).apply(null, arguments);
+        };
+        var _Dilation2DBackpropFilter = Module["_Dilation2DBackpropFilter"] = function() {
+          return (_Dilation2DBackpropFilter = Module["_Dilation2DBackpropFilter"] = Module["asm"]["Dilation2DBackpropFilter"]).apply(null, arguments);
+        };
+        var _Dilation2DBackpropInput = Module["_Dilation2DBackpropInput"] = function() {
+          return (_Dilation2DBackpropInput = Module["_Dilation2DBackpropInput"] = Module["asm"]["Dilation2DBackpropInput"]).apply(null, arguments);
+        };
         var _Elu = Module["_Elu"] = function() {
           return (_Elu = Module["_Elu"] = Module["asm"]["Elu"]).apply(null, arguments);
+        };
+        var _EluGrad = Module["_EluGrad"] = function() {
+          return (_EluGrad = Module["_EluGrad"] = Module["asm"]["EluGrad"]).apply(null, arguments);
         };
         var _Equal = Module["_Equal"] = function() {
           return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
           return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
+        };
+        var _Expm1 = Module["_Expm1"] = function() {
+          return (_Expm1 = Module["_Expm1"] = Module["asm"]["Expm1"]).apply(null, arguments);
         };
         var _FlipLeftRight = Module["_FlipLeftRight"] = function() {
           return (_FlipLeftRight = Module["_FlipLeftRight"] = Module["asm"]["FlipLeftRight"]).apply(null, arguments);
@@ -3915,8 +4073,20 @@ var require_tfjs_backend_wasm = __commonJS({
         var _GreaterEqual = Module["_GreaterEqual"] = function() {
           return (_GreaterEqual = Module["_GreaterEqual"] = Module["asm"]["GreaterEqual"]).apply(null, arguments);
         };
+        var _IsFinite = Module["_IsFinite"] = function() {
+          return (_IsFinite = Module["_IsFinite"] = Module["asm"]["IsFinite"]).apply(null, arguments);
+        };
+        var _IsInf = Module["_IsInf"] = function() {
+          return (_IsInf = Module["_IsInf"] = Module["asm"]["IsInf"]).apply(null, arguments);
+        };
         var _IsNan = Module["_IsNan"] = function() {
           return (_IsNan = Module["_IsNan"] = Module["asm"]["IsNan"]).apply(null, arguments);
+        };
+        var _LRN = Module["_LRN"] = function() {
+          return (_LRN = Module["_LRN"] = Module["asm"]["LRN"]).apply(null, arguments);
+        };
+        var _LRNGrad = Module["_LRNGrad"] = function() {
+          return (_LRNGrad = Module["_LRNGrad"] = Module["asm"]["LRNGrad"]).apply(null, arguments);
         };
         var _LeakyRelu = Module["_LeakyRelu"] = function() {
           return (_LeakyRelu = Module["_LeakyRelu"] = Module["asm"]["LeakyRelu"]).apply(null, arguments);
@@ -3927,8 +4097,14 @@ var require_tfjs_backend_wasm = __commonJS({
         var _LessEqual = Module["_LessEqual"] = function() {
           return (_LessEqual = Module["_LessEqual"] = Module["asm"]["LessEqual"]).apply(null, arguments);
         };
+        var _LinSpace = Module["_LinSpace"] = function() {
+          return (_LinSpace = Module["_LinSpace"] = Module["asm"]["LinSpace"]).apply(null, arguments);
+        };
         var _Log = Module["_Log"] = function() {
           return (_Log = Module["_Log"] = Module["asm"]["Log"]).apply(null, arguments);
+        };
+        var _Log1p = Module["_Log1p"] = function() {
+          return (_Log1p = Module["_Log1p"] = Module["asm"]["Log1p"]).apply(null, arguments);
         };
         var _LogicalAnd = Module["_LogicalAnd"] = function() {
           return (_LogicalAnd = Module["_LogicalAnd"] = Module["asm"]["LogicalAnd"]).apply(null, arguments);
@@ -3948,6 +4124,12 @@ var require_tfjs_backend_wasm = __commonJS({
         var _MaxPool = Module["_MaxPool"] = function() {
           return (_MaxPool = Module["_MaxPool"] = Module["asm"]["MaxPool"]).apply(null, arguments);
         };
+        var _MaxPool3D = Module["_MaxPool3D"] = function() {
+          return (_MaxPool3D = Module["_MaxPool3D"] = Module["asm"]["MaxPool3D"]).apply(null, arguments);
+        };
+        var _MaxPool3DGrad = Module["_MaxPool3DGrad"] = function() {
+          return (_MaxPool3DGrad = Module["_MaxPool3DGrad"] = Module["asm"]["MaxPool3DGrad"]).apply(null, arguments);
+        };
         var _Maximum = Module["_Maximum"] = function() {
           return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
@@ -3962,6 +4144,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
           return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
+        };
+        var _Multinomial = Module["_Multinomial"] = function() {
+          return (_Multinomial = Module["_Multinomial"] = Module["asm"]["Multinomial"]).apply(null, arguments);
         };
         var _Multiply = Module["_Multiply"] = function() {
           return (_Multiply = Module["_Multiply"] = Module["asm"]["Multiply"]).apply(null, arguments);
@@ -4011,8 +4196,14 @@ var require_tfjs_backend_wasm = __commonJS({
         var _ResizeBilinear = Module["_ResizeBilinear"] = function() {
           return (_ResizeBilinear = Module["_ResizeBilinear"] = Module["asm"]["ResizeBilinear"]).apply(null, arguments);
         };
+        var _ResizeBilinearGrad = Module["_ResizeBilinearGrad"] = function() {
+          return (_ResizeBilinearGrad = Module["_ResizeBilinearGrad"] = Module["asm"]["ResizeBilinearGrad"]).apply(null, arguments);
+        };
         var _ResizeNearestNeighbor = Module["_ResizeNearestNeighbor"] = function() {
           return (_ResizeNearestNeighbor = Module["_ResizeNearestNeighbor"] = Module["asm"]["ResizeNearestNeighbor"]).apply(null, arguments);
+        };
+        var _ResizeNearestNeighborGrad = Module["_ResizeNearestNeighborGrad"] = function() {
+          return (_ResizeNearestNeighborGrad = Module["_ResizeNearestNeighborGrad"] = Module["asm"]["ResizeNearestNeighborGrad"]).apply(null, arguments);
         };
         var _Reverse = Module["_Reverse"] = function() {
           return (_Reverse = Module["_Reverse"] = Module["asm"]["Reverse"]).apply(null, arguments);
@@ -4029,17 +4220,29 @@ var require_tfjs_backend_wasm = __commonJS({
         var _ScatterNd = Module["_ScatterNd"] = function() {
           return (_ScatterNd = Module["_ScatterNd"] = Module["asm"]["ScatterNd"]).apply(null, arguments);
         };
+        var _SearchSorted = Module["_SearchSorted"] = function() {
+          return (_SearchSorted = Module["_SearchSorted"] = Module["asm"]["SearchSorted"]).apply(null, arguments);
+        };
         var _SelectV2 = Module["_SelectV2"] = function() {
           return (_SelectV2 = Module["_SelectV2"] = Module["asm"]["SelectV2"]).apply(null, arguments);
         };
+        var _Selu = Module["_Selu"] = function() {
+          return (_Selu = Module["_Selu"] = Module["asm"]["Selu"]).apply(null, arguments);
+        };
         var _Sigmoid = Module["_Sigmoid"] = function() {
           return (_Sigmoid = Module["_Sigmoid"] = Module["asm"]["Sigmoid"]).apply(null, arguments);
+        };
+        var _Sign = Module["_Sign"] = function() {
+          return (_Sign = Module["_Sign"] = Module["asm"]["Sign"]).apply(null, arguments);
         };
         var _Sin = Module["_Sin"] = function() {
           return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
+        };
+        var _Softplus = Module["_Softplus"] = function() {
+          return (_Softplus = Module["_Softplus"] = Module["asm"]["Softplus"]).apply(null, arguments);
         };
         var _SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = function() {
           return (_SparseFillEmptyRows = Module["_SparseFillEmptyRows"] = Module["asm"]["SparseFillEmptyRows"]).apply(null, arguments);
@@ -4049,6 +4252,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _SparseSegmentReduction = Module["_SparseSegmentReduction"] = function() {
           return (_SparseSegmentReduction = Module["_SparseSegmentReduction"] = Module["asm"]["SparseSegmentReduction"]).apply(null, arguments);
+        };
+        var _SparseToDense = Module["_SparseToDense"] = function() {
+          return (_SparseToDense = Module["_SparseToDense"] = Module["asm"]["SparseToDense"]).apply(null, arguments);
         };
         var _Sqrt = Module["_Sqrt"] = function() {
           return (_Sqrt = Module["_Sqrt"] = Module["asm"]["Sqrt"]).apply(null, arguments);
@@ -4076,6 +4282,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _Tanh = Module["_Tanh"] = function() {
           return (_Tanh = Module["_Tanh"] = Module["asm"]["Tanh"]).apply(null, arguments);
+        };
+        var _TensorScatterUpdate = Module["_TensorScatterUpdate"] = function() {
+          return (_TensorScatterUpdate = Module["_TensorScatterUpdate"] = Module["asm"]["TensorScatterUpdate"]).apply(null, arguments);
         };
         var _Tile = Module["_Tile"] = function() {
           return (_Tile = Module["_Tile"] = Module["asm"]["Tile"]).apply(null, arguments);
@@ -4273,15 +4482,17 @@ var KernelBackend = class {
   move(dataId, values, shape, dtype, refCount) {
     return notYetImplemented("move");
   }
-  createTensorFromTexture(values, shape, dtype) {
-    return notYetImplemented("createTensorFromTexture");
+  createTensorFromGPUData(values, shape, dtype) {
+    return notYetImplemented("createTensorFromGPUData");
   }
   memory() {
     return notYetImplemented("memory");
   }
+  /** Returns the highest precision for floats in bits (e.g. 16 or 32) */
   floatPrecision() {
     return notYetImplemented("floatPrecision");
   }
+  /** Returns the smallest representable number.  */
   epsilon() {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
   }
@@ -4366,19 +4577,6 @@ function assertNonNull(a) {
     a != null,
     () => `The input to the tensor constructor must be a non-null value.`
   );
-}
-function flatten(arr, result = [], skipTypedArray = false) {
-  if (result == null) {
-    result = [];
-  }
-  if (Array.isArray(arr) || isTypedArray(arr) && !skipTypedArray) {
-    for (let i = 0; i < arr.length; ++i) {
-      flatten(arr[i], result, skipTypedArray);
-    }
-  } else {
-    result.push(arr);
-  }
-  return result;
 }
 function sizeFromShape(shape) {
   if (shape.length === 0) {
@@ -4546,17 +4744,7 @@ function squeezeShape(shape, axis) {
   return { newShape, keptDims };
 }
 function getTypedArrayFromDType(dtype, size) {
-  let values = null;
-  if (dtype == null || dtype === "float32") {
-    values = new Float32Array(size);
-  } else if (dtype === "int32") {
-    values = new Int32Array(size);
-  } else if (dtype === "bool") {
-    values = new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type ${dtype}`);
-  }
-  return values;
+  return getArrayFromDType(dtype, size);
 }
 function getArrayFromDType(dtype, size) {
   let values = null;
@@ -4598,9 +4786,6 @@ function hasEncodingLoss(oldType, newType) {
     return false;
   }
   return true;
-}
-function isTypedArray(a) {
-  return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
 function bytesPerElement(dtype) {
   if (dtype === "float32" || dtype === "int32") {
@@ -4700,6 +4885,20 @@ function toNestedArray(shape, a, isComplex = false) {
   }
   return createNestedArray(0, shape, a, isComplex);
 }
+function convertBackendValuesAndArrayBuffer(data, dtype) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === "float32") {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === "int32") {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === "bool" || dtype === "string") {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
 function makeOnesTypedArray(size, dtype) {
   const array = makeZerosTypedArray(size, dtype);
   for (let i = 0; i < array.length; i++) {
@@ -4771,6 +4970,7 @@ function isPromise(object) {
 // src/tfjs-core/src/environment.ts
 var TENSORFLOWJS_FLAGS_PREFIX = "tfjsflags";
 var Environment = class {
+  // tslint:disable-next-line: no-any
   constructor(global2) {
     this.global = global2;
     this.populateURLFlags();
@@ -4780,6 +4980,7 @@ var Environment = class {
   urlFlags = {};
   platformName;
   platform;
+  // Jasmine spies on this in 'environment_test.ts'
   getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
@@ -4833,6 +5034,7 @@ var Environment = class {
   getFlags() {
     return this.flags;
   }
+  // For backwards compatibility.
   get features() {
     return this.flags;
   }
@@ -4962,6 +5164,7 @@ var Atanh = "Atanh";
 var Atan2 = "Atan2";
 var AvgPool = "AvgPool";
 var AvgPool3D = "AvgPool3D";
+var AvgPool3DGrad = "AvgPool3DGrad";
 var BatchMatMul = "BatchMatMul";
 var BatchToSpaceND = "BatchToSpaceND";
 var Bincount = "Bincount";
@@ -4976,6 +5179,7 @@ var Conv2D = "Conv2D";
 var Conv2DBackpropFilter = "Conv2DBackpropFilter";
 var Conv2DBackpropInput = "Conv2DBackpropInput";
 var Conv3D = "Conv3D";
+var Conv3DBackpropFilterV2 = "Conv3DBackpropFilterV2";
 var Conv3DBackpropInputV2 = "Conv3DBackpropInputV2";
 var Cos = "Cos";
 var Cosh = "Cosh";
@@ -4989,9 +5193,12 @@ var DepthwiseConv2dNativeBackpropFilter = "DepthwiseConv2dNativeBackpropFilter";
 var DepthwiseConv2dNativeBackpropInput = "DepthwiseConv2dNativeBackpropInput";
 var Diag = "Diag";
 var Dilation2D = "Dilation2D";
+var Dilation2DBackpropInput = "Dilation2DBackpropInput";
+var Dilation2DBackpropFilter = "Dilation2DBackpropFilter";
 var RealDiv = "RealDiv";
 var Einsum = "Einsum";
 var Elu = "Elu";
+var EluGrad = "EluGrad";
 var Erf = "Erf";
 var Equal = "Equal";
 var Exp = "Exp";
@@ -5016,6 +5223,7 @@ var IsNan = "IsNan";
 var LeakyRelu = "LeakyRelu";
 var Less = "Less";
 var LessEqual = "LessEqual";
+var LinSpace = "LinSpace";
 var Log = "Log";
 var Log1p = "Log1p";
 var LogicalAnd = "LogicalAnd";
@@ -5023,10 +5231,12 @@ var LogicalNot = "LogicalNot";
 var LogicalOr = "LogicalOr";
 var LogicalXor = "LogicalXor";
 var LRN = "LRN";
+var LRNGrad = "LRNGrad";
 var Max = "Max";
 var Maximum = "Maximum";
 var MaxPool = "MaxPool";
 var MaxPool3D = "MaxPool3D";
+var MaxPool3DGrad = "MaxPool3DGrad";
 var MaxPoolWithArgmax = "MaxPoolWithArgmax";
 var Mean = "Mean";
 var Min = "Min";
@@ -5056,12 +5266,15 @@ var Reciprocal = "Reciprocal";
 var Relu = "Relu";
 var Reshape = "Reshape";
 var ResizeNearestNeighbor = "ResizeNearestNeighbor";
+var ResizeNearestNeighborGrad = "ResizeNearestNeighborGrad";
 var ResizeBilinear = "ResizeBilinear";
+var ResizeBilinearGrad = "ResizeBilinearGrad";
 var Relu6 = "Relu6";
 var Reverse = "Reverse";
 var Round = "Round";
 var Rsqrt = "Rsqrt";
 var ScatterNd = "ScatterNd";
+var TensorScatterUpdate = "TensorScatterUpdate";
 var SearchSorted = "SearchSorted";
 var Select = "Select";
 var Selu = "Selu";
@@ -5083,6 +5296,7 @@ var SparseSegmentSum = "SparseSegmentSum";
 var SparseToDense = "SparseToDense";
 var SquaredDifference = "SquaredDifference";
 var Square = "Square";
+var StaticRegexReplace = "StaticRegexReplace";
 var StridedSlice = "StridedSlice";
 var StringNGrams = "StringNGrams";
 var StringSplit = "StringSplit";
@@ -5170,6 +5384,7 @@ __export(util_exports, {
   checkConversionForErrors: () => checkConversionForErrors,
   clamp: () => clamp,
   computeStrides: () => computeStrides,
+  convertBackendValuesAndArrayBuffer: () => convertBackendValuesAndArrayBuffer,
   createScalarValue: () => createScalarValue,
   createShuffledIndices: () => createShuffledIndices,
   decodeString: () => decodeString,
@@ -5219,7 +5434,10 @@ __export(util_exports, {
 
 // src/tfjs-core/src/hash_util.ts
 var LongExports = __toESM(require_long());
-var Long = LongExports.default || LongExports;
+var Long = (
+  // tslint:disable-next-line
+  LongExports.default || LongExports
+);
 function hexToLong(hex) {
   return Long.fromString(hex, true, 16);
 }
@@ -5436,6 +5654,32 @@ function encodeString(s, encoding = "utf-8") {
 function decodeString(bytes, encoding = "utf-8") {
   encoding = encoding || "utf-8";
   return env().platform.decode(bytes, encoding);
+}
+function isTypedArray(a) {
+  return env().platform.isTypedArray(a);
+}
+function flatten(arr, result = [], skipTypedArray = false) {
+  if (result == null) {
+    result = [];
+  }
+  if (typeof arr === "boolean" || typeof arr === "number" || typeof arr === "string" || isPromise(arr) || arr == null || isTypedArray(arr) && skipTypedArray) {
+    result.push(arr);
+  } else if (Array.isArray(arr) || isTypedArray(arr)) {
+    for (let i = 0; i < arr.length; ++i) {
+      flatten(arr[i], result, skipTypedArray);
+    }
+  } else {
+    let maxIndex = -1;
+    for (const key of Object.keys(arr)) {
+      if (/^([1-9]+[0-9]*|0)$/.test(key)) {
+        maxIndex = Math.max(maxIndex, Number(key));
+      }
+    }
+    for (let i = 0; i <= maxIndex; i++) {
+      flatten(arr[i], result, skipTypedArray);
+    }
+  }
+  return result;
 }
 
 // src/tfjs-core/src/profiler.ts
@@ -5759,6 +6003,7 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         false
+        /* isLast */
       ));
     }
     lines.push("...");
@@ -5772,6 +6017,7 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         i === size - 1
+        /* isLast */
       ));
     }
   } else {
@@ -5785,11 +6031,12 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         i === size - 1
+        /* isLast */
       ));
     }
   }
   const sep = rank === 2 ? "," : "";
-  lines[0] = "[" + lines[0] + sep;
+  lines[0] = "[" + (size > 0 ? lines[0] + sep : "");
   for (let i = 1; i < lines.length - 1; i++) {
     lines[i] = " " + lines[i] + sep;
   }
@@ -5833,6 +6080,14 @@ var TensorBuffer = class {
   shape;
   strides;
   values;
+  /**
+   * Sets a value in the buffer at a given location.
+   *
+   * @param value The value to set.
+   * @param locs  The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   set(value, ...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -5844,6 +6099,13 @@ var TensorBuffer = class {
     const index = this.locToIndex(locs);
     this.values[index] = value;
   }
+  /**
+   * Returns the value in the buffer at the provided location.
+   *
+   * @param locs The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   get(...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -5891,6 +6153,11 @@ var TensorBuffer = class {
   get rank() {
     return this.shape.length;
   }
+  /**
+   * Creates an immutable `tf.Tensor` object from the buffer.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   toTensor() {
     return trackerFn().makeTensor(this.values, this.shape, this.dtype);
   }
@@ -5908,14 +6175,30 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
+  /** Unique id of this tensor. */
   id;
+  /**
+   * Id of the bucket holding the data for this tensor. Multiple arrays can
+   * point to the same bucket (e.g. when calling array.reshape()).
+   */
   dataId;
+  /** The shape of the tensor. */
   shape;
+  /** Number of elements in the tensor. */
   size;
+  /** The data type for the array. */
   dtype;
+  /** The rank type for the array (see `Rank` enum). */
   rankType;
+  /** Whether this tensor has been globally kept. */
   kept = false;
+  /** The id of the scope this tensor is being tracked in. */
   scopeId;
+  /**
+   * Number of elements to skip in each dimension when indexing. See
+   * https://docs.scipy.org/doc/numpy/reference/generated/\
+   * numpy.ndarray.strides.html
+   */
   strides;
   constructor(shape, dtype, dataId, id) {
     this.shape = shape.slice();
@@ -5929,17 +6212,38 @@ var Tensor = class {
   get rank() {
     return this.shape.length;
   }
+  /**
+   * Returns a promise of `tf.TensorBuffer` that holds the underlying data.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async buffer() {
     const vals = await this.data();
     return opHandler.buffer(this.shape, this.dtype, vals);
   }
+  /**
+   * Returns a `tf.TensorBuffer` that holds the underlying data.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   bufferSync() {
     return opHandler.buffer(this.shape, this.dtype, this.dataSync());
   }
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * asynchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async array() {
     const vals = await this.data();
     return toNestedArray(this.shape, vals, this.dtype === "complex64");
   }
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * synchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   arraySync() {
     return toNestedArray(
       this.shape,
@@ -5947,6 +6251,12 @@ var Tensor = class {
       this.dtype === "complex64"
     );
   }
+  /**
+   * Asynchronously downloads the values from the `tf.Tensor`. Returns a
+   * promise of `TypedArray` that resolves when the computation has finished.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async data() {
     this.throwIfDisposed();
     const data = trackerFn().read(this.dataId);
@@ -5962,10 +6272,52 @@ var Tensor = class {
     }
     return data;
   }
+  /**
+   * Copy the tensor's data to a new GPU resource. Comparing to the `dataSync()`
+   * and `data()`, this method prevents data from being downloaded to CPU.
+   *
+   * For WebGL backend, the data will be stored on a densely packed texture.
+   * This means that the texture will use the RGBA channels to store value.
+   *
+   * For WebGPU backend, the data will be stored on a buffer. There is no
+   * parameter, so can not use a user-defined size to create the buffer.
+   *
+   * @param options:
+   *     For WebGL,
+   *         - customTexShape: Optional. If set, will use the user defined
+   *     texture shape to create the texture.
+   *
+   * @returns For WebGL backend, a GPUData contains the new texture and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this texture,
+   *        texture: WebGLTexture,
+   *        texShape: [number, number] // [height, width]
+   *     }
+   *
+   *     For WebGPU backend, a GPUData contains the new buffer and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this buffer,
+   *        buffer: GPUBuffer,
+   *        bufSize: number
+   *     }
+   *
+   *     Remember to dispose the GPUData after it is used by
+   *     `res.tensorRef.dispose()`.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dataToGPU(options) {
     this.throwIfDisposed();
     return trackerFn().readToGPU(this.dataId, options);
   }
+  /**
+   * Synchronously downloads the values from the `tf.Tensor`. This blocks the
+   * UI thread until the values are ready, which can cause performance issues.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dataSync() {
     this.throwIfDisposed();
     const data = trackerFn().readSync(this.dataId);
@@ -5980,6 +6332,7 @@ var Tensor = class {
     }
     return data;
   }
+  /** Returns the underlying bytes of the tensor's data. */
   async bytes() {
     this.throwIfDisposed();
     const data = await trackerFn().read(this.dataId);
@@ -5989,6 +6342,11 @@ var Tensor = class {
       return new Uint8Array(data.buffer);
     }
   }
+  /**
+   * Disposes `tf.Tensor` from memory.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dispose() {
     if (this.isDisposed) {
       return;
@@ -6005,13 +6363,30 @@ var Tensor = class {
       throw new Error(`Tensor is disposed.`);
     }
   }
+  /**
+   * Prints the `tf.Tensor`. See `tf.print` for details.
+   *
+   * @param verbose Whether to print verbose information about the tensor,
+   *    including dtype and size.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   print(verbose = false) {
     return opHandler.print(this, verbose);
   }
+  /**
+   * Returns a copy of the tensor. See `tf.clone` for details.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   clone() {
     this.throwIfDisposed();
     return opHandler.clone(this);
   }
+  /**
+   * Returns a human-readable description of the tensor. Useful for logging.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   toString(verbose = false) {
     const vals = this.dataSync();
     return tensorToString(vals, this.shape, this.dtype, verbose);
@@ -6048,6 +6423,14 @@ var Variable = class extends Tensor {
     this.name = name;
   }
   name;
+  /**
+   * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
+   * the same shape and dtype as the old `tf.Tensor`.
+   *
+   * @param newValue New tensor to be assigned to this variable.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   assign(newValue) {
     if (newValue.dtype !== this.dtype) {
       throw new Error(
@@ -6061,7 +6444,11 @@ var Variable = class extends Tensor {
     }
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    trackerFn().incRef(this, null);
+    trackerFn().incRef(
+      this,
+      null
+      /* backend */
+    );
   }
   dispose() {
     trackerFn().disposeVariable(this);
@@ -6118,6 +6505,12 @@ function upcastType(typeA, typeB) {
   }
   return upcastTypeMap[typeA][typeB];
 }
+function isWebGLData(values) {
+  return values != null && typeof values === "object" && "texture" in values && values.texture instanceof WebGLTexture;
+}
+function isWebGPUData(values) {
+  return typeof GPUBuffer !== "undefined" && values != null && typeof values === "object" && "buffer" in values && values.buffer instanceof GPUBuffer;
+}
 
 // src/tfjs-core/src/tensor_util.ts
 function makeTypesMatch(a, b) {
@@ -6168,6 +6561,7 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
+  // Public since optimizers will use it.
   registeredVariables = {};
   nextTapeNodeId = 0;
   numBytes = 0;
@@ -6175,10 +6569,20 @@ var EngineState = class {
   numStringTensors = 0;
   numDataBuffers = 0;
   activeTape;
+  // Number of nested tf.grad() statements when computing higher-order
+  // gradients. E.g. `1` for first-order gradients and `2` for second-order
+  // gradients. Used to track if the tape should be removed after a backprop.
   gradientDepth = 0;
+  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+  // off the tape.
   kernelDepth = 0;
+  // Keep Tensors that parallel the tapes.
   activeScope;
   scopeStack = [];
+  /**
+   * Keeps track of the number of data moves during a kernel execution. We
+   * maintain a stack since kernels can call other kernels, recursively.
+   */
   numDataMovesStack = [];
   nextScopeId = 0;
   tensorInfo = /* @__PURE__ */ new WeakMap();
@@ -6316,6 +6720,12 @@ var _Engine = class {
       }
     });
   }
+  /**
+   * Initializes a backend by looking up the backend name in the factory
+   * registry and calling the factory method. Returns a boolean representing
+   * whether the initialization of the backend suceeded. Throws an error if
+   * there is no backend in the factory registry.
+   */
   initializeBackend(backendName) {
     const registryFactoryEntry = this.registryFactory[backendName];
     if (registryFactoryEntry == null) {
@@ -6457,8 +6867,17 @@ var _Engine = class {
   nextVariableId() {
     return _Engine.nextVariableId++;
   }
+  /**
+   * This method is called instead of the public-facing tensor.clone() when
+   * saving a tensor for backwards pass. It makes sure to add the clone
+   * operation to the tape regardless of being called inside a kernel
+   * execution.
+   */
   clone(x) {
-    const y = ENGINE.runKernel(Identity, { x });
+    const y = ENGINE.runKernel(
+      Identity,
+      { x }
+    );
     const inputs = { x };
     const grad2 = (dy) => ({
       x: () => {
@@ -6468,6 +6887,7 @@ var _Engine = class {
         return ENGINE.runKernel(
           Cast,
           gradInputs,
+          // tslint:disable-next-line: no-unnecessary-type-assertion
           attrs
         );
       }
@@ -6476,6 +6896,19 @@ var _Engine = class {
     this.addTapeNode(this.state.activeScope.name, inputs, [y], grad2, saved, {});
     return y;
   }
+  /**
+   * Execute a kernel with the given name and return the output tensor.
+   *
+   * @param kernelName The name of the kernel to execute.
+   * @param inputs A map of input names to tensors.
+   * @param attrs A map of attribute names to their values. An attribute is a
+   *     primitive (non-tensor) input to the kernel.
+   * @param inputsToSave A list of tensors, inputs to save for the backprop
+   *     computation.
+   * @param outputsToSave A list of booleans, specifying which output to save
+   *     for the backprop computation. These are booleans since the output
+   * tensors are not visible to the user.
+   */
   runKernel(kernelName, inputs, attrs) {
     if (this.backendName == null) {
       this.backend;
@@ -6503,6 +6936,11 @@ var _Engine = class {
       );
     }
   }
+  /**
+   * Internal helper method to execute a kernel Func
+   *
+   * Use `runKernel` to execute kernels from outside of engine.
+   */
   runKernelFunc(kernelParams) {
     let outputs;
     let saved = [];
@@ -6569,6 +7007,7 @@ var _Engine = class {
     const backwardsFunc = isRegisteredKernelInvocation(kernelParams) ? null : kernelParams.backwardsFunc;
     let kernelProfile;
     this.scopedRun(
+      // Stop recording to a tape when running a kernel.
       () => this.state.kernelDepth++,
       () => this.state.kernelDepth--,
       () => {
@@ -6614,10 +7053,22 @@ var _Engine = class {
     }
     return Array.isArray(out) ? outputs : outputs[0];
   }
+  /**
+   * Saves tensors used in forward mode for use in backward mode.
+   *
+   * @param tensors the list of tensors to save.
+   */
   saveTensorsForBackwardMode(tensors) {
     const saved = tensors.map((tensor2) => this.keep(this.clone(tensor2)));
     return saved;
   }
+  /**
+   * Returns a list of tensors to save for a given gradient calculation.
+   *
+   * @param kernelName name of kernel to look up gradient for.
+   * @param inputs a map of input tensors.
+   * @param outputs an array of output tensors from forward mode of kernel.
+   */
   getTensorsForGradient(kernelName, inputs, outputs) {
     const gradConfig = getGradient(kernelName);
     if (gradConfig != null) {
@@ -6638,6 +7089,11 @@ var _Engine = class {
     }
     return [];
   }
+  /**
+   * Internal method used by public APIs for tensor creation. Makes a new
+   * tensor with the provided shape, dtype and values. It always
+   * creates a new data id and writes the values to the underlying backend.
+   */
   makeTensor(values, shape, dtype, backend) {
     if (values == null) {
       throw new Error("Values passed to engine.makeTensor() are null");
@@ -6659,11 +7115,22 @@ var _Engine = class {
     }
     return t;
   }
+  /**
+   * Internal method used by backends. Makes a new tensor
+   * that is a wrapper around an existing data id. It doesn't create
+   * a new data id, only increments the ref count used in memory tracking.
+   * @deprecated
+   */
   makeTensorFromDataId(dataId, shape, dtype, backend) {
     dtype = dtype || "float32";
     const tensorInfo = { dataId, shape, dtype };
     return this.makeTensorFromTensorInfo(tensorInfo, backend);
   }
+  /**
+   * Internal method used by backends. Makes a new tensor that is a wrapper
+   * around an existing data id in TensorInfo. It doesn't create a new data id,
+   * only increments the ref count used in memory tracking.
+   */
   makeTensorFromTensorInfo(tensorInfo, backend) {
     const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
@@ -6706,6 +7173,11 @@ var _Engine = class {
       this.track(a);
     }
   }
+  // Track the tensor by dataId and increase the refCount for the dataId in the
+  // backend.
+  // TODO(pyu10055): This is currently used by makeVariable method, to increase
+  // refCount on the backend for the dataId. It can potentially be replaced with
+  // Identity op indead of calling backend directly.
   incRef(a, backend) {
     this.trackTensor(a, backend);
     this.backend.incRef(a.dataId);
@@ -6817,6 +7289,10 @@ var _Engine = class {
   endTape() {
     this.state.gradientDepth--;
   }
+  /**
+   * Start a scope. Use this with endScope() to achieve the same functionality
+   * as scope() without the need for a function closure.
+   */
   startScope(name) {
     const scopeInfo = {
       track: [],
@@ -6829,6 +7305,10 @@ var _Engine = class {
     this.state.scopeStack.push(scopeInfo);
     this.state.activeScope = scopeInfo;
   }
+  /**
+   * End a scope. Use this with startScope() to achieve the same functionality
+   * as scope() without the need for a function closure.
+   */
   endScope(result) {
     const tensorsToTrackInParent = getTensorsInContainer(result);
     const tensorsToTrackInParentSet = new Set(tensorsToTrackInParent.map((t) => t.id));
@@ -6846,6 +7326,12 @@ var _Engine = class {
       }
     });
   }
+  /**
+   * Returns gradients of `f` with respect to each of the `xs`. The gradients
+   * returned are of the same length as `xs`, but some might be null if `f`
+   * was not a function of that `x`. It also takes optional dy to multiply the
+   * gradient, which defaults to `1`.
+   */
   gradients(f, xs, dy, allowNoGradients = false) {
     assert(
       xs.length > 0,
@@ -6875,7 +7361,9 @@ var _Engine = class {
       backpropagateGradients(
         accumulatedGradientMap,
         filteredTape,
+        // Pass the tidy function to avoid circular dep with `tape.ts`.
         (f2) => this.tidy(f2),
+        // Pass an add function to avoide a circular dep with `tape.ts`.
         add
       );
       const grads2 = xs.map((x) => accumulatedGradientMap[x.id]);
@@ -6959,6 +7447,12 @@ var _Engine = class {
     timingInfo.wallMs = now() - start;
     return timingInfo;
   }
+  /**
+   * Tracks a Tensor in the current scope to be automatically cleaned up
+   * when the current scope ends, and returns the value.
+   *
+   * @param result The Tensor to track in the current scope.
+   */
   track(result) {
     if (this.state.activeScope != null) {
       result.scopeId = this.state.activeScope.id;
@@ -6969,6 +7463,10 @@ var _Engine = class {
   get registeredVariables() {
     return this.state.registeredVariables;
   }
+  /**
+   * Resets the engine state. Removes all backends but does not remove
+   * registered backend factories.
+   */
   reset() {
     this.pendingBackendInitId++;
     this.state.dispose();
@@ -7009,7 +7507,8 @@ function add(a, b) {
 
 // src/tfjs-core/src/device_util.ts
 function isBrowser() {
-  return typeof window !== "undefined" && window.document != null || typeof WorkerGlobalScope !== "undefined";
+  return typeof window !== "undefined" && window.document != null || //@ts-ignore
+  typeof WorkerGlobalScope !== "undefined";
 }
 
 // src/tfjs-core/src/flags.ts
@@ -7030,6 +7529,10 @@ ENV2.registerFlag(
   "IS_CHROME",
   () => typeof navigator !== "undefined" && navigator != null && navigator.userAgent != null && /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
 );
+ENV2.registerFlag(
+  "IS_SAFARI",
+  () => typeof navigator !== "undefined" && navigator != null && navigator.userAgent != null && /Safari/.test(navigator.userAgent) && /Apple/.test(navigator.vendor)
+);
 ENV2.registerFlag("PROD", () => false);
 ENV2.registerFlag(
   "TENSORLIKE_CHECK_SHAPE_CONSISTENCY",
@@ -7037,7 +7540,7 @@ ENV2.registerFlag(
 );
 ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
-ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
+ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => ENV2.getBool("DEBUG"));
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 ENV2.registerFlag("USE_SETTIMEOUTCUSTOM", () => false);
@@ -7048,9 +7551,11 @@ function inferShape(val, dtype) {
   if (isTypedArray(val)) {
     return dtype === "string" ? [] : [val.length];
   }
-  if (typeof val === "object" && "texture" in val) {
+  if (isWebGLData(val)) {
     const usedChannels = val.channels || "RGBA";
     return [val.height, val.width * usedChannels.length];
+  } else if (isWebGPUData(val)) {
+    return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
   }
   if (!Array.isArray(val)) {
     return [];
@@ -7187,20 +7692,18 @@ var complex = op({ complex_ });
 function makeTensor(values, shape, inferredShape, dtype) {
   if (dtype == null) {
     dtype = inferDtype(values);
-  }
-  if (dtype === "complex64") {
+  } else if (dtype === "complex64") {
     throw new Error(
       `Cannot construct a complex64 tensor directly. Please use tf.complex(real, imag).`
     );
   }
-  if (typeof values === "object" && "texture" in values) {
+  if (isWebGPUData(values) || isWebGLData(values)) {
     if (dtype !== "float32" && dtype !== "int32") {
       throw new Error(
-        `Creating tensor from texture only supports 'float32'|'int32' dtype, while the dtype is ${dtype}.`
+        `Creating tensor from GPU data only supports 'float32'|'int32' dtype, while the dtype is ${dtype}.`
       );
     }
-    values.channels = values.channels || "RGBA";
-    return ENGINE.backend.createTensorFromTexture(
+    return ENGINE.backend.createTensorFromGPUData(
       values,
       shape || inferredShape,
       dtype
@@ -7390,15 +7893,43 @@ var _IORouterRegistry = class {
     }
     return _IORouterRegistry.instance;
   }
+  /**
+   * Register a save-handler router.
+   *
+   * @param saveRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `save` method defined or `null`.
+   */
   static registerSaveRouter(saveRouter) {
     _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
+  /**
+   * Register a load-handler router.
+   *
+   * @param loadRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `load` method defined or `null`.
+   */
   static registerLoadRouter(loadRouter) {
     _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
+  /**
+   * Look up IOHandler for saving, given a URL-like string.
+   *
+   * @param url
+   * @returns If only one match is found, an instance of IOHandler with the
+   * `save` method defined. If no match is found, `null`.
+   * @throws Error, if more than one match is found.
+   */
   static getSaveHandlers(url) {
     return _IORouterRegistry.getHandlers(url, "save");
   }
+  /**
+   * Look up IOHandler for loading, given a URL-like string.
+   *
+   * @param url
+   * @param loadOptions Optional, custom load options.
+   * @returns All valid handlers for `url`, given the currently registered
+   *   handler routers.
+   */
   static getLoadHandlers(url, loadOptions) {
     return _IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
@@ -7415,6 +7946,7 @@ var _IORouterRegistry = class {
   }
 };
 var IORouterRegistry = _IORouterRegistry;
+// Singleton instance.
 __publicField(IORouterRegistry, "instance");
 
 // src/tfjs-core/src/io/indexed_db.ts
@@ -7465,6 +7997,20 @@ var BrowserIndexedDB = class {
   async load() {
     return this.databaseAction(this.modelPath);
   }
+  /**
+   * Perform database action to put model artifacts into or read model artifacts
+   * from IndexedDB object store.
+   *
+   * Whether the action is put or get depends on whether `modelArtifacts` is
+   * specified. If it is specified, the action will be put; otherwise the action
+   * will be get.
+   *
+   * @param modelPath A unique string path for the model.
+   * @param modelArtifacts If specified, it will be the model artifacts to be
+   *   stored in IndexedDB.
+   * @returns A `Promise` of `SaveResult`, if the action is put, or a `Promise`
+   *   of `ModelArtifacts`, if the action is get.
+   */
   databaseAction(modelPath, modelArtifacts) {
     return new Promise((resolve, reject) => {
       const openRequest = this.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
@@ -7494,16 +8040,26 @@ var BrowserIndexedDB = class {
           const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
           const infoTx = db.transaction(INFO_STORE_NAME, "readwrite");
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
-          const putInfoRequest = infoStore.put({ modelPath: this.modelPath, modelArtifactsInfo });
+          let putInfoRequest;
+          try {
+            putInfoRequest = infoStore.put({ modelPath: this.modelPath, modelArtifactsInfo });
+          } catch (error) {
+            return reject(error);
+          }
           let modelTx;
           putInfoRequest.onsuccess = () => {
             modelTx = db.transaction(MODEL_STORE_NAME, "readwrite");
             const modelStore = modelTx.objectStore(MODEL_STORE_NAME);
-            const putModelRequest = modelStore.put({
-              modelPath: this.modelPath,
-              modelArtifacts,
-              modelArtifactsInfo
-            });
+            let putModelRequest;
+            try {
+              putModelRequest = modelStore.put({
+                modelPath: this.modelPath,
+                modelArtifacts,
+                modelArtifactsInfo
+              });
+            } catch (error) {
+              return reject(error);
+            }
             putModelRequest.onsuccess = () => resolve({ modelArtifactsInfo });
             putModelRequest.onerror = (error) => {
               infoStore = infoTx.objectStore(INFO_STORE_NAME);
@@ -7689,6 +8245,15 @@ var BrowserLocalStorage = class {
     this.modelPath = modelPath;
     this.keys = getModelKeys(this.modelPath);
   }
+  /**
+   * Save model artifacts to browser local storage.
+   *
+   * See the documentation to `browserLocalStorage` for details on the saved
+   * artifacts.
+   *
+   * @param modelArtifacts The model artifacts to be stored.
+   * @returns An instance of SaveResult.
+   */
   async save(modelArtifacts) {
     if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
       throw new Error(
@@ -7726,6 +8291,14 @@ var BrowserLocalStorage = class {
       }
     }
   }
+  /**
+   * Load a model from local storage.
+   *
+   * See the documentation to `browserLocalStorage` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model (if loading succeeds).
+   */
   async load() {
     const info = JSON.parse(this.LS.getItem(this.keys.info));
     if (info == null) {
@@ -7855,6 +8428,12 @@ var _ModelStoreManagerRegistry = class {
     }
     return _ModelStoreManagerRegistry.instance;
   }
+  /**
+   * Register a save-handler router.
+   *
+   * @param saveRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `save` method defined or `null`.
+   */
   static registerManager(scheme, manager) {
     assert(scheme != null, () => "scheme must not be undefined or null.");
     if (scheme.endsWith(URL_SCHEME_SUFFIX)) {
@@ -7880,11 +8459,15 @@ var _ModelStoreManagerRegistry = class {
   }
 };
 var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
+// Singleton instance.
 __publicField(ModelStoreManagerRegistry, "instance");
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
+  // According to the spec, the built-in encoder can do only UTF-8 encoding.
+  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
   textEncoder;
+  // For setTimeoutCustom
   messageName = "setTimeoutCustom";
   functionRefs = [];
   handledMessageCount = 0;
@@ -7909,6 +8492,10 @@ var PlatformBrowser = class {
   decode(bytes, encoding) {
     return new TextDecoder(encoding).decode(bytes);
   }
+  // If the setTimeout nesting level is greater than 5 and timeout is less
+  // than 4ms, timeout will be clamped to 4ms, which hurts the perf.
+  // Interleaving window.postMessage and setTimeout will trick the browser and
+  // avoid the clamp.
   setTimeoutCustom(functionRef, delay) {
     if (typeof window === "undefined" || !env().getBool("USE_SETTIMEOUTCUSTOM")) {
       setTimeout(functionRef, delay);
@@ -7937,6 +8524,9 @@ var PlatformBrowser = class {
       }, true);
     }
   }
+  isTypedArray(a) {
+    return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+  }
 };
 if (env().get("IS_BROWSER")) {
   env().setPlatform("browser", new PlatformBrowser());
@@ -7958,11 +8548,13 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
+  // tslint:disable-next-line:no-require-imports
   importFetch: () => require_browser()
 };
 var systemFetch;
 var PlatformNode = class {
   textEncoder;
+  // tslint:disable-next-line:no-any
   util;
   constructor() {
     this.util = require_util();
@@ -7994,6 +8586,9 @@ var PlatformNode = class {
       return "";
     }
     return new this.util.TextDecoder(encoding).decode(bytes);
+  }
+  isTypedArray(a) {
+    return this.util.types.isFloat32Array(a) || this.util.types.isInt32Array(a) || this.util.types.isUint8Array(a) || this.util.types.isUint8ClampedArray(a);
   }
 };
 if (env().get("IS_NODE") && !env().get("IS_BROWSER")) {
@@ -8049,364 +8644,6 @@ var opHandler2 = {
 };
 setOpHandler(opHandler2);
 
-// src/tfjs-core/src/io/browser_files.ts
-var DEFAULT_FILE_NAME_PREFIX = "model";
-var DEFAULT_JSON_EXTENSION_NAME = ".json";
-var DEFAULT_WEIGHT_DATA_EXTENSION_NAME = ".weights.bin";
-function defer(f) {
-  return new Promise((resolve) => setTimeout(resolve)).then(f);
-}
-var _BrowserDownloads = class {
-  modelJsonFileName;
-  weightDataFileName;
-  modelJsonAnchor;
-  weightDataAnchor;
-  constructor(fileNamePrefix) {
-    if (!env().getBool("IS_BROWSER")) {
-      throw new Error(
-        "browserDownloads() cannot proceed because the current environment is not a browser."
-      );
-    }
-    if (fileNamePrefix.startsWith(_BrowserDownloads.URL_SCHEME)) {
-      fileNamePrefix = fileNamePrefix.slice(_BrowserDownloads.URL_SCHEME.length);
-    }
-    if (fileNamePrefix == null || fileNamePrefix.length === 0) {
-      fileNamePrefix = DEFAULT_FILE_NAME_PREFIX;
-    }
-    this.modelJsonFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
-    this.weightDataFileName = fileNamePrefix + DEFAULT_WEIGHT_DATA_EXTENSION_NAME;
-  }
-  async save(modelArtifacts) {
-    if (typeof document === "undefined") {
-      throw new Error(
-        "Browser downloads are not supported in this environment since `document` is not present"
-      );
-    }
-    const weightsURL = window.URL.createObjectURL(new Blob(
-      [modelArtifacts.weightData],
-      { type: "application/octet-stream" }
-    ));
-    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
-      throw new Error(
-        "BrowserDownloads.save() does not support saving model topology in binary formats yet."
-      );
-    } else {
-      const weightsManifest = [{
-        paths: ["./" + this.weightDataFileName],
-        weights: modelArtifacts.weightSpecs
-      }];
-      const modelJSON = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
-      const modelJsonURL = window.URL.createObjectURL(
-        new Blob([JSON.stringify(modelJSON)], { type: "application/json" })
-      );
-      const jsonAnchor = this.modelJsonAnchor == null ? document.createElement("a") : this.modelJsonAnchor;
-      jsonAnchor.download = this.modelJsonFileName;
-      jsonAnchor.href = modelJsonURL;
-      await defer(() => jsonAnchor.dispatchEvent(new MouseEvent("click")));
-      if (modelArtifacts.weightData != null) {
-        const weightDataAnchor = this.weightDataAnchor == null ? document.createElement("a") : this.weightDataAnchor;
-        weightDataAnchor.download = this.weightDataFileName;
-        weightDataAnchor.href = weightsURL;
-        await defer(
-          () => weightDataAnchor.dispatchEvent(new MouseEvent("click"))
-        );
-      }
-      return { modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) };
-    }
-  }
-};
-var BrowserDownloads = _BrowserDownloads;
-__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
-var browserDownloadsRouter = (url) => {
-  if (!env().getBool("IS_BROWSER")) {
-    return null;
-  } else {
-    if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {
-      return browserDownloads(url.slice(BrowserDownloads.URL_SCHEME.length));
-    } else {
-      return null;
-    }
-  }
-};
-IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
-function browserDownloads(fileNamePrefix = "model") {
-  return new BrowserDownloads(fileNamePrefix);
-}
-
-// src/tfjs-core/src/io/progress.ts
-function monitorPromisesProgress(promises, onProgress, startFraction, endFraction) {
-  checkPromises(promises);
-  startFraction = startFraction == null ? 0 : startFraction;
-  endFraction = endFraction == null ? 1 : endFraction;
-  checkFraction(startFraction, endFraction);
-  let resolvedPromise = 0;
-  const registerMonitor = (promise) => {
-    promise.then((value) => {
-      const fraction = startFraction + ++resolvedPromise / promises.length * (endFraction - startFraction);
-      onProgress(fraction);
-      return value;
-    });
-    return promise;
-  };
-  function checkPromises(promises2) {
-    assert(
-      promises2 != null && Array.isArray(promises2) && promises2.length > 0,
-      () => "promises must be a none empty array"
-    );
-  }
-  function checkFraction(startFraction2, endFraction2) {
-    assert(
-      startFraction2 >= 0 && startFraction2 <= 1,
-      () => `Progress fraction must be in range [0, 1], but got startFraction ${startFraction2}`
-    );
-    assert(
-      endFraction2 >= 0 && endFraction2 <= 1,
-      () => `Progress fraction must be in range [0, 1], but got endFraction ${endFraction2}`
-    );
-    assert(
-      endFraction2 >= startFraction2,
-      () => `startFraction must be no more than endFraction, but got startFraction ${startFraction2} and endFraction ${endFraction2}`
-    );
-  }
-  return Promise.all(promises.map(registerMonitor));
-}
-
-// src/tfjs-core/src/io/weights_loader.ts
-async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
-  if (loadOptions == null) {
-    loadOptions = {};
-  }
-  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch : loadOptions.fetchFunc;
-  const requests = fetchURLs.map(
-    (fetchURL) => fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true })
-  );
-  const fetchStartFraction = 0;
-  const fetchEndFraction = 0.5;
-  const responses = loadOptions.onProgress == null ? await Promise.all(requests) : await monitorPromisesProgress(
-    requests,
-    loadOptions.onProgress,
-    fetchStartFraction,
-    fetchEndFraction
-  );
-  const bufferPromises = responses.map((response) => response.arrayBuffer());
-  const bufferStartFraction = 0.5;
-  const bufferEndFraction = 1;
-  const buffers = loadOptions.onProgress == null ? await Promise.all(bufferPromises) : await monitorPromisesProgress(
-    bufferPromises,
-    loadOptions.onProgress,
-    bufferStartFraction,
-    bufferEndFraction
-  );
-  return buffers;
-}
-
-// src/tfjs-core/src/io/http.ts
-var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
-var JSON_TYPE = "application/json";
-var HTTPRequest = class {
-  path;
-  requestInit;
-  fetch;
-  weightUrlConverter;
-  DEFAULT_METHOD = "POST";
-  weightPathPrefix;
-  onProgress;
-  constructor(path, loadOptions) {
-    if (loadOptions == null) {
-      loadOptions = {};
-    }
-    this.weightPathPrefix = loadOptions.weightPathPrefix;
-    this.onProgress = loadOptions.onProgress;
-    this.weightUrlConverter = loadOptions.weightUrlConverter;
-    if (loadOptions.fetchFunc != null) {
-      assert(
-        typeof loadOptions.fetchFunc === "function",
-        () => "Must pass a function that matches the signature of `fetch` (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)"
-      );
-      this.fetch = loadOptions.fetchFunc;
-    } else {
-      this.fetch = env().platform.fetch;
-    }
-    assert(
-      path != null && path.length > 0,
-      () => "URL path for http must not be null, undefined or empty."
-    );
-    if (Array.isArray(path)) {
-      assert(
-        path.length === 2,
-        () => `URL paths for http must have a length of 2, (actual length is ${path.length}).`
-      );
-    }
-    this.path = path;
-    if (loadOptions.requestInit != null && loadOptions.requestInit.body != null) {
-      throw new Error(
-        "requestInit is expected to have no pre-existing body, but has one."
-      );
-    }
-    this.requestInit = loadOptions.requestInit || {};
-  }
-  async save(modelArtifacts) {
-    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
-      throw new Error(
-        "BrowserHTTPRequest.save() does not support saving model topology in binary formats yet."
-      );
-    }
-    const init2 = Object.assign({ method: this.DEFAULT_METHOD }, this.requestInit);
-    init2.body = new FormData();
-    const weightsManifest = [{
-      paths: ["./model.weights.bin"],
-      weights: modelArtifacts.weightSpecs
-    }];
-    const modelTopologyAndWeightManifest = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
-    init2.body.append(
-      "model.json",
-      new Blob(
-        [JSON.stringify(modelTopologyAndWeightManifest)],
-        { type: JSON_TYPE }
-      ),
-      "model.json"
-    );
-    if (modelArtifacts.weightData != null) {
-      init2.body.append(
-        "model.weights.bin",
-        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
-        "model.weights.bin"
-      );
-    }
-    const response = await this.fetch(this.path, init2);
-    if (response.ok) {
-      return {
-        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
-        responses: [response]
-      };
-    } else {
-      throw new Error(
-        `BrowserHTTPRequest.save() failed due to HTTP response status ${response.status}.`
-      );
-    }
-  }
-  async load() {
-    const modelConfigRequest = await this.fetch(this.path, this.requestInit);
-    if (!modelConfigRequest.ok) {
-      throw new Error(
-        `Request to ${this.path} failed with status code ${modelConfigRequest.status}. Please verify this URL points to the model JSON of the model to load.`
-      );
-    }
-    let modelJSON;
-    try {
-      modelJSON = await modelConfigRequest.json();
-    } catch (e) {
-      let message = `Failed to parse model JSON of response from ${this.path}.`;
-      if (this.path.endsWith(".pb")) {
-        message += " Your path contains a .pb file extension. Support for .pb models have been removed in TensorFlow.js 1.0 in favor of .json models. You can re-convert your Python TensorFlow model using the TensorFlow.js 1.0 conversion scripts or you can convert your.pb models with the 'pb2json'NPM script in the tensorflow/tfjs-converter repository.";
-      } else {
-        message += " Please make sure the server is serving valid JSON for this request.";
-      }
-      throw new Error(message);
-    }
-    const modelTopology = modelJSON.modelTopology;
-    const weightsManifest = modelJSON.weightsManifest;
-    if (modelTopology == null && weightsManifest == null) {
-      throw new Error(
-        `The JSON from HTTP path ${this.path} contains neither model topology or manifest for weights.`
-      );
-    }
-    return getModelArtifactsForJSON(
-      modelJSON,
-      (weightsManifest2) => this.loadWeights(weightsManifest2)
-    );
-  }
-  async loadWeights(weightsManifest) {
-    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
-    const [prefix, suffix] = parseUrl(weightPath);
-    const pathPrefix = this.weightPathPrefix || prefix;
-    const weightSpecs = getWeightSpecs(weightsManifest);
-    const fetchURLs = [];
-    const urlPromises = [];
-    for (const weightsGroup of weightsManifest) {
-      for (const path of weightsGroup.paths) {
-        if (this.weightUrlConverter != null) {
-          urlPromises.push(this.weightUrlConverter(path));
-        } else {
-          fetchURLs.push(pathPrefix + path + suffix);
-        }
-      }
-    }
-    if (this.weightUrlConverter) {
-      fetchURLs.push(...await Promise.all(urlPromises));
-    }
-    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
-      requestInit: this.requestInit,
-      fetchFunc: this.fetch,
-      onProgress: this.onProgress
-    });
-    return [weightSpecs, concatenateArrayBuffers(buffers)];
-  }
-};
-__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
-function parseUrl(url) {
-  const lastSlash = url.lastIndexOf("/");
-  const lastSearchParam = url.lastIndexOf("?");
-  const prefix = url.substring(0, lastSlash);
-  const suffix = lastSearchParam > lastSlash ? url.substring(lastSearchParam) : "";
-  return [prefix + "/", suffix];
-}
-function isHTTPScheme(url) {
-  return url.match(HTTPRequest.URL_SCHEME_REGEX) != null;
-}
-var httpRouter = (url, loadOptions) => {
-  if (typeof fetch === "undefined" && (loadOptions == null || loadOptions.fetchFunc == null)) {
-    return null;
-  } else {
-    let isHTTP = true;
-    if (Array.isArray(url)) {
-      isHTTP = url.every((urlItem) => isHTTPScheme(urlItem));
-    } else {
-      isHTTP = isHTTPScheme(url);
-    }
-    if (isHTTP) {
-      return http(url, loadOptions);
-    }
-  }
-  return null;
-};
-IORouterRegistry.registerSaveRouter(httpRouter);
-IORouterRegistry.registerLoadRouter(httpRouter);
-function http(path, loadOptions) {
-  return new HTTPRequest(path, loadOptions);
-}
-
-// src/tfjs-core/src/ops/mat_mul.ts
-function matMul_(a, b, transposeA = false, transposeB = false) {
-  let $a = convertToTensor(a, "a", "matMul");
-  let $b = convertToTensor(b, "b", "matMul");
-  [$a, $b] = makeTypesMatch($a, $b);
-  const inputs = { a: $a, b: $b };
-  const attrs = { transposeA, transposeB };
-  return ENGINE.runKernel(
-    BatchMatMul,
-    inputs,
-    attrs
-  );
-}
-var matMul = op({ matMul_ });
-
-// src/tfjs-core/src/ops/one_hot.ts
-function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
-  if (depth < 2) {
-    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
-  }
-  const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
-  const inputs = { indices: $indices };
-  const attrs = { dtype, depth, onValue, offValue };
-  return ENGINE.runKernel(
-    OneHot,
-    inputs,
-    attrs
-  );
-}
-var oneHot = op({ oneHot_ });
-
 // src/tfjs-core/src/globals.ts
 function deprecationWarn(msg) {
   if (env().getBool("DEPRECATION_WARNINGS_ENABLED")) {
@@ -8431,969 +8668,6 @@ function keep(result) {
 }
 function registerBackend(name, factory, priority = 1) {
   return ENGINE.registerBackend(name, factory, priority);
-}
-
-// src/tfjs-core/src/ops/imag.ts
-function imag_(input) {
-  const $input = convertToTensor(input, "input", "imag");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Imag, inputs);
-}
-var imag = op({ imag_ });
-
-// src/tfjs-core/src/ops/neg.ts
-function neg_(x) {
-  const $x = convertToTensor(x, "x", "neg");
-  const inputs = { x: $x };
-  return ENGINE.runKernel(Neg, inputs);
-}
-var neg = op({ neg_ });
-
-// src/tfjs-core/src/ops/real.ts
-function real_(input) {
-  const $input = convertToTensor(input, "input", "real");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Real, inputs);
-}
-var real = op({ real_ });
-
-// src/tfjs-core/src/ops/transpose.ts
-function transpose_(x, perm, conjugate) {
-  const $x = convertToTensor(x, "x", "transpose");
-  if (perm == null) {
-    perm = $x.shape.map((s, i) => i).reverse();
-  }
-  assert(
-    $x.rank === perm.length,
-    () => `Error in transpose: rank of input ${$x.rank} must match length of perm ${perm}.`
-  );
-  perm.forEach((axis) => {
-    assert(
-      axis >= 0 && axis < $x.rank,
-      () => `All entries in 'perm' must be between 0 and ${$x.rank - 1} but got ${perm}`
-    );
-  });
-  if ($x.rank <= 1) {
-    return $x.clone();
-  }
-  const inputs = { x: $x };
-  const attrs = { perm };
-  if ($x.dtype === "complex64") {
-    return tidy(() => {
-      let $real = real($x);
-      let $imag = imag($x);
-      $real = ENGINE.runKernel(
-        Transpose,
-        { x: $real },
-        attrs
-      );
-      $imag = ENGINE.runKernel(
-        Transpose,
-        { x: $imag },
-        attrs
-      );
-      if (conjugate) {
-        $imag = neg($imag);
-      }
-      return complex($real, $imag);
-    });
-  }
-  return ENGINE.runKernel(
-    Transpose,
-    inputs,
-    attrs
-  );
-}
-var transpose = op({ transpose_ });
-
-// src/tfjs-core/src/ops/confusion_matrix.ts
-function confusionMatrix_(labels, predictions, numClasses) {
-  const $labels = convertToTensor(labels, "labels", "confusionMatrix");
-  const $predictions = convertToTensor(predictions, "predictions", "confusionMatrix");
-  assert(
-    numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
-    () => `If provided, numClasses must be a positive integer, but got ${numClasses}`
-  );
-  assert(
-    $labels.rank === 1,
-    () => `Expected the rank of labels to be 1, but got ${$labels.rank}`
-  );
-  assert(
-    $predictions.rank === 1,
-    () => `Expected the rank of predictions to be 1, but got ${$predictions.rank}`
-  );
-  assert(
-    $labels.shape[0] === $predictions.shape[0],
-    () => `Mismatch in the number of examples: ${$labels.shape[0]} vs. ${$predictions.shape[0]}. Labels and predictions should have the same number of elements.`
-  );
-  assert(
-    numClasses > 0 && Number.isInteger(numClasses),
-    () => `numClasses is required to be a positive integer, but got ${numClasses}`
-  );
-  const oneHotLabels = oneHot(cast($labels, "int32"), numClasses);
-  const oneHotPredictions = oneHot(cast($predictions, "int32"), numClasses);
-  const oneHotLabelsT = transpose(oneHotLabels);
-  const product = matMul(oneHotLabelsT, oneHotPredictions);
-  return cast(product, "int32");
-}
-var confusionMatrix = op({ confusionMatrix_ });
-
-// src/tfjs-core/src/ops/broadcast_util.ts
-var broadcast_util_exports = {};
-__export(broadcast_util_exports, {
-  assertAndGetBroadcastShape: () => assertAndGetBroadcastShape,
-  getBroadcastDims: () => getBroadcastDims,
-  getReductionAxes: () => getReductionAxes
-});
-function getBroadcastDims(inShape, outShape) {
-  const inRank = inShape.length;
-  const dims = [];
-  for (let i = 0; i < inRank; i++) {
-    const dim = inRank - 1 - i;
-    const a = inShape[dim] || 1;
-    const b = outShape[outShape.length - 1 - i] || 1;
-    if (b > 1 && a === 1) {
-      dims.unshift(dim);
-    }
-  }
-  return dims;
-}
-function getReductionAxes(inShape, outShape) {
-  const result = [];
-  for (let i = 0; i < outShape.length; i++) {
-    const inDim = inShape[inShape.length - i - 1];
-    const outAxis = outShape.length - i - 1;
-    const outDim = outShape[outAxis];
-    if (inDim == null || inDim === 1 && outDim > 1) {
-      result.unshift(outAxis);
-    }
-  }
-  return result;
-}
-function assertAndGetBroadcastShape(shapeA, shapeB) {
-  const result = [];
-  const l = Math.max(shapeA.length, shapeB.length);
-  for (let i = 0; i < l; i++) {
-    let a = shapeA[shapeA.length - i - 1];
-    if (a == null) {
-      a = 1;
-    }
-    let b = shapeB[shapeB.length - i - 1];
-    if (b == null) {
-      b = 1;
-    }
-    if (a === 1) {
-      result.unshift(b);
-    } else if (b === 1) {
-      result.unshift(a);
-    } else if (a !== b) {
-      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
-      throw Error(errMsg);
-    } else {
-      result.unshift(a);
-    }
-  }
-  return result;
-}
-
-// src/tfjs-core/src/ops/tensor3d.ts
-function tensor3d(values, shape, dtype) {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 3) {
-    throw new Error("tensor3d() requires shape to have three numbers");
-  }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
-    throw new Error(
-      "tensor3d() requires values to be number[][][] or flat/TypedArray"
-    );
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error(
-      "tensor3d() requires shape to be provided when `values` are a flat array"
-    );
-  }
-  return makeTensor(values, shape, inferredShape, dtype);
-}
-
-// src/tfjs-core/src/ops/browser.ts
-var fromPixels2DContext;
-function fromPixels_(pixels, numChannels = 3) {
-  if (numChannels > 4) {
-    throw new Error(
-      "Cannot construct Tensor with more than 4 channels from pixels."
-    );
-  }
-  if (pixels == null) {
-    throw new Error("pixels passed to tf.browser.fromPixels() can not be null");
-  }
-  let isPixelData = false;
-  let isImageData = false;
-  let isVideo = false;
-  let isImage = false;
-  let isCanvasLike = false;
-  let isImageBitmap = false;
-  if (pixels.data instanceof Uint8Array) {
-    isPixelData = true;
-  } else if (typeof ImageData !== "undefined" && pixels instanceof ImageData) {
-    isImageData = true;
-  } else if (typeof HTMLVideoElement !== "undefined" && pixels instanceof HTMLVideoElement) {
-    isVideo = true;
-  } else if (typeof HTMLImageElement !== "undefined" && pixels instanceof HTMLImageElement) {
-    isImage = true;
-  } else if (pixels.getContext != null) {
-    isCanvasLike = true;
-  } else if (typeof ImageBitmap !== "undefined" && pixels instanceof ImageBitmap) {
-    isImageBitmap = true;
-  } else {
-    throw new Error(
-      `pixels passed to tf.browser.fromPixels() must be either an HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData in browser, or OffscreenCanvas, ImageData in webworker or {data: Uint32Array, width: number, height: number}, but was ${pixels.constructor.name}`
-    );
-  }
-  const kernel = getKernel(FromPixels, ENGINE.backendName);
-  if (kernel != null) {
-    const inputs = { pixels };
-    const attrs = { numChannels };
-    return ENGINE.runKernel(
-      FromPixels,
-      inputs,
-      attrs
-    );
-  }
-  const [width, height] = isVideo ? [
-    pixels.videoWidth,
-    pixels.videoHeight
-  ] : [pixels.width, pixels.height];
-  let vals;
-  if (isCanvasLike) {
-    vals = pixels.getContext("2d").getImageData(0, 0, width, height).data;
-  } else if (isImageData || isPixelData) {
-    vals = pixels.data;
-  } else if (isImage || isVideo || isImageBitmap) {
-    if (fromPixels2DContext == null) {
-      if (typeof document === "undefined") {
-        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
-          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
-        } else {
-          throw new Error(
-            "Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported."
-          );
-        }
-      } else {
-        fromPixels2DContext = document.createElement("canvas").getContext(
-          "2d",
-          { willReadFrequently: true }
-        );
-      }
-    }
-    fromPixels2DContext.canvas.width = width;
-    fromPixels2DContext.canvas.height = height;
-    fromPixels2DContext.drawImage(
-      pixels,
-      0,
-      0,
-      width,
-      height
-    );
-    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
-  }
-  let values;
-  if (numChannels === 4) {
-    values = new Int32Array(vals);
-  } else {
-    const numPixels = width * height;
-    values = new Int32Array(numPixels * numChannels);
-    for (let i = 0; i < numPixels; i++) {
-      for (let channel = 0; channel < numChannels; ++channel) {
-        values[i * numChannels + channel] = vals[i * 4 + channel];
-      }
-    }
-  }
-  const outShape = [height, width, numChannels];
-  return tensor3d(values, outShape, "int32");
-}
-var fromPixels = op({ fromPixels_ });
-
-// src/tfjs-core/src/ops/gather_nd_util.ts
-var gather_nd_util_exports = {};
-__export(gather_nd_util_exports, {
-  prepareAndValidate: () => prepareAndValidate
-});
-function prepareAndValidate(tensor2, indices) {
-  const tensorRank = tensor2.shape.length;
-  const indicesRank = indices.shape.length;
-  if (tensorRank < 1) {
-    throw new Error(
-      `tf.gatherND() expects the input to be rank 1 or higher, but the rank was ${tensorRank}.`
-    );
-  }
-  if (indicesRank < 1) {
-    throw new Error(
-      `tf.gatherND() expects the indices to be rank 1 or higher, but the rank was ${indicesRank}.`
-    );
-  }
-  if (indices.dtype !== "int32") {
-    throw new Error(
-      `tf.gatherND() expects the indices to be int32 type, but the dtype was ${indices.dtype}.`
-    );
-  }
-  if (indices.shape[indicesRank - 1] > tensorRank) {
-    throw new Error(
-      `index innermost dimension length must be <= tensor rank; saw: ${indices.shape[indicesRank - 1]} vs. ${tensorRank}`
-    );
-  }
-  if (sizeFromShape(tensor2.shape) === 0) {
-    throw new Error(
-      `Requested more than 0 entries, but input is empty. Input shape: ${tensor2.shape}.`
-    );
-  }
-  const indicesShape = indices.shape;
-  const sliceRank = indicesShape[indicesShape.length - 1];
-  let nResult = 1;
-  for (let i = 0; i < indicesShape.length - 1; ++i) {
-    nResult *= indicesShape[i];
-  }
-  const inputShape = tensor2.shape;
-  const resultShape = indicesShape.slice();
-  resultShape.pop();
-  let sliceSize = 1;
-  for (let i = sliceRank; i < tensorRank; ++i) {
-    sliceSize *= inputShape[i];
-    resultShape.push(inputShape[i]);
-  }
-  const strides = [
-    ...computeStrides(tensor2.shape).map((stride) => stride / sliceSize),
-    1
-  ].slice(0, sliceRank);
-  return [resultShape, nResult, sliceSize, strides];
-}
-
-// src/tfjs-core/src/ops/scatter_nd_util.ts
-var scatter_nd_util_exports = {};
-__export(scatter_nd_util_exports, {
-  calculateShapes: () => calculateShapes,
-  validateInput: () => validateInput,
-  validateUpdateShape: () => validateUpdateShape
-});
-function validateUpdateShape(shape, indices, updates) {
-  const sliceDim = indices.rank > 1 ? indices.shape[indices.rank - 1] : 1;
-  const batchDim = indices.rank > 1 ? indices.rank - 1 : 1;
-  const shapeError = `Must have updates.shape = indices.shape[:batchDim] + shape[sliceDim:], got updates.shape: ${updates.shape}, indices.shape: ${indices.shape}, shape: ${shape}, sliceDim: ${sliceDim}, and batchDim: ${batchDim}.`;
-  if (updates.rank < batchDim) {
-    throw new Error(shapeError + ` update.rank < ${batchDim}. `);
-  }
-  if (shape.length < sliceDim + (updates.rank - batchDim)) {
-    throw new Error(
-      shapeError + ` Output shape length < ${sliceDim + (updates.rank - batchDim)}`
-    );
-  }
-  if (updates.rank !== batchDim + shape.length - sliceDim) {
-    throw new Error(
-      shapeError + ` update.rank != ${batchDim + shape.length - sliceDim}`
-    );
-  }
-  for (let d = 0; d < batchDim; ++d) {
-    if (updates.shape[d] !== indices.shape[d]) {
-      throw new Error(
-        shapeError + ` updates.shape[${d}] (${updates.shape[d]}) != indices.shape[${d}] (${indices.shape[d]}).`
-      );
-    }
-  }
-  for (let d = 0; d < updates.rank - batchDim; ++d) {
-    if (updates.shape[d + batchDim] !== shape[d + sliceDim]) {
-      throw new Error(
-        shapeError + ` updates.shape[${d + batchDim}] (${updates.shape[d + batchDim]}) != shape[${d + batchDim}] (${shape[d + batchDim]})`
-      );
-    }
-  }
-}
-function validateInput(updates, indices, shape) {
-  if (indices.rank < 1) {
-    throw new Error(
-      `tf.scatterND() expects the indices to be rank 1 or higher, but the rank was ${indices.rank}.`
-    );
-  }
-  if (updates.rank < 1) {
-    throw new Error(
-      `tf.scatterND() expects the updates to be rank 1 or higher, but the rank was ${updates.rank}.`
-    );
-  }
-  if (indices.dtype !== "int32") {
-    throw new Error(`The dtype of 'indices' should be int32, but got dtype: ${indices.dtype}`);
-  }
-  if (shape.length < 1) {
-    throw new Error(
-      `Output rank must be greater or equal to 1, but got shape: ${shape}`
-    );
-  }
-  if (shape.length === 0) {
-    if (indices.size === 0) {
-      throw new Error(`Indices specified for empty output. indices shape: ${indices.shape}`);
-    }
-    if (updates.size === 0) {
-      throw new Error(`Updates specified for empty output. updates shape: ${updates.shape}`);
-    }
-  }
-  validateUpdateShape(shape, indices, updates);
-}
-function calculateShapes(updates, indices, shape) {
-  const indicesRank = indices.shape.length;
-  const sliceRank = indicesRank > 1 ? indices.shape[indicesRank - 1] : 1;
-  const totalNd = shape.length;
-  let sliceSize = 1;
-  for (let i = sliceRank; i < totalNd; ++i) {
-    sliceSize *= shape[i];
-  }
-  const safeSliceDim = sliceRank < 1 ? 1 : sliceRank;
-  const numUpdates = sizeFromShape(indices.shape) / safeSliceDim;
-  const strides = [...computeStrides(shape.slice(0, sliceRank)), 1];
-  const outputSize = sizeFromShape(shape);
-  return { sliceRank, numUpdates, sliceSize, strides, outputSize };
-}
-
-// src/tfjs-core/src/ops/slice_util.ts
-var slice_util_exports = {};
-__export(slice_util_exports, {
-  assertParamsValid: () => assertParamsValid,
-  computeFlatOffset: () => computeFlatOffset,
-  computeOutShape: () => computeOutShape,
-  getNormalizedAxes: () => getNormalizedAxes,
-  isSliceContinous: () => isSliceContinous,
-  maskToAxes: () => maskToAxes,
-  parseSliceParams: () => parseSliceParams,
-  sliceInfo: () => sliceInfo,
-  startForAxis: () => startForAxis,
-  startIndicesWithElidedDims: () => startIndicesWithElidedDims,
-  stopForAxis: () => stopForAxis,
-  stopIndicesWithElidedDims: () => stopIndicesWithElidedDims,
-  stridesForAxis: () => stridesForAxis,
-  stridesWithElidedDims: () => stridesWithElidedDims
-});
-var NEW_AXIS = -2;
-var SHRINK_AXIS = -1;
-function assertParamsValid(input, begin, size) {
-  const inputRank = input.shape.length;
-  assert(
-    inputRank === begin.length,
-    () => `Error in slice${inputRank}D: Length of begin ${begin} must match the rank of the array (${inputRank}).`
-  );
-  assert(
-    inputRank === size.length,
-    () => `Error in slice${inputRank}D: Length of size ${size} must match the rank of the array (${inputRank}).`
-  );
-  for (let i = 0; i < inputRank; ++i) {
-    assert(
-      begin[i] + size[i] <= input.shape[i],
-      () => `Error in slice${inputRank}D: begin[${i}] + size[${i}] (${begin[i] + size[i]}) would overflow input.shape[${i}] (${input.shape[i]})`
-    );
-  }
-}
-function maskToAxes(mask) {
-  const axes = [];
-  let axis = 0;
-  while (mask > 0) {
-    if (mask & 1) {
-      axes.push(axis);
-    }
-    mask /= 2;
-    axis++;
-  }
-  return axes;
-}
-function computeOutShape(begin, end, strides) {
-  const size = [];
-  for (let axis = 0; axis < begin.length; axis++) {
-    size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
-  }
-  return size;
-}
-function stridesWithElidedDims(strides, ellipsisInsertionIndex, numElidedAxes, inputShape) {
-  const newStrides = [...strides];
-  for (let i = newStrides.length; i < inputShape.length; i++) {
-    newStrides.push(1);
-  }
-  for (let i = 0; i < numElidedAxes; i++) {
-    if (i === 0) {
-      newStrides[ellipsisInsertionIndex] = 1;
-    } else {
-      newStrides.splice(
-        ellipsisInsertionIndex,
-        0,
-        1
-      );
-      newStrides.pop();
-    }
-  }
-  return newStrides;
-}
-function unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, normalizedAxis) {
-  if (normalizedAxis <= ellipsisInsertionIndex) {
-    return normalizedAxis;
-  }
-  return normalizedAxis - (numElidedAxes - 1);
-}
-function getElidedAxes(numElidedAxes, ellipsisInsertionIndex) {
-  const elidedAxes = [];
-  for (let i = 0; i < numElidedAxes; i++) {
-    elidedAxes.push(ellipsisInsertionIndex + i);
-  }
-  return elidedAxes;
-}
-function getNormalizedAxes(inputShape, ellipsisAxes, numInterpolatedAxes, begin, end, strides, beginMask, endMask, ellipsisMask) {
-  const inputRank = inputShape.length;
-  let normalizedBegin = new Array(inputRank), normalizedEnd = new Array(inputRank), normalizedStrides = new Array(inputRank);
-  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
-    const fullIndex = ellipsisAxes[0];
-    const numElidedAxes = numInterpolatedAxes + 1;
-    normalizedBegin = startIndicesWithElidedDims(
-      beginMask,
-      fullIndex,
-      numElidedAxes,
-      begin,
-      inputShape
-    );
-    normalizedEnd = stopIndicesWithElidedDims(
-      endMask,
-      fullIndex,
-      numElidedAxes,
-      end,
-      inputShape
-    );
-    normalizedStrides = stridesWithElidedDims(strides, fullIndex, numElidedAxes, inputShape);
-  } else {
-    for (let axis = 0; axis < inputRank; axis++) {
-      normalizedBegin[axis] = startForAxis(
-        beginMask,
-        begin,
-        strides,
-        inputShape,
-        axis,
-        ellipsisMask
-      );
-      normalizedEnd[axis] = stopForAxis(endMask, end, strides, inputShape, axis, ellipsisMask);
-      normalizedStrides[axis] = stridesForAxis(strides, axis, ellipsisMask);
-    }
-  }
-  return {
-    begin: normalizedBegin,
-    end: normalizedEnd,
-    strides: normalizedStrides
-  };
-}
-function startIndicesWithElidedDims(beginMask, ellipsisInsertionIndex, numElidedAxes, originalBegin, inputShape) {
-  const newIndices = [...inputShape];
-  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
-  for (let axis = 0; axis < newIndices.length; axis++) {
-    if (elidedAxes.indexOf(axis) > -1) {
-      newIndices[axis] = 0;
-    } else {
-      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
-      let originalValue = originalBegin[originalAxis];
-      if (beginMask & 1 << originalAxis) {
-        originalValue = 0;
-      }
-      newIndices[axis] = originalValue;
-    }
-  }
-  return newIndices;
-}
-function stopIndicesWithElidedDims(endMask, ellipsisInsertionIndex, numElidedAxes, originalEnd, inputShape) {
-  const newIndices = [...inputShape];
-  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
-  for (let axis = 0; axis < newIndices.length; axis++) {
-    if (elidedAxes.indexOf(axis) > -1) {
-      newIndices[axis] = Number.MAX_SAFE_INTEGER;
-    } else {
-      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
-      let originalValue = originalEnd[originalAxis];
-      if (endMask & 1 << originalAxis) {
-        originalValue = Number.MAX_SAFE_INTEGER;
-      }
-      newIndices[axis] = originalValue;
-    }
-  }
-  for (let i = 0; i < newIndices.length; i++) {
-    const axisSize = inputShape[i];
-    if (newIndices[i] < 0) {
-      newIndices[i] += axisSize;
-    }
-    newIndices[i] = clamp(0, newIndices[i], inputShape[i]);
-  }
-  return newIndices;
-}
-function stridesForAxis(strides, axis, ellipsisMask) {
-  let stride = strides[axis];
-  if (ellipsisMask & 1 << axis || stride == null) {
-    stride = 1;
-  }
-  return stride;
-}
-function startForAxis(beginMask, startIndices, strides, inputShape, axis, ellipsisMask) {
-  let start = startIndices[axis];
-  const stride = strides[axis] || 1;
-  if (beginMask & 1 << axis || ellipsisMask & 1 << axis || start == null) {
-    if (stride > 0) {
-      start = Number.MIN_SAFE_INTEGER;
-    } else {
-      start = Number.MAX_SAFE_INTEGER;
-    }
-  }
-  const axisSize = inputShape[axis];
-  if (start < 0) {
-    start += axisSize;
-  }
-  start = clamp(0, start, axisSize - 1);
-  return start;
-}
-function stopForAxis(endMask, stopIndices, strides, inputShape, axis, ellipsisMask) {
-  let stop = stopIndices[axis];
-  const stride = strides[axis] || 1;
-  if (endMask & 1 << axis || ellipsisMask & 1 << axis || stop == null) {
-    if (stride > 0) {
-      stop = Number.MAX_SAFE_INTEGER;
-    } else {
-      stop = Number.MIN_SAFE_INTEGER;
-    }
-  }
-  const axisSize = inputShape[axis];
-  if (stop < 0) {
-    stop += axisSize;
-  }
-  if (stride > 0) {
-    stop = clamp(0, stop, axisSize);
-  } else {
-    stop = clamp(-1, stop, axisSize - 1);
-  }
-  return stop;
-}
-function isSliceContinous(shape, begin, size) {
-  let firstNonOneAxis = size.length;
-  for (let i = 0; i < size.length; i++) {
-    if (size[i] > 1) {
-      firstNonOneAxis = i;
-      break;
-    }
-  }
-  for (let i = firstNonOneAxis + 1; i < size.length; i++) {
-    if (begin[i] > 0 || size[i] !== shape[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-function computeFlatOffset(begin, strides) {
-  let flatOffset = begin.length > 0 ? begin[begin.length - 1] : 1;
-  for (let i = 0; i < begin.length - 1; i++) {
-    flatOffset += begin[i] * strides[i];
-  }
-  return flatOffset;
-}
-function parseSliceParams(x, begin, size) {
-  let begin_;
-  const xRank = x.shape.length;
-  if (typeof begin === "number") {
-    begin_ = [begin, ...new Array(xRank - 1).fill(0)];
-  } else if (begin.length < xRank) {
-    begin_ = begin.concat(new Array(xRank - begin.length).fill(0));
-  } else {
-    begin_ = begin.slice();
-  }
-  begin_.forEach((d) => {
-    assert(
-      d !== -1,
-      () => "slice() does not support negative begin indexing."
-    );
-  });
-  let size_;
-  if (size == null) {
-    size_ = new Array(xRank).fill(-1);
-  } else if (typeof size === "number") {
-    size_ = [size, ...new Array(xRank - 1).fill(-1)];
-  } else if (size.length < xRank) {
-    size_ = size.concat(new Array(xRank - size.length).fill(-1));
-  } else {
-    size_ = size;
-  }
-  size_ = size_.map((d, i) => {
-    if (d >= 0) {
-      return d;
-    } else {
-      assert(
-        d === -1,
-        () => `Negative size values should be exactly -1 but got ${d} for the slice() size at index ${i}.`
-      );
-      return x.shape[i] - begin_[i];
-    }
-  });
-  return [begin_, size_];
-}
-function sliceInfo(xShape, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask) {
-  let stridesNonNull;
-  if (strides == null) {
-    stridesNonNull = new Array(begin.length);
-    stridesNonNull.fill(1);
-  } else {
-    stridesNonNull = strides;
-  }
-  if (ellipsisMask != null && (ellipsisMask & ellipsisMask - 1) !== 0) {
-    throw new Error("Multiple ellipses in slice is not allowed.");
-  }
-  let ellipsisSeen = false;
-  const sparseSpec = {
-    dims: stridesNonNull.length,
-    numAddAxisAfterEllipsis: 0,
-    begin: begin.slice(),
-    end: end.slice(),
-    strides: stridesNonNull.slice(),
-    beginMask,
-    endMask,
-    ellipsisMask,
-    newAxisMask,
-    shrinkAxisMask
-  };
-  for (let i = 0; i < sparseSpec.dims; i++) {
-    if (ellipsisSeen && (1 << i & newAxisMask) !== 0) {
-      sparseSpec.numAddAxisAfterEllipsis++;
-    }
-    if (1 << i & ellipsisMask) {
-      ellipsisSeen = true;
-    }
-  }
-  if (!ellipsisSeen) {
-    sparseSpec.ellipsisMask |= 1 << sparseSpec.dims;
-    sparseSpec.dims++;
-  }
-  const denseSpec = {
-    dims: xShape.length,
-    beginMask: 0,
-    endMask: 0,
-    beginValid: false,
-    endValid: false
-  };
-  buildDenseSpec(sparseSpec, denseSpec);
-  let isIdentity = true;
-  let sliceDim0 = true;
-  let isSimpleSlice = true;
-  const processingShape = [];
-  const finalShape = [];
-  for (let i = 0; i < xShape.length; ++i) {
-    if (denseSpec.strides[i] === 0) {
-      throw Error(`strides[${i}] must be non-zero`);
-    }
-    const shrinkI = !!(denseSpec.shrinkAxisMask & 1 << i);
-    const dimI = xShape[i];
-    if (dimI === -1) {
-      processingShape.push(shrinkI ? 1 : -1);
-      continue;
-    }
-    const masks = [denseSpec.beginMask & 1 << i, denseSpec.endMask & 1 << i];
-    const validRange = [
-      denseSpec.strides[i] > 0 ? 0 : -1,
-      denseSpec.strides[i] > 0 ? dimI : dimI - 1
-    ];
-    if (shrinkI && denseSpec.strides[i] <= 0) {
-      throw Error("only stride 1 allowed on non-range indexing.");
-    }
-    isSimpleSlice = isSimpleSlice && denseSpec.strides[i] === 1;
-    const beginAndEndMasked = !!(denseSpec.beginMask & 1 << i && denseSpec.endMask & 1 << i);
-    if (denseSpec.beginValid && denseSpec.endValid) {
-      if (shrinkI) {
-        const xFwd = denseSpec.begin[i] < 0 ? dimI + denseSpec.begin[i] : denseSpec.begin[i];
-        denseSpec.begin[i] = xFwd;
-        denseSpec.end[i] = denseSpec.begin[i] + 1;
-        if (xFwd < 0 || xFwd >= dimI) {
-          throw Error(`slice index ${denseSpec.begin[i]} of dimension ${i} out of bounds.`);
-        }
-      } else {
-        denseSpec.begin[i] = canonical(
-          denseSpec.begin[i],
-          0,
-          denseSpec.strides[i],
-          dimI,
-          masks,
-          validRange
-        );
-        denseSpec.end[i] = canonical(
-          denseSpec.end[i],
-          1,
-          denseSpec.strides[i],
-          dimI,
-          masks,
-          validRange
-        );
-      }
-      const takeAllInDimension = denseSpec.strides[i] === 1 && denseSpec.begin[i] === 0 && denseSpec.end[i] === dimI;
-      isIdentity = isIdentity && takeAllInDimension;
-      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || takeAllInDimension);
-    } else {
-      isIdentity = isIdentity && (denseSpec.strides[i] === 1 && beginAndEndMasked);
-      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || beginAndEndMasked);
-    }
-    let intervalLength;
-    let knownInterval = false;
-    if (denseSpec.beginValid && denseSpec.endValid) {
-      intervalLength = denseSpec.end[i] - denseSpec.begin[i];
-      knownInterval = true;
-    } else if (shrinkI) {
-      intervalLength = 1;
-      knownInterval = true;
-    } else if (beginAndEndMasked) {
-      if (dimI >= 0) {
-        if (denseSpec.strides[i] < 0) {
-          intervalLength = -dimI;
-        } else {
-          intervalLength = dimI;
-        }
-        knownInterval = true;
-      }
-    }
-    if (knownInterval) {
-      let sizeI;
-      if (intervalLength === 0 || intervalLength < 0 !== denseSpec.strides[i] < 0) {
-        sizeI = 0;
-      } else {
-        sizeI = Math.trunc(intervalLength / denseSpec.strides[i]) + (intervalLength % denseSpec.strides[i] !== 0 ? 1 : 0);
-      }
-      processingShape.push(sizeI);
-    } else {
-      processingShape.push(-1);
-    }
-  }
-  for (let denseDim = 0; denseDim < denseSpec.finalShapeGatherIndices.length; ++denseDim) {
-    const gatherIndex = denseSpec.finalShapeGatherIndices[denseDim];
-    if (gatherIndex >= 0) {
-      finalShape.push(processingShape[gatherIndex]);
-    } else if (gatherIndex === NEW_AXIS) {
-      finalShape.push(1);
-    }
-  }
-  const finalShapeSparse = finalShape.filter(
-    (dim, i) => denseSpec.finalShapeGatherIndices[i] !== NEW_AXIS
-  );
-  return {
-    finalShapeSparse,
-    finalShape,
-    isIdentity,
-    sliceDim0,
-    isSimpleSlice,
-    begin: denseSpec.begin,
-    end: denseSpec.end,
-    strides: denseSpec.strides
-  };
-}
-function buildDenseSpec(sparse, dense) {
-  dense.beginMask = 0;
-  dense.endMask = 0;
-  dense.shrinkAxisMask = 0;
-  let fullIndex = 0;
-  dense.beginValid = sparse.begin != null;
-  dense.endValid = sparse.end != null;
-  dense.begin = new Array(dense.dims);
-  dense.end = new Array(dense.dims);
-  dense.strides = new Array(dense.dims);
-  dense.finalShapeGatherIndices = [];
-  dense.finalShapeGatherIndicesSparse = [];
-  dense.inputShapeGatherIndicesSparse = new Array(dense.dims);
-  for (let i = 0; i < sparse.dims; i++) {
-    if (1 << i & sparse.ellipsisMask) {
-      const nextIndex = Math.min(
-        dense.dims - (sparse.dims - i) + 1 + sparse.numAddAxisAfterEllipsis,
-        dense.dims
-      );
-      for (; fullIndex < nextIndex; fullIndex++) {
-        dense.begin[fullIndex] = 0;
-        dense.end[fullIndex] = 0;
-        dense.strides[fullIndex] = 1;
-        dense.beginMask |= 1 << fullIndex;
-        dense.endMask |= 1 << fullIndex;
-        dense.finalShapeGatherIndices.push(fullIndex);
-        dense.finalShapeGatherIndicesSparse.push(-1);
-        dense.inputShapeGatherIndicesSparse[fullIndex] = i;
-      }
-    } else if (1 << i & sparse.newAxisMask) {
-      dense.finalShapeGatherIndices.push(NEW_AXIS);
-      dense.finalShapeGatherIndicesSparse.push(-1);
-    } else {
-      if (fullIndex === dense.begin.length) {
-        throw Error(
-          `Index out of range using input dim ${fullIndex}; input has only ${dense.dims} dims, ${dense.begin.length}.`
-        );
-      }
-      if (sparse.begin != null) {
-        dense.begin[fullIndex] = sparse.begin[i];
-      }
-      if (sparse.end != null) {
-        dense.end[fullIndex] = sparse.end[i];
-      }
-      dense.strides[fullIndex] = sparse.strides[i];
-      if (sparse.beginMask & 1 << i) {
-        dense.beginMask |= 1 << fullIndex;
-      }
-      if (sparse.endMask & 1 << i) {
-        dense.endMask |= 1 << fullIndex;
-      }
-      if (sparse.shrinkAxisMask & 1 << i) {
-        dense.finalShapeGatherIndices.push(SHRINK_AXIS);
-        dense.finalShapeGatherIndicesSparse.push(-1);
-        dense.shrinkAxisMask |= 1 << fullIndex;
-      } else {
-        dense.finalShapeGatherIndices.push(fullIndex);
-        dense.finalShapeGatherIndicesSparse.push(i);
-      }
-      dense.inputShapeGatherIndicesSparse[fullIndex] = i;
-      fullIndex++;
-    }
-  }
-}
-function canonical(x, c, strideI, dimI, masks, validRange) {
-  if (masks[c]) {
-    return strideI > 0 ? validRange[c] : validRange[c + 1 & 1];
-  } else {
-    const xFwd = x < 0 ? dimI + x : x;
-    return xFwd < validRange[0] ? validRange[0] : xFwd > validRange[1] ? validRange[1] : xFwd;
-  }
-}
-
-// src/tfjs-core/src/serialization.ts
-var Serializable = class {
-  getClassName() {
-    return this.constructor.className;
-  }
-  static fromConfig(cls, config) {
-    return new cls(config);
-  }
-};
-var _SerializationMap = class {
-  classNameMap;
-  constructor() {
-    this.classNameMap = {};
-  }
-  static getMap() {
-    if (_SerializationMap.instance == null) {
-      _SerializationMap.instance = new _SerializationMap();
-    }
-    return _SerializationMap.instance;
-  }
-  static register(cls) {
-    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
-  }
-};
-var SerializationMap = _SerializationMap;
-__publicField(SerializationMap, "instance");
-function registerClass(cls) {
-  assert(
-    cls.className != null,
-    () => `Class being registered does not have the static className property defined.`
-  );
-  assert(
-    typeof cls.className === "string",
-    () => `className is required to be a string, but got type ` + typeof cls.className
-  );
-  assert(
-    cls.className.length > 0,
-    () => `Class being registered has an empty-string as its className, which is disallowed.`
-  );
-  SerializationMap.register(cls);
 }
 
 // src/tfjs-core/src/ops/add.ts
@@ -9426,7 +8700,11 @@ function div_(a, b) {
   }
   const inputs = { a: $a, b: $b };
   const attrs = {};
-  return ENGINE.runKernel(RealDiv, inputs, attrs);
+  return ENGINE.runKernel(
+    RealDiv,
+    inputs,
+    attrs
+  );
 }
 var div = op({ div_ });
 
@@ -9784,17 +9062,20 @@ function computeOutputShape2D(inShape, fieldSize, stride, zeroPad, roundingMode)
   const outputCols = round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
   return [outputRows, outputCols];
 }
-function computeOutputShape4D(inShape, fieldSize, outChannels, stride, zeroPad, roundingMode) {
+function computeOutputShape4D(inShape, filterShape, outChannels, strides, zeroPad, roundingMode) {
   if (zeroPad == null) {
-    zeroPad = computeDefaultPad(inShape, fieldSize, stride);
+    zeroPad = computeDefaultPad(inShape, filterShape[0], strides[0]);
   }
-  const inputDepth = inShape[0];
-  const inputRows = inShape[1];
-  const inputCols = inShape[2];
-  const outputDepths = round((inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputRows = round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputCols = round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  return [outputDepths, outputRows, outputCols, outChannels];
+  const outShape = [0, 0, 0, outChannels];
+  for (let index = 0; index < 3; index++) {
+    if (inShape[index] + 2 * zeroPad >= filterShape[index]) {
+      outShape[index] = round(
+        (inShape[index] - filterShape[index] + 2 * zeroPad) / strides[index] + 1,
+        roundingMode
+      );
+    }
+  }
+  return outShape;
 }
 function computeDefaultPad(inputShape, fieldSize, stride, dilation = 1) {
   const effectiveFieldSize = getEffectiveFilterSize(fieldSize, dilation);
@@ -9875,6 +9156,9 @@ function get3DPadAndOutInfo(pad3, inDepth, inHeight, inWidth, strideDepth, strid
   let outDepth;
   let outHeight;
   let outWidth;
+  if (pad3 === "valid") {
+    pad3 = 0;
+  }
   if (typeof pad3 === "number") {
     const padType = pad3 === 0 ? "VALID" : "NUMBER";
     padInfo = {
@@ -9888,9 +9172,9 @@ function get3DPadAndOutInfo(pad3, inDepth, inHeight, inWidth, strideDepth, strid
     };
     const outShape = computeOutputShape4D(
       [inDepth, inHeight, inWidth, 1],
-      filterDepth,
+      [filterDepth, filterHeight, filterWidth],
       1,
-      strideDepth,
+      [strideDepth, strideHeight, strideWidth],
       pad3,
       roundingMode
     );
@@ -9911,19 +9195,6 @@ function get3DPadAndOutInfo(pad3, inDepth, inHeight, inWidth, strideDepth, strid
     const left = Math.floor(padAlongWidth / 2);
     const right = padAlongWidth - left;
     padInfo = { top, bottom, left, right, front, back, type: "SAME" };
-  } else if (pad3 === "valid") {
-    padInfo = {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      front: 0,
-      back: 0,
-      type: "VALID"
-    };
-    outDepth = Math.ceil((inDepth - filterDepth + 1) / strideDepth);
-    outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
-    outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
   } else {
     throw Error(`Unknown padding parameter: ${pad3}`);
   }
@@ -9950,6 +9221,9 @@ function tupleValuesAreOne(param) {
 }
 function eitherStridesOrDilationsAreOne(strides, dilations) {
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
+}
+function stridesOrDilationsArePositive(values) {
+  return parseTupleParam(values).every((value) => value > 0);
 }
 function convertConv2DDataFormat(dataFormat) {
   if (dataFormat === "NHWC") {
@@ -10050,6 +9324,10 @@ function avgPool3d_(x, filterSize, strides, pad3, dimRoundingMode, dataFormat = 
     dataFormat === "NDHWC",
     () => `Error in avgPool3d: Only NDHWC is currently supported, but got dataFormat of ${dataFormat}`
   );
+  assert(
+    typeof strides === "number" && strides > 0 || Array.isArray(strides) && strides[0] > 0 && strides[1] > 0 && strides[2] > 0,
+    () => `Error in avgPool3d: Stride must be > 0, but got '${strides}'`
+  );
   checkPadOnDimRoundingMode("avgPool3d", pad3, dimRoundingMode);
   const inputs = { x: x5D };
   const attrs = { filterSize, strides, pad: pad3, dimRoundingMode, dataFormat };
@@ -10093,6 +9371,21 @@ function concat_(tensors, axis = 0) {
   );
 }
 var concat = op({ concat_ });
+
+// src/tfjs-core/src/ops/mat_mul.ts
+function matMul_(a, b, transposeA = false, transposeB = false) {
+  let $a = convertToTensor(a, "a", "matMul");
+  let $b = convertToTensor(b, "b", "matMul");
+  [$a, $b] = makeTypesMatch($a, $b);
+  const inputs = { a: $a, b: $b };
+  const attrs = { transposeA, transposeB };
+  return ENGINE.runKernel(
+    BatchMatMul,
+    inputs,
+    attrs
+  );
+}
+var matMul = op({ matMul_ });
 
 // src/tfjs-core/src/ops/sigmoid.ts
 function sigmoid_(x) {
@@ -10456,6 +9749,7 @@ var ceil = op({ ceil_ });
 // src/tfjs-core/src/ops/fill.ts
 function fill(shape, value, dtype) {
   assertNonNegativeIntegerDimensions(shape);
+  dtype = dtype || inferDtype(value);
   const attrs = { shape, value, dtype };
   return ENGINE.runKernel(Fill, {}, attrs);
 }
@@ -10482,7 +9776,11 @@ var clipByValue = op({ clipByValue_ });
 
 // src/tfjs-core/src/ops/concat_1d.ts
 function concat1d_(tensors) {
-  return concat(tensors, 0);
+  return concat(
+    tensors,
+    0
+    /* axis */
+  );
 }
 var concat1d = op({ concat1d_ });
 
@@ -10532,6 +9830,14 @@ function conv2d_(x, filter, strides, pad3, dataFormat = "NHWC", dilations = [1, 
     eitherStridesOrDilationsAreOne(strides, dilations),
     () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`
   );
+  assert(
+    stridesOrDilationsArePositive(dilations),
+    () => "Error in conv2D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(strides),
+    () => "Error in conv2D: Strides should be larger than 0."
+  );
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad3, dataFormat, dilations, dimRoundingMode };
   const res = ENGINE.runKernel(
@@ -10572,6 +9878,14 @@ function conv1d_(x, filter, stride, pad3, dataFormat = "NWC", dilation = 1, dimR
   assert(
     eitherStridesOrDilationsAreOne(stride, dilation),
     () => `Error in conv1D: Either stride or dilation must be 1. Got stride ${stride} and dilation '${dilation}'`
+  );
+  assert(
+    stridesOrDilationsArePositive(dilation),
+    () => "Error in conv1D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(stride),
+    () => "Error in conv1D: Stride should be larger than 0."
   );
   assert(
     dataFormat === "NWC",
@@ -10697,6 +10011,14 @@ function conv3d_(x, filter, strides, pad3, dataFormat = "NDHWC", dilations = [1,
   assert(
     dataFormat === "NDHWC",
     () => `Error in conv3d: got dataFormat of ${dataFormat} but only NDHWC is currently supported.`
+  );
+  assert(
+    stridesOrDilationsArePositive(dilations),
+    () => "Error in conv3D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(strides),
+    () => "Error in conv3D: Strides should be larger than 0."
   );
   const inputs = { x: x5D, filter: $filter };
   const attrs = { strides, pad: pad3, dataFormat, dilations };
@@ -10949,6 +10271,10 @@ function dilation2d_(x, filter, strides, pad3, dilations = [1, 1], dataFormat = 
     x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     reshapedTo4D = true;
   }
+  assert(
+    x4D.shape[3] === $filter.shape[2],
+    () => `Error in dilation2d:  input and filter must have the same depth: ${x4D.shape[3]} vs ${$filter.shape[2]}`
+  );
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad3, dilations };
   const res = ENGINE.runKernel(
@@ -10962,6 +10288,64 @@ function dilation2d_(x, filter, strides, pad3, dilations = [1, 1], dataFormat = 
   return res;
 }
 var dilation2d = op({ dilation2d_ });
+
+// src/tfjs-core/src/ops/broadcast_util.ts
+var broadcast_util_exports = {};
+__export(broadcast_util_exports, {
+  assertAndGetBroadcastShape: () => assertAndGetBroadcastShape,
+  getBroadcastDims: () => getBroadcastDims,
+  getReductionAxes: () => getReductionAxes
+});
+function getBroadcastDims(inShape, outShape) {
+  const inRank = inShape.length;
+  const dims = [];
+  for (let i = 0; i < inRank; i++) {
+    const dim = inRank - 1 - i;
+    const a = inShape[dim] || 1;
+    const b = outShape[outShape.length - 1 - i] || 1;
+    if (b > 1 && a === 1) {
+      dims.unshift(dim);
+    }
+  }
+  return dims;
+}
+function getReductionAxes(inShape, outShape) {
+  const result = [];
+  for (let i = 0; i < outShape.length; i++) {
+    const inDim = inShape[inShape.length - i - 1];
+    const outAxis = outShape.length - i - 1;
+    const outDim = outShape[outAxis];
+    if (inDim == null || inDim === 1 && outDim > 1) {
+      result.unshift(outAxis);
+    }
+  }
+  return result;
+}
+function assertAndGetBroadcastShape(shapeA, shapeB) {
+  const l = Math.max(shapeA.length, shapeB.length);
+  const result = new Array(l);
+  for (let i = 0; i < l; i++) {
+    let a = shapeA[shapeA.length - i - 1];
+    if (a == null) {
+      a = 1;
+    }
+    let b = shapeB[shapeB.length - i - 1];
+    if (b == null) {
+      b = 1;
+    }
+    if (a === 1) {
+      result[l - i - 1] = b;
+    } else if (b === 1) {
+      result[l - i - 1] = a;
+    } else if (a !== b) {
+      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
+      throw Error(errMsg);
+    } else {
+      result[l - i - 1] = a;
+    }
+  }
+  return result;
+}
 
 // src/tfjs-core/src/ops/equal.ts
 function equal_(a, b) {
@@ -11426,6 +10810,14 @@ function greaterEqual_(a, b) {
 }
 var greaterEqual = op({ greaterEqual_ });
 
+// src/tfjs-core/src/ops/imag.ts
+function imag_(input) {
+  const $input = convertToTensor(input, "input", "imag");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Imag, inputs);
+}
+var imag = op({ imag_ });
+
 // src/tfjs-core/src/ops/is_finite.ts
 function isFinite_(x) {
   const $x = convertToTensor(x, "x", "isFinite");
@@ -11583,6 +10975,14 @@ function customGrad(f) {
   return ENGINE.customGrad(f);
 }
 
+// src/tfjs-core/src/ops/neg.ts
+function neg_(x) {
+  const $x = convertToTensor(x, "x", "neg");
+  const inputs = { x: $x };
+  return ENGINE.runKernel(Neg, inputs);
+}
+var neg = op({ neg_ });
+
 // src/tfjs-core/src/ops/softplus.ts
 function softplus_(x) {
   const $x = convertToTensor(x, "x", "softplus");
@@ -11649,7 +11049,12 @@ var logSoftmax = op({ logSoftmax_ });
 function logSumExp_(x, axis = null, keepDims = false) {
   const $x = convertToTensor(x, "x", "logSumExp");
   const axes = parseAxisParam(axis, $x.shape);
-  const xMax = max($x, axes, true);
+  const xMax = max(
+    $x,
+    axes,
+    true
+    /* keepDims */
+  );
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
@@ -12003,6 +11408,22 @@ function notEqual_(a, b) {
 }
 var notEqual = op({ notEqual_ });
 
+// src/tfjs-core/src/ops/one_hot.ts
+function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
+  if (depth < 2) {
+    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
+  }
+  const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
+  const inputs = { indices: $indices };
+  const attrs = { dtype, depth, onValue, offValue };
+  return ENGINE.runKernel(
+    OneHot,
+    inputs,
+    attrs
+  );
+}
+var oneHot = op({ oneHot_ });
+
 // src/tfjs-core/src/ops/ones_like.ts
 function onesLike_(x) {
   const $x = convertToTensor(x, "x", "onesLike");
@@ -12337,6 +11758,7 @@ var MPRandGauss = class {
     const seedValue = seed ? seed : Math.random();
     this.random = seedrandom.alea(seedValue.toString());
   }
+  /** Returns next sample from a Gaussian distribution. */
   nextValue() {
     if (!isNaN(this.nextVal)) {
       const value = this.nextVal;
@@ -12364,12 +11786,14 @@ var MPRandGauss = class {
     }
     return this.convertValue(resultX);
   }
+  /** Handles proper rounding for non-floating-point numbers. */
   convertValue(value) {
     if (this.dtype == null || this.dtype === "float32") {
       return value;
     }
     return Math.round(value);
   }
+  /** Returns true if less than 2-standard-deviations from the mean. */
   isValidTruncated(value) {
     return value <= this.upper && value >= this.lower;
   }
@@ -12396,6 +11820,7 @@ var RandGamma = class {
     }
     this.c = 1 / Math.sqrt(9 * this.d);
   }
+  /** Returns next sample from a gamma distribution. */
   nextValue() {
     let x2, v0, v1, x, u, v;
     while (true) {
@@ -12418,6 +11843,7 @@ var RandGamma = class {
     }
     return this.convertValue(v);
   }
+  /** Handles proper rounding for non-floating-point numbers. */
   convertValue(value) {
     if (this.dtype === "float32") {
       return value;
@@ -12447,6 +11873,7 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
+  /** Handles proper rounding for non floating point numbers. */
   canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
@@ -12522,8 +11949,20 @@ function range(start, stop, step3 = 1, dtype = "float32") {
     throw new Error("Cannot have a step of zero");
   }
   const attrs = { start, stop, step: step3, dtype };
-  return ENGINE.runKernel(Range, {}, attrs);
+  return ENGINE.runKernel(
+    Range,
+    {},
+    attrs
+  );
 }
+
+// src/tfjs-core/src/ops/real.ts
+function real_(input) {
+  const $input = convertToTensor(input, "input", "real");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Real, inputs);
+}
+var real = op({ real_ });
 
 // src/tfjs-core/src/ops/reciprocal.ts
 function reciprocal_(x) {
@@ -13014,6 +12453,134 @@ function tensor2d(values, shape, dtype) {
   return makeTensor(values, shape, inferredShape, dtype);
 }
 
+// src/tfjs-core/src/ops/tensor3d.ts
+function tensor3d(values, shape, dtype) {
+  assertNonNull(values);
+  if (shape != null && shape.length !== 3) {
+    throw new Error("tensor3d() requires shape to have three numbers");
+  }
+  const inferredShape = inferShape(values, dtype);
+  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
+    throw new Error(
+      "tensor3d() requires values to be number[][][] or flat/TypedArray"
+    );
+  }
+  if (inferredShape.length === 1 && shape == null) {
+    throw new Error(
+      "tensor3d() requires shape to be provided when `values` are a flat array"
+    );
+  }
+  return makeTensor(values, shape, inferredShape, dtype);
+}
+
+// src/tfjs-core/src/ops/scatter_nd_util.ts
+var scatter_nd_util_exports = {};
+__export(scatter_nd_util_exports, {
+  calculateShapes: () => calculateShapes,
+  validateInput: () => validateInput,
+  validateUpdateShape: () => validateUpdateShape
+});
+function validateUpdateShape(shape, indices, updates) {
+  const sliceDim = indices.rank > 1 ? indices.shape[indices.rank - 1] : 1;
+  const batchDim = indices.rank > 1 ? indices.rank - 1 : 1;
+  const shapeError = `Must have updates.shape = indices.shape[:batchDim] + shape[sliceDim:], got updates.shape: ${updates.shape}, indices.shape: ${indices.shape}, shape: ${shape}, sliceDim: ${sliceDim}, and batchDim: ${batchDim}.`;
+  if (updates.rank < batchDim) {
+    throw new Error(shapeError + ` update.rank < ${batchDim}. `);
+  }
+  if (shape.length < sliceDim + (updates.rank - batchDim)) {
+    throw new Error(
+      shapeError + ` Output shape length < ${sliceDim + (updates.rank - batchDim)}`
+    );
+  }
+  if (updates.rank !== batchDim + shape.length - sliceDim) {
+    throw new Error(
+      shapeError + ` update.rank != ${batchDim + shape.length - sliceDim}`
+    );
+  }
+  for (let d = 0; d < batchDim; ++d) {
+    if (updates.shape[d] !== indices.shape[d]) {
+      throw new Error(
+        shapeError + ` updates.shape[${d}] (${updates.shape[d]}) != indices.shape[${d}] (${indices.shape[d]}).`
+      );
+    }
+  }
+  for (let d = 0; d < updates.rank - batchDim; ++d) {
+    if (updates.shape[d + batchDim] !== shape[d + sliceDim]) {
+      throw new Error(
+        shapeError + ` updates.shape[${d + batchDim}] (${updates.shape[d + batchDim]}) != shape[${d + batchDim}] (${shape[d + batchDim]})`
+      );
+    }
+  }
+}
+function validateInput(updates, indices, shape) {
+  if (indices.rank < 1) {
+    throw new Error(
+      `tf.scatterND() expects the indices to be rank 1 or higher, but the rank was ${indices.rank}.`
+    );
+  }
+  if (updates.rank < 1) {
+    throw new Error(
+      `tf.scatterND() expects the updates to be rank 1 or higher, but the rank was ${updates.rank}.`
+    );
+  }
+  if (indices.dtype !== "int32") {
+    throw new Error(`The dtype of 'indices' should be int32, but got dtype: ${indices.dtype}`);
+  }
+  if (shape.length < 1) {
+    throw new Error(
+      `Output rank must be greater or equal to 1, but got shape: ${shape}`
+    );
+  }
+  if (shape.length === 0) {
+    if (indices.size === 0) {
+      throw new Error(`Indices specified for empty output. indices shape: ${indices.shape}`);
+    }
+    if (updates.size === 0) {
+      throw new Error(`Updates specified for empty output. updates shape: ${updates.shape}`);
+    }
+  }
+  validateUpdateShape(shape, indices, updates);
+}
+function calculateShapes(updates, indices, shape) {
+  const indicesRank = indices.shape.length;
+  const sliceRank = indicesRank > 1 ? indices.shape[indicesRank - 1] : 1;
+  const totalNd = shape.length;
+  let sliceSize = 1;
+  for (let i = sliceRank; i < totalNd; ++i) {
+    sliceSize *= shape[i];
+  }
+  const safeSliceDim = sliceRank < 1 ? 1 : sliceRank;
+  const numUpdates = sizeFromShape(indices.shape) / safeSliceDim;
+  const strides = [...computeStrides(shape.slice(0, sliceRank)), 1];
+  const outputSize = sizeFromShape(shape);
+  return { sliceRank, numUpdates, sliceSize, strides, outputSize };
+}
+
+// src/tfjs-core/src/ops/tensor_scatter_update.ts
+function tensorScatterUpdate_(tensor2, indices, updates) {
+  const $tensor = convertToTensor(tensor2, "tensor", "tensorScatterupdate");
+  const $indices = convertToTensor(indices, "indices", "tensorScatterupdate", "int32");
+  const $updates = convertToTensor(updates, "updates", "tensorScatterupdate");
+  validateInput($updates, $indices, $tensor.shape);
+  if ($tensor.dtype !== $updates.dtype) {
+    throw new Error(
+      `tensor and updates must have the same dtype, instead they are ${$tensor.dtype} and ${$updates.dtype}.`
+    );
+  }
+  const inputs = {
+    tensor: $tensor,
+    indices: $indices,
+    updates: $updates
+  };
+  const attrs = {};
+  return ENGINE.runKernel(
+    TensorScatterUpdate,
+    inputs,
+    attrs
+  );
+}
+var tensorScatterUpdate = op({ tensorScatterUpdate_ });
+
 // src/tfjs-core/src/ops/topk.ts
 function topk_(x, k = 1, sorted = true) {
   const $x = convertToTensor(x, "x", "topk");
@@ -13101,6 +12668,55 @@ function unstack_(x, axis = 0) {
   );
 }
 var unstack = op({ unstack_ });
+
+// src/tfjs-core/src/ops/transpose.ts
+function transpose_(x, perm, conjugate) {
+  const $x = convertToTensor(x, "x", "transpose");
+  if (perm == null) {
+    perm = $x.shape.map((s, i) => i).reverse();
+  }
+  assert(
+    $x.rank === perm.length,
+    () => `Error in transpose: rank of input ${$x.rank} must match length of perm ${perm}.`
+  );
+  perm.forEach((axis) => {
+    assert(
+      axis >= 0 && axis < $x.rank,
+      () => `All entries in 'perm' must be between 0 and ${$x.rank - 1} but got ${perm}`
+    );
+  });
+  if ($x.rank <= 1) {
+    return $x.clone();
+  }
+  const inputs = { x: $x };
+  const attrs = { perm };
+  if ($x.dtype === "complex64") {
+    return tidy(() => {
+      let $real = real($x);
+      let $imag = imag($x);
+      $real = ENGINE.runKernel(
+        Transpose,
+        { x: $real },
+        attrs
+      );
+      $imag = ENGINE.runKernel(
+        Transpose,
+        { x: $imag },
+        attrs
+      );
+      if (conjugate) {
+        $imag = neg($imag);
+      }
+      return complex($real, $imag);
+    });
+  }
+  return ENGINE.runKernel(
+    Transpose,
+    inputs,
+    attrs
+  );
+}
+var transpose = op({ transpose_ });
 
 // src/tfjs-core/src/ops/moving_average.ts
 function movingAverage_(v, x, decay, step3, zeroDebias = true) {
@@ -13520,10 +13136,13 @@ function fusedConv2d_({
   };
   if (bias == null) {
     const customOp = customGrad((x4D2, filter2, save) => {
-      let res = ENGINE.runKernel(
-        FusedConv2D,
-        inputs,
-        attrs
+      let res = (
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        ENGINE.runKernel(
+          FusedConv2D,
+          inputs,
+          attrs
+        )
       );
       save([filter2, x4D2, res]);
       if (reshapedTo4D) {
@@ -13582,10 +13201,13 @@ function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad3, 
   }
   const inputs = { dy: dy4D, filter };
   const attrs = { strides, pad: pad3, dimRoundingMode, dilations, inputShape: xShape };
-  const res = ENGINE.runKernel(
-    DepthwiseConv2dNativeBackpropInput,
-    inputs,
-    attrs
+  const res = (
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    ENGINE.runKernel(
+      DepthwiseConv2dNativeBackpropInput,
+      inputs,
+      attrs
+    )
   );
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]);
@@ -13668,6 +13290,7 @@ function fusedDepthwiseConv2d_({
     pad3,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   let $bias;
   if (bias != null) {
@@ -13856,10 +13479,13 @@ function fusedMatMul_({
   const attrs = { transposeA, transposeB, activation, leakyreluAlpha };
   if (bias == null) {
     const customOp = customGrad((a3D2, b3D2, save) => {
-      const res = ENGINE.runKernel(
-        _FusedMatMul,
-        inputs,
-        attrs
+      const res = (
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        ENGINE.runKernel(
+          _FusedMatMul,
+          inputs,
+          attrs
+        )
       );
       save([a3D2, b3D2, res]);
       return { value: reshape(res, outShape), gradFunc: grad2 };
@@ -13868,10 +13494,13 @@ function fusedMatMul_({
   } else {
     const customOpWithBias = customGrad(
       (a3D2, b3D2, $bias2, save) => {
-        const res = ENGINE.runKernel(
-          _FusedMatMul,
-          inputs,
-          attrs
+        const res = (
+          // tslint:disable-next-line: no-unnecessary-type-assertion
+          ENGINE.runKernel(
+            _FusedMatMul,
+            inputs,
+            attrs
+          )
         );
         save([a3D2, b3D2, res, $bias2]);
         return { value: reshape(res, outShape), gradFunc: grad2 };
@@ -14121,6 +13750,7 @@ function nonMaxSuppressionPadded_(boxes, scores, maxOutputSize, iouThreshold = 0
     iouThreshold,
     scoreThreshold,
     null
+    /* softNmsSigma */
   );
   const $maxOutputSize = params.maxOutputSize;
   const $iouThreshold = params.iouThreshold;
@@ -14325,14 +13955,6 @@ var transform = op({ transform_ });
 
 // src/tfjs-core/src/ops/linalg/band_part.ts
 function bandPart_(a, numLower, numUpper) {
-  assert(
-    numLower % 1 === 0,
-    () => `bandPart(): numLower must be an integer, got ${numLower}.`
-  );
-  assert(
-    numUpper % 1 === 0,
-    () => `bandPart(): numUpper must be an integer, got ${numUpper}.`
-  );
   const $a = convertToTensor(a, "a", "bandPart");
   assert(
     $a.rank >= 2,
@@ -14340,29 +13962,46 @@ function bandPart_(a, numLower, numUpper) {
   );
   const shape = $a.shape;
   const [M, N] = $a.shape.slice(-2);
-  if (!(numLower <= M)) {
-    throw new Error(
-      `bandPart(): numLower (${numLower}) must not be greater than the number of rows (${M}).`
+  let $numLower;
+  let $numUpper;
+  if (typeof numLower === "number") {
+    assert(
+      numLower % 1 === 0,
+      () => `bandPart(): numLower must be an integer, got ${numLower}.`
     );
-  }
-  if (!(numUpper <= N)) {
-    throw new Error(
-      `bandPart(): numUpper (${numUpper}) must not be greater than the number of columns (${N}).`
+    assert(
+      numLower <= M,
+      () => `bandPart(): numLower (${numLower}) must not be greater than the number of rows (${M}).`
     );
+    $numLower = convertToTensor(numLower < 0 ? M : numLower, "numLower", "bandPart");
+  } else {
+    assert(
+      numLower.dtype === "int32",
+      () => `bandPart(): numLower's dtype must be an int32.`
+    );
+    $numLower = where(less(numLower, 0), M, minimum(numLower, M));
   }
-  if (numLower < 0) {
-    numLower = M;
-  }
-  if (numUpper < 0) {
-    numUpper = N;
+  if (typeof numUpper === "number") {
+    assert(
+      numUpper % 1 === 0,
+      () => `bandPart(): numUpper must be an integer, got ${numUpper}.`
+    );
+    assert(
+      numUpper <= N,
+      () => `bandPart(): numUpper (${numUpper}) must not be greater than the number of columns (${N}).`
+    );
+    $numUpper = convertToTensor(numUpper < 0 ? N : numUpper, "numUpper", "bandPart");
+  } else {
+    assert(
+      numUpper.dtype === "int32",
+      () => `bandPart(): numUpper's dtype must be an int32.`
+    );
+    $numUpper = where(less(numUpper, 0), N, minimum(numUpper, N));
   }
   const i = reshape(range(0, M, 1, "int32"), [-1, 1]);
   const j = range(0, N, 1, "int32");
   const ij = sub(i, j);
-  const inBand = logicalAnd(
-    lessEqual(ij, scalar(+numLower, "int32")),
-    greaterEqual(ij, scalar(-numUpper, "int32"))
-  );
+  const inBand = logicalAnd(lessEqual(ij, $numLower), greaterEqual(ij, neg($numUpper)));
   const zero = zeros([M, N], $a.dtype);
   return reshape(
     stack(unstack(reshape($a, [-1, M, N])).map((mat) => where(inBand, mat, zero))),
@@ -14947,9 +14586,108 @@ function stringToHashBucketFast_(input, numBuckets) {
 }
 var stringToHashBucketFast = op({ stringToHashBucketFast_ });
 
+// src/tfjs-core/src/ops/string/static_regex_replace.ts
+function staticRegexReplace_(input, pattern, rewrite, replaceGlobal = true) {
+  const $input = convertToTensor(
+    input,
+    "input",
+    "staticRegexReplace",
+    "string"
+  );
+  const attrs = { pattern, rewrite, replaceGlobal };
+  return ENGINE.runKernel(
+    StaticRegexReplace,
+    { x: $input },
+    attrs
+  );
+}
+var staticRegexReplace = op({ staticRegexReplace_ });
+
+// src/tfjs-core/src/serialization.ts
+var Serializable = class {
+  /**
+   * Return the class name for this class to use in serialization contexts.
+   *
+   * Generally speaking this will be the same thing that constructor.name
+   * would have returned.  However, the class name needs to be robust
+   * against minification for serialization/deserialization to work properly.
+   *
+   * There's also places such as initializers.VarianceScaling, where
+   * implementation details between different languages led to different
+   * class hierarchies and a non-leaf node is used for serialization purposes.
+   */
+  getClassName() {
+    return this.constructor.className;
+  }
+  /**
+   * Creates an instance of T from a ConfigDict.
+   *
+   * This works for most descendants of serializable.  A few need to
+   * provide special handling.
+   * @param cls A Constructor for the class to instantiate.
+   * @param config The Configuration for the object.
+   */
+  /** @nocollapse */
+  static fromConfig(cls, config) {
+    return new cls(config);
+  }
+};
+var _SerializationMap = class {
+  classNameMap;
+  constructor() {
+    this.classNameMap = {};
+  }
+  /**
+   * Returns the singleton instance of the map.
+   */
+  static getMap() {
+    if (_SerializationMap.instance == null) {
+      _SerializationMap.instance = new _SerializationMap();
+    }
+    return _SerializationMap.instance;
+  }
+  /**
+   * Registers the class as serializable.
+   */
+  static register(cls) {
+    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+  }
+};
+var SerializationMap = _SerializationMap;
+__publicField(SerializationMap, "instance");
+function registerClass(cls) {
+  assert(
+    cls.className != null,
+    () => `Class being registered does not have the static className property defined.`
+  );
+  assert(
+    typeof cls.className === "string",
+    () => `className is required to be a string, but got type ` + typeof cls.className
+  );
+  assert(
+    cls.className.length > 0,
+    () => `Class being registered has an empty-string as its className, which is disallowed.`
+  );
+  SerializationMap.register(cls);
+}
+
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
   iterations_;
+  /**
+   * Executes `f()` and minimizes the scalar output of `f()` by computing
+   * gradients of y with respect to the list of trainable variables provided by
+   * `varList`. If no list is provided, it defaults to all trainable variables.
+   *
+   * @param f The function to execute and whose output to minimize.
+   * @param returnCost Whether to return the scalar cost value produced by
+   * executing `f()`.
+   * @param varList An optional list of variables to update. If specified, only
+   * the trainable variables in varList will be updated by minimize. Defaults to
+   * all trainable variables.
+   *
+   * @doc {heading: 'Training', subheading: 'Optimizers'}
+   */
   minimize(f, returnCost = false, varList) {
     const { value, grads: grads2 } = this.computeGradients(f, varList);
     if (varList != null) {
@@ -14966,6 +14704,9 @@ var Optimizer = class extends Serializable {
       return null;
     }
   }
+  /**
+   * The number of iterations that this optimizer instance has been invoked for.
+   */
   get iterations() {
     if (this.iterations_ == null) {
       this.iterations_ = 0;
@@ -14975,9 +14716,25 @@ var Optimizer = class extends Serializable {
   incrementIterations() {
     this.iterations_ = this.iterations + 1;
   }
+  /**
+   * Executes f() and computes the gradient of the scalar output of f() with
+   * respect to the list of trainable variables provided by `varList`. If no
+   * list is provided, it defaults to all trainable variables.
+   *
+   * @param f The function to execute and whose output to use for computing
+   * gradients with respect to variables.
+   * @param varList An optional list of variables to compute gradients with
+   * respect to. If specified, only the trainable variables in varList will have
+   * gradients computed with respect to. Defaults to all trainable variables.
+   *
+   * @doc {heading: 'Training', subheading: 'Optimizers'}
+   */
   computeGradients(f, varList) {
     return variableGrads(f, varList);
   }
+  /**
+   * Dispose the variables (if any) owned by this optimizer instance.
+   */
   dispose() {
     if (this.iterations_ != null) {
       dispose(this.iterations_);
@@ -14989,6 +14746,8 @@ var Optimizer = class extends Serializable {
     }
     return {
       name: "iter",
+      // Named for Python compatibility.
+      // TODO(cais): Use 'int64' type when available.
       tensor: scalar(this.iterations_, "int32")
     };
   }
@@ -15000,6 +14759,13 @@ var Optimizer = class extends Serializable {
       `setWeights() is not implemented for this optimizer class ${this.getClassName()}`
     );
   }
+  /**
+   * Extract the first element of the weight values and set it
+   * as the iterations counter variable of this instance of optimizer.
+   *
+   * @param weightValues
+   * @returns Weight values with the first element consumed and excluded.
+   */
   async extractIterations(weightValues) {
     this.iterations_ = (await weightValues[0].tensor.data())[0];
     return weightValues.slice(1);
@@ -15021,6 +14787,10 @@ var AdadeltaOptimizer = class extends Optimizer {
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adadelta";
   }
   accumulatedGrads = [];
   accumulatedUpdates = [];
@@ -15105,12 +14875,11 @@ var AdadeltaOptimizer = class extends Optimizer {
       "epsilon": this.epsilon
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"], config["rho"], config["epsilon"]);
   }
 };
-__publicField(AdadeltaOptimizer, "className", "Adadelta");
-registerClass(AdadeltaOptimizer);
 
 // src/tfjs-core/src/optimizers/adagrad_optimizer.ts
 var AdagradOptimizer = class extends Optimizer {
@@ -15118,6 +14887,10 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adagrad";
   }
   accumulatedGrads = [];
   applyGradients(variableGradients) {
@@ -15179,12 +14952,11 @@ var AdagradOptimizer = class extends Optimizer {
       "initialAccumulatorValue": this.initialAccumulatorValue
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"], config["initialAccumulatorValue"]);
   }
 };
-__publicField(AdagradOptimizer, "className", "Adagrad");
-registerClass(AdagradOptimizer);
 
 // src/tfjs-core/src/optimizers/adam_optimizer.ts
 var AdamOptimizer = class extends Optimizer {
@@ -15201,6 +14973,10 @@ var AdamOptimizer = class extends Optimizer {
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adam";
   }
   accBeta1;
   accBeta2;
@@ -15301,6 +15077,7 @@ var AdamOptimizer = class extends Optimizer {
       "epsilon": this.epsilon
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -15310,8 +15087,6 @@ var AdamOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(AdamOptimizer, "className", "Adam");
-registerClass(AdamOptimizer);
 
 // src/tfjs-core/src/optimizers/adamax_optimizer.ts
 var AdamaxOptimizer = class extends Optimizer {
@@ -15329,6 +15104,10 @@ var AdamaxOptimizer = class extends Optimizer {
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adamax";
   }
   accBeta1;
   iteration;
@@ -15405,6 +15184,7 @@ var AdamaxOptimizer = class extends Optimizer {
       "decay": this.decay
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -15415,8 +15195,6 @@ var AdamaxOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(AdamaxOptimizer, "className", "Adamax");
-registerClass(AdamaxOptimizer);
 
 // src/tfjs-core/src/optimizers/sgd_optimizer.ts
 var SGDOptimizer = class extends Optimizer {
@@ -15424,6 +15202,10 @@ var SGDOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.setLearningRate(learningRate);
+  }
+  /** @nocollapse */
+  static get className() {
+    return "SGD";
   }
   c;
   applyGradients(variableGradients) {
@@ -15441,6 +15223,9 @@ var SGDOptimizer = class extends Optimizer {
     });
     this.incrementIterations();
   }
+  /**
+   * Sets the learning rate of the optimizer.
+   */
   setLearningRate(learningRate) {
     this.learningRate = learningRate;
     if (this.c != null) {
@@ -15463,12 +15248,11 @@ var SGDOptimizer = class extends Optimizer {
   getConfig() {
     return { "learningRate": this.learningRate };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"]);
   }
 };
-__publicField(SGDOptimizer, "className", "SGD");
-registerClass(SGDOptimizer);
 
 // src/tfjs-core/src/optimizers/momentum_optimizer.ts
 var MomentumOptimizer = class extends SGDOptimizer {
@@ -15478,6 +15262,11 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.momentum = momentum;
     this.useNesterov = useNesterov;
     this.m = scalar(this.momentum);
+  }
+  /** @nocollapse */
+  // Name matters for Python compatibility.
+  static get className() {
+    return "Momentum";
   }
   m;
   accumulations = [];
@@ -15520,6 +15309,11 @@ var MomentumOptimizer = class extends SGDOptimizer {
       dispose(this.accumulations.map((v) => v.variable));
     }
   }
+  /**
+   * Sets the momentum of the optimizer.
+   *
+   * @param momentum
+   */
   setMomentum(momentum) {
     this.momentum = momentum;
   }
@@ -15542,6 +15336,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
       "useNesterov": this.useNesterov
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -15550,8 +15345,6 @@ var MomentumOptimizer = class extends SGDOptimizer {
     );
   }
 };
-__publicField(MomentumOptimizer, "className", "Momentum");
-registerClass(MomentumOptimizer);
 
 // src/tfjs-core/src/optimizers/rmsprop_optimizer.ts
 var RMSPropOptimizer = class extends Optimizer {
@@ -15568,6 +15361,10 @@ var RMSPropOptimizer = class extends Optimizer {
     if (learningRate == null) {
       throw new Error(`learningRate for RMSPropOptimizer must be defined.`);
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "RMSProp";
   }
   centered;
   accumulatedMeanSquares = [];
@@ -15699,6 +15496,7 @@ var RMSPropOptimizer = class extends Optimizer {
       "centered": this.centered
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -15709,50 +15507,1046 @@ var RMSPropOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(RMSPropOptimizer, "className", "RMSProp");
-registerClass(RMSPropOptimizer);
 
-// src/tfjs-core/src/optimizers/optimizer_constructors.ts
-var OptimizerConstructors = class {
-  static sgd(learningRate) {
-    return new SGDOptimizer(learningRate);
+// src/tfjs-core/src/optimizers/register_optimizers.ts
+var OPTIMIZERS = [
+  AdadeltaOptimizer,
+  AdagradOptimizer,
+  AdamOptimizer,
+  AdamaxOptimizer,
+  MomentumOptimizer,
+  RMSPropOptimizer,
+  SGDOptimizer
+];
+function registerOptimizers() {
+  for (const optimizer of OPTIMIZERS) {
+    registerClass(optimizer);
   }
-  static momentum(learningRate, momentum, useNesterov = false) {
-    return new MomentumOptimizer(learningRate, momentum, useNesterov);
+}
+
+// src/tfjs-core/src/io/browser_files.ts
+var DEFAULT_FILE_NAME_PREFIX = "model";
+var DEFAULT_JSON_EXTENSION_NAME = ".json";
+var DEFAULT_WEIGHT_DATA_EXTENSION_NAME = ".weights.bin";
+function defer(f) {
+  return new Promise((resolve) => setTimeout(resolve)).then(f);
+}
+var _BrowserDownloads = class {
+  modelJsonFileName;
+  weightDataFileName;
+  modelJsonAnchor;
+  weightDataAnchor;
+  constructor(fileNamePrefix) {
+    if (!env().getBool("IS_BROWSER")) {
+      throw new Error(
+        "browserDownloads() cannot proceed because the current environment is not a browser."
+      );
+    }
+    if (fileNamePrefix.startsWith(_BrowserDownloads.URL_SCHEME)) {
+      fileNamePrefix = fileNamePrefix.slice(_BrowserDownloads.URL_SCHEME.length);
+    }
+    if (fileNamePrefix == null || fileNamePrefix.length === 0) {
+      fileNamePrefix = DEFAULT_FILE_NAME_PREFIX;
+    }
+    this.modelJsonFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
+    this.weightDataFileName = fileNamePrefix + DEFAULT_WEIGHT_DATA_EXTENSION_NAME;
   }
-  static rmsprop(learningRate, decay = 0.9, momentum = 0, epsilon = null, centered = false) {
-    return new RMSPropOptimizer(
-      learningRate,
-      decay,
-      momentum,
-      epsilon,
-      centered
+  async save(modelArtifacts) {
+    if (typeof document === "undefined") {
+      throw new Error(
+        "Browser downloads are not supported in this environment since `document` is not present"
+      );
+    }
+    const weightsURL = window.URL.createObjectURL(new Blob(
+      [modelArtifacts.weightData],
+      { type: "application/octet-stream" }
+    ));
+    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
+      throw new Error(
+        "BrowserDownloads.save() does not support saving model topology in binary formats yet."
+      );
+    } else {
+      const weightsManifest = [{
+        paths: ["./" + this.weightDataFileName],
+        weights: modelArtifacts.weightSpecs
+      }];
+      const modelJSON = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
+      const modelJsonURL = window.URL.createObjectURL(
+        new Blob([JSON.stringify(modelJSON)], { type: "application/json" })
+      );
+      const jsonAnchor = this.modelJsonAnchor == null ? document.createElement("a") : this.modelJsonAnchor;
+      jsonAnchor.download = this.modelJsonFileName;
+      jsonAnchor.href = modelJsonURL;
+      await defer(() => jsonAnchor.dispatchEvent(new MouseEvent("click")));
+      if (modelArtifacts.weightData != null) {
+        const weightDataAnchor = this.weightDataAnchor == null ? document.createElement("a") : this.weightDataAnchor;
+        weightDataAnchor.download = this.weightDataFileName;
+        weightDataAnchor.href = weightsURL;
+        await defer(
+          () => weightDataAnchor.dispatchEvent(new MouseEvent("click"))
+        );
+      }
+      return { modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) };
+    }
+  }
+};
+var BrowserDownloads = _BrowserDownloads;
+__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
+var browserDownloadsRouter = (url) => {
+  if (!env().getBool("IS_BROWSER")) {
+    return null;
+  } else {
+    if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {
+      return browserDownloads(url.slice(BrowserDownloads.URL_SCHEME.length));
+    } else {
+      return null;
+    }
+  }
+};
+IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
+function browserDownloads(fileNamePrefix = "model") {
+  return new BrowserDownloads(fileNamePrefix);
+}
+
+// src/tfjs-core/src/io/progress.ts
+function monitorPromisesProgress(promises, onProgress, startFraction, endFraction) {
+  checkPromises(promises);
+  startFraction = startFraction == null ? 0 : startFraction;
+  endFraction = endFraction == null ? 1 : endFraction;
+  checkFraction(startFraction, endFraction);
+  let resolvedPromise = 0;
+  const registerMonitor = (promise) => {
+    promise.then((value) => {
+      const fraction = startFraction + ++resolvedPromise / promises.length * (endFraction - startFraction);
+      onProgress(fraction);
+      return value;
+    });
+    return promise;
+  };
+  function checkPromises(promises2) {
+    assert(
+      promises2 != null && Array.isArray(promises2) && promises2.length > 0,
+      () => "promises must be a none empty array"
     );
   }
-  static adam(learningRate = 1e-3, beta1 = 0.9, beta2 = 0.999, epsilon = null) {
-    return new AdamOptimizer(learningRate, beta1, beta2, epsilon);
+  function checkFraction(startFraction2, endFraction2) {
+    assert(
+      startFraction2 >= 0 && startFraction2 <= 1,
+      () => `Progress fraction must be in range [0, 1], but got startFraction ${startFraction2}`
+    );
+    assert(
+      endFraction2 >= 0 && endFraction2 <= 1,
+      () => `Progress fraction must be in range [0, 1], but got endFraction ${endFraction2}`
+    );
+    assert(
+      endFraction2 >= startFraction2,
+      () => `startFraction must be no more than endFraction, but got startFraction ${startFraction2} and endFraction ${endFraction2}`
+    );
   }
-  static adadelta(learningRate = 1e-3, rho = 0.95, epsilon = null) {
-    return new AdadeltaOptimizer(learningRate, rho, epsilon);
-  }
-  static adamax(learningRate = 2e-3, beta1 = 0.9, beta2 = 0.999, epsilon = null, decay = 0) {
-    return new AdamaxOptimizer(learningRate, beta1, beta2, epsilon, decay);
-  }
-  static adagrad(learningRate, initialAccumulatorValue = 0.1) {
-    return new AdagradOptimizer(learningRate, initialAccumulatorValue);
-  }
-};
+  return Promise.all(promises.map(registerMonitor));
+}
 
-// src/tfjs-core/src/train.ts
-var train = {
-  sgd: OptimizerConstructors.sgd,
-  momentum: OptimizerConstructors.momentum,
-  adadelta: OptimizerConstructors.adadelta,
-  adagrad: OptimizerConstructors.adagrad,
-  rmsprop: OptimizerConstructors.rmsprop,
-  adamax: OptimizerConstructors.adamax,
-  adam: OptimizerConstructors.adam
+// src/tfjs-core/src/io/weights_loader.ts
+async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
+  if (loadOptions == null) {
+    loadOptions = {};
+  }
+  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch : loadOptions.fetchFunc;
+  const requests = fetchURLs.map(
+    (fetchURL) => fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true })
+  );
+  const fetchStartFraction = 0;
+  const fetchEndFraction = 0.5;
+  const responses = loadOptions.onProgress == null ? await Promise.all(requests) : await monitorPromisesProgress(
+    requests,
+    loadOptions.onProgress,
+    fetchStartFraction,
+    fetchEndFraction
+  );
+  const bufferPromises = responses.map((response) => response.arrayBuffer());
+  const bufferStartFraction = 0.5;
+  const bufferEndFraction = 1;
+  const buffers = loadOptions.onProgress == null ? await Promise.all(bufferPromises) : await monitorPromisesProgress(
+    bufferPromises,
+    loadOptions.onProgress,
+    bufferStartFraction,
+    bufferEndFraction
+  );
+  return buffers;
+}
+
+// src/tfjs-core/src/io/http.ts
+var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
+var JSON_TYPE = "application/json";
+var HTTPRequest = class {
+  path;
+  requestInit;
+  fetch;
+  weightUrlConverter;
+  DEFAULT_METHOD = "POST";
+  weightPathPrefix;
+  onProgress;
+  constructor(path, loadOptions) {
+    if (loadOptions == null) {
+      loadOptions = {};
+    }
+    this.weightPathPrefix = loadOptions.weightPathPrefix;
+    this.onProgress = loadOptions.onProgress;
+    this.weightUrlConverter = loadOptions.weightUrlConverter;
+    if (loadOptions.fetchFunc != null) {
+      assert(
+        typeof loadOptions.fetchFunc === "function",
+        () => "Must pass a function that matches the signature of `fetch` (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)"
+      );
+      this.fetch = loadOptions.fetchFunc;
+    } else {
+      this.fetch = env().platform.fetch;
+    }
+    assert(
+      path != null && path.length > 0,
+      () => "URL path for http must not be null, undefined or empty."
+    );
+    if (Array.isArray(path)) {
+      assert(
+        path.length === 2,
+        () => `URL paths for http must have a length of 2, (actual length is ${path.length}).`
+      );
+    }
+    this.path = path;
+    if (loadOptions.requestInit != null && loadOptions.requestInit.body != null) {
+      throw new Error(
+        "requestInit is expected to have no pre-existing body, but has one."
+      );
+    }
+    this.requestInit = loadOptions.requestInit || {};
+  }
+  async save(modelArtifacts) {
+    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
+      throw new Error(
+        "BrowserHTTPRequest.save() does not support saving model topology in binary formats yet."
+      );
+    }
+    const init2 = Object.assign({ method: this.DEFAULT_METHOD }, this.requestInit);
+    init2.body = new FormData();
+    const weightsManifest = [{
+      paths: ["./model.weights.bin"],
+      weights: modelArtifacts.weightSpecs
+    }];
+    const modelTopologyAndWeightManifest = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
+    init2.body.append(
+      "model.json",
+      new Blob(
+        [JSON.stringify(modelTopologyAndWeightManifest)],
+        { type: JSON_TYPE }
+      ),
+      "model.json"
+    );
+    if (modelArtifacts.weightData != null) {
+      init2.body.append(
+        "model.weights.bin",
+        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
+        "model.weights.bin"
+      );
+    }
+    const response = await this.fetch(this.path, init2);
+    if (response.ok) {
+      return {
+        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
+        responses: [response]
+      };
+    } else {
+      throw new Error(
+        `BrowserHTTPRequest.save() failed due to HTTP response status ${response.status}.`
+      );
+    }
+  }
+  /**
+   * Load model artifacts via HTTP request(s).
+   *
+   * See the documentation to `tf.io.http` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model artifacts (if loading succeeds).
+   */
+  async load() {
+    const modelConfigRequest = await this.fetch(this.path, this.requestInit);
+    if (!modelConfigRequest.ok) {
+      throw new Error(
+        `Request to ${this.path} failed with status code ${modelConfigRequest.status}. Please verify this URL points to the model JSON of the model to load.`
+      );
+    }
+    let modelJSON;
+    try {
+      modelJSON = await modelConfigRequest.json();
+    } catch (e) {
+      let message = `Failed to parse model JSON of response from ${this.path}.`;
+      if (this.path.endsWith(".pb")) {
+        message += " Your path contains a .pb file extension. Support for .pb models have been removed in TensorFlow.js 1.0 in favor of .json models. You can re-convert your Python TensorFlow model using the TensorFlow.js 1.0 conversion scripts or you can convert your.pb models with the 'pb2json'NPM script in the tensorflow/tfjs-converter repository.";
+      } else {
+        message += " Please make sure the server is serving valid JSON for this request.";
+      }
+      throw new Error(message);
+    }
+    const modelTopology = modelJSON.modelTopology;
+    const weightsManifest = modelJSON.weightsManifest;
+    if (modelTopology == null && weightsManifest == null) {
+      throw new Error(
+        `The JSON from HTTP path ${this.path} contains neither model topology or manifest for weights.`
+      );
+    }
+    return getModelArtifactsForJSON(
+      modelJSON,
+      (weightsManifest2) => this.loadWeights(weightsManifest2)
+    );
+  }
+  async loadWeights(weightsManifest) {
+    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
+    const [prefix, suffix] = parseUrl(weightPath);
+    const pathPrefix = this.weightPathPrefix || prefix;
+    const weightSpecs = getWeightSpecs(weightsManifest);
+    const fetchURLs = [];
+    const urlPromises = [];
+    for (const weightsGroup of weightsManifest) {
+      for (const path of weightsGroup.paths) {
+        if (this.weightUrlConverter != null) {
+          urlPromises.push(this.weightUrlConverter(path));
+        } else {
+          fetchURLs.push(pathPrefix + path + suffix);
+        }
+      }
+    }
+    if (this.weightUrlConverter) {
+      fetchURLs.push(...await Promise.all(urlPromises));
+    }
+    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
+      requestInit: this.requestInit,
+      fetchFunc: this.fetch,
+      onProgress: this.onProgress
+    });
+    return [weightSpecs, concatenateArrayBuffers(buffers)];
+  }
 };
+__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
+function parseUrl(url) {
+  const lastSlash = url.lastIndexOf("/");
+  const lastSearchParam = url.lastIndexOf("?");
+  const prefix = url.substring(0, lastSlash);
+  const suffix = lastSearchParam > lastSlash ? url.substring(lastSearchParam) : "";
+  return [prefix + "/", suffix];
+}
+function isHTTPScheme(url) {
+  return url.match(HTTPRequest.URL_SCHEME_REGEX) != null;
+}
+var httpRouter = (url, loadOptions) => {
+  if (typeof fetch === "undefined" && (loadOptions == null || loadOptions.fetchFunc == null)) {
+    return null;
+  } else {
+    let isHTTP = true;
+    if (Array.isArray(url)) {
+      isHTTP = url.every((urlItem) => isHTTPScheme(urlItem));
+    } else {
+      isHTTP = isHTTPScheme(url);
+    }
+    if (isHTTP) {
+      return http(url, loadOptions);
+    }
+  }
+  return null;
+};
+IORouterRegistry.registerSaveRouter(httpRouter);
+IORouterRegistry.registerLoadRouter(httpRouter);
+function http(path, loadOptions) {
+  return new HTTPRequest(path, loadOptions);
+}
+
+// src/tfjs-core/src/ops/confusion_matrix.ts
+function confusionMatrix_(labels, predictions, numClasses) {
+  const $labels = convertToTensor(labels, "labels", "confusionMatrix");
+  const $predictions = convertToTensor(predictions, "predictions", "confusionMatrix");
+  assert(
+    numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
+    () => `If provided, numClasses must be a positive integer, but got ${numClasses}`
+  );
+  assert(
+    $labels.rank === 1,
+    () => `Expected the rank of labels to be 1, but got ${$labels.rank}`
+  );
+  assert(
+    $predictions.rank === 1,
+    () => `Expected the rank of predictions to be 1, but got ${$predictions.rank}`
+  );
+  assert(
+    $labels.shape[0] === $predictions.shape[0],
+    () => `Mismatch in the number of examples: ${$labels.shape[0]} vs. ${$predictions.shape[0]}. Labels and predictions should have the same number of elements.`
+  );
+  assert(
+    numClasses > 0 && Number.isInteger(numClasses),
+    () => `numClasses is required to be a positive integer, but got ${numClasses}`
+  );
+  const oneHotLabels = oneHot(cast($labels, "int32"), numClasses);
+  const oneHotPredictions = oneHot(cast($predictions, "int32"), numClasses);
+  const oneHotLabelsT = transpose(oneHotLabels);
+  const product = matMul(oneHotLabelsT, oneHotPredictions);
+  return cast(product, "int32");
+}
+var confusionMatrix = op({ confusionMatrix_ });
+
+// src/tfjs-core/src/ops/browser.ts
+var fromPixels2DContext;
+function fromPixels_(pixels, numChannels = 3) {
+  if (numChannels > 4) {
+    throw new Error(
+      "Cannot construct Tensor with more than 4 channels from pixels."
+    );
+  }
+  if (pixels == null) {
+    throw new Error("pixels passed to tf.browser.fromPixels() can not be null");
+  }
+  let isPixelData = false;
+  let isImageData = false;
+  let isVideo = false;
+  let isImage = false;
+  let isCanvasLike = false;
+  let isImageBitmap = false;
+  if (pixels.data instanceof Uint8Array) {
+    isPixelData = true;
+  } else if (typeof ImageData !== "undefined" && pixels instanceof ImageData) {
+    isImageData = true;
+  } else if (typeof HTMLVideoElement !== "undefined" && pixels instanceof HTMLVideoElement) {
+    isVideo = true;
+  } else if (typeof HTMLImageElement !== "undefined" && pixels instanceof HTMLImageElement) {
+    isImage = true;
+  } else if (pixels.getContext != null) {
+    isCanvasLike = true;
+  } else if (typeof ImageBitmap !== "undefined" && pixels instanceof ImageBitmap) {
+    isImageBitmap = true;
+  } else {
+    throw new Error(
+      `pixels passed to tf.browser.fromPixels() must be either an HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData in browser, or OffscreenCanvas, ImageData in webworker or {data: Uint32Array, width: number, height: number}, but was ${pixels.constructor.name}`
+    );
+  }
+  const kernel = getKernel(FromPixels, ENGINE.backendName);
+  if (kernel != null) {
+    const inputs = { pixels };
+    const attrs = { numChannels };
+    return ENGINE.runKernel(
+      FromPixels,
+      inputs,
+      attrs
+    );
+  }
+  const [width, height] = isVideo ? [
+    pixels.videoWidth,
+    pixels.videoHeight
+  ] : [pixels.width, pixels.height];
+  let vals;
+  if (isCanvasLike) {
+    vals = // tslint:disable-next-line:no-any
+    pixels.getContext("2d").getImageData(0, 0, width, height).data;
+  } else if (isImageData || isPixelData) {
+    vals = pixels.data;
+  } else if (isImage || isVideo || isImageBitmap) {
+    if (fromPixels2DContext == null) {
+      if (typeof document === "undefined") {
+        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
+          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
+        } else {
+          throw new Error(
+            "Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported."
+          );
+        }
+      } else {
+        fromPixels2DContext = document.createElement("canvas").getContext(
+          "2d",
+          { willReadFrequently: true }
+        );
+      }
+    }
+    fromPixels2DContext.canvas.width = width;
+    fromPixels2DContext.canvas.height = height;
+    fromPixels2DContext.drawImage(
+      pixels,
+      0,
+      0,
+      width,
+      height
+    );
+    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
+  }
+  let values;
+  if (numChannels === 4) {
+    values = new Int32Array(vals);
+  } else {
+    const numPixels = width * height;
+    values = new Int32Array(numPixels * numChannels);
+    for (let i = 0; i < numPixels; i++) {
+      for (let channel = 0; channel < numChannels; ++channel) {
+        values[i * numChannels + channel] = vals[i * 4 + channel];
+      }
+    }
+  }
+  const outShape = [height, width, numChannels];
+  return tensor3d(values, outShape, "int32");
+}
+var fromPixels = op({ fromPixels_ });
+
+// src/tfjs-core/src/ops/gather_nd_util.ts
+var gather_nd_util_exports = {};
+__export(gather_nd_util_exports, {
+  prepareAndValidate: () => prepareAndValidate
+});
+function prepareAndValidate(tensor2, indices) {
+  const tensorRank = tensor2.shape.length;
+  const indicesRank = indices.shape.length;
+  if (tensorRank < 1) {
+    throw new Error(
+      `tf.gatherND() expects the input to be rank 1 or higher, but the rank was ${tensorRank}.`
+    );
+  }
+  if (indicesRank < 1) {
+    throw new Error(
+      `tf.gatherND() expects the indices to be rank 1 or higher, but the rank was ${indicesRank}.`
+    );
+  }
+  if (indices.dtype !== "int32") {
+    throw new Error(
+      `tf.gatherND() expects the indices to be int32 type, but the dtype was ${indices.dtype}.`
+    );
+  }
+  if (indices.shape[indicesRank - 1] > tensorRank) {
+    throw new Error(
+      `index innermost dimension length must be <= tensor rank; saw: ${indices.shape[indicesRank - 1]} vs. ${tensorRank}`
+    );
+  }
+  if (sizeFromShape(tensor2.shape) === 0) {
+    throw new Error(
+      `Requested more than 0 entries, but input is empty. Input shape: ${tensor2.shape}.`
+    );
+  }
+  const indicesShape = indices.shape;
+  const sliceRank = indicesShape[indicesShape.length - 1];
+  let nResult = 1;
+  for (let i = 0; i < indicesShape.length - 1; ++i) {
+    nResult *= indicesShape[i];
+  }
+  const inputShape = tensor2.shape;
+  const resultShape = indicesShape.slice();
+  resultShape.pop();
+  let sliceSize = 1;
+  for (let i = sliceRank; i < tensorRank; ++i) {
+    sliceSize *= inputShape[i];
+    resultShape.push(inputShape[i]);
+  }
+  const strides = [
+    ...computeStrides(tensor2.shape).map((stride) => stride / sliceSize),
+    1
+  ].slice(0, sliceRank);
+  return [resultShape, nResult, sliceSize, strides];
+}
+
+// src/tfjs-core/src/ops/slice_util.ts
+var slice_util_exports = {};
+__export(slice_util_exports, {
+  assertParamsValid: () => assertParamsValid,
+  computeFlatOffset: () => computeFlatOffset,
+  computeOutShape: () => computeOutShape,
+  getNormalizedAxes: () => getNormalizedAxes,
+  isSliceContinous: () => isSliceContinous,
+  maskToAxes: () => maskToAxes,
+  parseSliceParams: () => parseSliceParams,
+  sliceInfo: () => sliceInfo,
+  startForAxis: () => startForAxis,
+  startIndicesWithElidedDims: () => startIndicesWithElidedDims,
+  stopForAxis: () => stopForAxis,
+  stopIndicesWithElidedDims: () => stopIndicesWithElidedDims,
+  stridesForAxis: () => stridesForAxis,
+  stridesWithElidedDims: () => stridesWithElidedDims
+});
+var NEW_AXIS = -2;
+var SHRINK_AXIS = -1;
+function assertParamsValid(input, begin, size) {
+  const inputRank = input.shape.length;
+  assert(
+    inputRank === begin.length,
+    () => `Error in slice${inputRank}D: Length of begin ${begin} must match the rank of the array (${inputRank}).`
+  );
+  assert(
+    inputRank === size.length,
+    () => `Error in slice${inputRank}D: Length of size ${size} must match the rank of the array (${inputRank}).`
+  );
+  for (let i = 0; i < inputRank; ++i) {
+    assert(
+      begin[i] + size[i] <= input.shape[i],
+      () => `Error in slice${inputRank}D: begin[${i}] + size[${i}] (${begin[i] + size[i]}) would overflow input.shape[${i}] (${input.shape[i]})`
+    );
+  }
+}
+function maskToAxes(mask) {
+  const axes = [];
+  let axis = 0;
+  while (mask > 0) {
+    if (mask & 1) {
+      axes.push(axis);
+    }
+    mask /= 2;
+    axis++;
+  }
+  return axes;
+}
+function computeOutShape(begin, end, strides) {
+  const size = [];
+  for (let axis = 0; axis < begin.length; axis++) {
+    size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
+  }
+  return size;
+}
+function stridesWithElidedDims(strides, ellipsisInsertionIndex, numElidedAxes, inputShape) {
+  const newStrides = [...strides];
+  for (let i = newStrides.length; i < inputShape.length; i++) {
+    newStrides.push(1);
+  }
+  for (let i = 0; i < numElidedAxes; i++) {
+    if (i === 0) {
+      newStrides[ellipsisInsertionIndex] = 1;
+    } else {
+      newStrides.splice(
+        ellipsisInsertionIndex,
+        0,
+        1
+        /* element to add */
+      );
+      newStrides.pop();
+    }
+  }
+  return newStrides;
+}
+function unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, normalizedAxis) {
+  if (normalizedAxis <= ellipsisInsertionIndex) {
+    return normalizedAxis;
+  }
+  return normalizedAxis - (numElidedAxes - 1);
+}
+function getElidedAxes(numElidedAxes, ellipsisInsertionIndex) {
+  const elidedAxes = [];
+  for (let i = 0; i < numElidedAxes; i++) {
+    elidedAxes.push(ellipsisInsertionIndex + i);
+  }
+  return elidedAxes;
+}
+function getNormalizedAxes(inputShape, ellipsisAxes, numInterpolatedAxes, begin, end, strides, beginMask, endMask, ellipsisMask) {
+  const inputRank = inputShape.length;
+  let normalizedBegin = new Array(inputRank), normalizedEnd = new Array(inputRank), normalizedStrides = new Array(inputRank);
+  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
+    const fullIndex = ellipsisAxes[0];
+    const numElidedAxes = numInterpolatedAxes + 1;
+    normalizedBegin = startIndicesWithElidedDims(
+      beginMask,
+      fullIndex,
+      numElidedAxes,
+      begin,
+      inputShape
+    );
+    normalizedEnd = stopIndicesWithElidedDims(
+      endMask,
+      fullIndex,
+      numElidedAxes,
+      end,
+      inputShape
+    );
+    normalizedStrides = stridesWithElidedDims(strides, fullIndex, numElidedAxes, inputShape);
+  } else {
+    for (let axis = 0; axis < inputRank; axis++) {
+      normalizedBegin[axis] = startForAxis(
+        beginMask,
+        begin,
+        strides,
+        inputShape,
+        axis,
+        ellipsisMask
+      );
+      normalizedEnd[axis] = stopForAxis(endMask, end, strides, inputShape, axis, ellipsisMask);
+      normalizedStrides[axis] = stridesForAxis(strides, axis, ellipsisMask);
+    }
+  }
+  return {
+    begin: normalizedBegin,
+    end: normalizedEnd,
+    strides: normalizedStrides
+  };
+}
+function startIndicesWithElidedDims(beginMask, ellipsisInsertionIndex, numElidedAxes, originalBegin, inputShape) {
+  const newIndices = [...inputShape];
+  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
+  for (let axis = 0; axis < newIndices.length; axis++) {
+    if (elidedAxes.indexOf(axis) > -1) {
+      newIndices[axis] = 0;
+    } else {
+      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
+      let originalValue = originalBegin[originalAxis];
+      if (beginMask & 1 << originalAxis) {
+        originalValue = 0;
+      }
+      newIndices[axis] = originalValue;
+    }
+  }
+  return newIndices;
+}
+function stopIndicesWithElidedDims(endMask, ellipsisInsertionIndex, numElidedAxes, originalEnd, inputShape) {
+  const newIndices = [...inputShape];
+  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
+  for (let axis = 0; axis < newIndices.length; axis++) {
+    if (elidedAxes.indexOf(axis) > -1) {
+      newIndices[axis] = Number.MAX_SAFE_INTEGER;
+    } else {
+      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
+      let originalValue = originalEnd[originalAxis];
+      if (endMask & 1 << originalAxis) {
+        originalValue = Number.MAX_SAFE_INTEGER;
+      }
+      newIndices[axis] = originalValue;
+    }
+  }
+  for (let i = 0; i < newIndices.length; i++) {
+    const axisSize = inputShape[i];
+    if (newIndices[i] < 0) {
+      newIndices[i] += axisSize;
+    }
+    newIndices[i] = clamp(0, newIndices[i], inputShape[i]);
+  }
+  return newIndices;
+}
+function stridesForAxis(strides, axis, ellipsisMask) {
+  let stride = strides[axis];
+  if (ellipsisMask & 1 << axis || stride == null) {
+    stride = 1;
+  }
+  return stride;
+}
+function startForAxis(beginMask, startIndices, strides, inputShape, axis, ellipsisMask) {
+  let start = startIndices[axis];
+  const stride = strides[axis] || 1;
+  if (beginMask & 1 << axis || ellipsisMask & 1 << axis || start == null) {
+    if (stride > 0) {
+      start = Number.MIN_SAFE_INTEGER;
+    } else {
+      start = Number.MAX_SAFE_INTEGER;
+    }
+  }
+  const axisSize = inputShape[axis];
+  if (start < 0) {
+    start += axisSize;
+  }
+  start = clamp(0, start, axisSize - 1);
+  return start;
+}
+function stopForAxis(endMask, stopIndices, strides, inputShape, axis, ellipsisMask) {
+  let stop = stopIndices[axis];
+  const stride = strides[axis] || 1;
+  if (endMask & 1 << axis || ellipsisMask & 1 << axis || stop == null) {
+    if (stride > 0) {
+      stop = Number.MAX_SAFE_INTEGER;
+    } else {
+      stop = Number.MIN_SAFE_INTEGER;
+    }
+  }
+  const axisSize = inputShape[axis];
+  if (stop < 0) {
+    stop += axisSize;
+  }
+  if (stride > 0) {
+    stop = clamp(0, stop, axisSize);
+  } else {
+    stop = clamp(-1, stop, axisSize - 1);
+  }
+  return stop;
+}
+function isSliceContinous(shape, begin, size) {
+  let firstNonOneAxis = size.length;
+  for (let i = 0; i < size.length; i++) {
+    if (size[i] > 1) {
+      firstNonOneAxis = i;
+      break;
+    }
+  }
+  for (let i = firstNonOneAxis + 1; i < size.length; i++) {
+    if (begin[i] > 0 || size[i] !== shape[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+function computeFlatOffset(begin, strides) {
+  let flatOffset = begin.length > 0 ? begin[begin.length - 1] : 1;
+  for (let i = 0; i < begin.length - 1; i++) {
+    flatOffset += begin[i] * strides[i];
+  }
+  return flatOffset;
+}
+function parseSliceParams(x, begin, size) {
+  let begin_;
+  const xRank = x.shape.length;
+  if (typeof begin === "number") {
+    begin_ = [begin, ...new Array(xRank - 1).fill(0)];
+  } else if (begin.length < xRank) {
+    begin_ = begin.concat(new Array(xRank - begin.length).fill(0));
+  } else {
+    begin_ = begin.slice();
+  }
+  begin_.forEach((d) => {
+    assert(
+      d !== -1,
+      () => "slice() does not support negative begin indexing."
+    );
+  });
+  let size_;
+  if (size == null) {
+    size_ = new Array(xRank).fill(-1);
+  } else if (typeof size === "number") {
+    size_ = [size, ...new Array(xRank - 1).fill(-1)];
+  } else if (size.length < xRank) {
+    size_ = size.concat(new Array(xRank - size.length).fill(-1));
+  } else {
+    size_ = size;
+  }
+  size_ = size_.map((d, i) => {
+    if (d >= 0) {
+      return d;
+    } else {
+      assert(
+        d === -1,
+        () => `Negative size values should be exactly -1 but got ${d} for the slice() size at index ${i}.`
+      );
+      return x.shape[i] - begin_[i];
+    }
+  });
+  return [begin_, size_];
+}
+function sliceInfo(xShape, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask) {
+  let stridesNonNull;
+  if (strides == null) {
+    stridesNonNull = new Array(begin.length);
+    stridesNonNull.fill(1);
+  } else {
+    stridesNonNull = strides;
+  }
+  if (ellipsisMask != null && (ellipsisMask & ellipsisMask - 1) !== 0) {
+    throw new Error("Multiple ellipses in slice is not allowed.");
+  }
+  let ellipsisSeen = false;
+  const sparseSpec = {
+    dims: stridesNonNull.length,
+    numAddAxisAfterEllipsis: 0,
+    begin: begin.slice(),
+    end: end.slice(),
+    strides: stridesNonNull.slice(),
+    beginMask,
+    endMask,
+    ellipsisMask,
+    newAxisMask,
+    shrinkAxisMask
+  };
+  for (let i = 0; i < sparseSpec.dims; i++) {
+    if (ellipsisSeen && (1 << i & newAxisMask) !== 0) {
+      sparseSpec.numAddAxisAfterEllipsis++;
+    }
+    if (1 << i & ellipsisMask) {
+      ellipsisSeen = true;
+    }
+  }
+  if (!ellipsisSeen) {
+    sparseSpec.ellipsisMask |= 1 << sparseSpec.dims;
+    sparseSpec.dims++;
+  }
+  const denseSpec = {
+    dims: xShape.length,
+    beginMask: 0,
+    endMask: 0,
+    beginValid: false,
+    endValid: false
+  };
+  buildDenseSpec(sparseSpec, denseSpec);
+  let isIdentity = true;
+  let sliceDim0 = true;
+  let isSimpleSlice = true;
+  const processingShape = [];
+  const finalShape = [];
+  for (let i = 0; i < xShape.length; ++i) {
+    if (denseSpec.strides[i] === 0) {
+      throw Error(`strides[${i}] must be non-zero`);
+    }
+    const shrinkI = !!(denseSpec.shrinkAxisMask & 1 << i);
+    const dimI = xShape[i];
+    if (dimI === -1) {
+      processingShape.push(shrinkI ? 1 : -1);
+      continue;
+    }
+    const masks = [denseSpec.beginMask & 1 << i, denseSpec.endMask & 1 << i];
+    const validRange = [
+      denseSpec.strides[i] > 0 ? 0 : -1,
+      denseSpec.strides[i] > 0 ? dimI : dimI - 1
+    ];
+    if (shrinkI && denseSpec.strides[i] <= 0) {
+      throw Error("only stride 1 allowed on non-range indexing.");
+    }
+    isSimpleSlice = isSimpleSlice && denseSpec.strides[i] === 1;
+    const beginAndEndMasked = !!(denseSpec.beginMask & 1 << i && denseSpec.endMask & 1 << i);
+    if (denseSpec.beginValid && denseSpec.endValid) {
+      if (shrinkI) {
+        const xFwd = denseSpec.begin[i] < 0 ? dimI + denseSpec.begin[i] : denseSpec.begin[i];
+        denseSpec.begin[i] = xFwd;
+        denseSpec.end[i] = denseSpec.begin[i] + 1;
+        if (xFwd < 0 || xFwd >= dimI) {
+          throw Error(`slice index ${denseSpec.begin[i]} of dimension ${i} out of bounds.`);
+        }
+      } else {
+        denseSpec.begin[i] = canonical(
+          denseSpec.begin[i],
+          0,
+          denseSpec.strides[i],
+          dimI,
+          masks,
+          validRange
+        );
+        denseSpec.end[i] = canonical(
+          denseSpec.end[i],
+          1,
+          denseSpec.strides[i],
+          dimI,
+          masks,
+          validRange
+        );
+      }
+      const takeAllInDimension = denseSpec.strides[i] === 1 && denseSpec.begin[i] === 0 && denseSpec.end[i] === dimI;
+      isIdentity = isIdentity && takeAllInDimension;
+      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || takeAllInDimension);
+    } else {
+      isIdentity = isIdentity && (denseSpec.strides[i] === 1 && beginAndEndMasked);
+      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || beginAndEndMasked);
+    }
+    let intervalLength;
+    let knownInterval = false;
+    if (denseSpec.beginValid && denseSpec.endValid) {
+      intervalLength = denseSpec.end[i] - denseSpec.begin[i];
+      knownInterval = true;
+    } else if (shrinkI) {
+      intervalLength = 1;
+      knownInterval = true;
+    } else if (beginAndEndMasked) {
+      if (dimI >= 0) {
+        if (denseSpec.strides[i] < 0) {
+          intervalLength = -dimI;
+        } else {
+          intervalLength = dimI;
+        }
+        knownInterval = true;
+      }
+    }
+    if (knownInterval) {
+      let sizeI;
+      if (intervalLength === 0 || intervalLength < 0 !== denseSpec.strides[i] < 0) {
+        sizeI = 0;
+      } else {
+        sizeI = Math.trunc(intervalLength / denseSpec.strides[i]) + (intervalLength % denseSpec.strides[i] !== 0 ? 1 : 0);
+      }
+      processingShape.push(sizeI);
+    } else {
+      processingShape.push(-1);
+    }
+  }
+  for (let denseDim = 0; denseDim < denseSpec.finalShapeGatherIndices.length; ++denseDim) {
+    const gatherIndex = denseSpec.finalShapeGatherIndices[denseDim];
+    if (gatherIndex >= 0) {
+      finalShape.push(processingShape[gatherIndex]);
+    } else if (gatherIndex === NEW_AXIS) {
+      finalShape.push(1);
+    }
+  }
+  const finalShapeSparse = finalShape.filter(
+    (dim, i) => denseSpec.finalShapeGatherIndices[i] !== NEW_AXIS
+  );
+  return {
+    finalShapeSparse,
+    finalShape,
+    isIdentity,
+    sliceDim0,
+    isSimpleSlice,
+    begin: denseSpec.begin,
+    end: denseSpec.end,
+    strides: denseSpec.strides
+  };
+}
+function buildDenseSpec(sparse, dense) {
+  dense.beginMask = 0;
+  dense.endMask = 0;
+  dense.shrinkAxisMask = 0;
+  let fullIndex = 0;
+  dense.beginValid = sparse.begin != null;
+  dense.endValid = sparse.end != null;
+  dense.begin = new Array(dense.dims);
+  dense.end = new Array(dense.dims);
+  dense.strides = new Array(dense.dims);
+  dense.finalShapeGatherIndices = [];
+  dense.finalShapeGatherIndicesSparse = [];
+  dense.inputShapeGatherIndicesSparse = new Array(dense.dims);
+  for (let i = 0; i < sparse.dims; i++) {
+    if (1 << i & sparse.ellipsisMask) {
+      const nextIndex = Math.min(
+        dense.dims - (sparse.dims - i) + 1 + sparse.numAddAxisAfterEllipsis,
+        dense.dims
+      );
+      for (; fullIndex < nextIndex; fullIndex++) {
+        dense.begin[fullIndex] = 0;
+        dense.end[fullIndex] = 0;
+        dense.strides[fullIndex] = 1;
+        dense.beginMask |= 1 << fullIndex;
+        dense.endMask |= 1 << fullIndex;
+        dense.finalShapeGatherIndices.push(fullIndex);
+        dense.finalShapeGatherIndicesSparse.push(-1);
+        dense.inputShapeGatherIndicesSparse[fullIndex] = i;
+      }
+    } else if (1 << i & sparse.newAxisMask) {
+      dense.finalShapeGatherIndices.push(NEW_AXIS);
+      dense.finalShapeGatherIndicesSparse.push(-1);
+    } else {
+      if (fullIndex === dense.begin.length) {
+        throw Error(
+          `Index out of range using input dim ${fullIndex}; input has only ${dense.dims} dims, ${dense.begin.length}.`
+        );
+      }
+      if (sparse.begin != null) {
+        dense.begin[fullIndex] = sparse.begin[i];
+      }
+      if (sparse.end != null) {
+        dense.end[fullIndex] = sparse.end[i];
+      }
+      dense.strides[fullIndex] = sparse.strides[i];
+      if (sparse.beginMask & 1 << i) {
+        dense.beginMask |= 1 << fullIndex;
+      }
+      if (sparse.endMask & 1 << i) {
+        dense.endMask |= 1 << fullIndex;
+      }
+      if (sparse.shrinkAxisMask & 1 << i) {
+        dense.finalShapeGatherIndices.push(SHRINK_AXIS);
+        dense.finalShapeGatherIndicesSparse.push(-1);
+        dense.shrinkAxisMask |= 1 << fullIndex;
+      } else {
+        dense.finalShapeGatherIndices.push(fullIndex);
+        dense.finalShapeGatherIndicesSparse.push(i);
+      }
+      dense.inputShapeGatherIndicesSparse[fullIndex] = i;
+      fullIndex++;
+    }
+  }
+}
+function canonical(x, c, strideI, dimI, masks, validRange) {
+  if (masks[c]) {
+    return strideI > 0 ? validRange[c] : validRange[c + 1 & 1];
+  } else {
+    const xFwd = x < 0 ? dimI + x : x;
+    return xFwd < validRange[0] ? validRange[0] : xFwd > validRange[1] ? validRange[1] : xFwd;
+  }
+}
 
 // src/tfjs-core/src/browser_util.ts
 var delayCallback = (() => {
@@ -15846,6 +16640,7 @@ __export(backend_util_exports, {
   shouldFuse: () => shouldFuse,
   slice_util: () => slice_util_exports,
   splitRealAndImagArrays: () => splitRealAndImagArrays,
+  stridesOrDilationsArePositive: () => stridesOrDilationsArePositive,
   tupleValuesAreOne: () => tupleValuesAreOne,
   upcastType: () => upcastType,
   validateDefaultValueShape: () => validateDefaultValueShape,
@@ -16471,6 +17266,9 @@ function fromStringArrayToUint8(strings) {
   return strings.map((s) => encodeString(s));
 }
 
+// src/tfjs-core/src/index.ts
+registerOptimizers();
+
 // src/tfjs-backend-wasm/src/kernels/types.ts
 var CppDType = /* @__PURE__ */ ((CppDType2) => {
   CppDType2[CppDType2["float32"] = 0] = "float32";
@@ -16496,18 +17294,31 @@ var wasmFusedMatMul;
 function setup(backend) {
   wasmFusedMatMul = backend.wasm.cwrap(_FusedMatMul, null, [
     "number",
+    // a_id
     "array",
+    // a_shape
     "number",
+    // a_shape.length
     "number",
+    // b_id
     "array",
+    // b_shape
     "number",
+    // b_shape.length
     "number",
+    // transpose_a
     "number",
+    // transpose_b
     "number",
+    // activation
     "number",
+    // biasId
     "number",
+    // preluActivationWeightsId
     "number",
+    // leakyreluAlpha
     "number"
+    // out_id
   ]);
 }
 function fusedBatchMatMul(args) {
@@ -16574,12 +17385,15 @@ var _fusedMatMulConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/unary_kernel.ts
 function createUnaryKernelConfig(kernelName, outType) {
-  let wasmFunc9;
+  let wasmFunc8;
   function setupFunc3(backend) {
-    wasmFunc9 = backend.wasm.cwrap(kernelName, null, [
+    wasmFunc8 = backend.wasm.cwrap(kernelName, null, [
       "number",
+      // x_id
       "number",
+      // dtype
       "number"
+      // out_id
     ]);
   }
   function kernelFunc3(args) {
@@ -16590,7 +17404,7 @@ function createUnaryKernelConfig(kernelName, outType) {
     if (util_exports.sizeFromShape(out.shape) === 0) {
       return out;
     }
-    wasmFunc9(xId, CppDType[x.dtype], outId);
+    wasmFunc8(xId, CppDType[x.dtype], outId);
     return out;
   }
   return { kernelName, backendName: "wasm", setupFunc: setupFunc3, kernelFunc: kernelFunc3 };
@@ -16599,19 +17413,33 @@ function createUnaryKernelConfig(kernelName, outType) {
 // src/tfjs-backend-wasm/src/kernels/Abs.ts
 var absConfig = createUnaryKernelConfig(Abs);
 
+// src/tfjs-backend-wasm/src/kernels/Acos.ts
+var acosConfig = createUnaryKernelConfig(Acos);
+
+// src/tfjs-backend-wasm/src/kernels/Acosh.ts
+var acoshConfig = createUnaryKernelConfig(Acosh);
+
 // src/tfjs-backend-wasm/src/kernels/binary_kernel.ts
 function createBinaryKernelConfig(kernelName, supportsFullBroadcast19, dtype) {
-  let wasmFunc9;
+  let wasmFunc8;
   function setupFunc3(backend) {
-    wasmFunc9 = backend.wasm.cwrap(kernelName, null, [
+    wasmFunc8 = backend.wasm.cwrap(kernelName, null, [
       "number",
+      // a_id,
       "array",
+      // a_shape
       "number",
+      // a_shape.length
       "number",
+      // b_id
       "array",
+      // b_shape
       "number",
+      // b_shape.length
       "number",
+      // dtype
       "number"
+      // out_id
     ]);
   }
   function kernelFunc3(args) {
@@ -16628,7 +17456,7 @@ function createBinaryKernelConfig(kernelName, supportsFullBroadcast19, dtype) {
     const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
     const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
     const outId = backend.dataIdMap.get(out.dataId).id;
-    const kernelFunc4 = () => wasmFunc9(
+    const kernelFunc4 = () => wasmFunc8(
       aId,
       aShapeBytes,
       a.shape.length,
@@ -16653,9 +17481,13 @@ var wasmFunc;
 function setupFunc(backend) {
   wasmFunc = backend.wasm.cwrap(AddN, null, [
     "array",
+    // input_ids
     "number",
+    // input_ids.length
     "number",
+    // dtype
     "number"
+    // out_id
   ]);
 }
 function addn(args) {
@@ -16700,12 +17532,19 @@ var wasmTranspose;
 function setup2(backend) {
   wasmTranspose = backend.wasm.cwrap(Transpose, null, [
     "number",
+    // xId
     "array",
+    // x.shape
     "number",
+    // x.shape.length
     "number",
+    // dtype
     "number",
+    // outId
     "array",
+    // perm
     "number"
+    // perm.length
   ]);
 }
 function transpose2(args) {
@@ -16891,68 +17730,114 @@ var anyConfig = {
   kernelFunc: any2
 };
 
-// src/tfjs-backend-wasm/src/kernels/ArgMax.ts
-var wasmFunc2;
-function setup5(backend) {
-  wasmFunc2 = backend.wasm.cwrap(ArgMax, null, [
-    "number",
-    "number",
-    "number",
-    "number",
-    "number"
-  ]);
-}
-function argmax(args) {
-  const { backend, inputs, attrs } = args;
-  const { axis } = attrs;
-  const { x } = inputs;
-  const xId = backend.dataIdMap.get(x.dataId).id;
-  let inputId = xId;
-  let input = x;
-  const { transposed, axes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
-  if (inputWasTransposed) {
-    const transposedId = backend.dataIdMap.get(transposed.dataId).id;
-    if (transposedId !== xId) {
-      input = transposed;
-      inputId = transposedId;
+// src/tfjs-backend-wasm/src/kernels/argminmax_kernel.ts
+function createArgMinMaxKernelConfig(kernelName) {
+  let wasmFunc8;
+  function setupFunc3(backend) {
+    wasmFunc8 = backend.wasm.cwrap(kernelName, null, [
+      "number",
+      // x_id
+      "number",
+      // dtype
+      "number",
+      // outer_size
+      "number",
+      // inner_size
+      "number"
+      // out_id
+    ]);
+  }
+  function kernelFunc3(args) {
+    const { backend, inputs, attrs } = args;
+    const { axis } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    if (inputWasTransposed) {
+      const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+      if (transposedId !== xId) {
+        input = transposed;
+        inputId = transposedId;
+      }
     }
+    const outShape = input.shape.slice(0, -1);
+    const out = backend.makeOutput(outShape, "int32");
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const outerSize = util_exports.sizeFromShape(out.shape);
+    const innerSize = input.shape[axes[0]];
+    wasmFunc8(inputId, CppDType[input.dtype], outerSize, innerSize, outId);
+    if (inputWasTransposed) {
+      backend.disposeData(transposed.dataId);
+    }
+    return out;
   }
-  const outShape = input.shape.slice(0, -1);
-  const out = backend.makeOutput(outShape, "int32");
-  const outId = backend.dataIdMap.get(out.dataId).id;
-  const outerSize = util_exports.sizeFromShape(out.shape);
-  const innerSize = input.shape[axes[0]];
-  wasmFunc2(inputId, CppDType[input.dtype], outerSize, innerSize, outId);
-  if (inputWasTransposed) {
-    backend.disposeData(transposed.dataId);
-  }
-  return out;
+  return {
+    kernelName,
+    backendName: "wasm",
+    setupFunc: setupFunc3,
+    kernelFunc: kernelFunc3
+  };
 }
-var argMaxConfig = {
-  kernelName: ArgMax,
-  backendName: "wasm",
-  kernelFunc: argmax,
-  setupFunc: setup5
-};
+
+// src/tfjs-backend-wasm/src/kernels/ArgMax.ts
+var argMaxConfig = createArgMinMaxKernelConfig(ArgMax);
+
+// src/tfjs-backend-wasm/src/kernels/ArgMin.ts
+var argMinConfig = createArgMinMaxKernelConfig(ArgMin);
+
+// src/tfjs-backend-wasm/src/kernels/Asin.ts
+var asinConfig = createUnaryKernelConfig(Asin);
+
+// src/tfjs-backend-wasm/src/kernels/Asinh.ts
+var asinhConfig = createUnaryKernelConfig(Asinh);
+
+// src/tfjs-backend-wasm/src/kernels/Atan.ts
+var atanConfig = createUnaryKernelConfig(Atan);
+
+// src/tfjs-backend-wasm/src/kernels/Atan2.ts
+var atan2Config = createBinaryKernelConfig(
+  Atan2,
+  /*supportsFullBroadcast=*/
+  false
+);
+
+// src/tfjs-backend-wasm/src/kernels/Atanh.ts
+var atanhConfig = createUnaryKernelConfig(Atanh);
 
 // src/tfjs-backend-wasm/src/kernels/AvgPool.ts
 var wasmAvgPool;
-function setup6(backend) {
+function setup5(backend) {
   wasmAvgPool = backend.wasm.cwrap(AvgPool, null, [
     "number",
+    // xId
     "number",
+    // batchSize
     "number",
+    // inputHeight
     "number",
+    // inputWidth
     "number",
+    // filterHeight
     "number",
+    // filterWidth
     "number",
+    // padTop
     "number",
+    // padRight
     "number",
+    // padBottom
     "number",
+    // padLeft
     "number",
+    // strideHeight
     "number",
+    // strideWidth
     "number",
+    // channels
     "number"
+    // outId
   ]);
 }
 function avgPool2(args) {
@@ -17010,8 +17895,218 @@ function avgPool2(args) {
 var avgPoolConfig = {
   kernelName: AvgPool,
   backendName: "wasm",
-  setupFunc: setup6,
+  setupFunc: setup5,
   kernelFunc: avgPool2
+};
+
+// src/tfjs-backend-wasm/src/kernels/AvgPool3D.ts
+var wasmAvgPool3D;
+function setup6(backend) {
+  wasmAvgPool3D = backend.wasm.cwrap("AvgPool3D", null, [
+    "number",
+    // xId
+    "number",
+    // outId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inDepth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outDepth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideDepth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationDepth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterDepth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padFront
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function avgPool3D(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { filterSize, strides, pad: pad3, dimRoundingMode, dataFormat } = attrs;
+  const convInfo = backend_util_exports.computePool3DInfo(
+    x.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3,
+    dimRoundingMode,
+    dataFormat
+  );
+  const out = backend.makeOutput(convInfo.outShape, x.dtype);
+  wasmAvgPool3D(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(out.dataId).id,
+    convInfo.batchSize,
+    // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inDepth,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outDepth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideDepth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationDepth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterDepth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.front,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return out;
+}
+var avgPool3DConfig = {
+  kernelName: AvgPool3D,
+  backendName: "wasm",
+  setupFunc: setup6,
+  kernelFunc: avgPool3D
+};
+
+// src/tfjs-backend-wasm/src/kernels/AvgPool3DGrad.ts
+var wasmAvgPool3DGrad;
+function setup7(backend) {
+  wasmAvgPool3DGrad = backend.wasm.cwrap("AvgPool3DGrad", null, [
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inDepth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outDepth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideDepth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationDepth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterDepth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padFront
+    "number",
+    // padTop
+    "number",
+    // padLeft
+    "number",
+    // filterDepth
+    "number",
+    // filterHeight
+    "number"
+    // filterWidth
+  ]);
+}
+function avgPool3DGrad(args) {
+  const { inputs, backend, attrs } = args;
+  const { dy, input } = inputs;
+  const { filterSize, strides, pad: pad3, dimRoundingMode } = attrs;
+  const convInfo = backend_util_exports.computePool3DInfo(
+    input.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3,
+    dimRoundingMode
+  );
+  const dx = backend.makeOutput(input.shape, input.dtype);
+  wasmAvgPool3DGrad(
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    convInfo.batchSize,
+    // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inDepth,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outDepth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideDepth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationDepth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterDepth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.front,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left,
+    convInfo.filterDepth,
+    convInfo.filterHeight,
+    convInfo.filterWidth
+  );
+  return dx;
+}
+var avgPool3DGradConfig = {
+  kernelName: AvgPool3DGrad,
+  backendName: "wasm",
+  setupFunc: setup7,
+  kernelFunc: avgPool3DGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/Reshape.ts
@@ -17036,17 +18131,26 @@ var reshapeConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/BatchMatMul.ts
 var wasmBatchMatMul;
-function setup7(backend) {
+function setup8(backend) {
   wasmBatchMatMul = backend.wasm.cwrap(BatchMatMul, null, [
     "number",
+    // a_id
     "array",
+    // a_shape
     "number",
+    // a_shape.length
     "number",
+    // b_id
     "array",
+    // b_shape
     "number",
+    // b_shape.length
     "number",
+    // transpose_a
     "number",
+    // transpose_b
     "number"
+    // out_id
   ]);
 }
 function batchMatMul(args) {
@@ -17109,7 +18213,7 @@ function batchMatMul(args) {
 var batchMatMulConfig = {
   kernelName: BatchMatMul,
   backendName: "wasm",
-  setupFunc: setup7,
+  setupFunc: setup8,
   kernelFunc: batchMatMul
 };
 
@@ -17259,8 +18363,14 @@ function binaryKernelFunc(name, simpleImpl, complexImpl, dtype) {
       assertNotComplex([a, b], name);
       const aVals = cpuBackend.data.get(a.dataId).values;
       const bVals = cpuBackend.data.get(b.dataId).values;
-      const decodedAVals = a.dtype === "string" ? backend_util_exports.fromUint8ToStringArray(aVals) : aVals;
-      const decodedBVals = a.dtype === "string" ? backend_util_exports.fromUint8ToStringArray(bVals) : bVals;
+      const decodedAVals = a.dtype === "string" ? (
+        // tslint:disable-next-line: no-any
+        backend_util_exports.fromUint8ToStringArray(aVals)
+      ) : aVals;
+      const decodedBVals = a.dtype === "string" ? (
+        // tslint:disable-next-line: no-any
+        backend_util_exports.fromUint8ToStringArray(bVals)
+      ) : bVals;
       const $dtype = dtype || a.dtype;
       const [resultData, resultShape] = simpleImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
       return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
@@ -17375,7 +18485,7 @@ var add3 = binaryKernelFunc(Add, addImpl, addComplexImpl);
 // src/tfjs-backend-cpu/src/utils/unary_impl.ts
 function createSimpleUnaryImpl(op2) {
   return (values, dtype, attrs) => {
-    const newValues = util_exports.getTypedArrayFromDType(dtype, values.length);
+    const newValues = util_exports.getArrayFromDType(dtype, values.length);
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = op2(values[i], attrs);
     }
@@ -17385,34 +18495,26 @@ function createSimpleUnaryImpl(op2) {
 
 // src/tfjs-backend-cpu/src/utils/unary_utils.ts
 function unaryKernelFunc(name, op2, dtype) {
-  return ({ inputs, attrs, backend }) => {
-    const { x } = inputs;
-    assertNotComplex(x, name);
-    if (x.dtype === "string" || dtype === "string") {
-      throw new Error("unaryKernelFunc does not support string input/output");
-    }
-    const cpuBackend = backend;
-    const values = cpuBackend.data.get(x.dataId).values;
-    const xSize = util_exports.sizeFromShape(x.shape);
-    const $dtype = dtype || x.dtype;
-    const newValues = util_exports.getArrayFromDType($dtype, xSize);
-    for (let i = 0; i < xSize; ++i) {
-      newValues[i] = op2(values[i], attrs);
-    }
-    return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
-  };
+  const impl = createSimpleUnaryImpl(op2);
+  return unaryKernelFuncFromImpl(name, impl, dtype);
 }
 function unaryKernelFuncFromImpl(name, unaryImpl, dtype) {
   return ({ inputs, attrs, backend }) => {
     const { x } = inputs;
     assertNotComplex(x, name);
-    if (x.dtype === "string" || dtype === "string") {
-      throw new Error("unaryKernelFunc does not support string input/output");
-    }
     const cpuBackend = backend;
     const values = cpuBackend.data.get(x.dataId).values;
+    let decoded;
+    if (x.dtype === "string") {
+      if (!Array.isArray(values)) {
+        throw new Error("String tensor's value was not an instance of Array");
+      }
+      decoded = backend_util_exports.fromUint8ToStringArray(values);
+    } else {
+      decoded = values;
+    }
     const $dtype = dtype || x.dtype;
-    const newValues = unaryImpl(values, $dtype, attrs);
+    const newValues = unaryImpl(decoded, $dtype, attrs);
     return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
   };
 }
@@ -17463,6 +18565,10 @@ var expm12 = unaryKernelFuncFromImpl(Expm1, expm1Impl);
 // src/tfjs-backend-cpu/src/kernels/Floor.ts
 var floorImpl = createSimpleUnaryImpl((xi) => Math.floor(xi));
 var floor2 = unaryKernelFuncFromImpl(Floor, floorImpl);
+
+// src/tfjs-backend-cpu/src/kernels/FloorDiv.ts
+var floorDivImpl = createSimpleBinaryKernelImpl((a, b) => Math.floor(a / b));
+var floorDiv2 = binaryKernelFunc(FloorDiv, floorDivImpl, null, "int32");
 
 // src/tfjs-backend-cpu/src/kernels/Greater.ts
 var greaterImpl = createSimpleBinaryKernelImpl((a, b) => a > b ? 1 : 0);
@@ -17582,6 +18688,13 @@ var squaredDifferenceImpl = createSimpleBinaryKernelImpl((a, b) => {
 });
 var squaredDifference2 = binaryKernelFunc(SquaredDifference, squaredDifferenceImpl);
 
+// src/tfjs-backend-cpu/src/kernels/StaticRegexReplace.ts
+var staticRegexReplaceImpl = createSimpleUnaryImpl((x, attrs) => {
+  const { pattern, replaceGlobal, rewrite } = attrs;
+  return x.replace(new RegExp(pattern, replaceGlobal ? "g" : ""), rewrite);
+});
+var staticRegexReplace2 = unaryKernelFuncFromImpl(StaticRegexReplace, staticRegexReplaceImpl);
+
 // src/tfjs-backend-cpu/src/kernels/StringNGrams_impl.ts
 var StringNGramsOp = class {
   separator;
@@ -17650,6 +18763,9 @@ var StringNGramsOp = class {
       }
     }
   }
+  // Data and splits together form the definition of the ragged tensor,
+  // where data is 1 dimensional and contains the values of the tensor
+  // and splits denotes the indices at which each row starts.
   compute(data, splits) {
     const inputDataSize = data.length;
     const splitsSize = splits.length;
@@ -17824,6 +18940,64 @@ var subComplexImpl = createComplexBinaryKernelImpl((aReal, aImag, bReal, bImag) 
 });
 var sub2 = binaryKernelFunc(Sub, subImpl, subComplexImpl);
 
+// src/tfjs-backend-cpu/src/kernels/Unique_impl.ts
+function uniqueImpl(values, axis, shape, dtype) {
+  const $axis = util_exports.parseAxisParam(axis, shape)[0];
+  const newShape = [1, shape[0], 1];
+  for (let i = 0; i < $axis; i++) {
+    newShape[0] *= shape[i];
+  }
+  newShape[1] = shape[$axis];
+  for (let i = $axis + 1; i < shape.length; i++) {
+    newShape[2] *= shape[i];
+  }
+  const uniqueElements = /* @__PURE__ */ new Map();
+  const indices = new Int32Array(shape[$axis]);
+  const inputBuffer = new TensorBuffer(newShape, dtype, values);
+  const uniqueIndices = [];
+  const is1DTensor = newShape[0] === 1 && newShape[2] === 1;
+  for (let i = 0; i < shape[$axis]; i++) {
+    let element;
+    if (is1DTensor) {
+      element = values[i].toString();
+    } else {
+      const axisValues = [];
+      for (let m = 0; m < newShape[0]; m++) {
+        for (let n = 0; n < newShape[2]; n++) {
+          axisValues.push(inputBuffer.get(m, i, n));
+        }
+      }
+      element = axisValues.join(",");
+    }
+    const existingIndex = uniqueElements.get(element);
+    if (existingIndex != null) {
+      indices[i] = existingIndex;
+    } else {
+      const uniqueIndex = uniqueElements.size;
+      uniqueElements.set(element, uniqueIndex);
+      indices[i] = uniqueIndex;
+      uniqueIndices.push(i);
+    }
+  }
+  const outputTmpShape = newShape.slice();
+  outputTmpShape[1] = uniqueElements.size;
+  const outputBuffer = new TensorBuffer(outputTmpShape, dtype);
+  uniqueIndices.forEach((uniqueElementIndex, i) => {
+    for (let m = 0; m < newShape[0]; m++) {
+      for (let n = 0; n < newShape[2]; n++) {
+        outputBuffer.set(inputBuffer.get(m, uniqueElementIndex, n), m, i, n);
+      }
+    }
+  });
+  const outputShape = shape.slice();
+  outputShape[$axis] = outputTmpShape[1];
+  return {
+    outputValues: outputBuffer.values,
+    outputShape,
+    indices
+  };
+}
+
 // src/tfjs-backend-wasm/src/kernels/Slice.ts
 function slice2(args) {
   const { inputs: { x }, attrs: { begin, size }, backend } = args;
@@ -17968,6 +19142,76 @@ var batchToSpaceNDConfig = {
   kernelFunc: batchToSpaceND2
 };
 
+// src/tfjs-backend-wasm/src/kernels/Bincount.ts
+var wasmBincount;
+function setup9(backend) {
+  wasmBincount = backend.wasm.cwrap(Bincount, null, [
+    "number",
+    // xId
+    "number",
+    // size
+    "boolean",
+    // hasWeights
+    "number",
+    // weightsId
+    "number",
+    // weightsDType
+    "number"
+    // outId
+  ]);
+}
+function bincount2(args) {
+  const { backend, inputs, attrs } = args;
+  const { x, weights } = inputs;
+  const { size } = attrs;
+  const hasWeights = weights.shape.reduce((p, v) => p * v, 1) !== 0;
+  const outShape = x.shape.length === 1 ? [size] : [x.shape[0], size];
+  const out = backend.makeOutput(outShape, weights.dtype);
+  function tensorId(x2) {
+    return backend.dataIdMap.get(x2.dataId).id;
+  }
+  wasmBincount(
+    tensorId(x),
+    size,
+    hasWeights,
+    tensorId(weights),
+    CppDType[weights.dtype],
+    tensorId(out)
+  );
+  return out;
+}
+var bincountConfig = {
+  kernelName: Bincount,
+  backendName: "wasm",
+  setupFunc: setup9,
+  kernelFunc: bincount2
+};
+
+// src/tfjs-backend-wasm/src/kernels/BroadcastArgs.ts
+function broadcastArgs2(args) {
+  const { inputs, backend } = args;
+  const { s0, s1 } = inputs;
+  const s0Vals = backend.typedArrayFromHeap(s0);
+  const s1Vals = backend.typedArrayFromHeap(s1);
+  const broadcastShape = backend_util_exports.assertAndGetBroadcastShape(
+    Array.from(s0Vals),
+    Array.from(s1Vals)
+  );
+  return backend.makeOutput(
+    [broadcastShape.length],
+    "int32",
+    /*memoryOffset=*/
+    void 0,
+    /*values=*/
+    new Int32Array(broadcastShape)
+  );
+}
+var broadcastArgsConfig = {
+  kernelName: BroadcastArgs,
+  backendName: "wasm",
+  kernelFunc: broadcastArgs2
+};
+
 // src/tfjs-backend-wasm/src/kernels/Cast.ts
 function cast3(args) {
   const { inputs: { x }, attrs: { dtype }, backend } = args;
@@ -17988,12 +19232,16 @@ var ceilConfig = createUnaryKernelConfig(Ceil);
 
 // src/tfjs-backend-wasm/src/kernels/ClipByValue.ts
 var wasmClip;
-function setup8(backend) {
+function setup10(backend) {
   wasmClip = backend.wasm.cwrap(ClipByValue, null, [
     "number",
+    // x_id
     "number",
+    // min
     "number",
+    // max
     "number"
+    // out_id
   ]);
 }
 function clip(args) {
@@ -18009,7 +19257,7 @@ function clip(args) {
 var clipByValueConfig = {
   kernelName: ClipByValue,
   backendName: "wasm",
-  setupFunc: setup8,
+  setupFunc: setup10,
   kernelFunc: clip
 };
 
@@ -18037,7 +19285,11 @@ function concat2(args) {
     const inputsValShapes = inputs2D.map((t) => {
       return { vals: backend.readSync(t.dataId), shape: t.shape };
     });
-    outShape = backend_util_exports.computeOutShape(inputs2D.map((t) => t.shape), 1);
+    outShape = backend_util_exports.computeOutShape(
+      inputs2D.map((t) => t.shape),
+      1
+      /* axis */
+    );
     const simplyConcat = inputs2D[0].shape[0] === 1;
     const outVals2 = concatImpl(
       inputsValShapes,
@@ -18081,27 +19333,46 @@ var concatConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/Conv2D.ts
 var wasmConv2d;
-function setup9(backend) {
+function setup11(backend) {
   wasmConv2d = backend.wasm.cwrap(Conv2D, null, [
     "number",
+    // xId
     "number",
+    // batchSize
     "number",
+    // inputHeight
     "number",
+    // inputWidth
     "number",
+    // filterId
     "number",
+    // filterHeight
     "number",
+    // filterWidth
     "number",
+    // padTop
     "number",
+    // padRight
     "number",
+    // padBottom
     "number",
+    // padLeft
     "number",
+    // isSamePad
     "number",
+    // dilationHeight
     "number",
+    // dilationWidth
     "number",
+    // strideHeight
     "number",
+    // strideWidth
     "number",
+    // inputChannels
     "number",
+    // outputChannels
     "number"
+    // outId
   ]);
 }
 function conv2d3(args) {
@@ -18167,41 +19438,68 @@ function conv2d3(args) {
 var conv2DConfig = {
   kernelName: Conv2D,
   backendName: "wasm",
-  setupFunc: setup9,
+  setupFunc: setup11,
   kernelFunc: conv2d3
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv2DBackpropInput.ts
 var wasmConv2DBackpropInput;
-function setup10(backend) {
+function setup12(backend) {
   wasmConv2DBackpropInput = backend.wasm.cwrap(Conv2DBackpropInput, null, [
     "number",
+    // dyId
     "number",
+    // filterId
     "number",
+    // batchSize
     "number",
+    // filterHeight
     "number",
+    // filterWidth
     "number",
+    // inHeight
     "number",
+    // inWidth
     "number",
+    // inChannels
     "number",
+    // outHeight
     "number",
+    // outWidth
     "number",
+    // outChannels
     "number",
+    // strideHeight
     "number",
+    // strideWidth
     "number",
+    // topPad
     "number",
+    // leftPad
     "number",
+    // fltS0
     "number",
+    // fltS1
     "number",
+    // fltS2
     "number",
+    // xBatchStride
     "number",
+    // xRowStride
     "number",
+    // xColStride
     "number",
+    // xChannelStride
     "number",
+    // yBatchStride
     "number",
+    // yRowStride
     "number",
+    // yColStride
     "number",
+    // yChannelStride
     "number"
+    // outId
   ]);
 }
 function conv2DBackpropInput2(args) {
@@ -18285,8 +19583,335 @@ function conv2DBackpropInput2(args) {
 var conv2DBackpropInputConfig = {
   kernelName: Conv2DBackpropInput,
   backendName: "wasm",
-  setupFunc: setup10,
+  setupFunc: setup12,
   kernelFunc: conv2DBackpropInput2
+};
+
+// src/tfjs-backend-wasm/src/kernels/Conv3D.ts
+var wasmConv3D;
+function setup13(backend) {
+  wasmConv3D = backend.wasm.cwrap(Conv3D, null, [
+    "number",
+    // xId
+    "number",
+    // filterId
+    "number",
+    // outId
+    "number",
+    // batchSize
+    "number",
+    // inDepth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // inChannels
+    "number",
+    // outDepth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // outChannels
+    "number",
+    // strideDepth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationDepth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // filterDepth
+    "number",
+    // filterHeight
+    "number",
+    // filterWidth
+    "number",
+    // padFront
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function conv3D(args) {
+  const { inputs, backend, attrs } = args;
+  const { x, filter } = inputs;
+  const { strides, pad: pad3, dilations } = attrs;
+  if (x.dtype !== "float32") {
+    throw new Error(`Tensor x must have dtype float32, got ${x.dtype}`);
+  }
+  if (filter.dtype !== "float32") {
+    throw new Error(
+      `Tensor filter must have dtype float32, got ${filter.dtype}`
+    );
+  }
+  const convInfo = backend_util_exports.computeConv3DInfo(
+    x.shape,
+    filter.shape,
+    strides,
+    dilations,
+    pad3
+  );
+  const out = backend.makeOutput(convInfo.outShape, x.dtype);
+  wasmConv3D(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(filter.dataId).id,
+    backend.dataIdMap.get(out.dataId).id,
+    convInfo.batchSize,
+    convInfo.inDepth,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.inChannels,
+    convInfo.outDepth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.outChannels,
+    convInfo.strideDepth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationDepth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.filterDepth,
+    convInfo.filterHeight,
+    convInfo.filterWidth,
+    convInfo.padInfo.front,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return out;
+}
+var conv3DConfig = {
+  kernelName: Conv3D,
+  backendName: "wasm",
+  setupFunc: setup13,
+  kernelFunc: conv3D
+};
+
+// src/tfjs-backend-wasm/src/kernels/Conv3DBackpropFilterV2.ts
+var wasmConv3DBackpropFilterV2;
+function setup14(backend) {
+  wasmConv3DBackpropFilterV2 = backend.wasm.cwrap(Conv3DBackpropFilterV2, null, [
+    "number",
+    // xId
+    "number",
+    // dyId
+    "number",
+    // dwId
+    "number",
+    // batchSize
+    "number",
+    // inDepth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // inChannels
+    "number",
+    // outDepth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // outChannels
+    "number",
+    // strideDepth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationDepth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // filterDepth
+    "number",
+    // filterHeight
+    "number",
+    // filterWidth
+    "number",
+    // padFront
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function conv3DBackpropFilterV2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x, dy } = inputs;
+  const { strides, pad: pad3, filterShape } = attrs;
+  if (x.dtype !== "float32") {
+    throw new Error(`Tensor dy must have dtype float32, got ${x.dtype}`);
+  }
+  if (dy.dtype !== "float32") {
+    throw new Error(`Tensor filter must have dtype float32, got ${dy.dtype}`);
+  }
+  const convInfo = backend_util_exports.computeConv3DInfo(
+    x.shape,
+    filterShape,
+    strides,
+    /*dilations=*/
+    1,
+    pad3
+  );
+  const dw = backend.makeOutput(convInfo.filterShape, dy.dtype);
+  wasmConv3DBackpropFilterV2(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dw.dataId).id,
+    convInfo.batchSize,
+    convInfo.inDepth,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.inChannels,
+    convInfo.outDepth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.outChannels,
+    convInfo.strideDepth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationDepth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.filterDepth,
+    convInfo.filterHeight,
+    convInfo.filterWidth,
+    convInfo.padInfo.front,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return dw;
+}
+var conv3DBackpropFilterV2Config = {
+  kernelName: Conv3DBackpropFilterV2,
+  backendName: "wasm",
+  setupFunc: setup14,
+  kernelFunc: conv3DBackpropFilterV2
+};
+
+// src/tfjs-backend-wasm/src/kernels/Conv3DBackpropInputV2.ts
+var wasmConv3DBackpropInputV2;
+function setup15(backend) {
+  wasmConv3DBackpropInputV2 = backend.wasm.cwrap(Conv3DBackpropInputV2, null, [
+    "number",
+    // filterId
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // batchSize
+    "number",
+    // inDepth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // inChannels
+    "number",
+    // outDepth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // outChannels
+    "number",
+    // strideDepth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationDepth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // filterDepth
+    "number",
+    // filterHeight
+    "number",
+    // filterWidth
+    "number",
+    // padFront
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function conv3DBackpropInputV2(args) {
+  const { inputs, backend, attrs } = args;
+  const { dy, filter } = inputs;
+  const { pad: pad3, strides, inputShape } = attrs;
+  if (dy.dtype !== "float32") {
+    throw new Error(`Tensor dy must have dtype float32, got ${dy.dtype}`);
+  }
+  if (filter.dtype !== "float32") {
+    throw new Error(
+      `Tensor filter must have dtype float32, got ${filter.dtype}`
+    );
+  }
+  const convInfo = backend_util_exports.computeConv3DInfo(
+    inputShape,
+    filter.shape,
+    strides,
+    /*dilations=*/
+    1,
+    pad3
+  );
+  const dx = backend.makeOutput(convInfo.inShape, dy.dtype);
+  wasmConv3DBackpropInputV2(
+    backend.dataIdMap.get(filter.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    convInfo.batchSize,
+    convInfo.inDepth,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.inChannels,
+    convInfo.outDepth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.outChannels,
+    convInfo.strideDepth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationDepth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.filterDepth,
+    convInfo.filterHeight,
+    convInfo.filterWidth,
+    convInfo.padInfo.front,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return dx;
+}
+var conv3DBackpropInputV2Config = {
+  kernelName: Conv3DBackpropInputV2,
+  backendName: "wasm",
+  setupFunc: setup15,
+  kernelFunc: conv3DBackpropInputV2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cos.ts
@@ -18302,18 +19927,28 @@ var InterpolationMethod = /* @__PURE__ */ ((InterpolationMethod2) => {
   return InterpolationMethod2;
 })(InterpolationMethod || {});
 var wasmCropAndResize;
-function setup11(backend) {
+function setup16(backend) {
   wasmCropAndResize = backend.wasm.cwrap(CropAndResize, null, [
     "number",
+    // imagesId
     "number",
+    // boxesId
     "number",
+    // boxIndId
     "number",
+    // numBoxes
     "array",
+    // images shape
     "number",
+    // cropHeight
     "number",
+    // cropWidth
     "number",
+    // method
     "number",
+    // extrapolation value
     "number"
+    // out id
   ]);
 }
 function cropAndResize2(args) {
@@ -18355,20 +19990,26 @@ function cropAndResize2(args) {
 var cropAndResizeConfig = {
   kernelName: CropAndResize,
   backendName: "wasm",
-  setupFunc: setup11,
+  setupFunc: setup16,
   kernelFunc: cropAndResize2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cumprod.ts
 var wasmCumprod;
-function setup12(backend) {
+function setup17(backend) {
   wasmCumprod = backend.wasm.cwrap(Cumprod, null, [
     "number",
+    // x_id
     "number",
+    // exclusive
     "number",
+    // reverse
     "number",
+    // final_dim
     "number",
+    // out_id
     "number"
+    // dtype
   ]);
 }
 function cumprod2(args) {
@@ -18413,20 +20054,26 @@ function cumprod2(args) {
 var cumprodConfig = {
   kernelName: Cumprod,
   backendName: "wasm",
-  setupFunc: setup12,
+  setupFunc: setup17,
   kernelFunc: cumprod2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cumsum.ts
 var wasmCumsum;
-function setup13(backend) {
+function setup18(backend) {
   wasmCumsum = backend.wasm.cwrap(Cumsum, null, [
     "number",
+    // x_id
     "number",
+    // exclusive
     "number",
+    // reverse
     "number",
+    // final_dim
     "number",
+    // out_id
     "number"
+    // dtype
   ]);
 }
 function cumsum2(args) {
@@ -18471,23 +20118,86 @@ function cumsum2(args) {
 var cumsumConfig = {
   kernelName: Cumsum,
   backendName: "wasm",
-  setupFunc: setup13,
+  setupFunc: setup18,
   kernelFunc: cumsum2
+};
+
+// src/tfjs-backend-wasm/src/kernels/DenseBincount.ts
+var wasmDenseBincount;
+function setup19(backend) {
+  wasmDenseBincount = backend.wasm.cwrap("DenseBincount", null, [
+    "number",
+    // xId
+    "array",
+    // xShape
+    "number",
+    // xShapeLen
+    "number",
+    // size
+    "boolean",
+    // hasWeights
+    "number",
+    // weightsId
+    "number",
+    // weightsDType
+    "boolean",
+    // binaryOutput
+    "number"
+    // outId
+  ]);
+}
+function denseBincount2(args) {
+  const { backend, inputs, attrs } = args;
+  const { x, weights } = inputs;
+  const { size, binaryOutput } = attrs;
+  const hasWeights = weights.shape.reduce((p, v) => p * v, 1) !== 0;
+  const outShape = x.shape.length === 1 ? [size] : [x.shape[0], size];
+  const out = backend.makeOutput(outShape, weights.dtype);
+  function tensorId(x2) {
+    return backend.dataIdMap.get(x2.dataId).id;
+  }
+  wasmDenseBincount(
+    tensorId(x),
+    new Uint8Array(new Int32Array(x.shape).buffer),
+    x.shape.length,
+    size,
+    hasWeights,
+    tensorId(weights),
+    CppDType[weights.dtype],
+    binaryOutput,
+    tensorId(out)
+  );
+  return out;
+}
+var denseBincountConfig = {
+  kernelName: DenseBincount,
+  backendName: "wasm",
+  setupFunc: setup19,
+  kernelFunc: denseBincount2
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthToSpace.ts
 var wasmDepthToSpace;
-function setup14(backend) {
+function setup20(backend) {
   wasmDepthToSpace = backend.wasm.cwrap(DepthToSpace, null, [
     "number",
+    // xId
     "number",
+    // blockSize
     "number",
+    // channelsLast
     "array",
+    // xStrides
     "number",
+    // xStridesLength
     "array",
+    // outputShape
     "array",
+    // outputStrides
     "number",
+    // outSize
     "number"
+    // outId
   ]);
 }
 function depthToSpace2(args) {
@@ -18526,33 +20236,52 @@ function depthToSpace2(args) {
 var depthToSpaceConfig = {
   kernelName: DepthToSpace,
   backendName: "wasm",
-  setupFunc: setup14,
+  setupFunc: setup20,
   kernelFunc: depthToSpace2
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthwiseConv2dNative.ts
 var wasmDepthwiseConv2d;
-function setup15(backend) {
+function setup21(backend) {
   wasmDepthwiseConv2d = backend.wasm.cwrap(DepthwiseConv2dNative, null, [
     "number",
+    // xId
     "number",
+    // batchSize
     "number",
+    // inputHeight
     "number",
+    // inputWidth
     "number",
+    // filterId
     "number",
+    // filterHeight
     "number",
+    // filterWidth
     "number",
+    // padTop
     "number",
+    // padRight
     "number",
+    // padBottom
     "number",
+    // padLeft
     "number",
+    // isSamePad
     "number",
+    // dilationHeight
     "number",
+    // dilationWidth
     "number",
+    // strideHeight
     "number",
+    // strideWidth
     "number",
+    // inputChannels
     "number",
+    // outputChannels
     "number"
+    // outId
   ]);
 }
 function depthwiseConv2d3(args) {
@@ -18570,6 +20299,7 @@ function depthwiseConv2d3(args) {
     pad3,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
@@ -18617,12 +20347,354 @@ function depthwiseConv2d3(args) {
 var depthwiseConv2dNativeConfig = {
   kernelName: DepthwiseConv2dNative,
   backendName: "wasm",
-  setupFunc: setup15,
+  setupFunc: setup21,
   kernelFunc: depthwiseConv2d3
+};
+
+// src/tfjs-backend-wasm/src/kernels/Diag.ts
+var wasmDiag;
+function setup22(backend) {
+  wasmDiag = backend.wasm.cwrap("Diag", null, [
+    "number",
+    // xId
+    "number",
+    // xDType,
+    "number",
+    // xSize,
+    "number"
+    // outId
+  ]);
+}
+function diag2(args) {
+  const { inputs, backend } = args;
+  const { x } = inputs;
+  const xSize = util_exports.sizeFromShape(x.shape);
+  const out = backend.makeOutput([...x.shape, ...x.shape], x.dtype);
+  wasmDiag(
+    backend.dataIdMap.get(x.dataId).id,
+    CppDType[x.dtype],
+    xSize,
+    backend.dataIdMap.get(out.dataId).id
+  );
+  return out;
+}
+var diagConfig = {
+  kernelName: Diag,
+  backendName: "wasm",
+  setupFunc: setup22,
+  kernelFunc: diag2
+};
+
+// src/tfjs-backend-wasm/src/kernels/Dilation2D.ts
+var wasmDilation2D;
+function setup23(backend) {
+  wasmDilation2D = backend.wasm.cwrap(Dilation2D, null, [
+    "number",
+    // xId
+    "number",
+    // filterId
+    "number",
+    // outId
+    "number",
+    // dtype
+    "number",
+    // batch
+    "number",
+    // depth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // filterHeight
+    "number",
+    // filterWidth
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function dilation2D(args) {
+  const { inputs, backend, attrs } = args;
+  const { x, filter } = inputs;
+  const { strides, pad: pad3, dilations } = attrs;
+  if (x.dtype !== filter.dtype) {
+    throw new Error(
+      `Dilation2D error: x must have the same dtype as filter. Got ${x.dtype} and ${filter.dtype}`
+    );
+  }
+  const dilationInfo = backend_util_exports.computeDilation2DInfo(
+    x.shape,
+    filter.shape,
+    strides,
+    pad3,
+    /*dataFormat=*/
+    "NHWC",
+    dilations
+  );
+  const out = backend.makeOutput(dilationInfo.outShape, x.dtype);
+  wasmDilation2D(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(filter.dataId).id,
+    backend.dataIdMap.get(out.dataId).id,
+    CppDType[x.dtype],
+    dilationInfo.batchSize,
+    /*depth=*/
+    dilationInfo.inChannels,
+    dilationInfo.inHeight,
+    dilationInfo.inWidth,
+    dilationInfo.outHeight,
+    dilationInfo.outWidth,
+    dilationInfo.strideHeight,
+    dilationInfo.strideWidth,
+    dilationInfo.dilationHeight,
+    dilationInfo.dilationWidth,
+    dilationInfo.filterHeight,
+    dilationInfo.filterWidth,
+    dilationInfo.padInfo.top,
+    dilationInfo.padInfo.left
+  );
+  return out;
+}
+var dilation2DConfig = {
+  kernelName: Dilation2D,
+  backendName: "wasm",
+  setupFunc: setup23,
+  kernelFunc: dilation2D
+};
+
+// src/tfjs-backend-wasm/src/kernels/Dilation2DBackpropFilter.ts
+var wasmDilation2DBackpropFilter;
+function setup24(backend) {
+  wasmDilation2DBackpropFilter = backend.wasm.cwrap(Dilation2DBackpropFilter, null, [
+    "number",
+    // xId
+    "number",
+    // filterId
+    "number",
+    // dyId
+    "number",
+    // gradId
+    "number",
+    // dtype
+    "number",
+    // batch
+    "number",
+    // depth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // filterHeight
+    "number",
+    // filterWidth
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function dilation2DBackpropFilter(args) {
+  const { inputs, backend, attrs } = args;
+  const { x, filter, dy } = inputs;
+  const { strides, pad: pad3, dilations } = attrs;
+  if (x.dtype !== filter.dtype || x.dtype !== dy.dtype) {
+    throw new Error(
+      `Dilation2DBackpropFilter error: x must have the same dtype as filter and dy. Got ${x.dtype}, ${filter.dtype}, and ${dy.dtype}`
+    );
+  }
+  const dilationInfo = backend_util_exports.computeDilation2DInfo(
+    x.shape,
+    filter.shape,
+    strides,
+    pad3,
+    /*dataFormat=*/
+    "NHWC",
+    dilations
+  );
+  const gradients = backend.makeOutput(filter.shape, filter.dtype);
+  wasmDilation2DBackpropFilter(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(filter.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(gradients.dataId).id,
+    CppDType[x.dtype],
+    dilationInfo.batchSize,
+    /*depth=*/
+    dilationInfo.inChannels,
+    dilationInfo.inHeight,
+    dilationInfo.inWidth,
+    dilationInfo.outHeight,
+    dilationInfo.outWidth,
+    dilationInfo.strideHeight,
+    dilationInfo.strideWidth,
+    dilationInfo.dilationHeight,
+    dilationInfo.dilationWidth,
+    dilationInfo.filterHeight,
+    dilationInfo.filterWidth,
+    dilationInfo.padInfo.top,
+    dilationInfo.padInfo.left
+  );
+  return gradients;
+}
+var dilation2DBackpropFilterConfig = {
+  kernelName: Dilation2DBackpropFilter,
+  backendName: "wasm",
+  setupFunc: setup24,
+  kernelFunc: dilation2DBackpropFilter
+};
+
+// src/tfjs-backend-wasm/src/kernels/Dilation2DBackpropInput.ts
+var wasmDilation2DBackpropInput;
+function setup25(backend) {
+  wasmDilation2DBackpropInput = backend.wasm.cwrap(Dilation2DBackpropInput, null, [
+    "number",
+    // xId
+    "number",
+    // filterId
+    "number",
+    // dyId
+    "number",
+    // gradId
+    "number",
+    // dtype
+    "number",
+    // batch
+    "number",
+    // depth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // filterHeight
+    "number",
+    // filterWidth
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function dilation2DBackpropInput(args) {
+  const { inputs, backend, attrs } = args;
+  const { x, filter, dy } = inputs;
+  const { strides, pad: pad3, dilations } = attrs;
+  if (x.dtype !== filter.dtype || x.dtype !== dy.dtype) {
+    throw new Error(
+      `Dilation2DBackpropInput error: x must have the same dtype as filter and dy. Got ${x.dtype}, ${filter.dtype}, and ${dy.dtype}`
+    );
+  }
+  const dilationInfo = backend_util_exports.computeDilation2DInfo(
+    x.shape,
+    filter.shape,
+    strides,
+    pad3,
+    /*dataFormat=*/
+    "NHWC",
+    dilations
+  );
+  const gradients = backend.makeOutput(x.shape, x.dtype);
+  wasmDilation2DBackpropInput(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(filter.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(gradients.dataId).id,
+    CppDType[x.dtype],
+    dilationInfo.batchSize,
+    /*depth=*/
+    dilationInfo.inChannels,
+    dilationInfo.inHeight,
+    dilationInfo.inWidth,
+    dilationInfo.outHeight,
+    dilationInfo.outWidth,
+    dilationInfo.strideHeight,
+    dilationInfo.strideWidth,
+    dilationInfo.dilationHeight,
+    dilationInfo.dilationWidth,
+    dilationInfo.filterHeight,
+    dilationInfo.filterWidth,
+    dilationInfo.padInfo.top,
+    dilationInfo.padInfo.left
+  );
+  return gradients;
+}
+var dilation2DBackpropInputConfig = {
+  kernelName: Dilation2DBackpropInput,
+  backendName: "wasm",
+  setupFunc: setup25,
+  kernelFunc: dilation2DBackpropInput
 };
 
 // src/tfjs-backend-wasm/src/kernels/Elu.ts
 var eluConfig = createUnaryKernelConfig(Elu);
+
+// src/tfjs-backend-wasm/src/kernels/EluGrad.ts
+var wasmEluGrad;
+function setup26(backend) {
+  wasmEluGrad = backend.wasm.cwrap(EluGrad, null, [
+    "number",
+    // yId
+    "number",
+    // dyId,
+    "number"
+    // outId
+  ]);
+}
+function eluGrad(args) {
+  const { inputs, backend } = args;
+  const { dy, y } = inputs;
+  const out = backend.makeOutput(y.shape, "float32");
+  const tensorId = (x) => {
+    return backend.dataIdMap.get(x.dataId).id;
+  };
+  wasmEluGrad(tensorId(y), tensorId(dy), tensorId(out));
+  return out;
+}
+var eluGradConfig = {
+  kernelName: EluGrad,
+  backendName: "wasm",
+  setupFunc: setup26,
+  kernelFunc: eluGrad
+};
 
 // src/tfjs-backend-wasm/src/kernels/Equal.ts
 var supportsFullBroadcast2 = false;
@@ -18655,6 +20727,9 @@ var expandDimsConfig = {
   kernelFunc: expandDims2
 };
 
+// src/tfjs-backend-wasm/src/kernels/Expm1.ts
+var expm1Config = createUnaryKernelConfig(Expm1, "float32");
+
 // src/tfjs-backend-wasm/src/kernels/Fill.ts
 function fill2(args) {
   const { attrs: { shape, value, dtype }, backend } = args;
@@ -18671,14 +20746,20 @@ var fillConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/FlipLeftRight.ts
 var wasmFlipLeftRight;
-function setup16(backend) {
+function setup27(backend) {
   wasmFlipLeftRight = backend.wasm.cwrap(FlipLeftRight, null, [
     "number",
+    // xId
     "number",
+    // batch
     "number",
+    // imageHeight
     "number",
+    // imageWidth
     "number",
+    // numChannels
     "number"
+    // outId
   ]);
 }
 function flipLeftRight2(args) {
@@ -18702,7 +20783,7 @@ var flipLeftRightConfig = {
   kernelName: FlipLeftRight,
   backendName: "wasm",
   kernelFunc: flipLeftRight2,
-  setupFunc: setup16
+  setupFunc: setup27
 };
 
 // src/tfjs-backend-wasm/src/kernels/Floor.ts
@@ -18714,7 +20795,7 @@ var floorDivConfig = createBinaryKernelConfig(FloorDiv, supportsFullBroadcast3);
 
 // src/tfjs-backend-wasm/src/kernels/FusedBatchNorm.ts
 var wasmBatchNorm;
-function setup17(backend) {
+function setup28(backend) {
   wasmBatchNorm = backend.wasm.cwrap(
     FusedBatchNorm,
     null,
@@ -18749,37 +20830,60 @@ function fusedBatchNorm(args) {
 var fusedBatchNormConfig = {
   kernelName: FusedBatchNorm,
   backendName: "wasm",
-  setupFunc: setup17,
+  setupFunc: setup28,
   kernelFunc: fusedBatchNorm
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedConv2D.ts
 var wasmFusedConv2d;
-function setup18(backend) {
+function setup29(backend) {
   wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null, [
     "number",
+    // xId
     "number",
+    // batchSize
     "number",
+    // inputHeight
     "number",
+    // inputWidth
     "number",
+    // filterId
     "number",
+    // filterHeight
     "number",
+    // filterWidth
     "number",
+    // biasId
     "number",
+    // padTop
     "number",
+    // padRight
     "number",
+    // padBottom
     "number",
+    // padLeft
     "number",
+    // isSamePad
     "number",
+    // dilationHeight
     "number",
+    // dilationWidth
     "number",
+    // strideHeight
     "number",
+    // strideWidth
     "number",
+    // inputChannels
     "number",
+    // outputChannels
     "number",
+    // activation
     "number",
+    // preluActivationWeightsId
     "number",
+    // leakyreluAlpha
     "number"
+    // outId
   ]);
 }
 function fusedConv2d(args) {
@@ -18879,37 +20983,60 @@ function fusedConv2d(args) {
 var fusedConv2DConfig = {
   kernelName: FusedConv2D,
   backendName: "wasm",
-  setupFunc: setup18,
+  setupFunc: setup29,
   kernelFunc: fusedConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedDepthwiseConv2D.ts
 var wasmFusedDepthwiseConv2d;
-function setup19(backend) {
+function setup30(backend) {
   wasmFusedDepthwiseConv2d = backend.wasm.cwrap(FusedDepthwiseConv2D, null, [
     "number",
+    // xId
     "number",
+    // batchSize
     "number",
+    // inputHeight
     "number",
+    // inputWidth
     "number",
+    // filterId
     "number",
+    // filterHeight
     "number",
+    // filterWidth
     "number",
+    // biasId
     "number",
+    // padTop
     "number",
+    // padRight
     "number",
+    // padBottom
     "number",
+    // padLeft
     "number",
+    // isSamePad
     "number",
+    // dilationHeight
     "number",
+    // dilationWidth
     "number",
+    // strideHeight
     "number",
+    // strideWidth
     "number",
+    // inputChannels
     "number",
+    // outputChannels
     "number",
+    // activation
     "number",
+    // preluActivationWeightsId
     "number",
+    // leakyreluAlpha
     "number"
+    // outId
   ]);
 }
 function fusedDepthwiseConv2d(args) {
@@ -18932,6 +21059,7 @@ function fusedDepthwiseConv2d(args) {
     pad3,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   const fusedActivation = FusableActivation[activation];
   if (fusedActivation == null) {
@@ -19010,22 +21138,30 @@ function fusedDepthwiseConv2d(args) {
 var fusedDepthwiseConv2DConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: "wasm",
-  setupFunc: setup19,
+  setupFunc: setup30,
   kernelFunc: fusedDepthwiseConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherNd.ts
 var wasmGatherNd;
-function setup20(backend) {
+function setup31(backend) {
   wasmGatherNd = backend.wasm.cwrap(GatherNd, null, [
     "number",
+    // xId
     "number",
+    // dtype
     "number",
+    // indicesId
     "number",
+    // numSlices
     "number",
+    // sliceRank
     "number",
+    // sliceSize
     "array",
+    // strides
     "number"
+    // outId
   ]);
 }
 function gatherNd(args) {
@@ -19059,22 +21195,30 @@ function gatherNd(args) {
 var gatherNdConfig = {
   kernelName: GatherNd,
   backendName: "wasm",
-  setupFunc: setup20,
+  setupFunc: setup31,
   kernelFunc: gatherNd
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherV2.ts
 var wasmGather;
-function setup21(backend) {
+function setup32(backend) {
   wasmGather = backend.wasm.cwrap("Gather", null, [
     "number",
+    // xId
     "number",
+    // dtype
     "array",
+    // xStrides
     "number",
+    // stridesSize
     "number",
+    // indicesId
     "number",
+    // batchSize
     "array",
+    // outStrides
     "number"
+    // outId
   ]);
 }
 function gatherV2(args) {
@@ -19155,7 +21299,7 @@ function gatherV2(args) {
 var gatherV2Config = {
   kernelName: GatherV2,
   backendName: "wasm",
-  setupFunc: setup21,
+  setupFunc: setup32,
   kernelFunc: gatherV2
 };
 
@@ -19167,17 +21311,27 @@ var greaterConfig = createBinaryKernelConfig(Greater, supportsFullBroadcast4, "b
 var supportsFullBroadcast5 = false;
 var greaterEqualConfig = createBinaryKernelConfig(GreaterEqual, supportsFullBroadcast5, "bool");
 
+// src/tfjs-backend-wasm/src/kernels/IsFinite.ts
+var isFiniteConfig = createUnaryKernelConfig(IsFinite, "bool");
+
+// src/tfjs-backend-wasm/src/kernels/IsInf.ts
+var isInfConfig = createUnaryKernelConfig(IsInf, "bool");
+
 // src/tfjs-backend-wasm/src/kernels/IsNan.ts
 var isNaNConfig = createUnaryKernelConfig(IsNan, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LeakyRelu.ts
-var wasmFunc3;
+var wasmFunc2;
 function setupFunc2(backend) {
-  wasmFunc3 = backend.wasm.cwrap(LeakyRelu, null, [
+  wasmFunc2 = backend.wasm.cwrap(LeakyRelu, null, [
     "number",
+    // x_id
     "number",
+    // dtype
     "number",
+    // leakyrelu_alpha
     "number"
+    // out_id
   ]);
 }
 function leakyRelu2(args) {
@@ -19186,7 +21340,7 @@ function leakyRelu2(args) {
   const out = backend.makeOutput(x.shape, "float32");
   if (util_exports.sizeFromShape(x.shape) !== 0) {
     const outId = backend.dataIdMap.get(out.dataId).id;
-    wasmFunc3(xId, CppDType[x.dtype], alpha, outId);
+    wasmFunc2(xId, CppDType[x.dtype], alpha, outId);
   }
   return out;
 }
@@ -19205,8 +21359,40 @@ var lessConfig = createBinaryKernelConfig(Less, supportsFullBroadcast6, "bool");
 var supportsFullBroadcast7 = false;
 var lessEqualConfig = createBinaryKernelConfig(LessEqual, supportsFullBroadcast7, "bool");
 
+// src/tfjs-backend-wasm/src/kernels/LinSpace.ts
+var wasmLinSpace;
+function setup33(backend) {
+  wasmLinSpace = backend.wasm.cwrap(LinSpace, null, [
+    "number",
+    // outId
+    "number",
+    // start
+    "number",
+    // stop
+    "number"
+    // num
+  ]);
+}
+function linSpace(args) {
+  const { attrs, backend } = args;
+  const { start, stop, num } = attrs;
+  const numInt = Math.floor(num);
+  const out = backend.makeOutput([numInt], "float32");
+  wasmLinSpace(backend.dataIdMap.get(out.dataId).id, start, stop, numInt);
+  return out;
+}
+var linSpaceConfig = {
+  kernelName: LinSpace,
+  backendName: "wasm",
+  setupFunc: setup33,
+  kernelFunc: linSpace
+};
+
 // src/tfjs-backend-wasm/src/kernels/Log.ts
 var logConfig = createUnaryKernelConfig(Log);
+
+// src/tfjs-backend-wasm/src/kernels/Log1p.ts
+var log1pConfig = createUnaryKernelConfig(Log1p);
 
 // src/tfjs-backend-wasm/src/kernels/LogicalAnd.ts
 var supportsFullBroadcast8 = false;
@@ -19223,14 +21409,118 @@ var logicalOrConfig = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast9
 var supportsFullBroadcast10 = false;
 var logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast10, "bool");
 
+// src/tfjs-backend-wasm/src/kernels/LRN.ts
+var wasmLRN;
+function setup34(backend) {
+  wasmLRN = backend.wasm.cwrap(LRN, null, [
+    "number",
+    // xId
+    "number",
+    // outId
+    "number",
+    // channels
+    "number",
+    // depthRadius
+    "number",
+    // bias
+    "number",
+    // alpha
+    "number"
+    // beta
+  ]);
+}
+function lrn(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { depthRadius, bias, alpha, beta } = attrs;
+  if (x.dtype !== "float32") {
+    throw new Error("LRN error: x must have dtype float32");
+  }
+  const out = backend.makeOutput(x.shape, x.dtype);
+  wasmLRN(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(out.dataId).id,
+    /*channels=*/
+    x.shape[3],
+    depthRadius,
+    bias,
+    alpha,
+    beta
+  );
+  return out;
+}
+var lrnConfig = {
+  kernelName: LRN,
+  backendName: "wasm",
+  setupFunc: setup34,
+  kernelFunc: lrn
+};
+
+// src/tfjs-backend-wasm/src/kernels/LRNGrad.ts
+var wasmLRNGrad;
+function setup35(backend) {
+  wasmLRNGrad = backend.wasm.cwrap(LRNGrad, null, [
+    "number",
+    // xId
+    "number",
+    // yId
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // channels
+    "number",
+    // depthRadius
+    "number",
+    // bias
+    "number",
+    // alpha
+    "number"
+    // beta
+  ]);
+}
+function lrnGrad(args) {
+  const { inputs, backend, attrs } = args;
+  const { x, y, dy } = inputs;
+  const { depthRadius, bias, alpha, beta } = attrs;
+  if (x.dtype !== "float32" || y.dtype !== "float32" || dy.dtype !== "float32") {
+    throw new Error("LRNGrad error: x, y, and dy must have dtype float32");
+  }
+  const dx = backend.makeOutput(x.shape, x.dtype);
+  wasmLRNGrad(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(y.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    /*channels=*/
+    dy.shape[3],
+    depthRadius,
+    bias,
+    alpha,
+    beta
+  );
+  return dx;
+}
+var lrnGradConfig = {
+  kernelName: LRNGrad,
+  backendName: "wasm",
+  setupFunc: setup35,
+  kernelFunc: lrnGrad
+};
+
 // src/tfjs-backend-wasm/src/kernels/Max.ts
 var wasmMax;
-function setup22(backend) {
+function setup36(backend) {
   wasmMax = backend.wasm.cwrap(Max, null, [
     "number",
+    // x_id
     "number",
+    // dtype
     "number",
+    // reduce_size
     "number"
+    // out_id
   ]);
 }
 function max2(args) {
@@ -19267,7 +21557,7 @@ function max2(args) {
 var maxConfig = {
   kernelName: Max,
   backendName: "wasm",
-  setupFunc: setup22,
+  setupFunc: setup36,
   kernelFunc: max2
 };
 
@@ -19277,25 +21567,42 @@ var maximumConfig = createBinaryKernelConfig(Maximum, supportsFullBroadcast11);
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool.ts
 var wasmMaxPool;
-function setup23(backend) {
+function setup37(backend) {
   wasmMaxPool = backend.wasm.cwrap(MaxPool, null, [
     "number",
+    // xId
     "number",
+    // batchSize
     "number",
+    // inputHeight
     "number",
+    // inputWidth
     "number",
+    // filterHeight
     "number",
+    // filterWidth
     "number",
+    // padTop
     "number",
+    // padRight
     "number",
+    // padBottom
     "number",
+    // padLeft
     "number",
+    // dilationHeight
     "number",
+    // dilationWidth
     "number",
+    // strideHeight
     "number",
+    // strideWidth
     "number",
+    // inputChannels
     "number",
+    // outputChannels
     "number"
+    // outId
   ]);
 }
 function maxPool2(args) {
@@ -19358,13 +21665,217 @@ function maxPool2(args) {
 var maxPoolConfig = {
   kernelName: MaxPool,
   backendName: "wasm",
-  setupFunc: setup23,
+  setupFunc: setup37,
   kernelFunc: maxPool2
+};
+
+// src/tfjs-backend-wasm/src/kernels/MaxPool3D.ts
+var wasmMaxPool3D;
+function setup38(backend) {
+  wasmMaxPool3D = backend.wasm.cwrap("MaxPool3D", null, [
+    "number",
+    // xId
+    "number",
+    // outId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inDepth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outDepth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideDepth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationDepth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterDepth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padFront
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function maxPool3D(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { filterSize, strides, pad: pad3, dimRoundingMode, dataFormat } = attrs;
+  const convInfo = backend_util_exports.computePool3DInfo(
+    x.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3,
+    dimRoundingMode,
+    dataFormat
+  );
+  const out = backend.makeOutput(convInfo.outShape, x.dtype);
+  wasmMaxPool3D(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(out.dataId).id,
+    convInfo.batchSize,
+    // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inDepth,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outDepth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideDepth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationDepth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterDepth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.front,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return out;
+}
+var maxPool3DConfig = {
+  kernelName: MaxPool3D,
+  backendName: "wasm",
+  setupFunc: setup38,
+  kernelFunc: maxPool3D
+};
+
+// src/tfjs-backend-wasm/src/kernels/MaxPool3DGrad.ts
+var wasmMaxPool3DGrad;
+function setup39(backend) {
+  wasmMaxPool3DGrad = backend.wasm.cwrap("MaxPool3DGrad", null, [
+    "number",
+    // xId
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inDepth
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outDepth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideDepth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationDepth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterDepth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padFront
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function maxPool3DGrad(args) {
+  const { inputs, backend, attrs } = args;
+  const { dy, input } = inputs;
+  const { filterSize, strides, pad: pad3, dimRoundingMode } = attrs;
+  const convInfo = backend_util_exports.computePool3DInfo(
+    input.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3,
+    dimRoundingMode
+  );
+  const dx = backend.makeOutput(input.shape, input.dtype);
+  wasmMaxPool3DGrad(
+    backend.dataIdMap.get(input.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    convInfo.batchSize,
+    // Since Pool3D ops (MaxPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inDepth,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outDepth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideDepth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationDepth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterDepth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.front,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return dx;
+}
+var maxPool3DGradConfig = {
+  kernelName: MaxPool3DGrad,
+  backendName: "wasm",
+  setupFunc: setup39,
+  kernelFunc: maxPool3DGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/Mean.ts
 var wasmMean;
-function setup24(backend) {
+function setup40(backend) {
   wasmMean = backend.wasm.cwrap(Mean, null, ["number, number, number"]);
 }
 function mean2(args) {
@@ -19419,18 +21930,22 @@ function mean2(args) {
 var meanConfig = {
   kernelName: Mean,
   backendName: "wasm",
-  setupFunc: setup24,
+  setupFunc: setup40,
   kernelFunc: mean2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Min.ts
 var wasmMin;
-function setup25(backend) {
+function setup41(backend) {
   wasmMin = backend.wasm.cwrap(Min, null, [
     "number",
+    // x_id
     "number",
+    // dtype
     "number",
+    // reduce_size
     "number"
+    // out_id
   ]);
 }
 function min2(args) {
@@ -19469,7 +21984,7 @@ function min2(args) {
 var minConfig = {
   kernelName: Min,
   backendName: "wasm",
-  setupFunc: setup25,
+  setupFunc: setup41,
   kernelFunc: min2
 };
 
@@ -19484,22 +21999,31 @@ var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
   return MirrorPaddingMode2;
 })(MirrorPaddingMode || {});
 var wasmMirrorPad;
-function setup26(backend) {
+function setup42(backend) {
   wasmMirrorPad = backend.wasm.cwrap(MirrorPad, null, [
     "number",
+    // xId
     "array",
+    // x.shape
     "number",
+    // x.shape.length
     "number",
+    // x.dtype
     "array",
+    // pre-paddings
     "array",
+    // post-paddings
     "number",
+    // mode
     "number"
+    // outId
   ]);
 }
 function mirrorPad2(args) {
   const { inputs: { x }, backend, attrs: { paddings, mode } } = args;
   const outShape = paddings.map(
     (p, i) => p[0] + x.shape[i] + p[1]
+    /* afterPad */
   );
   const xId = backend.dataIdMap.get(x.dataId).id;
   const out = backend.makeOutput(outShape, x.dtype);
@@ -19525,7 +22049,95 @@ var mirrorPadConfig = {
   kernelName: MirrorPad,
   backendName: "wasm",
   kernelFunc: mirrorPad2,
-  setupFunc: setup26
+  setupFunc: setup42
+};
+
+// src/tfjs-backend-wasm/src/kernels/Softmax.ts
+var wasmFunc3;
+function setup43(backend) {
+  wasmFunc3 = backend.wasm.cwrap(Softmax, null, [
+    "number",
+    // xId
+    "number",
+    // outId
+    "number",
+    // channels
+    "number"
+    // batch
+  ]);
+}
+function softmax2(args) {
+  const { backend, inputs: { logits }, attrs: { dim } } = args;
+  const xId = backend.dataIdMap.get(logits.dataId).id;
+  const out = backend.makeOutput(logits.shape, logits.dtype);
+  const outId = backend.dataIdMap.get(out.dataId).id;
+  const channels = logits.shape[dim];
+  const batch = util_exports.sizeFromShape(logits.shape) / channels;
+  if (util_exports.sizeFromShape(out.shape) === 0) {
+    return out;
+  }
+  wasmFunc3(xId, outId, channels, batch);
+  return out;
+}
+var softmaxConfig = {
+  kernelName: Softmax,
+  backendName: "wasm",
+  setupFunc: setup43,
+  kernelFunc: softmax2
+};
+
+// src/tfjs-backend-wasm/src/kernels/Multinomial.ts
+var wasmMultinomial;
+function setup44(backend) {
+  wasmMultinomial = backend.wasm.cwrap(Multinomial, null, [
+    "number",
+    // probabilitiesId
+    "number",
+    // batchSize
+    "number",
+    // numEvents
+    "number",
+    // numSamples
+    "number",
+    // seed
+    "number"
+    // outId
+  ]);
+}
+function multinomial2(args) {
+  const { inputs, backend, attrs } = args;
+  const { logits } = inputs;
+  const { numSamples, seed, normalized } = attrs;
+  if (logits.dtype !== "float32") {
+    throw new Error(
+      `Tensor logits must have dtype float32, got ${logits.dtype}`
+    );
+  }
+  const probabilities = normalized ? logits : softmax2({
+    inputs: { logits },
+    backend,
+    attrs: { dim: logits.shape.length - 1 }
+  });
+  const [batchSize, numEvents] = probabilities.shape;
+  const out = backend.makeOutput([batchSize, numSamples], "int32");
+  wasmMultinomial(
+    backend.dataIdMap.get(probabilities.dataId).id,
+    batchSize,
+    numEvents,
+    numSamples,
+    seed,
+    backend.dataIdMap.get(out.dataId).id
+  );
+  if (!normalized) {
+    backend.disposeData(probabilities.dataId);
+  }
+  return out;
+}
+var multinomialConfig = {
+  kernelName: Multinomial,
+  backendName: "wasm",
+  setupFunc: setup44,
+  kernelFunc: multinomial2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Multiply.ts
@@ -19548,16 +22160,22 @@ function parseResultStruct(backend, resOffset) {
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV3.ts
 var wasmFunc4;
-function setup27(backend) {
+function setup45(backend) {
   wasmFunc4 = backend.wasm.cwrap(
     NonMaxSuppressionV3,
     "number",
+    // Result*
     [
       "number",
+      // boxesId
       "number",
+      // scoresId
       "number",
+      // maxOutputSize
       "number",
+      // iouThreshold
       "number"
+      // scoreThreshold
     ]
   );
 }
@@ -19577,23 +22195,30 @@ function kernelFunc(args) {
 var nonMaxSuppressionV3Config = {
   kernelName: NonMaxSuppressionV3,
   backendName: "wasm",
-  setupFunc: setup27,
+  setupFunc: setup45,
   kernelFunc
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV4.ts
 var wasmFunc5;
-function setup28(backend) {
+function setup46(backend) {
   wasmFunc5 = backend.wasm.cwrap(
     NonMaxSuppressionV4,
     "number",
+    // Result*
     [
       "number",
+      // boxesId
       "number",
+      // scoresId
       "number",
+      // maxOutputSize
       "number",
+      // iouThreshold
       "number",
+      // scoreThreshold
       "bool"
+      // padToMaxOutputSize
     ]
   );
 }
@@ -19620,23 +22245,30 @@ function nonMaxSuppressionV4(args) {
 var nonMaxSuppressionV4Config = {
   kernelName: NonMaxSuppressionV4,
   backendName: "wasm",
-  setupFunc: setup28,
+  setupFunc: setup46,
   kernelFunc: nonMaxSuppressionV4
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV5.ts
 var wasmFunc6;
-function setup29(backend) {
+function setup47(backend) {
   wasmFunc6 = backend.wasm.cwrap(
     NonMaxSuppressionV5,
     "number",
+    // Result*
     [
       "number",
+      // boxesId
       "number",
+      // scoresId
       "number",
+      // maxOutputSize
       "number",
+      // iouThreshold
       "number",
+      // scoreThreshold
       "number"
+      // softNmsSigma
     ]
   );
 }
@@ -19663,7 +22295,7 @@ function kernelFunc2(args) {
 var nonMaxSuppressionV5Config = {
   kernelName: NonMaxSuppressionV5,
   backendName: "wasm",
-  setupFunc: setup29,
+  setupFunc: setup47,
   kernelFunc: kernelFunc2
 };
 
@@ -19673,13 +22305,18 @@ var notEqualConfig = createBinaryKernelConfig(NotEqual, supportsFullBroadcast14,
 
 // src/tfjs-backend-wasm/src/kernels/OneHot.ts
 var wasmOneHot;
-function setup30(backend) {
+function setup48(backend) {
   wasmOneHot = backend.wasm.cwrap(OneHot, null, [
     "number",
+    // indices_id
     "number",
+    // depth,
     "number",
+    // onValue
     "number",
+    // offValue
     "number"
+    // out_id
   ]);
 }
 function oneHot2(args) {
@@ -19696,7 +22333,7 @@ function oneHot2(args) {
 var oneHotConfig = {
   kernelName: OneHot,
   backendName: "wasm",
-  setupFunc: setup30,
+  setupFunc: setup48,
   kernelFunc: oneHot2
 };
 
@@ -19754,22 +22391,31 @@ var packConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/PadV2.ts
 var wasmPadV2;
-function setup31(backend) {
+function setup49(backend) {
   wasmPadV2 = backend.wasm.cwrap(PadV2, null, [
     "number",
+    // xId
     "array",
+    // x.shape
     "number",
+    // x.shape.length
     "number",
+    // x.dtype
     "array",
+    // pre-paddings
     "array",
+    // post-paddings
     "number",
+    // constantValue
     "number"
+    // outId
   ]);
 }
 function pad2(args) {
   const { inputs: { x }, backend, attrs: { paddings, constantValue } } = args;
   const outShape = paddings.map(
     (p, i) => p[0] + x.shape[i] + p[1]
+    /* afterPad */
   );
   if (util_exports.sizeFromShape(x.shape) === 0) {
     return fill2({
@@ -19802,7 +22448,7 @@ var padV2Config = {
   kernelName: PadV2,
   backendName: "wasm",
   kernelFunc: pad2,
-  setupFunc: setup31
+  setupFunc: setup49
 };
 
 // src/tfjs-backend-wasm/src/kernels/Pow.ts
@@ -19811,11 +22457,14 @@ var powConfig = createBinaryKernelConfig(Pow, supportsFullBroadcast15);
 
 // src/tfjs-backend-wasm/src/kernels/Prelu.ts
 var wasmPrelu;
-function setup32(backend) {
+function setup50(backend) {
   wasmPrelu = backend.wasm.cwrap(Prelu, null, [
     "number",
+    // x_id
     "number",
+    // weights_id
     "number"
+    // out_id
   ]);
 }
 function prelu2(args) {
@@ -19841,13 +22490,13 @@ function prelu2(args) {
 var preluConfig = {
   kernelName: Prelu,
   backendName: "wasm",
-  setupFunc: setup32,
+  setupFunc: setup50,
   kernelFunc: prelu2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Prod.ts
 var wasmProd;
-function setup33(backend) {
+function setup51(backend) {
   wasmProd = backend.wasm.cwrap(Prod, null, [
     "number",
     "number",
@@ -19899,7 +22548,7 @@ function prod2(args) {
 var prodConfig = {
   kernelName: Prod,
   backendName: "wasm",
-  setupFunc: setup33,
+  setupFunc: setup51,
   kernelFunc: prod2
 };
 
@@ -19934,18 +22583,28 @@ var relu6Config = createUnaryKernelConfig(Relu6);
 
 // src/tfjs-backend-wasm/src/kernels/ResizeBilinear.ts
 var wasmResizeBilinear;
-function setup34(backend) {
+function setup52(backend) {
   wasmResizeBilinear = backend.wasm.cwrap(ResizeBilinear, null, [
     "number",
+    // xId
     "number",
+    // batch
     "number",
+    // oldHeight
     "number",
+    // oldWidth
     "number",
+    // numChannels
     "number",
+    // newHeight
     "number",
+    // newWidth
     "number",
+    // alignCorners
     "number",
+    // halfPixelCenters
     "number"
+    // outId
   ]);
 }
 function resizeBilinear2(args) {
@@ -19987,27 +22646,94 @@ function resizeBilinear2(args) {
 var resizeBilinearConfig = {
   kernelName: ResizeBilinear,
   backendName: "wasm",
-  setupFunc: setup34,
+  setupFunc: setup52,
   kernelFunc: resizeBilinear2
+};
+
+// src/tfjs-backend-wasm/src/kernels/ResizeBilinearGrad.ts
+var wasmResizeBilinearGrad;
+function setup53(backend) {
+  wasmResizeBilinearGrad = backend.wasm.cwrap(
+    ResizeBilinearGrad,
+    null,
+    [
+      "number",
+      // imagesId
+      "number",
+      // dyId
+      "number",
+      // dxId
+      "array",
+      // imagesShape
+      "array",
+      // dyShape
+      "boolean"
+      // alignCorners
+    ]
+  );
+}
+function resizeBilinearGrad(args) {
+  const { inputs, backend, attrs } = args;
+  const { images, dy } = inputs;
+  const { alignCorners } = attrs;
+  const dx = backend.makeOutput(images.shape, "float32");
+  let xData = backend.dataIdMap.get(images.dataId);
+  let castedData;
+  if (xData.dtype !== "float32") {
+    castedData = cast3({
+      backend,
+      inputs: { x: images },
+      attrs: { dtype: "float32" }
+    });
+    xData = backend.dataIdMap.get(castedData.dataId);
+  }
+  wasmResizeBilinearGrad(
+    backend.dataIdMap.get(images.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    new Uint8Array(new Int32Array(images.shape).buffer),
+    new Uint8Array(new Int32Array(dy.shape).buffer),
+    alignCorners
+  );
+  if (castedData != null) {
+    backend.disposeData(castedData.dataId);
+  }
+  return dx;
+}
+var resizeBilinearGradConfig = {
+  kernelName: ResizeBilinearGrad,
+  backendName: "wasm",
+  setupFunc: setup53,
+  kernelFunc: resizeBilinearGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/ResizeNearestNeighbor.ts
 var wasmResizeNearestNeighbor;
-function setup35(backend) {
+function setup54(backend) {
   wasmResizeNearestNeighbor = backend.wasm.cwrap(
     ResizeNearestNeighbor,
     null,
     [
       "number",
+      // xId
       "number",
+      // batch
       "number",
+      // oldHeight
       "number",
+      // oldWidth
       "number",
+      // numChannels
       "number",
+      // newHeight
       "number",
+      // newWidth
       "number",
+      // alignCorners
       "number",
+      // halfPixelCenters
       "number"
+      // outId
     ]
   );
 }
@@ -20054,20 +22780,83 @@ function resizeNearestNeighbor2(args) {
 var resizeNearestNeighborConfig = {
   kernelName: ResizeNearestNeighbor,
   backendName: "wasm",
-  setupFunc: setup35,
+  setupFunc: setup54,
   kernelFunc: resizeNearestNeighbor2
+};
+
+// src/tfjs-backend-wasm/src/kernels/ResizeNearestNeighborGrad.ts
+var wasmResizeNearestNeighborGrad;
+function setup55(backend) {
+  wasmResizeNearestNeighborGrad = backend.wasm.cwrap(
+    ResizeNearestNeighborGrad,
+    null,
+    [
+      "number",
+      // imagesId
+      "number",
+      // dyId
+      "number",
+      // dxId
+      "array",
+      // imagesShape
+      "array",
+      // dyShape
+      "boolean"
+      // alignCorners
+    ]
+  );
+}
+function resizeNearestNeighborGrad(args) {
+  const { inputs, backend, attrs } = args;
+  const { images, dy } = inputs;
+  const { alignCorners } = attrs;
+  const dx = backend.makeOutput(images.shape, "float32");
+  let xData = backend.dataIdMap.get(images.dataId);
+  let castedData;
+  if (xData.dtype !== "float32") {
+    castedData = cast3({
+      backend,
+      inputs: { x: images },
+      attrs: { dtype: "float32" }
+    });
+    xData = backend.dataIdMap.get(castedData.dataId);
+  }
+  wasmResizeNearestNeighborGrad(
+    backend.dataIdMap.get(images.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    new Uint8Array(new Int32Array(images.shape).buffer),
+    new Uint8Array(new Int32Array(dy.shape).buffer),
+    alignCorners
+  );
+  if (castedData != null) {
+    backend.disposeData(castedData.dataId);
+  }
+  return dx;
+}
+var resizeNearestNeighborGradConfig = {
+  kernelName: ResizeNearestNeighborGrad,
+  backendName: "wasm",
+  setupFunc: setup55,
+  kernelFunc: resizeNearestNeighborGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/Reverse.ts
 var wasmReverse;
-function setup36(backend) {
+function setup56(backend) {
   wasmReverse = backend.wasm.cwrap(Reverse, null, [
     "number",
+    // x_id
     "array",
+    // axes
     "number",
+    // axes_length
     "array",
+    // out_shape
     "number",
+    // out_shape_length
     "number"
+    // out_id
   ]);
 }
 function reverse2(args) {
@@ -20099,24 +22888,35 @@ var reverseConfig = {
   kernelName: Reverse,
   backendName: "wasm",
   kernelFunc: reverse2,
-  setupFunc: setup36
+  setupFunc: setup56
 };
 
 // src/tfjs-backend-wasm/src/kernels/RotateWithOffset.ts
 var wasmRotate;
-function setup37(backend) {
+function setup57(backend) {
   wasmRotate = backend.wasm.cwrap(RotateWithOffset, null, [
     "number",
+    // xId
     "number",
+    // batch
     "number",
+    // imageHeight
     "number",
+    // imageWidth
     "number",
+    // numChannels
     "number",
+    // radians
     "number",
+    // centerX
     "number",
+    // centerY
     "array",
+    // fillBytes
     "number",
+    // fillLength
     "number"
+    // outId
   ]);
 }
 function rotateWithOffset2(args) {
@@ -20151,7 +22951,7 @@ var rotateWithOffsetConfig = {
   kernelName: RotateWithOffset,
   backendName: "wasm",
   kernelFunc: rotateWithOffset2,
-  setupFunc: setup37
+  setupFunc: setup57
 };
 
 // src/tfjs-backend-wasm/src/kernels/Round.ts
@@ -20162,17 +22962,26 @@ var rsqrtConfig = createUnaryKernelConfig(Rsqrt);
 
 // src/tfjs-backend-wasm/src/kernels/ScatterNd.ts
 var wasmScatterNd;
-function setup38(backend) {
+function setup58(backend) {
   wasmScatterNd = backend.wasm.cwrap(ScatterNd, null, [
     "number",
+    // indicesId
     "number",
+    // updatesId
     "number",
+    // dtype
     "number",
+    // sliceRank
     "number",
+    // numUpdates
     "number",
+    // sliceSize
     "array",
+    // strides
     "number",
+    // outputSize
     "number"
+    // outId
   ]);
 }
 function scatterNd(args) {
@@ -20206,19 +23015,83 @@ function scatterNd(args) {
 var scatterNdConfig = {
   kernelName: ScatterNd,
   backendName: "wasm",
-  setupFunc: setup38,
+  setupFunc: setup58,
   kernelFunc: scatterNd
+};
+
+// src/tfjs-backend-wasm/src/kernels/SearchSorted.ts
+var wasmSearchSorted;
+function setup59(backend) {
+  wasmSearchSorted = backend.wasm.cwrap(SearchSorted, null, [
+    "number",
+    // sortedSequenceId
+    "number",
+    // valuesId
+    "number",
+    // batchSize
+    "number",
+    // sequenceSize
+    "number",
+    // valuesSize
+    "number",
+    // dtype
+    "bool",
+    // isSideLeft
+    "number"
+    // outId
+  ]);
+}
+function searchSorted2(args) {
+  const { inputs, backend, attrs } = args;
+  const { sortedSequence, values } = inputs;
+  const { side } = attrs;
+  if (sortedSequence.dtype !== values.dtype) {
+    throw new Error(
+      `SearchSorted error: sorted_sequence must have the same dtype as values. Got ${sortedSequence.dtype} and ${values.dtype}`
+    );
+  }
+  const out = backend.makeOutput(values.shape, "int32");
+  function tensorId(x) {
+    return backend.dataIdMap.get(x.dataId).id;
+  }
+  wasmSearchSorted(
+    tensorId(sortedSequence),
+    tensorId(values),
+    /*batchSize=*/
+    sortedSequence.shape[0],
+    /*sequenceSize=*/
+    sortedSequence.shape[1],
+    /*valuesSize=*/
+    values.shape[1],
+    /*dtype=*/
+    CppDType[sortedSequence.dtype],
+    /*isSideLeft=*/
+    side === "left",
+    tensorId(out)
+  );
+  return out;
+}
+var searchSortedConfig = {
+  kernelName: SearchSorted,
+  backendName: "wasm",
+  setupFunc: setup59,
+  kernelFunc: searchSorted2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Select.ts
 var wasmSelect;
-function setup39(backend) {
+function setup60(backend) {
   wasmSelect = backend.wasm.cwrap("SelectV2", null, [
     "number",
+    // conditionId
     "number",
+    // tId
     "number",
+    // eId
     "number",
+    // offset
     "number"
+    // outId
   ]);
 }
 function select(args) {
@@ -20239,12 +23112,15 @@ var selectConfig = {
   kernelName: Select,
   backendName: "wasm",
   kernelFunc: select,
-  setupFunc: setup39
+  setupFunc: setup60
 };
+
+// src/tfjs-backend-wasm/src/kernels/Selu.ts
+var seluConfig = createUnaryKernelConfig(Selu);
 
 // src/tfjs-backend-wasm/src/kernels/Sigmoid.ts
 var wasmFunc7;
-function setup40(backend) {
+function setup61(backend) {
   wasmFunc7 = backend.wasm.cwrap(Sigmoid, null, ["number", "number"]);
 }
 function sigmoid3(args) {
@@ -20261,42 +23137,18 @@ function sigmoid3(args) {
 var sigmoidConfig = {
   kernelName: "Sigmoid",
   backendName: "wasm",
-  setupFunc: setup40,
+  setupFunc: setup61,
   kernelFunc: sigmoid3
 };
+
+// src/tfjs-backend-wasm/src/kernels/Sign.ts
+var signConfig = createUnaryKernelConfig(Sign);
 
 // src/tfjs-backend-wasm/src/kernels/Sin.ts
 var sinConfig = createUnaryKernelConfig(Sin);
 
-// src/tfjs-backend-wasm/src/kernels/Softmax.ts
-var wasmFunc8;
-function setup41(backend) {
-  wasmFunc8 = backend.wasm.cwrap(Softmax, null, [
-    "number",
-    "number",
-    "number",
-    "number"
-  ]);
-}
-function softmax2(args) {
-  const { backend, inputs: { logits }, attrs: { dim } } = args;
-  const xId = backend.dataIdMap.get(logits.dataId).id;
-  const out = backend.makeOutput(logits.shape, logits.dtype);
-  const outId = backend.dataIdMap.get(out.dataId).id;
-  const channels = logits.shape[dim];
-  const batch = util_exports.sizeFromShape(logits.shape) / channels;
-  if (util_exports.sizeFromShape(out.shape) === 0) {
-    return out;
-  }
-  wasmFunc8(xId, outId, channels, batch);
-  return out;
-}
-var softmaxConfig = {
-  kernelName: Softmax,
-  backendName: "wasm",
-  setupFunc: setup41,
-  kernelFunc: softmax2
-};
+// src/tfjs-backend-wasm/src/kernels/Softplus.ts
+var softplusConfig = createUnaryKernelConfig(Softplus);
 
 // src/tfjs-backend-wasm/src/kernels/SpaceToBatchND.ts
 function spaceToBatchND2(args) {
@@ -20345,20 +23197,32 @@ var spaceToBatchNDConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/SparseFillEmptyRows.ts
 var wasmSparseFillEmptyRows;
-function setup42(backend) {
+function setup62(backend) {
   wasmSparseFillEmptyRows = backend.wasm.cwrap("SparseFillEmptyRows", "number", [
     "number",
+    // indicesId
     "number",
+    // valuesId
     "number",
+    // valuesDType
     "number",
+    // indicesCount
     "number",
+    // denseRows
     "number",
+    // rank
     "number",
+    // defaultValueId
     "number",
+    // outputIndicesId
     "number",
+    // outputValuesId
     "number",
+    // emptyRowIndicatorId
     "number",
+    // reverseIndexMapId
     "number"
+    // exceptionValuesId
   ]);
 }
 function sparseFillEmptyRows2(args) {
@@ -20450,21 +23314,28 @@ function sparseFillEmptyRows2(args) {
 var sparseFillEmptyRowsConfig = {
   kernelName: SparseFillEmptyRows,
   backendName: "wasm",
-  setupFunc: setup42,
+  setupFunc: setup62,
   kernelFunc: sparseFillEmptyRows2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseReshape.ts
 var wasmSparseReshape;
-function setup43(backend) {
+function setup63(backend) {
   wasmSparseReshape = backend.wasm.cwrap(SparseReshape, null, [
     "number",
+    // inputIndicesId
     "number",
+    // inputShapeId
     "number",
+    // newShapeId
     "number",
+    // nnz
     "number",
+    // newIndicesId
     "number",
+    // outputShapeId
     "number"
+    // exceptionValuesId
   ]);
 }
 function sparseReshape2(args) {
@@ -20553,23 +23424,32 @@ function sparseReshape2(args) {
 var sparseReshapeConfig = {
   kernelName: SparseReshape,
   backendName: "wasm",
-  setupFunc: setup43,
+  setupFunc: setup63,
   kernelFunc: sparseReshape2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseSegmentReduction.ts
 var wasmSparseSegmentReduction;
-function setup44(backend) {
+function setup64(backend) {
   wasmSparseSegmentReduction = backend.wasm.cwrap("SparseSegmentReduction", null, [
     "number",
+    // dataId
     "number",
+    // dtype
     "number",
+    // numRow
     "number",
+    // indicesId
     "number",
+    // segmentIdsId
     "number",
+    // outputId
     "number",
+    // exceptionValuesId,
     "number",
+    // isMean
     "number"
+    // defaultValue
   ]);
 }
 function sparseSegmentReduction(args, isMean) {
@@ -20646,7 +23526,7 @@ function sparseSegmentMean2(args) {
 var sparseSegmentMeanConfig = {
   kernelName: SparseSegmentMean,
   backendName: "wasm",
-  setupFunc: setup44,
+  setupFunc: setup64,
   kernelFunc: sparseSegmentMean2
 };
 
@@ -20657,8 +23537,72 @@ function sparseSegmentSum2(args) {
 var sparseSegmentSumConfig = {
   kernelName: SparseSegmentSum,
   backendName: "wasm",
-  setupFunc: setup44,
+  setupFunc: setup64,
   kernelFunc: sparseSegmentSum2
+};
+
+// src/tfjs-backend-wasm/src/kernels/SparseToDense.ts
+var wasmSparseToDense;
+function setup65(backend) {
+  wasmSparseToDense = backend.wasm.cwrap(SparseToDense, null, [
+    "number",
+    // sparseIndicesId
+    "number",
+    // sparseValuesId
+    "number",
+    // sparseValuesRank
+    "number",
+    // defaultValueId
+    "number",
+    // dtype
+    "number",
+    // sliceRank
+    "number",
+    // numUpdates
+    "number",
+    // sliceSize
+    "array",
+    // strides
+    "number",
+    // outputSize
+    "number"
+    // outId
+  ]);
+}
+function sparseToDense2(args) {
+  const { backend, inputs, attrs } = args;
+  const { sparseIndices, sparseValues, defaultValue } = inputs;
+  const { outputShape } = attrs;
+  const out = backend.makeOutput(outputShape, defaultValue.dtype);
+  if (util_exports.sizeFromShape(outputShape) === 0) {
+    return out;
+  }
+  const { sliceRank, numUpdates, sliceSize, strides, outputSize } = backend_util_exports.calculateShapes(sparseValues, sparseIndices, outputShape);
+  const sparseIndicesId = backend.dataIdMap.get(sparseIndices.dataId).id;
+  const sparseValuesId = backend.dataIdMap.get(sparseValues.dataId).id;
+  const defaultValueId = backend.dataIdMap.get(defaultValue.dataId).id;
+  const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+  const outId = backend.dataIdMap.get(out.dataId).id;
+  wasmSparseToDense(
+    sparseIndicesId,
+    sparseValuesId,
+    sparseValues.shape.length,
+    defaultValueId,
+    CppDType[defaultValue.dtype],
+    sliceRank,
+    numUpdates,
+    sliceSize,
+    stridesBytes,
+    outputSize,
+    outId
+  );
+  return out;
+}
+var sparseToDenseConfig = {
+  kernelName: SparseToDense,
+  backendName: "wasm",
+  setupFunc: setup65,
+  kernelFunc: sparseToDense2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SplitV.ts
@@ -20696,12 +23640,16 @@ var squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference, suppor
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
-function setup45(backend) {
+function setup66(backend) {
   wasmStep = backend.wasm.cwrap(Step, null, [
     "number",
+    // x_id
     "number",
+    // alpha
     "number",
+    // dtype
     "number"
+    // out_id
   ]);
 }
 function step2(args) {
@@ -20717,24 +23665,34 @@ function step2(args) {
 var stepConfig = {
   kernelName: Step,
   backendName: "wasm",
-  setupFunc: setup45,
+  setupFunc: setup66,
   kernelFunc: step2
 };
 
 // src/tfjs-backend-wasm/src/kernels/StridedSlice.ts
 var wasmStridedSlice;
-function setup46(backend) {
+function setup67(backend) {
   wasmStridedSlice = backend.wasm.cwrap(StridedSlice, null, [
     "number",
+    // xId
     "array",
+    // xStrides
     "number",
+    // xRank
     "array",
+    // beginBytes
     "array",
+    // endBytes
     "array",
+    // stridesBytes
     "array",
+    // outShapeBytes
     "array",
+    // outStridesBytes
     "number",
+    // outShapeLength
     "number"
+    // outId
   ]);
 }
 function stridedSlice2(args) {
@@ -20814,7 +23772,7 @@ function stridedSlice2(args) {
 var stridedSliceConfig = {
   kernelName: StridedSlice,
   backendName: "wasm",
-  setupFunc: setup46,
+  setupFunc: setup67,
   kernelFunc: stridedSlice2
 };
 
@@ -20906,12 +23864,16 @@ var subConfig = createBinaryKernelConfig(Sub, supportsFullBroadcast18);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
-function setup47(backend) {
+function setup68(backend) {
   wasmSum = backend.wasm.cwrap(Sum, null, [
     "number",
+    // input_id
     "number",
+    // reduce_size
     "number",
+    // dtype
     "number"
+    // out_id
   ]);
 }
 function sum3(args) {
@@ -20958,7 +23920,7 @@ function sum3(args) {
 var sumConfig = {
   kernelName: Sum,
   backendName: "wasm",
-  setupFunc: setup47,
+  setupFunc: setup68,
   kernelFunc: sum3
 };
 
@@ -20968,16 +23930,86 @@ var tanConfig = createUnaryKernelConfig(Tan);
 // src/tfjs-backend-wasm/src/kernels/Tanh.ts
 var tanhConfig = createUnaryKernelConfig(Tanh);
 
+// src/tfjs-backend-wasm/src/kernels/TensorScatterUpdate.ts
+var wasmTensorScatterUpdate;
+function setup69(backend) {
+  wasmTensorScatterUpdate = backend.wasm.cwrap(TensorScatterUpdate, null, [
+    "number",
+    // indicesId
+    "number",
+    // updatesId
+    "number",
+    // dtype
+    "number",
+    // sliceRank
+    "number",
+    // numUpdates
+    "number",
+    // sliceSize
+    "array",
+    // strides
+    "number",
+    // outputSize
+    "number",
+    // outId
+    "number"
+    // tensorId
+  ]);
+}
+function tensorScatterUpdate2(args) {
+  const { backend, inputs, attrs } = args;
+  const { tensor: tensor2, indices, updates } = inputs;
+  const {} = attrs;
+  const out = backend.makeOutput(tensor2.shape, tensor2.dtype);
+  if (util_exports.sizeFromShape(tensor2.shape) === 0) {
+    return out;
+  }
+  const { sliceRank, numUpdates, sliceSize, strides, outputSize } = scatter_nd_util_exports.calculateShapes(updates, indices, tensor2.shape);
+  const indicesData = backend.dataIdMap.get(indices.dataId);
+  const indicesId = indicesData.id;
+  const updatesData = backend.dataIdMap.get(updates.dataId);
+  const updatesId = updatesData.id;
+  const tensorData = backend.dataIdMap.get(tensor2.dataId);
+  const tensorId = tensorData.id;
+  const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+  const outId = backend.dataIdMap.get(out.dataId).id;
+  wasmTensorScatterUpdate(
+    indicesId,
+    updatesId,
+    CppDType[updates.dtype],
+    sliceRank,
+    numUpdates,
+    sliceSize,
+    stridesBytes,
+    outputSize,
+    outId,
+    tensorId
+  );
+  return out;
+}
+var tensorScatterUpdateConfig = {
+  kernelName: TensorScatterUpdate,
+  backendName: "wasm",
+  setupFunc: setup69,
+  kernelFunc: tensorScatterUpdate2
+};
+
 // src/tfjs-backend-wasm/src/kernels/Tile.ts
 var wasmTile;
-function setup48(backend) {
+function setup70(backend) {
   wasmTile = backend.wasm.cwrap(Tile, null, [
     "number",
+    // x_id
     "array",
+    // x_shape
     "number",
+    // x_shape.length
     "array",
+    // new_shape
     "number",
+    // new_shape.length
     "number"
+    // out_id
   ]);
 }
 function tile2(args) {
@@ -21007,22 +24039,30 @@ function tile2(args) {
 var tileConfig = {
   kernelName: Tile,
   backendName: "wasm",
-  setupFunc: setup48,
+  setupFunc: setup70,
   kernelFunc: tile2
 };
 
 // src/tfjs-backend-wasm/src/kernels/TopK.ts
 var wasmTopK;
-function setup49(backend) {
+function setup71(backend) {
   wasmTopK = backend.wasm.cwrap(TopK, null, [
     "number",
+    // xId
     "array",
+    // x.shape
     "number",
+    // x.shape.length
     "number",
+    // x.dtype
     "number",
+    // k
     "bool",
+    // sorted
     "number",
+    // outValuesId
     "number"
+    // outIndicesId
   ]);
 }
 var topk2 = ({ inputs, backend, attrs }) => {
@@ -21051,31 +24091,48 @@ var topk2 = ({ inputs, backend, attrs }) => {
 var topKConfig = {
   kernelName: TopK,
   backendName: "wasm",
-  setupFunc: setup49,
+  setupFunc: setup71,
   kernelFunc: topk2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Transform.ts
 var wasmTransform;
-function setup50(backend) {
+function setup72(backend) {
   wasmTransform = backend.wasm.cwrap(Transform, null, [
     "number",
+    // imageId
     "number",
+    // transformsId
     "bool",
+    // isBatchTransform
     "number",
+    // batch
     "number",
+    // outHeight
     "number",
+    // outWidth
     "number",
+    // numChannels
     "number",
+    // imageWidth
     "number",
+    // imageHeight
     "array",
+    // inputStrides
     "number",
+    // inputStridesLength
     "array",
+    // outputStrides
     "number",
+    // outputStridesLength
     "number",
+    // interpolationModeId
     "number",
+    // fillModeId
     "number",
+    // fillValue
     "number"
+    // outId
   ]);
 }
 function transform2(args) {
@@ -21141,8 +24198,37 @@ function transform2(args) {
 var transformConfig = {
   kernelName: Transform,
   backendName: "wasm",
-  setupFunc: setup50,
+  setupFunc: setup72,
   kernelFunc: transform2
+};
+
+// src/tfjs-backend-wasm/src/kernels/Unique.ts
+function unique2(args) {
+  const { inputs, attrs, backend } = args;
+  const { axis } = attrs;
+  const { x } = inputs;
+  const { outputValues, outputShape, indices } = uniqueImpl(backend.readSync(x.dataId), axis, x.shape, x.dtype);
+  return [
+    backend.makeOutput(
+      outputShape,
+      x.dtype,
+      /*memoryOffset=*/
+      void 0,
+      outputValues
+    ),
+    backend.makeOutput(
+      [indices.length],
+      "int32",
+      /*memoryOffset=*/
+      void 0,
+      indices
+    )
+  ];
+}
+var uniqueConfig = {
+  kernelName: Unique,
+  backendName: "wasm",
+  kernelFunc: unique2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Unpack.ts
@@ -21196,31 +24282,53 @@ var zerosLikeConfig = {
 var kernelConfigs = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
   allConfig,
   anyConfig,
   argMaxConfig,
+  argMinConfig,
+  asinConfig,
+  asinhConfig,
+  atanConfig,
+  atan2Config,
+  atanhConfig,
   avgPoolConfig,
+  avgPool3DConfig,
+  avgPool3DGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
   concatConfig,
   conv2DConfig,
   conv2DBackpropInputConfig,
+  conv3DConfig,
+  conv3DBackpropFilterV2Config,
+  conv3DBackpropInputV2Config,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
   cumprodConfig,
   cumsumConfig,
+  denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
+  dilation2DConfig,
+  dilation2DBackpropFilterConfig,
+  dilation2DBackpropInputConfig,
   eluConfig,
+  eluGradConfig,
   equalConfig,
   expConfig,
   expandDimsConfig,
+  expm1Config,
   fillConfig,
   flipLeftRightConfig,
   floorConfig,
@@ -21233,22 +24341,31 @@ var kernelConfigs = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  isFiniteConfig,
+  isInfConfig,
   isNaNConfig,
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
+  log1pConfig,
   logConfig,
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
   logicalXorConfig,
+  lrnConfig,
+  lrnGradConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  maxPool3DConfig,
+  maxPool3DGradConfig,
   meanConfig,
   minConfig,
   minimumConfig,
   mirrorPadConfig,
+  multinomialConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
@@ -21269,22 +24386,29 @@ var kernelConfigs = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  resizeBilinearGradConfig,
   resizeNearestNeighborConfig,
+  resizeNearestNeighborGradConfig,
   reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
+  seluConfig,
   sigmoidConfig,
+  signConfig,
   sinConfig,
   sliceConfig,
   softmaxConfig,
+  softplusConfig,
   spaceToBatchNDConfig,
   sparseFillEmptyRowsConfig,
   sparseReshapeConfig,
   sparseSegmentMeanConfig,
   sparseSegmentSumConfig,
+  sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,
@@ -21298,10 +24422,12 @@ var kernelConfigs = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,
   transposeConfig,
+  uniqueConfig,
   unpackConfig,
   zerosLikeConfig
 ];
@@ -21409,9 +24535,9 @@ var wasmWorkerContents = `var WasmBackendModuleThreadedSimd = (() => {
 function(WasmBackendModuleThreadedSimd) {
   WasmBackendModuleThreadedSimd = WasmBackendModuleThreadedSimd || {};
 
-function GROWABLE_HEAP_I8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP8}function GROWABLE_HEAP_U8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU8}function GROWABLE_HEAP_I16(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP16}function GROWABLE_HEAP_I32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP32}function GROWABLE_HEAP_U32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU32}function GROWABLE_HEAP_F32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF32}function GROWABLE_HEAP_F64(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF64}var Module=typeof WasmBackendModuleThreadedSimd!="undefined"?WasmBackendModuleThreadedSimd:{};var readyPromiseResolve,readyPromiseReject;Module["ready"]=new Promise(function(resolve,reject){readyPromiseResolve=resolve;readyPromiseReject=reject});var beforeListeners;if(typeof process!=="undefined"&&process.listeners){beforeListeners={uncaughtException:process.listeners("uncaughtException"),unhandledRejection:process.listeners("unhandledRejection")}}var moduleOverrides=Object.assign({},Module);var arguments_=[];var thisProgram="./this.program";var quit_=(status,toThrow)=>{throw toThrow};var ENVIRONMENT_IS_WEB=typeof window=="object";var ENVIRONMENT_IS_WORKER=typeof importScripts=="function";var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";var ENVIRONMENT_IS_PTHREAD=Module["ENVIRONMENT_IS_PTHREAD"]||false;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary,setWindowTitle;function logExceptionOnExit(e){if(e instanceof ExitStatus)return;let toLog=e;err("exiting due to exception: "+toLog)}if(ENVIRONMENT_IS_NODE){if(ENVIRONMENT_IS_WORKER){scriptDirectory=require("path").dirname(scriptDirectory)+"/"}else{scriptDirectory=__dirname+"/"}var fs,nodePath;if(typeof require==="function"){fs=require("fs");nodePath=require("path")}read_=(filename,binary)=>{filename=nodePath["normalize"](filename);return fs.readFileSync(filename,binary?undefined:"utf8")};readBinary=filename=>{var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret)}return ret};readAsync=(filename,onload,onerror)=>{filename=nodePath["normalize"](filename);fs.readFile(filename,function(err,data){if(err)onerror(err);else onload(data.buffer)})};if(process["argv"].length>1){thisProgram=process["argv"][1].replace(/\\/g,"/")}arguments_=process["argv"].slice(2);process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",function(reason){throw reason});quit_=(status,toThrow)=>{if(keepRuntimeAlive()){process["exitCode"]=status;throw toThrow}logExceptionOnExit(toThrow);process["exit"](status)};Module["inspect"]=function(){return"[Emscripten Module object]"};let nodeWorkerThreads;try{nodeWorkerThreads=require("worker_threads")}catch(e){console.error('The "worker_threads" module is not supported in this node.js build - perhaps a newer version is needed?');throw e}global.Worker=nodeWorkerThreads.Worker}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href}else if(typeof document!="undefined"&&document.currentScript){scriptDirectory=document.currentScript.src}if(_scriptDir){scriptDirectory=_scriptDir}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/")+1)}else{scriptDirectory=""}if(!ENVIRONMENT_IS_NODE){read_=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)}}readAsync=(url,onload,onerror)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror()};xhr.onerror=onerror;xhr.send(null)}}setWindowTitle=title=>document.title=title}else{}if(ENVIRONMENT_IS_NODE){if(typeof performance=="undefined"){global.performance=require("perf_hooks").performance}}var defaultPrint=console.log.bind(console);var defaultPrintErr=console.warn.bind(console);if(ENVIRONMENT_IS_NODE){defaultPrint=str=>fs.writeSync(1,str+"
+function GROWABLE_HEAP_I8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP8}function GROWABLE_HEAP_U8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU8}function GROWABLE_HEAP_I16(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP16}function GROWABLE_HEAP_I32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP32}function GROWABLE_HEAP_U32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU32}function GROWABLE_HEAP_F32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF32}function GROWABLE_HEAP_F64(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF64}var Module=typeof WasmBackendModuleThreadedSimd!="undefined"?WasmBackendModuleThreadedSimd:{};var readyPromiseResolve,readyPromiseReject;Module["ready"]=new Promise(function(resolve,reject){readyPromiseResolve=resolve;readyPromiseReject=reject});var beforeListeners;if(typeof process!=="undefined"&&process.listeners){beforeListeners={uncaughtException:process.listeners("uncaughtException"),unhandledRejection:process.listeners("unhandledRejection")}}var moduleOverrides=Object.assign({},Module);var arguments_=[];var thisProgram="./this.program";var quit_=(status,toThrow)=>{throw toThrow};var ENVIRONMENT_IS_WEB=typeof window=="object";var ENVIRONMENT_IS_WORKER=typeof importScripts=="function";var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";var ENVIRONMENT_IS_PTHREAD=Module["ENVIRONMENT_IS_PTHREAD"]||false;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary,setWindowTitle;function logExceptionOnExit(e){if(e instanceof ExitStatus)return;let toLog=e;err("exiting due to exception: "+toLog)}if(ENVIRONMENT_IS_NODE){var fs=require("fs");var nodePath=require("path");if(ENVIRONMENT_IS_WORKER){scriptDirectory=nodePath.dirname(scriptDirectory)+"/"}else{scriptDirectory=__dirname+"/"}read_=(filename,binary)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);return fs.readFileSync(filename,binary?undefined:"utf8")};readBinary=filename=>{var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret)}return ret};readAsync=(filename,onload,onerror)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);fs.readFile(filename,function(err,data){if(err)onerror(err);else onload(data.buffer)})};if(process["argv"].length>1){thisProgram=process["argv"][1].replace(/\\/g,"/")}arguments_=process["argv"].slice(2);process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",function(reason){throw reason});quit_=(status,toThrow)=>{if(keepRuntimeAlive()){process["exitCode"]=status;throw toThrow}logExceptionOnExit(toThrow);process["exit"](status)};Module["inspect"]=function(){return"[Emscripten Module object]"};let nodeWorkerThreads;try{nodeWorkerThreads=require("worker_threads")}catch(e){console.error('The "worker_threads" module is not supported in this node.js build - perhaps a newer version is needed?');throw e}global.Worker=nodeWorkerThreads.Worker}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href}else if(typeof document!="undefined"&&document.currentScript){scriptDirectory=document.currentScript.src}if(_scriptDir){scriptDirectory=_scriptDir}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/")+1)}else{scriptDirectory=""}if(!ENVIRONMENT_IS_NODE){read_=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)}}readAsync=(url,onload,onerror)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror()};xhr.onerror=onerror;xhr.send(null)}}setWindowTitle=title=>document.title=title}else{}if(ENVIRONMENT_IS_NODE){if(typeof performance=="undefined"){global.performance=require("perf_hooks").performance}}var defaultPrint=console.log.bind(console);var defaultPrintErr=console.warn.bind(console);if(ENVIRONMENT_IS_NODE){defaultPrint=str=>fs.writeSync(1,str+"
 ");defaultPrintErr=str=>fs.writeSync(2,str+"
-")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++]=192|u>>6;heap[outIdx++]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++]=224|u>>12;heap[outIdx++]=128|u>>6&63;heap[outIdx++]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++]=240|u>>18;heap[outIdx++]=128|u>>12&63;heap[outIdx++]=128|u>>6&63;heap[outIdx++]=128|u&63}}heap[outIdx]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":2147483648/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){console.log("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and also use a recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(ENVIRONMENT_IS_PTHREAD){postMessage({"cmd":"onAbort","arg":what})}else{if(Module["onAbort"]){Module["onAbort"](what)}}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{msg.time=performance.now();worker.postMessage(msg,threadParams.transferList)};if(worker.loaded){worker.runPthread();delete worker.runPthread}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread();delete worker.runPthread}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="onAbort"){if(Module["onAbort"]){Module["onAbort"](d["arg"])}}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}worker.postMessage({"cmd":"load","urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");PThread.unusedWorkers.push(new Worker(pthreadMainJs))},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function demangle(func){return func}function demangleAll(text){var regex=/\b_Z[wd_]+/g;return text.replace(regex,function(x){var y=demangle(x);return x===y?x:y+" ["+x+"]"})}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+44>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+48>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function jsStackTrace(){var error=new Error;if(!error.stack){try{throw new Error}catch(e){error=e}if(!error.stack){return"(no stack trace available)"}}return error.stack.toString()}function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 2097152}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 2147483648}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else if(ENVIRONMENT_IS_PTHREAD){_emscripten_get_now=()=>performance.now()-Module["__performance_now_clock_drift"]}else _emscripten_get_now=()=>performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest,src,src+num)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>2];var len=GROWABLE_HEAP_U32()[iov+4>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j])}num+=len}GROWABLE_HEAP_U32()[pnum>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();postMessage({"cmd":"loaded"});return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
+")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++]=192|u>>6;heap[outIdx++]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++]=224|u>>12;heap[outIdx++]=128|u>>6&63;heap[outIdx++]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++]=240|u>>18;heap[outIdx++]=128|u>>12&63;heap[outIdx++]=128|u>>6&63;heap[outIdx++]=128|u&63}}heap[outIdx]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":2147483648/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref()}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread};if(worker.loaded){worker.runPthread()}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref()}__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref()}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread()}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"])}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler)}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker)},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 2147483648}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest,src,src+num)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>2];var len=GROWABLE_HEAP_U32()[iov+4>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j])}num+=len}GROWABLE_HEAP_U32()[pnum>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer)}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Acos=Module["_Acos"]=function(){return(_Acos=Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};var _Acosh=Module["_Acosh"]=function(){return(_Acosh=Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _ArgMin=Module["_ArgMin"]=function(){return(_ArgMin=Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};var _Asin=Module["_Asin"]=function(){return(_Asin=Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};var _Asinh=Module["_Asinh"]=function(){return(_Asinh=Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};var _Atan=Module["_Atan"]=function(){return(_Atan=Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};var _Atan2=Module["_Atan2"]=function(){return(_Atan2=Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};var _Atanh=Module["_Atanh"]=function(){return(_Atanh=Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _AvgPool3D=Module["_AvgPool3D"]=function(){return(_AvgPool3D=Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};var _AvgPool3DGrad=Module["_AvgPool3DGrad"]=function(){return(_AvgPool3DGrad=Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Bincount=Module["_Bincount"]=function(){return(_Bincount=Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Conv3D=Module["_Conv3D"]=function(){return(_Conv3D=Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};var _Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=function(){return(_Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};var _Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=function(){return(_Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DenseBincount=Module["_DenseBincount"]=function(){return(_DenseBincount=Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Diag=Module["_Diag"]=function(){return(_Diag=Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};var _Dilation2D=Module["_Dilation2D"]=function(){return(_Dilation2D=Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};var _Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=function(){return(_Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};var _Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=function(){return(_Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _EluGrad=Module["_EluGrad"]=function(){return(_EluGrad=Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _Expm1=Module["_Expm1"]=function(){return(_Expm1=Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsFinite=Module["_IsFinite"]=function(){return(_IsFinite=Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};var _IsInf=Module["_IsInf"]=function(){return(_IsInf=Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LRN=Module["_LRN"]=function(){return(_LRN=Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};var _LRNGrad=Module["_LRNGrad"]=function(){return(_LRNGrad=Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _LinSpace=Module["_LinSpace"]=function(){return(_LinSpace=Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _Log1p=Module["_Log1p"]=function(){return(_Log1p=Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _MaxPool3D=Module["_MaxPool3D"]=function(){return(_MaxPool3D=Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};var _MaxPool3DGrad=Module["_MaxPool3DGrad"]=function(){return(_MaxPool3DGrad=Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Multinomial=Module["_Multinomial"]=function(){return(_Multinomial=Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=function(){return(_ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=function(){return(_ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SearchSorted=Module["_SearchSorted"]=function(){return(_SearchSorted=Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Selu=Module["_Selu"]=function(){return(_Selu=Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sign=Module["_Sign"]=function(){return(_Sign=Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _Softplus=Module["_Softplus"]=function(){return(_Softplus=Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _SparseToDense=Module["_SparseToDense"]=function(){return(_SparseToDense=Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _TensorScatterUpdate=Module["_TensorScatterUpdate"]=function(){return(_TensorScatterUpdate=Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
 
 
   return WasmBackendModuleThreadedSimd.ready
@@ -21437,6 +24563,7 @@ var BackendWasm = class extends KernelBackend {
     actualThreadsCount = this.wasm.tfjs.getThreadsCount();
     this.dataIdMap = new DataStorage(this, engine());
   }
+  // 0 is reserved for null data ids.
   dataIdNextNumber = 1;
   dataIdMap;
   write(values, shape, dtype) {
@@ -21499,6 +24626,12 @@ var BackendWasm = class extends KernelBackend {
     );
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released, false otherwise.
+   * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
+   */
   disposeData(dataId, force = false) {
     if (this.dataIdMap.has(dataId)) {
       const data = this.dataIdMap.get(dataId);
@@ -21512,6 +24645,7 @@ var BackendWasm = class extends KernelBackend {
     }
     return true;
   }
+  /** Return refCount of a `TensorData`. */
   refCount(dataId) {
     if (this.dataIdMap.has(dataId)) {
       const tensorData = this.dataIdMap.get(dataId);
@@ -21528,6 +24662,8 @@ var BackendWasm = class extends KernelBackend {
   floatPrecision() {
     return 32;
   }
+  // Returns the memory offset of a tensor. Useful for debugging and unit
+  // testing.
   getMemoryOffset(dataId) {
     return this.dataIdMap.get(dataId).memoryOffset;
   }
@@ -21541,10 +24677,16 @@ var BackendWasm = class extends KernelBackend {
   memory() {
     return { unreliable: false };
   }
-  makeOutput(shape, dtype, memoryOffset) {
+  /**
+   * Make a tensor info for the output of an op. If `memoryOffset` is not
+   * present, this method allocates memory on the WASM heap. If `memoryOffset`
+   * is present, the memory was allocated elsewhere (in c++) and we just record
+   * the pointer where that memory lives.
+   */
+  makeOutput(shape, dtype, memoryOffset, values) {
     let dataId;
     if (memoryOffset == null) {
-      dataId = this.write(null, shape, dtype);
+      dataId = this.write(values ?? null, shape, dtype);
     } else {
       const id = this.dataIdNextNumber++;
       dataId = { id };
@@ -21666,8 +24808,11 @@ async function init() {
           null,
           [
             "number",
+            // id
             "number",
+            // size
             "number"
+            // memoryOffset
           ]
         ),
         disposeData: module.cwrap("dispose_data", voidReturnType, ["number"]),

@@ -132,7 +132,7 @@ async function build() {
     // await api();
 
     // patch package.json
-    log.info('Pached package.json:', version);
+    log.info('Patched package.json:', version);
     package.version = version;
     const str = JSON.stringify(package, null, 2);
     fs.writeFileSync('package.json', str);

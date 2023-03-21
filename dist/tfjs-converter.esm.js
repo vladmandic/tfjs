@@ -21,6 +21,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod2, isNodeMode, target) => (target = mod2 != null ? __create(__getProtoOf(mod2)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod2 || !mod2.__esModule ? __defProp(target, "default", { value: mod2, enumerable: true }) : target,
   mod2
 ));
@@ -536,25 +540,40 @@ var require_long = __commonJS({
     };
     LongPrototype.eq = LongPrototype.equals;
     LongPrototype.notEquals = function notEquals(other) {
-      return !this.eq(other);
+      return !this.eq(
+        /* validates */
+        other
+      );
     };
     LongPrototype.neq = LongPrototype.notEquals;
     LongPrototype.ne = LongPrototype.notEquals;
     LongPrototype.lessThan = function lessThan(other) {
-      return this.comp(other) < 0;
+      return this.comp(
+        /* validates */
+        other
+      ) < 0;
     };
     LongPrototype.lt = LongPrototype.lessThan;
     LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
-      return this.comp(other) <= 0;
+      return this.comp(
+        /* validates */
+        other
+      ) <= 0;
     };
     LongPrototype.lte = LongPrototype.lessThanOrEqual;
     LongPrototype.le = LongPrototype.lessThanOrEqual;
     LongPrototype.greaterThan = function greaterThan(other) {
-      return this.comp(other) > 0;
+      return this.comp(
+        /* validates */
+        other
+      ) > 0;
     };
     LongPrototype.gt = LongPrototype.greaterThan;
     LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
-      return this.comp(other) >= 0;
+      return this.comp(
+        /* validates */
+        other
+      ) >= 0;
     };
     LongPrototype.gte = LongPrototype.greaterThanOrEqual;
     LongPrototype.ge = LongPrototype.greaterThanOrEqual;
@@ -877,9 +896,9 @@ var require_long = __commonJS({
   }
 });
 
-// (disabled):src/node_modules/.pnpm/node-fetch@2.6.7/node_modules/node-fetch/browser.js
+// (disabled):src/node_modules/.pnpm/node-fetch@2.6.9/node_modules/node-fetch/browser.js
 var require_browser = __commonJS({
-  "(disabled):src/node_modules/.pnpm/node-fetch@2.6.7/node_modules/node-fetch/browser.js"() {
+  "(disabled):src/node_modules/.pnpm/node-fetch@2.6.9/node_modules/node-fetch/browser.js"() {
   }
 });
 
@@ -974,7 +993,9 @@ var require_alea = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1046,7 +1067,9 @@ var require_xor128 = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1125,7 +1148,9 @@ var require_xorwow = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1220,7 +1245,9 @@ var require_xorshift7 = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1329,8 +1356,11 @@ var require_xor4096 = __commonJS({
       }
     })(
       exports,
+      // window object or global
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1408,7 +1438,9 @@ var require_tychei = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1557,9 +1589,13 @@ var require_seedrandom = __commonJS({
         math["seed" + rngname] = seedrandom2;
       }
     })(
+      // global: `self` in browsers (including strict mode and web workers),
+      // otherwise `this` in Node and other environments
       typeof self !== "undefined" ? self : exports,
       [],
+      // pool: entropy pool starts empty
       Math
+      // math: package containing random, pow, and seedrandom
     );
   }
 });
@@ -1621,15 +1657,17 @@ var KernelBackend = class {
   move(dataId, values, shape, dtype, refCount) {
     return notYetImplemented("move");
   }
-  createTensorFromTexture(values, shape, dtype) {
-    return notYetImplemented("createTensorFromTexture");
+  createTensorFromGPUData(values, shape, dtype) {
+    return notYetImplemented("createTensorFromGPUData");
   }
   memory() {
     return notYetImplemented("memory");
   }
+  /** Returns the highest precision for floats in bits (e.g. 16 or 32) */
   floatPrecision() {
     return notYetImplemented("floatPrecision");
   }
+  /** Returns the smallest representable number.  */
   epsilon() {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
   }
@@ -1714,19 +1752,6 @@ function assertNonNull(a) {
     a != null,
     () => `The input to the tensor constructor must be a non-null value.`
   );
-}
-function flatten(arr, result = [], skipTypedArray = false) {
-  if (result == null) {
-    result = [];
-  }
-  if (Array.isArray(arr) || isTypedArray(arr) && !skipTypedArray) {
-    for (let i = 0; i < arr.length; ++i) {
-      flatten(arr[i], result, skipTypedArray);
-    }
-  } else {
-    result.push(arr);
-  }
-  return result;
 }
 function sizeFromShape(shape) {
   if (shape.length === 0) {
@@ -1894,17 +1919,7 @@ function squeezeShape(shape, axis) {
   return { newShape, keptDims };
 }
 function getTypedArrayFromDType(dtype, size) {
-  let values = null;
-  if (dtype == null || dtype === "float32") {
-    values = new Float32Array(size);
-  } else if (dtype === "int32") {
-    values = new Int32Array(size);
-  } else if (dtype === "bool") {
-    values = new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type ${dtype}`);
-  }
-  return values;
+  return getArrayFromDType(dtype, size);
 }
 function getArrayFromDType(dtype, size) {
   let values = null;
@@ -1946,9 +1961,6 @@ function hasEncodingLoss(oldType, newType) {
     return false;
   }
   return true;
-}
-function isTypedArray(a) {
-  return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
 function bytesPerElement(dtype) {
   if (dtype === "float32" || dtype === "int32") {
@@ -2048,6 +2060,20 @@ function toNestedArray(shape, a, isComplex = false) {
   }
   return createNestedArray(0, shape, a, isComplex);
 }
+function convertBackendValuesAndArrayBuffer(data, dtype) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === "float32") {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === "int32") {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === "bool" || dtype === "string") {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
 function makeOnesTypedArray(size, dtype) {
   const array = makeZerosTypedArray(size, dtype);
   for (let i = 0; i < array.length; i++) {
@@ -2119,6 +2145,7 @@ function isPromise(object) {
 // src/tfjs-core/src/environment.ts
 var TENSORFLOWJS_FLAGS_PREFIX = "tfjsflags";
 var Environment = class {
+  // tslint:disable-next-line: no-any
   constructor(global2) {
     this.global = global2;
     this.populateURLFlags();
@@ -2128,6 +2155,7 @@ var Environment = class {
   urlFlags = {};
   platformName;
   platform;
+  // Jasmine spies on this in 'environment_test.ts'
   getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
@@ -2181,6 +2209,7 @@ var Environment = class {
   getFlags() {
     return this.flags;
   }
+  // For backwards compatibility.
   get features() {
     return this.flags;
   }
@@ -2410,6 +2439,7 @@ var Reverse = "Reverse";
 var Round = "Round";
 var Rsqrt = "Rsqrt";
 var ScatterNd = "ScatterNd";
+var TensorScatterUpdate = "TensorScatterUpdate";
 var SearchSorted = "SearchSorted";
 var Select = "Select";
 var Selu = "Selu";
@@ -2430,6 +2460,7 @@ var SparseSegmentMean = "SparseSegmentMean";
 var SparseSegmentSum = "SparseSegmentSum";
 var SparseToDense = "SparseToDense";
 var SquaredDifference = "SquaredDifference";
+var StaticRegexReplace = "StaticRegexReplace";
 var StridedSlice = "StridedSlice";
 var StringNGrams = "StringNGrams";
 var StringSplit = "StringSplit";
@@ -2502,6 +2533,7 @@ __export(util_exports, {
   checkConversionForErrors: () => checkConversionForErrors,
   clamp: () => clamp,
   computeStrides: () => computeStrides,
+  convertBackendValuesAndArrayBuffer: () => convertBackendValuesAndArrayBuffer,
   createScalarValue: () => createScalarValue,
   createShuffledIndices: () => createShuffledIndices,
   decodeString: () => decodeString,
@@ -2551,7 +2583,10 @@ __export(util_exports, {
 
 // src/tfjs-core/src/hash_util.ts
 var LongExports = __toESM(require_long());
-var Long = LongExports.default || LongExports;
+var Long = (
+  // tslint:disable-next-line
+  LongExports.default || LongExports
+);
 function hexToLong(hex) {
   return Long.fromString(hex, true, 16);
 }
@@ -2768,6 +2803,32 @@ function encodeString(s, encoding = "utf-8") {
 function decodeString(bytes, encoding = "utf-8") {
   encoding = encoding || "utf-8";
   return env().platform.decode(bytes, encoding);
+}
+function isTypedArray(a) {
+  return env().platform.isTypedArray(a);
+}
+function flatten(arr, result = [], skipTypedArray = false) {
+  if (result == null) {
+    result = [];
+  }
+  if (typeof arr === "boolean" || typeof arr === "number" || typeof arr === "string" || isPromise(arr) || arr == null || isTypedArray(arr) && skipTypedArray) {
+    result.push(arr);
+  } else if (Array.isArray(arr) || isTypedArray(arr)) {
+    for (let i = 0; i < arr.length; ++i) {
+      flatten(arr[i], result, skipTypedArray);
+    }
+  } else {
+    let maxIndex = -1;
+    for (const key of Object.keys(arr)) {
+      if (/^([1-9]+[0-9]*|0)$/.test(key)) {
+        maxIndex = Math.max(maxIndex, Number(key));
+      }
+    }
+    for (let i = 0; i <= maxIndex; i++) {
+      flatten(arr[i], result, skipTypedArray);
+    }
+  }
+  return result;
 }
 
 // src/tfjs-core/src/profiler.ts
@@ -3091,6 +3152,7 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         false
+        /* isLast */
       ));
     }
     lines.push("...");
@@ -3104,6 +3166,7 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         i === size - 1
+        /* isLast */
       ));
     }
   } else {
@@ -3117,11 +3180,12 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         i === size - 1
+        /* isLast */
       ));
     }
   }
   const sep = rank === 2 ? "," : "";
-  lines[0] = "[" + lines[0] + sep;
+  lines[0] = "[" + (size > 0 ? lines[0] + sep : "");
   for (let i = 1; i < lines.length - 1; i++) {
     lines[i] = " " + lines[i] + sep;
   }
@@ -3165,6 +3229,14 @@ var TensorBuffer = class {
   shape;
   strides;
   values;
+  /**
+   * Sets a value in the buffer at a given location.
+   *
+   * @param value The value to set.
+   * @param locs  The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   set(value, ...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -3176,6 +3248,13 @@ var TensorBuffer = class {
     const index = this.locToIndex(locs);
     this.values[index] = value;
   }
+  /**
+   * Returns the value in the buffer at the provided location.
+   *
+   * @param locs The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   get(...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -3223,6 +3302,11 @@ var TensorBuffer = class {
   get rank() {
     return this.shape.length;
   }
+  /**
+   * Creates an immutable `tf.Tensor` object from the buffer.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   toTensor() {
     return trackerFn().makeTensor(this.values, this.shape, this.dtype);
   }
@@ -3240,14 +3324,30 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
+  /** Unique id of this tensor. */
   id;
+  /**
+   * Id of the bucket holding the data for this tensor. Multiple arrays can
+   * point to the same bucket (e.g. when calling array.reshape()).
+   */
   dataId;
+  /** The shape of the tensor. */
   shape;
+  /** Number of elements in the tensor. */
   size;
+  /** The data type for the array. */
   dtype;
+  /** The rank type for the array (see `Rank` enum). */
   rankType;
+  /** Whether this tensor has been globally kept. */
   kept = false;
+  /** The id of the scope this tensor is being tracked in. */
   scopeId;
+  /**
+   * Number of elements to skip in each dimension when indexing. See
+   * https://docs.scipy.org/doc/numpy/reference/generated/\
+   * numpy.ndarray.strides.html
+   */
   strides;
   constructor(shape, dtype, dataId, id) {
     this.shape = shape.slice();
@@ -3261,17 +3361,38 @@ var Tensor = class {
   get rank() {
     return this.shape.length;
   }
+  /**
+   * Returns a promise of `tf.TensorBuffer` that holds the underlying data.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async buffer() {
     const vals = await this.data();
     return opHandler.buffer(this.shape, this.dtype, vals);
   }
+  /**
+   * Returns a `tf.TensorBuffer` that holds the underlying data.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   bufferSync() {
     return opHandler.buffer(this.shape, this.dtype, this.dataSync());
   }
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * asynchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async array() {
     const vals = await this.data();
     return toNestedArray(this.shape, vals, this.dtype === "complex64");
   }
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * synchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   arraySync() {
     return toNestedArray(
       this.shape,
@@ -3279,6 +3400,12 @@ var Tensor = class {
       this.dtype === "complex64"
     );
   }
+  /**
+   * Asynchronously downloads the values from the `tf.Tensor`. Returns a
+   * promise of `TypedArray` that resolves when the computation has finished.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async data() {
     this.throwIfDisposed();
     const data = trackerFn().read(this.dataId);
@@ -3294,10 +3421,52 @@ var Tensor = class {
     }
     return data;
   }
+  /**
+   * Copy the tensor's data to a new GPU resource. Comparing to the `dataSync()`
+   * and `data()`, this method prevents data from being downloaded to CPU.
+   *
+   * For WebGL backend, the data will be stored on a densely packed texture.
+   * This means that the texture will use the RGBA channels to store value.
+   *
+   * For WebGPU backend, the data will be stored on a buffer. There is no
+   * parameter, so can not use a user-defined size to create the buffer.
+   *
+   * @param options:
+   *     For WebGL,
+   *         - customTexShape: Optional. If set, will use the user defined
+   *     texture shape to create the texture.
+   *
+   * @returns For WebGL backend, a GPUData contains the new texture and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this texture,
+   *        texture: WebGLTexture,
+   *        texShape: [number, number] // [height, width]
+   *     }
+   *
+   *     For WebGPU backend, a GPUData contains the new buffer and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this buffer,
+   *        buffer: GPUBuffer,
+   *        bufSize: number
+   *     }
+   *
+   *     Remember to dispose the GPUData after it is used by
+   *     `res.tensorRef.dispose()`.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dataToGPU(options) {
     this.throwIfDisposed();
     return trackerFn().readToGPU(this.dataId, options);
   }
+  /**
+   * Synchronously downloads the values from the `tf.Tensor`. This blocks the
+   * UI thread until the values are ready, which can cause performance issues.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dataSync() {
     this.throwIfDisposed();
     const data = trackerFn().readSync(this.dataId);
@@ -3312,6 +3481,7 @@ var Tensor = class {
     }
     return data;
   }
+  /** Returns the underlying bytes of the tensor's data. */
   async bytes() {
     this.throwIfDisposed();
     const data = await trackerFn().read(this.dataId);
@@ -3321,6 +3491,11 @@ var Tensor = class {
       return new Uint8Array(data.buffer);
     }
   }
+  /**
+   * Disposes `tf.Tensor` from memory.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dispose() {
     if (this.isDisposed) {
       return;
@@ -3337,13 +3512,30 @@ var Tensor = class {
       throw new Error(`Tensor is disposed.`);
     }
   }
+  /**
+   * Prints the `tf.Tensor`. See `tf.print` for details.
+   *
+   * @param verbose Whether to print verbose information about the tensor,
+   *    including dtype and size.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   print(verbose = false) {
     return opHandler.print(this, verbose);
   }
+  /**
+   * Returns a copy of the tensor. See `tf.clone` for details.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   clone() {
     this.throwIfDisposed();
     return opHandler.clone(this);
   }
+  /**
+   * Returns a human-readable description of the tensor. Useful for logging.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   toString(verbose = false) {
     const vals = this.dataSync();
     return tensorToString(vals, this.shape, this.dtype, verbose);
@@ -3380,6 +3572,14 @@ var Variable = class extends Tensor {
     this.name = name;
   }
   name;
+  /**
+   * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
+   * the same shape and dtype as the old `tf.Tensor`.
+   *
+   * @param newValue New tensor to be assigned to this variable.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   assign(newValue) {
     if (newValue.dtype !== this.dtype) {
       throw new Error(
@@ -3393,7 +3593,11 @@ var Variable = class extends Tensor {
     }
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    trackerFn().incRef(this, null);
+    trackerFn().incRef(
+      this,
+      null
+      /* backend */
+    );
   }
   dispose() {
     trackerFn().disposeVariable(this);
@@ -3450,6 +3654,12 @@ function upcastType(typeA, typeB) {
   }
   return upcastTypeMap[typeA][typeB];
 }
+function isWebGLData(values) {
+  return values != null && typeof values === "object" && "texture" in values && values.texture instanceof WebGLTexture;
+}
+function isWebGPUData(values) {
+  return typeof GPUBuffer !== "undefined" && values != null && typeof values === "object" && "buffer" in values && values.buffer instanceof GPUBuffer;
+}
 
 // src/tfjs-core/src/tensor_util.ts
 function makeTypesMatch(a, b) {
@@ -3500,6 +3710,7 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
+  // Public since optimizers will use it.
   registeredVariables = {};
   nextTapeNodeId = 0;
   numBytes = 0;
@@ -3507,10 +3718,20 @@ var EngineState = class {
   numStringTensors = 0;
   numDataBuffers = 0;
   activeTape;
+  // Number of nested tf.grad() statements when computing higher-order
+  // gradients. E.g. `1` for first-order gradients and `2` for second-order
+  // gradients. Used to track if the tape should be removed after a backprop.
   gradientDepth = 0;
+  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+  // off the tape.
   kernelDepth = 0;
+  // Keep Tensors that parallel the tapes.
   activeScope;
   scopeStack = [];
+  /**
+   * Keeps track of the number of data moves during a kernel execution. We
+   * maintain a stack since kernels can call other kernels, recursively.
+   */
   numDataMovesStack = [];
   nextScopeId = 0;
   tensorInfo = /* @__PURE__ */ new WeakMap();
@@ -3648,6 +3869,12 @@ var _Engine = class {
       }
     });
   }
+  /**
+   * Initializes a backend by looking up the backend name in the factory
+   * registry and calling the factory method. Returns a boolean representing
+   * whether the initialization of the backend suceeded. Throws an error if
+   * there is no backend in the factory registry.
+   */
   initializeBackend(backendName) {
     const registryFactoryEntry = this.registryFactory[backendName];
     if (registryFactoryEntry == null) {
@@ -3789,8 +4016,17 @@ var _Engine = class {
   nextVariableId() {
     return _Engine.nextVariableId++;
   }
+  /**
+   * This method is called instead of the public-facing tensor.clone() when
+   * saving a tensor for backwards pass. It makes sure to add the clone
+   * operation to the tape regardless of being called inside a kernel
+   * execution.
+   */
   clone(x) {
-    const y = ENGINE.runKernel(Identity, { x });
+    const y = ENGINE.runKernel(
+      Identity,
+      { x }
+    );
     const inputs = { x };
     const grad2 = (dy) => ({
       x: () => {
@@ -3800,6 +4036,7 @@ var _Engine = class {
         return ENGINE.runKernel(
           Cast,
           gradInputs,
+          // tslint:disable-next-line: no-unnecessary-type-assertion
           attrs
         );
       }
@@ -3808,6 +4045,19 @@ var _Engine = class {
     this.addTapeNode(this.state.activeScope.name, inputs, [y], grad2, saved, {});
     return y;
   }
+  /**
+   * Execute a kernel with the given name and return the output tensor.
+   *
+   * @param kernelName The name of the kernel to execute.
+   * @param inputs A map of input names to tensors.
+   * @param attrs A map of attribute names to their values. An attribute is a
+   *     primitive (non-tensor) input to the kernel.
+   * @param inputsToSave A list of tensors, inputs to save for the backprop
+   *     computation.
+   * @param outputsToSave A list of booleans, specifying which output to save
+   *     for the backprop computation. These are booleans since the output
+   * tensors are not visible to the user.
+   */
   runKernel(kernelName, inputs, attrs) {
     if (this.backendName == null) {
       this.backend;
@@ -3835,6 +4085,11 @@ var _Engine = class {
       );
     }
   }
+  /**
+   * Internal helper method to execute a kernel Func
+   *
+   * Use `runKernel` to execute kernels from outside of engine.
+   */
   runKernelFunc(kernelParams) {
     let outputs;
     let saved = [];
@@ -3901,6 +4156,7 @@ var _Engine = class {
     const backwardsFunc = isRegisteredKernelInvocation(kernelParams) ? null : kernelParams.backwardsFunc;
     let kernelProfile;
     this.scopedRun(
+      // Stop recording to a tape when running a kernel.
       () => this.state.kernelDepth++,
       () => this.state.kernelDepth--,
       () => {
@@ -3946,10 +4202,22 @@ var _Engine = class {
     }
     return Array.isArray(out) ? outputs : outputs[0];
   }
+  /**
+   * Saves tensors used in forward mode for use in backward mode.
+   *
+   * @param tensors the list of tensors to save.
+   */
   saveTensorsForBackwardMode(tensors) {
     const saved = tensors.map((tensor2) => this.keep(this.clone(tensor2)));
     return saved;
   }
+  /**
+   * Returns a list of tensors to save for a given gradient calculation.
+   *
+   * @param kernelName name of kernel to look up gradient for.
+   * @param inputs a map of input tensors.
+   * @param outputs an array of output tensors from forward mode of kernel.
+   */
   getTensorsForGradient(kernelName, inputs, outputs) {
     const gradConfig = getGradient(kernelName);
     if (gradConfig != null) {
@@ -3970,6 +4238,11 @@ var _Engine = class {
     }
     return [];
   }
+  /**
+   * Internal method used by public APIs for tensor creation. Makes a new
+   * tensor with the provided shape, dtype and values. It always
+   * creates a new data id and writes the values to the underlying backend.
+   */
   makeTensor(values, shape, dtype, backend) {
     if (values == null) {
       throw new Error("Values passed to engine.makeTensor() are null");
@@ -3991,11 +4264,22 @@ var _Engine = class {
     }
     return t;
   }
+  /**
+   * Internal method used by backends. Makes a new tensor
+   * that is a wrapper around an existing data id. It doesn't create
+   * a new data id, only increments the ref count used in memory tracking.
+   * @deprecated
+   */
   makeTensorFromDataId(dataId, shape, dtype, backend) {
     dtype = dtype || "float32";
     const tensorInfo = { dataId, shape, dtype };
     return this.makeTensorFromTensorInfo(tensorInfo, backend);
   }
+  /**
+   * Internal method used by backends. Makes a new tensor that is a wrapper
+   * around an existing data id in TensorInfo. It doesn't create a new data id,
+   * only increments the ref count used in memory tracking.
+   */
   makeTensorFromTensorInfo(tensorInfo, backend) {
     const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
@@ -4038,6 +4322,11 @@ var _Engine = class {
       this.track(a);
     }
   }
+  // Track the tensor by dataId and increase the refCount for the dataId in the
+  // backend.
+  // TODO(pyu10055): This is currently used by makeVariable method, to increase
+  // refCount on the backend for the dataId. It can potentially be replaced with
+  // Identity op indead of calling backend directly.
   incRef(a, backend) {
     this.trackTensor(a, backend);
     this.backend.incRef(a.dataId);
@@ -4149,6 +4438,10 @@ var _Engine = class {
   endTape() {
     this.state.gradientDepth--;
   }
+  /**
+   * Start a scope. Use this with endScope() to achieve the same functionality
+   * as scope() without the need for a function closure.
+   */
   startScope(name) {
     const scopeInfo = {
       track: [],
@@ -4161,6 +4454,10 @@ var _Engine = class {
     this.state.scopeStack.push(scopeInfo);
     this.state.activeScope = scopeInfo;
   }
+  /**
+   * End a scope. Use this with startScope() to achieve the same functionality
+   * as scope() without the need for a function closure.
+   */
   endScope(result) {
     const tensorsToTrackInParent = getTensorsInContainer(result);
     const tensorsToTrackInParentSet = new Set(tensorsToTrackInParent.map((t) => t.id));
@@ -4178,6 +4475,12 @@ var _Engine = class {
       }
     });
   }
+  /**
+   * Returns gradients of `f` with respect to each of the `xs`. The gradients
+   * returned are of the same length as `xs`, but some might be null if `f`
+   * was not a function of that `x`. It also takes optional dy to multiply the
+   * gradient, which defaults to `1`.
+   */
   gradients(f, xs, dy, allowNoGradients = false) {
     assert(
       xs.length > 0,
@@ -4207,7 +4510,9 @@ var _Engine = class {
       backpropagateGradients(
         accumulatedGradientMap,
         filteredTape,
+        // Pass the tidy function to avoid circular dep with `tape.ts`.
         (f2) => this.tidy(f2),
+        // Pass an add function to avoide a circular dep with `tape.ts`.
         add
       );
       const grads2 = xs.map((x) => accumulatedGradientMap[x.id]);
@@ -4291,6 +4596,12 @@ var _Engine = class {
     timingInfo.wallMs = now() - start;
     return timingInfo;
   }
+  /**
+   * Tracks a Tensor in the current scope to be automatically cleaned up
+   * when the current scope ends, and returns the value.
+   *
+   * @param result The Tensor to track in the current scope.
+   */
   track(result) {
     if (this.state.activeScope != null) {
       result.scopeId = this.state.activeScope.id;
@@ -4301,6 +4612,10 @@ var _Engine = class {
   get registeredVariables() {
     return this.state.registeredVariables;
   }
+  /**
+   * Resets the engine state. Removes all backends but does not remove
+   * registered backend factories.
+   */
   reset() {
     this.pendingBackendInitId++;
     this.state.dispose();
@@ -4341,7 +4656,8 @@ function add(a, b) {
 
 // src/tfjs-core/src/device_util.ts
 function isBrowser() {
-  return typeof window !== "undefined" && window.document != null || typeof WorkerGlobalScope !== "undefined";
+  return typeof window !== "undefined" && window.document != null || //@ts-ignore
+  typeof WorkerGlobalScope !== "undefined";
 }
 
 // src/tfjs-core/src/flags.ts
@@ -4362,6 +4678,10 @@ ENV2.registerFlag(
   "IS_CHROME",
   () => typeof navigator !== "undefined" && navigator != null && navigator.userAgent != null && /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
 );
+ENV2.registerFlag(
+  "IS_SAFARI",
+  () => typeof navigator !== "undefined" && navigator != null && navigator.userAgent != null && /Safari/.test(navigator.userAgent) && /Apple/.test(navigator.vendor)
+);
 ENV2.registerFlag("PROD", () => false);
 ENV2.registerFlag(
   "TENSORLIKE_CHECK_SHAPE_CONSISTENCY",
@@ -4369,7 +4689,7 @@ ENV2.registerFlag(
 );
 ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
-ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
+ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => ENV2.getBool("DEBUG"));
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 ENV2.registerFlag("USE_SETTIMEOUTCUSTOM", () => false);
@@ -4380,9 +4700,11 @@ function inferShape(val, dtype) {
   if (isTypedArray(val)) {
     return dtype === "string" ? [] : [val.length];
   }
-  if (typeof val === "object" && "texture" in val) {
+  if (isWebGLData(val)) {
     const usedChannels = val.channels || "RGBA";
     return [val.height, val.width * usedChannels.length];
+  } else if (isWebGPUData(val)) {
+    return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
   }
   if (!Array.isArray(val)) {
     return [];
@@ -4519,20 +4841,18 @@ var complex = op({ complex_ });
 function makeTensor(values, shape, inferredShape, dtype) {
   if (dtype == null) {
     dtype = inferDtype(values);
-  }
-  if (dtype === "complex64") {
+  } else if (dtype === "complex64") {
     throw new Error(
       `Cannot construct a complex64 tensor directly. Please use tf.complex(real, imag).`
     );
   }
-  if (typeof values === "object" && "texture" in values) {
+  if (isWebGPUData(values) || isWebGLData(values)) {
     if (dtype !== "float32" && dtype !== "int32") {
       throw new Error(
-        `Creating tensor from texture only supports 'float32'|'int32' dtype, while the dtype is ${dtype}.`
+        `Creating tensor from GPU data only supports 'float32'|'int32' dtype, while the dtype is ${dtype}.`
       );
     }
-    values.channels = values.channels || "RGBA";
-    return ENGINE.backend.createTensorFromTexture(
+    return ENGINE.backend.createTensorFromGPUData(
       values,
       shape || inferredShape,
       dtype
@@ -4973,15 +5293,43 @@ var _IORouterRegistry = class {
     }
     return _IORouterRegistry.instance;
   }
+  /**
+   * Register a save-handler router.
+   *
+   * @param saveRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `save` method defined or `null`.
+   */
   static registerSaveRouter(saveRouter) {
     _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
+  /**
+   * Register a load-handler router.
+   *
+   * @param loadRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `load` method defined or `null`.
+   */
   static registerLoadRouter(loadRouter) {
     _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
+  /**
+   * Look up IOHandler for saving, given a URL-like string.
+   *
+   * @param url
+   * @returns If only one match is found, an instance of IOHandler with the
+   * `save` method defined. If no match is found, `null`.
+   * @throws Error, if more than one match is found.
+   */
   static getSaveHandlers(url) {
     return _IORouterRegistry.getHandlers(url, "save");
   }
+  /**
+   * Look up IOHandler for loading, given a URL-like string.
+   *
+   * @param url
+   * @param loadOptions Optional, custom load options.
+   * @returns All valid handlers for `url`, given the currently registered
+   *   handler routers.
+   */
   static getLoadHandlers(url, loadOptions) {
     return _IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
@@ -4998,6 +5346,7 @@ var _IORouterRegistry = class {
   }
 };
 var IORouterRegistry = _IORouterRegistry;
+// Singleton instance.
 __publicField(IORouterRegistry, "instance");
 var registerSaveRouter = (loudRouter) => IORouterRegistry.registerSaveRouter(loudRouter);
 var registerLoadRouter = (loudRouter) => IORouterRegistry.registerLoadRouter(loudRouter);
@@ -5052,6 +5401,20 @@ var BrowserIndexedDB = class {
   async load() {
     return this.databaseAction(this.modelPath);
   }
+  /**
+   * Perform database action to put model artifacts into or read model artifacts
+   * from IndexedDB object store.
+   *
+   * Whether the action is put or get depends on whether `modelArtifacts` is
+   * specified. If it is specified, the action will be put; otherwise the action
+   * will be get.
+   *
+   * @param modelPath A unique string path for the model.
+   * @param modelArtifacts If specified, it will be the model artifacts to be
+   *   stored in IndexedDB.
+   * @returns A `Promise` of `SaveResult`, if the action is put, or a `Promise`
+   *   of `ModelArtifacts`, if the action is get.
+   */
   databaseAction(modelPath, modelArtifacts) {
     return new Promise((resolve, reject) => {
       const openRequest = this.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
@@ -5081,16 +5444,26 @@ var BrowserIndexedDB = class {
           const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
           const infoTx = db.transaction(INFO_STORE_NAME, "readwrite");
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
-          const putInfoRequest = infoStore.put({ modelPath: this.modelPath, modelArtifactsInfo });
+          let putInfoRequest;
+          try {
+            putInfoRequest = infoStore.put({ modelPath: this.modelPath, modelArtifactsInfo });
+          } catch (error) {
+            return reject(error);
+          }
           let modelTx;
           putInfoRequest.onsuccess = () => {
             modelTx = db.transaction(MODEL_STORE_NAME, "readwrite");
             const modelStore = modelTx.objectStore(MODEL_STORE_NAME);
-            const putModelRequest = modelStore.put({
-              modelPath: this.modelPath,
-              modelArtifacts,
-              modelArtifactsInfo
-            });
+            let putModelRequest;
+            try {
+              putModelRequest = modelStore.put({
+                modelPath: this.modelPath,
+                modelArtifacts,
+                modelArtifactsInfo
+              });
+            } catch (error) {
+              return reject(error);
+            }
             putModelRequest.onsuccess = () => resolve({ modelArtifactsInfo });
             putModelRequest.onerror = (error) => {
               infoStore = infoTx.objectStore(INFO_STORE_NAME);
@@ -5276,6 +5649,15 @@ var BrowserLocalStorage = class {
     this.modelPath = modelPath;
     this.keys = getModelKeys(this.modelPath);
   }
+  /**
+   * Save model artifacts to browser local storage.
+   *
+   * See the documentation to `browserLocalStorage` for details on the saved
+   * artifacts.
+   *
+   * @param modelArtifacts The model artifacts to be stored.
+   * @returns An instance of SaveResult.
+   */
   async save(modelArtifacts) {
     if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
       throw new Error(
@@ -5313,6 +5695,14 @@ var BrowserLocalStorage = class {
       }
     }
   }
+  /**
+   * Load a model from local storage.
+   *
+   * See the documentation to `browserLocalStorage` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model (if loading succeeds).
+   */
   async load() {
     const info = JSON.parse(this.LS.getItem(this.keys.info));
     if (info == null) {
@@ -5442,6 +5832,12 @@ var _ModelStoreManagerRegistry = class {
     }
     return _ModelStoreManagerRegistry.instance;
   }
+  /**
+   * Register a save-handler router.
+   *
+   * @param saveRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `save` method defined or `null`.
+   */
   static registerManager(scheme, manager) {
     assert(scheme != null, () => "scheme must not be undefined or null.");
     if (scheme.endsWith(URL_SCHEME_SUFFIX)) {
@@ -5467,6 +5863,7 @@ var _ModelStoreManagerRegistry = class {
   }
 };
 var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
+// Singleton instance.
 __publicField(ModelStoreManagerRegistry, "instance");
 function parseURL(url) {
   if (url.indexOf(URL_SCHEME_SUFFIX) === -1) {
@@ -5545,7 +5942,10 @@ async function moveModel(sourceURL, destURL) {
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
+  // According to the spec, the built-in encoder can do only UTF-8 encoding.
+  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
   textEncoder;
+  // For setTimeoutCustom
   messageName = "setTimeoutCustom";
   functionRefs = [];
   handledMessageCount = 0;
@@ -5570,6 +5970,10 @@ var PlatformBrowser = class {
   decode(bytes, encoding) {
     return new TextDecoder(encoding).decode(bytes);
   }
+  // If the setTimeout nesting level is greater than 5 and timeout is less
+  // than 4ms, timeout will be clamped to 4ms, which hurts the perf.
+  // Interleaving window.postMessage and setTimeout will trick the browser and
+  // avoid the clamp.
   setTimeoutCustom(functionRef, delay) {
     if (typeof window === "undefined" || !env().getBool("USE_SETTIMEOUTCUSTOM")) {
       setTimeout(functionRef, delay);
@@ -5598,6 +6002,9 @@ var PlatformBrowser = class {
       }, true);
     }
   }
+  isTypedArray(a) {
+    return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+  }
 };
 if (env().get("IS_BROWSER")) {
   env().setPlatform("browser", new PlatformBrowser());
@@ -5619,11 +6026,13 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
+  // tslint:disable-next-line:no-require-imports
   importFetch: () => require_browser()
 };
 var systemFetch;
 var PlatformNode = class {
   textEncoder;
+  // tslint:disable-next-line:no-any
   util;
   constructor() {
     this.util = require_util();
@@ -5655,6 +6064,9 @@ var PlatformNode = class {
       return "";
     }
     return new this.util.TextDecoder(encoding).decode(bytes);
+  }
+  isTypedArray(a) {
+    return this.util.types.isFloat32Array(a) || this.util.types.isInt32Array(a) || this.util.types.isUint8Array(a) || this.util.types.isUint8ClampedArray(a);
   }
 };
 if (env().get("IS_NODE") && !env().get("IS_BROWSER")) {
@@ -5710,654 +6122,6 @@ var opHandler2 = {
 };
 setOpHandler(opHandler2);
 
-// src/tfjs-core/src/io/io.ts
-var io_exports = {};
-__export(io_exports, {
-  browserFiles: () => browserFiles,
-  browserHTTPRequest: () => browserHTTPRequest,
-  concatenateArrayBuffers: () => concatenateArrayBuffers,
-  copyModel: () => copyModel,
-  decodeWeights: () => decodeWeights,
-  encodeWeights: () => encodeWeights,
-  fromMemory: () => fromMemory,
-  fromMemorySync: () => fromMemorySync,
-  getLoadHandlers: () => getLoadHandlers,
-  getModelArtifactsForJSON: () => getModelArtifactsForJSON,
-  getModelArtifactsForJSONSync: () => getModelArtifactsForJSONSync,
-  getModelArtifactsInfoForJSON: () => getModelArtifactsInfoForJSON,
-  getSaveHandlers: () => getSaveHandlers,
-  getWeightSpecs: () => getWeightSpecs,
-  http: () => http,
-  isHTTPScheme: () => isHTTPScheme,
-  listModels: () => listModels,
-  loadWeights: () => loadWeights,
-  moveModel: () => moveModel,
-  registerLoadRouter: () => registerLoadRouter,
-  registerSaveRouter: () => registerSaveRouter,
-  removeModel: () => removeModel,
-  weightsLoaderFactory: () => weightsLoaderFactory,
-  withSaveHandler: () => withSaveHandler,
-  withSaveHandlerSync: () => withSaveHandlerSync
-});
-
-// src/tfjs-core/src/io/browser_files.ts
-var DEFAULT_FILE_NAME_PREFIX = "model";
-var DEFAULT_JSON_EXTENSION_NAME = ".json";
-var DEFAULT_WEIGHT_DATA_EXTENSION_NAME = ".weights.bin";
-function defer(f) {
-  return new Promise((resolve) => setTimeout(resolve)).then(f);
-}
-var _BrowserDownloads = class {
-  modelJsonFileName;
-  weightDataFileName;
-  modelJsonAnchor;
-  weightDataAnchor;
-  constructor(fileNamePrefix) {
-    if (!env().getBool("IS_BROWSER")) {
-      throw new Error(
-        "browserDownloads() cannot proceed because the current environment is not a browser."
-      );
-    }
-    if (fileNamePrefix.startsWith(_BrowserDownloads.URL_SCHEME)) {
-      fileNamePrefix = fileNamePrefix.slice(_BrowserDownloads.URL_SCHEME.length);
-    }
-    if (fileNamePrefix == null || fileNamePrefix.length === 0) {
-      fileNamePrefix = DEFAULT_FILE_NAME_PREFIX;
-    }
-    this.modelJsonFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
-    this.weightDataFileName = fileNamePrefix + DEFAULT_WEIGHT_DATA_EXTENSION_NAME;
-  }
-  async save(modelArtifacts) {
-    if (typeof document === "undefined") {
-      throw new Error(
-        "Browser downloads are not supported in this environment since `document` is not present"
-      );
-    }
-    const weightsURL = window.URL.createObjectURL(new Blob(
-      [modelArtifacts.weightData],
-      { type: "application/octet-stream" }
-    ));
-    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
-      throw new Error(
-        "BrowserDownloads.save() does not support saving model topology in binary formats yet."
-      );
-    } else {
-      const weightsManifest = [{
-        paths: ["./" + this.weightDataFileName],
-        weights: modelArtifacts.weightSpecs
-      }];
-      const modelJSON = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
-      const modelJsonURL = window.URL.createObjectURL(
-        new Blob([JSON.stringify(modelJSON)], { type: "application/json" })
-      );
-      const jsonAnchor = this.modelJsonAnchor == null ? document.createElement("a") : this.modelJsonAnchor;
-      jsonAnchor.download = this.modelJsonFileName;
-      jsonAnchor.href = modelJsonURL;
-      await defer(() => jsonAnchor.dispatchEvent(new MouseEvent("click")));
-      if (modelArtifacts.weightData != null) {
-        const weightDataAnchor = this.weightDataAnchor == null ? document.createElement("a") : this.weightDataAnchor;
-        weightDataAnchor.download = this.weightDataFileName;
-        weightDataAnchor.href = weightsURL;
-        await defer(
-          () => weightDataAnchor.dispatchEvent(new MouseEvent("click"))
-        );
-      }
-      return { modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) };
-    }
-  }
-};
-var BrowserDownloads = _BrowserDownloads;
-__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
-var BrowserFiles = class {
-  jsonFile;
-  weightsFiles;
-  constructor(files) {
-    if (files == null || files.length < 1) {
-      throw new Error(
-        `When calling browserFiles, at least 1 file is required, but received ${files}`
-      );
-    }
-    this.jsonFile = files[0];
-    this.weightsFiles = files.slice(1);
-  }
-  async load() {
-    return new Promise((resolve, reject) => {
-      const jsonReader = new FileReader();
-      jsonReader.onload = (event) => {
-        const modelJSON = JSON.parse(event.target.result);
-        const modelTopology = modelJSON.modelTopology;
-        if (modelTopology == null) {
-          reject(new Error(`modelTopology field is missing from file ${this.jsonFile.name}`));
-          return;
-        }
-        const weightsManifest = modelJSON.weightsManifest;
-        if (weightsManifest == null) {
-          reject(new Error(`weightManifest field is missing from file ${this.jsonFile.name}`));
-          return;
-        }
-        if (this.weightsFiles.length === 0) {
-          resolve({ modelTopology });
-          return;
-        }
-        const modelArtifactsPromise = getModelArtifactsForJSON(
-          modelJSON,
-          (weightsManifest2) => this.loadWeights(weightsManifest2)
-        );
-        resolve(modelArtifactsPromise);
-      };
-      jsonReader.onerror = (error) => reject(
-        `Failed to read model topology and weights manifest JSON from file '${this.jsonFile.name}'. BrowserFiles supports loading Keras-style tf.Model artifacts only.`
-      );
-      jsonReader.readAsText(this.jsonFile);
-    });
-  }
-  loadWeights(weightsManifest) {
-    const weightSpecs = [];
-    const paths = [];
-    for (const entry of weightsManifest) {
-      weightSpecs.push(...entry.weights);
-      paths.push(...entry.paths);
-    }
-    const pathToFile = this.checkManifestAndWeightFiles(weightsManifest);
-    const promises = paths.map((path) => this.loadWeightsFile(path, pathToFile[path]));
-    return Promise.all(promises).then(
-      (buffers) => [weightSpecs, concatenateArrayBuffers(buffers)]
-    );
-  }
-  loadWeightsFile(path, file) {
-    return new Promise((resolve, reject) => {
-      const weightFileReader = new FileReader();
-      weightFileReader.onload = (event) => {
-        const weightData = event.target.result;
-        resolve(weightData);
-      };
-      weightFileReader.onerror = (error) => reject(`Failed to weights data from file of path '${path}'.`);
-      weightFileReader.readAsArrayBuffer(file);
-    });
-  }
-  checkManifestAndWeightFiles(manifest) {
-    const basenames = [];
-    const fileNames = this.weightsFiles.map((file) => basename(file.name));
-    const pathToFile = {};
-    for (const group of manifest) {
-      group.paths.forEach((path) => {
-        const pathBasename = basename(path);
-        if (basenames.indexOf(pathBasename) !== -1) {
-          throw new Error(
-            `Duplicate file basename found in weights manifest: '${pathBasename}'`
-          );
-        }
-        basenames.push(pathBasename);
-        if (fileNames.indexOf(pathBasename) === -1) {
-          throw new Error(
-            `Weight file with basename '${pathBasename}' is not provided.`
-          );
-        } else {
-          pathToFile[path] = this.weightsFiles[fileNames.indexOf(pathBasename)];
-        }
-      });
-    }
-    if (basenames.length !== this.weightsFiles.length) {
-      throw new Error(
-        `Mismatch in the number of files in weights manifest (${basenames.length}) and the number of weight files provided (${this.weightsFiles.length}).`
-      );
-    }
-    return pathToFile;
-  }
-};
-var browserDownloadsRouter = (url) => {
-  if (!env().getBool("IS_BROWSER")) {
-    return null;
-  } else {
-    if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {
-      return browserDownloads(url.slice(BrowserDownloads.URL_SCHEME.length));
-    } else {
-      return null;
-    }
-  }
-};
-IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
-function browserDownloads(fileNamePrefix = "model") {
-  return new BrowserDownloads(fileNamePrefix);
-}
-function browserFiles(files) {
-  return new BrowserFiles(files);
-}
-
-// src/tfjs-core/src/io/progress.ts
-function monitorPromisesProgress(promises, onProgress, startFraction, endFraction) {
-  checkPromises(promises);
-  startFraction = startFraction == null ? 0 : startFraction;
-  endFraction = endFraction == null ? 1 : endFraction;
-  checkFraction(startFraction, endFraction);
-  let resolvedPromise = 0;
-  const registerMonitor = (promise) => {
-    promise.then((value) => {
-      const fraction = startFraction + ++resolvedPromise / promises.length * (endFraction - startFraction);
-      onProgress(fraction);
-      return value;
-    });
-    return promise;
-  };
-  function checkPromises(promises2) {
-    assert(
-      promises2 != null && Array.isArray(promises2) && promises2.length > 0,
-      () => "promises must be a none empty array"
-    );
-  }
-  function checkFraction(startFraction2, endFraction2) {
-    assert(
-      startFraction2 >= 0 && startFraction2 <= 1,
-      () => `Progress fraction must be in range [0, 1], but got startFraction ${startFraction2}`
-    );
-    assert(
-      endFraction2 >= 0 && endFraction2 <= 1,
-      () => `Progress fraction must be in range [0, 1], but got endFraction ${endFraction2}`
-    );
-    assert(
-      endFraction2 >= startFraction2,
-      () => `startFraction must be no more than endFraction, but got startFraction ${startFraction2} and endFraction ${endFraction2}`
-    );
-  }
-  return Promise.all(promises.map(registerMonitor));
-}
-
-// src/tfjs-core/src/io/weights_loader.ts
-async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
-  if (loadOptions == null) {
-    loadOptions = {};
-  }
-  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch : loadOptions.fetchFunc;
-  const requests = fetchURLs.map(
-    (fetchURL) => fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true })
-  );
-  const fetchStartFraction = 0;
-  const fetchEndFraction = 0.5;
-  const responses = loadOptions.onProgress == null ? await Promise.all(requests) : await monitorPromisesProgress(
-    requests,
-    loadOptions.onProgress,
-    fetchStartFraction,
-    fetchEndFraction
-  );
-  const bufferPromises = responses.map((response) => response.arrayBuffer());
-  const bufferStartFraction = 0.5;
-  const bufferEndFraction = 1;
-  const buffers = loadOptions.onProgress == null ? await Promise.all(bufferPromises) : await monitorPromisesProgress(
-    bufferPromises,
-    loadOptions.onProgress,
-    bufferStartFraction,
-    bufferEndFraction
-  );
-  return buffers;
-}
-async function loadWeights(manifest, filePathPrefix = "", weightNames, requestInit) {
-  const fetchWeights = (fetchUrls) => loadWeightsAsArrayBuffer(fetchUrls, { requestInit });
-  const loadWeights2 = weightsLoaderFactory(fetchWeights);
-  return loadWeights2(manifest, filePathPrefix, weightNames);
-}
-function weightsLoaderFactory(fetchWeightsFunction) {
-  return async (manifest, filePathPrefix = "", weightNames) => {
-    const groupIndicesToFetchMap = manifest.map(() => false);
-    const groupWeightsToFetch = {};
-    const weightsFound = weightNames != null ? weightNames.map(() => false) : [];
-    const allManifestWeightNames = [];
-    manifest.forEach((manifestGroupConfig, groupIndex) => {
-      let groupOffset = 0;
-      manifestGroupConfig.weights.forEach((weightsEntry) => {
-        const rawDtype = "quantization" in weightsEntry ? weightsEntry.quantization.dtype : weightsEntry.dtype;
-        const weightsBytes = DTYPE_VALUE_SIZE_MAP[rawDtype] * sizeFromShape(weightsEntry.shape);
-        const enqueueWeightsForFetchingFn = () => {
-          groupIndicesToFetchMap[groupIndex] = true;
-          if (groupWeightsToFetch[groupIndex] == null) {
-            groupWeightsToFetch[groupIndex] = [];
-          }
-          groupWeightsToFetch[groupIndex].push({
-            manifestEntry: weightsEntry,
-            groupOffset,
-            sizeBytes: weightsBytes
-          });
-        };
-        if (weightNames != null) {
-          weightNames.forEach((weightName, weightIndex) => {
-            if (weightName === weightsEntry.name) {
-              enqueueWeightsForFetchingFn();
-              weightsFound[weightIndex] = true;
-            }
-          });
-        } else {
-          enqueueWeightsForFetchingFn();
-        }
-        allManifestWeightNames.push(weightsEntry.name);
-        groupOffset += weightsBytes;
-      });
-    });
-    if (!weightsFound.every((found) => found)) {
-      const weightsNotFound = weightNames.filter((_, i) => !weightsFound[i]);
-      throw new Error(
-        `Could not find weights in manifest with names: ${weightsNotFound.join(", ")}. 
-Manifest JSON has weights with names: ${allManifestWeightNames.join(", ")}.`
-      );
-    }
-    const groupIndicesToFetch = groupIndicesToFetchMap.reduce((accumulator, shouldFetch, i) => {
-      if (shouldFetch) {
-        accumulator.push(i);
-      }
-      return accumulator;
-    }, []);
-    const fetchUrls = [];
-    groupIndicesToFetch.forEach((i) => {
-      manifest[i].paths.forEach((filepath) => {
-        const fetchUrl = filePathPrefix + (!filePathPrefix.endsWith("/") ? "/" : "") + filepath;
-        fetchUrls.push(fetchUrl);
-      });
-    });
-    const buffers = await fetchWeightsFunction(fetchUrls);
-    const weightsTensorMap = {};
-    let bufferIndexOffset = 0;
-    groupIndicesToFetch.forEach((i) => {
-      const numBuffers = manifest[i].paths.length;
-      let groupBytes = 0;
-      for (let i2 = 0; i2 < numBuffers; i2++) {
-        groupBytes += buffers[bufferIndexOffset + i2].byteLength;
-      }
-      const groupBuffer = new ArrayBuffer(groupBytes);
-      const groupByteBuffer = new Uint8Array(groupBuffer);
-      let groupBufferOffset = 0;
-      for (let i2 = 0; i2 < numBuffers; i2++) {
-        const buffer2 = new Uint8Array(buffers[bufferIndexOffset + i2]);
-        groupByteBuffer.set(buffer2, groupBufferOffset);
-        groupBufferOffset += buffer2.byteLength;
-      }
-      const weightsEntries = groupWeightsToFetch[i];
-      weightsEntries.forEach((weightsEntry) => {
-        const byteBuffer = groupBuffer.slice(
-          weightsEntry.groupOffset,
-          weightsEntry.groupOffset + weightsEntry.sizeBytes
-        );
-        const nameToTensorMap = decodeWeights(byteBuffer, [weightsEntry.manifestEntry]);
-        for (const name in nameToTensorMap) {
-          weightsTensorMap[name] = nameToTensorMap[name];
-        }
-      });
-      bufferIndexOffset += numBuffers;
-    });
-    return weightsTensorMap;
-  };
-}
-
-// src/tfjs-core/src/io/http.ts
-var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
-var JSON_TYPE = "application/json";
-var HTTPRequest = class {
-  path;
-  requestInit;
-  fetch;
-  weightUrlConverter;
-  DEFAULT_METHOD = "POST";
-  weightPathPrefix;
-  onProgress;
-  constructor(path, loadOptions) {
-    if (loadOptions == null) {
-      loadOptions = {};
-    }
-    this.weightPathPrefix = loadOptions.weightPathPrefix;
-    this.onProgress = loadOptions.onProgress;
-    this.weightUrlConverter = loadOptions.weightUrlConverter;
-    if (loadOptions.fetchFunc != null) {
-      assert(
-        typeof loadOptions.fetchFunc === "function",
-        () => "Must pass a function that matches the signature of `fetch` (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)"
-      );
-      this.fetch = loadOptions.fetchFunc;
-    } else {
-      this.fetch = env().platform.fetch;
-    }
-    assert(
-      path != null && path.length > 0,
-      () => "URL path for http must not be null, undefined or empty."
-    );
-    if (Array.isArray(path)) {
-      assert(
-        path.length === 2,
-        () => `URL paths for http must have a length of 2, (actual length is ${path.length}).`
-      );
-    }
-    this.path = path;
-    if (loadOptions.requestInit != null && loadOptions.requestInit.body != null) {
-      throw new Error(
-        "requestInit is expected to have no pre-existing body, but has one."
-      );
-    }
-    this.requestInit = loadOptions.requestInit || {};
-  }
-  async save(modelArtifacts) {
-    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
-      throw new Error(
-        "BrowserHTTPRequest.save() does not support saving model topology in binary formats yet."
-      );
-    }
-    const init = Object.assign({ method: this.DEFAULT_METHOD }, this.requestInit);
-    init.body = new FormData();
-    const weightsManifest = [{
-      paths: ["./model.weights.bin"],
-      weights: modelArtifacts.weightSpecs
-    }];
-    const modelTopologyAndWeightManifest = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
-    init.body.append(
-      "model.json",
-      new Blob(
-        [JSON.stringify(modelTopologyAndWeightManifest)],
-        { type: JSON_TYPE }
-      ),
-      "model.json"
-    );
-    if (modelArtifacts.weightData != null) {
-      init.body.append(
-        "model.weights.bin",
-        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
-        "model.weights.bin"
-      );
-    }
-    const response = await this.fetch(this.path, init);
-    if (response.ok) {
-      return {
-        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
-        responses: [response]
-      };
-    } else {
-      throw new Error(
-        `BrowserHTTPRequest.save() failed due to HTTP response status ${response.status}.`
-      );
-    }
-  }
-  async load() {
-    const modelConfigRequest = await this.fetch(this.path, this.requestInit);
-    if (!modelConfigRequest.ok) {
-      throw new Error(
-        `Request to ${this.path} failed with status code ${modelConfigRequest.status}. Please verify this URL points to the model JSON of the model to load.`
-      );
-    }
-    let modelJSON;
-    try {
-      modelJSON = await modelConfigRequest.json();
-    } catch (e) {
-      let message = `Failed to parse model JSON of response from ${this.path}.`;
-      if (this.path.endsWith(".pb")) {
-        message += " Your path contains a .pb file extension. Support for .pb models have been removed in TensorFlow.js 1.0 in favor of .json models. You can re-convert your Python TensorFlow model using the TensorFlow.js 1.0 conversion scripts or you can convert your.pb models with the 'pb2json'NPM script in the tensorflow/tfjs-converter repository.";
-      } else {
-        message += " Please make sure the server is serving valid JSON for this request.";
-      }
-      throw new Error(message);
-    }
-    const modelTopology = modelJSON.modelTopology;
-    const weightsManifest = modelJSON.weightsManifest;
-    if (modelTopology == null && weightsManifest == null) {
-      throw new Error(
-        `The JSON from HTTP path ${this.path} contains neither model topology or manifest for weights.`
-      );
-    }
-    return getModelArtifactsForJSON(
-      modelJSON,
-      (weightsManifest2) => this.loadWeights(weightsManifest2)
-    );
-  }
-  async loadWeights(weightsManifest) {
-    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
-    const [prefix, suffix] = parseUrl(weightPath);
-    const pathPrefix = this.weightPathPrefix || prefix;
-    const weightSpecs = getWeightSpecs(weightsManifest);
-    const fetchURLs = [];
-    const urlPromises = [];
-    for (const weightsGroup of weightsManifest) {
-      for (const path of weightsGroup.paths) {
-        if (this.weightUrlConverter != null) {
-          urlPromises.push(this.weightUrlConverter(path));
-        } else {
-          fetchURLs.push(pathPrefix + path + suffix);
-        }
-      }
-    }
-    if (this.weightUrlConverter) {
-      fetchURLs.push(...await Promise.all(urlPromises));
-    }
-    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
-      requestInit: this.requestInit,
-      fetchFunc: this.fetch,
-      onProgress: this.onProgress
-    });
-    return [weightSpecs, concatenateArrayBuffers(buffers)];
-  }
-};
-__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
-function parseUrl(url) {
-  const lastSlash = url.lastIndexOf("/");
-  const lastSearchParam = url.lastIndexOf("?");
-  const prefix = url.substring(0, lastSlash);
-  const suffix = lastSearchParam > lastSlash ? url.substring(lastSearchParam) : "";
-  return [prefix + "/", suffix];
-}
-function isHTTPScheme(url) {
-  return url.match(HTTPRequest.URL_SCHEME_REGEX) != null;
-}
-var httpRouter = (url, loadOptions) => {
-  if (typeof fetch === "undefined" && (loadOptions == null || loadOptions.fetchFunc == null)) {
-    return null;
-  } else {
-    let isHTTP = true;
-    if (Array.isArray(url)) {
-      isHTTP = url.every((urlItem) => isHTTPScheme(urlItem));
-    } else {
-      isHTTP = isHTTPScheme(url);
-    }
-    if (isHTTP) {
-      return http(url, loadOptions);
-    }
-  }
-  return null;
-};
-IORouterRegistry.registerSaveRouter(httpRouter);
-IORouterRegistry.registerLoadRouter(httpRouter);
-function http(path, loadOptions) {
-  return new HTTPRequest(path, loadOptions);
-}
-function browserHTTPRequest(path, loadOptions) {
-  return http(path, loadOptions);
-}
-
-// src/tfjs-core/src/io/passthrough.ts
-var PassthroughLoader = class {
-  constructor(modelArtifacts) {
-    this.modelArtifacts = modelArtifacts;
-  }
-  load() {
-    return this.modelArtifacts;
-  }
-};
-var PassthroughSaver = class {
-  constructor(saveHandler) {
-    this.saveHandler = saveHandler;
-  }
-  save(modelArtifacts) {
-    return this.saveHandler(modelArtifacts);
-  }
-};
-var PassthroughAsync = class {
-  load;
-  save;
-  constructor(handler) {
-    if (handler.load) {
-      this.load = () => Promise.resolve(handler.load());
-    }
-    if (handler.save) {
-      this.save = (modelArtifacts) => Promise.resolve(handler.save(modelArtifacts));
-    }
-  }
-};
-function fromMemory(modelArtifacts, weightSpecs, weightData, trainingConfig) {
-  const args = arguments;
-  return new PassthroughAsync(fromMemorySync(...args));
-}
-function fromMemorySync(modelArtifacts, weightSpecs, weightData, trainingConfig) {
-  if (arguments.length === 1) {
-    const isModelArtifacts = modelArtifacts.modelTopology != null || modelArtifacts.weightSpecs != null;
-    if (isModelArtifacts) {
-      return new PassthroughLoader(modelArtifacts);
-    } else {
-      console.warn(
-        "Please call tf.io.fromMemory() with only one argument. The argument should be of type ModelArtifacts. The multi-argument signature of tf.io.fromMemory() has been deprecated and will be removed in a future release."
-      );
-      return new PassthroughLoader({ modelTopology: modelArtifacts });
-    }
-  } else {
-    console.warn(
-      "Please call tf.io.fromMemory() with only one argument. The argument should be of type ModelArtifacts. The multi-argument signature of tf.io.fromMemory() has been deprecated and will be removed in a future release."
-    );
-    return new PassthroughLoader({
-      modelTopology: modelArtifacts,
-      weightSpecs,
-      weightData,
-      trainingConfig
-    });
-  }
-}
-function withSaveHandler(saveHandler) {
-  return new PassthroughSaver(saveHandler);
-}
-function withSaveHandlerSync(saveHandler) {
-  return new PassthroughSaver(saveHandler);
-}
-
-// src/tfjs-core/src/ops/mat_mul.ts
-function matMul_(a, b, transposeA = false, transposeB = false) {
-  let $a = convertToTensor(a, "a", "matMul");
-  let $b = convertToTensor(b, "b", "matMul");
-  [$a, $b] = makeTypesMatch($a, $b);
-  const inputs = { a: $a, b: $b };
-  const attrs = { transposeA, transposeB };
-  return ENGINE.runKernel(
-    BatchMatMul,
-    inputs,
-    attrs
-  );
-}
-var matMul = op({ matMul_ });
-
-// src/tfjs-core/src/ops/one_hot.ts
-function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
-  if (depth < 2) {
-    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
-  }
-  const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
-  const inputs = { indices: $indices };
-  const attrs = { dtype, depth, onValue, offValue };
-  return ENGINE.runKernel(
-    OneHot,
-    inputs,
-    attrs
-  );
-}
-var oneHot = op({ oneHot_ });
-
 // src/tfjs-core/src/globals.ts
 function deprecationWarn(msg) {
   if (env().getBool("DEPRECATION_WARNINGS_ENABLED")) {
@@ -6376,373 +6140,6 @@ function dispose(container) {
 }
 function keep(result) {
   return ENGINE.keep(result);
-}
-
-// src/tfjs-core/src/ops/imag.ts
-function imag_(input) {
-  const $input = convertToTensor(input, "input", "imag");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Imag, inputs);
-}
-var imag = op({ imag_ });
-
-// src/tfjs-core/src/ops/neg.ts
-function neg_(x) {
-  const $x = convertToTensor(x, "x", "neg");
-  const inputs = { x: $x };
-  return ENGINE.runKernel(Neg, inputs);
-}
-var neg = op({ neg_ });
-
-// src/tfjs-core/src/ops/real.ts
-function real_(input) {
-  const $input = convertToTensor(input, "input", "real");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Real, inputs);
-}
-var real = op({ real_ });
-
-// src/tfjs-core/src/ops/transpose.ts
-function transpose_(x, perm, conjugate) {
-  const $x = convertToTensor(x, "x", "transpose");
-  if (perm == null) {
-    perm = $x.shape.map((s, i) => i).reverse();
-  }
-  assert(
-    $x.rank === perm.length,
-    () => `Error in transpose: rank of input ${$x.rank} must match length of perm ${perm}.`
-  );
-  perm.forEach((axis) => {
-    assert(
-      axis >= 0 && axis < $x.rank,
-      () => `All entries in 'perm' must be between 0 and ${$x.rank - 1} but got ${perm}`
-    );
-  });
-  if ($x.rank <= 1) {
-    return $x.clone();
-  }
-  const inputs = { x: $x };
-  const attrs = { perm };
-  if ($x.dtype === "complex64") {
-    return tidy(() => {
-      let $real = real($x);
-      let $imag = imag($x);
-      $real = ENGINE.runKernel(
-        Transpose,
-        { x: $real },
-        attrs
-      );
-      $imag = ENGINE.runKernel(
-        Transpose,
-        { x: $imag },
-        attrs
-      );
-      if (conjugate) {
-        $imag = neg($imag);
-      }
-      return complex($real, $imag);
-    });
-  }
-  return ENGINE.runKernel(
-    Transpose,
-    inputs,
-    attrs
-  );
-}
-var transpose = op({ transpose_ });
-
-// src/tfjs-core/src/ops/confusion_matrix.ts
-function confusionMatrix_(labels, predictions, numClasses) {
-  const $labels = convertToTensor(labels, "labels", "confusionMatrix");
-  const $predictions = convertToTensor(predictions, "predictions", "confusionMatrix");
-  assert(
-    numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
-    () => `If provided, numClasses must be a positive integer, but got ${numClasses}`
-  );
-  assert(
-    $labels.rank === 1,
-    () => `Expected the rank of labels to be 1, but got ${$labels.rank}`
-  );
-  assert(
-    $predictions.rank === 1,
-    () => `Expected the rank of predictions to be 1, but got ${$predictions.rank}`
-  );
-  assert(
-    $labels.shape[0] === $predictions.shape[0],
-    () => `Mismatch in the number of examples: ${$labels.shape[0]} vs. ${$predictions.shape[0]}. Labels and predictions should have the same number of elements.`
-  );
-  assert(
-    numClasses > 0 && Number.isInteger(numClasses),
-    () => `numClasses is required to be a positive integer, but got ${numClasses}`
-  );
-  const oneHotLabels = oneHot(cast($labels, "int32"), numClasses);
-  const oneHotPredictions = oneHot(cast($predictions, "int32"), numClasses);
-  const oneHotLabelsT = transpose(oneHotLabels);
-  const product = matMul(oneHotLabelsT, oneHotPredictions);
-  return cast(product, "int32");
-}
-var confusionMatrix = op({ confusionMatrix_ });
-
-// src/tfjs-core/src/ops/broadcast_util.ts
-function getReductionAxes(inShape, outShape) {
-  const result = [];
-  for (let i = 0; i < outShape.length; i++) {
-    const inDim = inShape[inShape.length - i - 1];
-    const outAxis = outShape.length - i - 1;
-    const outDim = outShape[outAxis];
-    if (inDim == null || inDim === 1 && outDim > 1) {
-      result.unshift(outAxis);
-    }
-  }
-  return result;
-}
-function assertAndGetBroadcastShape(shapeA, shapeB) {
-  const result = [];
-  const l = Math.max(shapeA.length, shapeB.length);
-  for (let i = 0; i < l; i++) {
-    let a = shapeA[shapeA.length - i - 1];
-    if (a == null) {
-      a = 1;
-    }
-    let b = shapeB[shapeB.length - i - 1];
-    if (b == null) {
-      b = 1;
-    }
-    if (a === 1) {
-      result.unshift(b);
-    } else if (b === 1) {
-      result.unshift(a);
-    } else if (a !== b) {
-      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
-      throw Error(errMsg);
-    } else {
-      result.unshift(a);
-    }
-  }
-  return result;
-}
-
-// src/tfjs-core/src/ops/tensor3d.ts
-function tensor3d(values, shape, dtype) {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 3) {
-    throw new Error("tensor3d() requires shape to have three numbers");
-  }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
-    throw new Error(
-      "tensor3d() requires values to be number[][][] or flat/TypedArray"
-    );
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error(
-      "tensor3d() requires shape to be provided when `values` are a flat array"
-    );
-  }
-  return makeTensor(values, shape, inferredShape, dtype);
-}
-
-// src/tfjs-core/src/ops/browser.ts
-var fromPixels2DContext;
-function fromPixels_(pixels, numChannels = 3) {
-  if (numChannels > 4) {
-    throw new Error(
-      "Cannot construct Tensor with more than 4 channels from pixels."
-    );
-  }
-  if (pixels == null) {
-    throw new Error("pixels passed to tf.browser.fromPixels() can not be null");
-  }
-  let isPixelData = false;
-  let isImageData = false;
-  let isVideo = false;
-  let isImage = false;
-  let isCanvasLike = false;
-  let isImageBitmap = false;
-  if (pixels.data instanceof Uint8Array) {
-    isPixelData = true;
-  } else if (typeof ImageData !== "undefined" && pixels instanceof ImageData) {
-    isImageData = true;
-  } else if (typeof HTMLVideoElement !== "undefined" && pixels instanceof HTMLVideoElement) {
-    isVideo = true;
-  } else if (typeof HTMLImageElement !== "undefined" && pixels instanceof HTMLImageElement) {
-    isImage = true;
-  } else if (pixels.getContext != null) {
-    isCanvasLike = true;
-  } else if (typeof ImageBitmap !== "undefined" && pixels instanceof ImageBitmap) {
-    isImageBitmap = true;
-  } else {
-    throw new Error(
-      `pixels passed to tf.browser.fromPixels() must be either an HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData in browser, or OffscreenCanvas, ImageData in webworker or {data: Uint32Array, width: number, height: number}, but was ${pixels.constructor.name}`
-    );
-  }
-  const kernel = getKernel(FromPixels, ENGINE.backendName);
-  if (kernel != null) {
-    const inputs = { pixels };
-    const attrs = { numChannels };
-    return ENGINE.runKernel(
-      FromPixels,
-      inputs,
-      attrs
-    );
-  }
-  const [width, height] = isVideo ? [
-    pixels.videoWidth,
-    pixels.videoHeight
-  ] : [pixels.width, pixels.height];
-  let vals;
-  if (isCanvasLike) {
-    vals = pixels.getContext("2d").getImageData(0, 0, width, height).data;
-  } else if (isImageData || isPixelData) {
-    vals = pixels.data;
-  } else if (isImage || isVideo || isImageBitmap) {
-    if (fromPixels2DContext == null) {
-      if (typeof document === "undefined") {
-        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
-          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
-        } else {
-          throw new Error(
-            "Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported."
-          );
-        }
-      } else {
-        fromPixels2DContext = document.createElement("canvas").getContext(
-          "2d",
-          { willReadFrequently: true }
-        );
-      }
-    }
-    fromPixels2DContext.canvas.width = width;
-    fromPixels2DContext.canvas.height = height;
-    fromPixels2DContext.drawImage(
-      pixels,
-      0,
-      0,
-      width,
-      height
-    );
-    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
-  }
-  let values;
-  if (numChannels === 4) {
-    values = new Int32Array(vals);
-  } else {
-    const numPixels = width * height;
-    values = new Int32Array(numPixels * numChannels);
-    for (let i = 0; i < numPixels; i++) {
-      for (let channel = 0; channel < numChannels; ++channel) {
-        values[i * numChannels + channel] = vals[i * 4 + channel];
-      }
-    }
-  }
-  const outShape = [height, width, numChannels];
-  return tensor3d(values, outShape, "int32");
-}
-var fromPixels = op({ fromPixels_ });
-
-// src/tfjs-core/src/ops/scatter_nd_util.ts
-function validateUpdateShape(shape, indices, updates) {
-  const sliceDim = indices.rank > 1 ? indices.shape[indices.rank - 1] : 1;
-  const batchDim = indices.rank > 1 ? indices.rank - 1 : 1;
-  const shapeError = `Must have updates.shape = indices.shape[:batchDim] + shape[sliceDim:], got updates.shape: ${updates.shape}, indices.shape: ${indices.shape}, shape: ${shape}, sliceDim: ${sliceDim}, and batchDim: ${batchDim}.`;
-  if (updates.rank < batchDim) {
-    throw new Error(shapeError + ` update.rank < ${batchDim}. `);
-  }
-  if (shape.length < sliceDim + (updates.rank - batchDim)) {
-    throw new Error(
-      shapeError + ` Output shape length < ${sliceDim + (updates.rank - batchDim)}`
-    );
-  }
-  if (updates.rank !== batchDim + shape.length - sliceDim) {
-    throw new Error(
-      shapeError + ` update.rank != ${batchDim + shape.length - sliceDim}`
-    );
-  }
-  for (let d = 0; d < batchDim; ++d) {
-    if (updates.shape[d] !== indices.shape[d]) {
-      throw new Error(
-        shapeError + ` updates.shape[${d}] (${updates.shape[d]}) != indices.shape[${d}] (${indices.shape[d]}).`
-      );
-    }
-  }
-  for (let d = 0; d < updates.rank - batchDim; ++d) {
-    if (updates.shape[d + batchDim] !== shape[d + sliceDim]) {
-      throw new Error(
-        shapeError + ` updates.shape[${d + batchDim}] (${updates.shape[d + batchDim]}) != shape[${d + batchDim}] (${shape[d + batchDim]})`
-      );
-    }
-  }
-}
-function validateInput(updates, indices, shape) {
-  if (indices.rank < 1) {
-    throw new Error(
-      `tf.scatterND() expects the indices to be rank 1 or higher, but the rank was ${indices.rank}.`
-    );
-  }
-  if (updates.rank < 1) {
-    throw new Error(
-      `tf.scatterND() expects the updates to be rank 1 or higher, but the rank was ${updates.rank}.`
-    );
-  }
-  if (indices.dtype !== "int32") {
-    throw new Error(`The dtype of 'indices' should be int32, but got dtype: ${indices.dtype}`);
-  }
-  if (shape.length < 1) {
-    throw new Error(
-      `Output rank must be greater or equal to 1, but got shape: ${shape}`
-    );
-  }
-  if (shape.length === 0) {
-    if (indices.size === 0) {
-      throw new Error(`Indices specified for empty output. indices shape: ${indices.shape}`);
-    }
-    if (updates.size === 0) {
-      throw new Error(`Updates specified for empty output. updates shape: ${updates.shape}`);
-    }
-  }
-  validateUpdateShape(shape, indices, updates);
-}
-
-// src/tfjs-core/src/serialization.ts
-var Serializable = class {
-  getClassName() {
-    return this.constructor.className;
-  }
-  static fromConfig(cls, config) {
-    return new cls(config);
-  }
-};
-var _SerializationMap = class {
-  classNameMap;
-  constructor() {
-    this.classNameMap = {};
-  }
-  static getMap() {
-    if (_SerializationMap.instance == null) {
-      _SerializationMap.instance = new _SerializationMap();
-    }
-    return _SerializationMap.instance;
-  }
-  static register(cls) {
-    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
-  }
-};
-var SerializationMap = _SerializationMap;
-__publicField(SerializationMap, "instance");
-function registerClass(cls) {
-  assert(
-    cls.className != null,
-    () => `Class being registered does not have the static className property defined.`
-  );
-  assert(
-    typeof cls.className === "string",
-    () => `className is required to be a string, but got type ` + typeof cls.className
-  );
-  assert(
-    cls.className.length > 0,
-    () => `Class being registered has an empty-string as its className, which is disallowed.`
-  );
-  SerializationMap.register(cls);
 }
 
 // src/tfjs-core/src/ops/add.ts
@@ -6775,7 +6172,11 @@ function div_(a, b) {
   }
   const inputs = { a: $a, b: $b };
   const attrs = {};
-  return ENGINE.runKernel(RealDiv, inputs, attrs);
+  return ENGINE.runKernel(
+    RealDiv,
+    inputs,
+    attrs
+  );
 }
 var div = op({ div_ });
 
@@ -7123,6 +6524,9 @@ function tupleValuesAreOne(param) {
 function eitherStridesOrDilationsAreOne(strides, dilations) {
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
 }
+function stridesOrDilationsArePositive(values) {
+  return parseTupleParam(values).every((value) => value > 0);
+}
 function checkPadOnDimRoundingMode(opDesc, pad2, dimRoundingMode) {
   if (dimRoundingMode != null) {
     if (typeof pad2 === "string") {
@@ -7213,6 +6617,10 @@ function avgPool3d_(x, filterSize, strides, pad2, dimRoundingMode, dataFormat = 
     dataFormat === "NDHWC",
     () => `Error in avgPool3d: Only NDHWC is currently supported, but got dataFormat of ${dataFormat}`
   );
+  assert(
+    typeof strides === "number" && strides > 0 || Array.isArray(strides) && strides[0] > 0 && strides[1] > 0 && strides[2] > 0,
+    () => `Error in avgPool3d: Stride must be > 0, but got '${strides}'`
+  );
   checkPadOnDimRoundingMode("avgPool3d", pad2, dimRoundingMode);
   const inputs = { x: x5D };
   const attrs = { filterSize, strides, pad: pad2, dimRoundingMode, dataFormat };
@@ -7256,6 +6664,21 @@ function concat_(tensors, axis = 0) {
   );
 }
 var concat = op({ concat_ });
+
+// src/tfjs-core/src/ops/mat_mul.ts
+function matMul_(a, b, transposeA = false, transposeB = false) {
+  let $a = convertToTensor(a, "a", "matMul");
+  let $b = convertToTensor(b, "b", "matMul");
+  [$a, $b] = makeTypesMatch($a, $b);
+  const inputs = { a: $a, b: $b };
+  const attrs = { transposeA, transposeB };
+  return ENGINE.runKernel(
+    BatchMatMul,
+    inputs,
+    attrs
+  );
+}
+var matMul = op({ matMul_ });
 
 // src/tfjs-core/src/ops/sigmoid.ts
 function sigmoid_(x) {
@@ -7619,6 +7042,7 @@ var ceil = op({ ceil_ });
 // src/tfjs-core/src/ops/fill.ts
 function fill(shape, value, dtype) {
   assertNonNegativeIntegerDimensions(shape);
+  dtype = dtype || inferDtype(value);
   const attrs = { shape, value, dtype };
   return ENGINE.runKernel(Fill, {}, attrs);
 }
@@ -7645,7 +7069,11 @@ var clipByValue = op({ clipByValue_ });
 
 // src/tfjs-core/src/ops/concat_1d.ts
 function concat1d_(tensors) {
-  return concat(tensors, 0);
+  return concat(
+    tensors,
+    0
+    /* axis */
+  );
 }
 var concat1d = op({ concat1d_ });
 
@@ -7695,6 +7123,14 @@ function conv2d_(x, filter, strides, pad2, dataFormat = "NHWC", dilations = [1, 
     eitherStridesOrDilationsAreOne(strides, dilations),
     () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`
   );
+  assert(
+    stridesOrDilationsArePositive(dilations),
+    () => "Error in conv2D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(strides),
+    () => "Error in conv2D: Strides should be larger than 0."
+  );
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad2, dataFormat, dilations, dimRoundingMode };
   const res = ENGINE.runKernel(
@@ -7735,6 +7171,14 @@ function conv1d_(x, filter, stride, pad2, dataFormat = "NWC", dilation = 1, dimR
   assert(
     eitherStridesOrDilationsAreOne(stride, dilation),
     () => `Error in conv1D: Either stride or dilation must be 1. Got stride ${stride} and dilation '${dilation}'`
+  );
+  assert(
+    stridesOrDilationsArePositive(dilation),
+    () => "Error in conv1D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(stride),
+    () => "Error in conv1D: Stride should be larger than 0."
   );
   assert(
     dataFormat === "NWC",
@@ -7860,6 +7304,14 @@ function conv3d_(x, filter, strides, pad2, dataFormat = "NDHWC", dilations = [1,
   assert(
     dataFormat === "NDHWC",
     () => `Error in conv3d: got dataFormat of ${dataFormat} but only NDHWC is currently supported.`
+  );
+  assert(
+    stridesOrDilationsArePositive(dilations),
+    () => "Error in conv3D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(strides),
+    () => "Error in conv3D: Strides should be larger than 0."
   );
   const inputs = { x: x5D, filter: $filter };
   const attrs = { strides, pad: pad2, dataFormat, dilations };
@@ -8112,6 +7564,10 @@ function dilation2d_(x, filter, strides, pad2, dilations = [1, 1], dataFormat = 
     x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     reshapedTo4D = true;
   }
+  assert(
+    x4D.shape[3] === $filter.shape[2],
+    () => `Error in dilation2d:  input and filter must have the same depth: ${x4D.shape[3]} vs ${$filter.shape[2]}`
+  );
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad2, dilations };
   const res = ENGINE.runKernel(
@@ -8125,6 +7581,45 @@ function dilation2d_(x, filter, strides, pad2, dilations = [1, 1], dataFormat = 
   return res;
 }
 var dilation2d = op({ dilation2d_ });
+
+// src/tfjs-core/src/ops/broadcast_util.ts
+function getReductionAxes(inShape, outShape) {
+  const result = [];
+  for (let i = 0; i < outShape.length; i++) {
+    const inDim = inShape[inShape.length - i - 1];
+    const outAxis = outShape.length - i - 1;
+    const outDim = outShape[outAxis];
+    if (inDim == null || inDim === 1 && outDim > 1) {
+      result.unshift(outAxis);
+    }
+  }
+  return result;
+}
+function assertAndGetBroadcastShape(shapeA, shapeB) {
+  const l = Math.max(shapeA.length, shapeB.length);
+  const result = new Array(l);
+  for (let i = 0; i < l; i++) {
+    let a = shapeA[shapeA.length - i - 1];
+    if (a == null) {
+      a = 1;
+    }
+    let b = shapeB[shapeB.length - i - 1];
+    if (b == null) {
+      b = 1;
+    }
+    if (a === 1) {
+      result[l - i - 1] = b;
+    } else if (b === 1) {
+      result[l - i - 1] = a;
+    } else if (a !== b) {
+      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
+      throw Error(errMsg);
+    } else {
+      result[l - i - 1] = a;
+    }
+  }
+  return result;
+}
 
 // src/tfjs-core/src/ops/equal.ts
 function equal_(a, b) {
@@ -8541,6 +8036,14 @@ function greaterEqual_(a, b) {
 }
 var greaterEqual = op({ greaterEqual_ });
 
+// src/tfjs-core/src/ops/imag.ts
+function imag_(input) {
+  const $input = convertToTensor(input, "input", "imag");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Imag, inputs);
+}
+var imag = op({ imag_ });
+
 // src/tfjs-core/src/ops/is_finite.ts
 function isFinite_(x) {
   const $x = convertToTensor(x, "x", "isFinite");
@@ -8707,6 +8210,14 @@ function customGrad(f) {
   return ENGINE.customGrad(f);
 }
 
+// src/tfjs-core/src/ops/neg.ts
+function neg_(x) {
+  const $x = convertToTensor(x, "x", "neg");
+  const inputs = { x: $x };
+  return ENGINE.runKernel(Neg, inputs);
+}
+var neg = op({ neg_ });
+
 // src/tfjs-core/src/ops/softplus.ts
 function softplus_(x) {
   const $x = convertToTensor(x, "x", "softplus");
@@ -8773,7 +8284,12 @@ var logSoftmax = op({ logSoftmax_ });
 function logSumExp_(x, axis = null, keepDims = false) {
   const $x = convertToTensor(x, "x", "logSumExp");
   const axes = parseAxisParam(axis, $x.shape);
-  const xMax = max($x, axes, true);
+  const xMax = max(
+    $x,
+    axes,
+    true
+    /* keepDims */
+  );
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
@@ -9175,6 +8691,22 @@ function notEqual_(a, b) {
 }
 var notEqual = op({ notEqual_ });
 
+// src/tfjs-core/src/ops/one_hot.ts
+function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
+  if (depth < 2) {
+    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
+  }
+  const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
+  const inputs = { indices: $indices };
+  const attrs = { dtype, depth, onValue, offValue };
+  return ENGINE.runKernel(
+    OneHot,
+    inputs,
+    attrs
+  );
+}
+var oneHot = op({ oneHot_ });
+
 // src/tfjs-core/src/ops/ones_like.ts
 function onesLike_(x) {
   const $x = convertToTensor(x, "x", "onesLike");
@@ -9509,6 +9041,7 @@ var MPRandGauss = class {
     const seedValue = seed ? seed : Math.random();
     this.random = seedrandom.alea(seedValue.toString());
   }
+  /** Returns next sample from a Gaussian distribution. */
   nextValue() {
     if (!isNaN(this.nextVal)) {
       const value = this.nextVal;
@@ -9536,12 +9069,14 @@ var MPRandGauss = class {
     }
     return this.convertValue(resultX);
   }
+  /** Handles proper rounding for non-floating-point numbers. */
   convertValue(value) {
     if (this.dtype == null || this.dtype === "float32") {
       return value;
     }
     return Math.round(value);
   }
+  /** Returns true if less than 2-standard-deviations from the mean. */
   isValidTruncated(value) {
     return value <= this.upper && value >= this.lower;
   }
@@ -9568,6 +9103,7 @@ var RandGamma = class {
     }
     this.c = 1 / Math.sqrt(9 * this.d);
   }
+  /** Returns next sample from a gamma distribution. */
   nextValue() {
     let x2, v0, v1, x, u, v;
     while (true) {
@@ -9590,6 +9126,7 @@ var RandGamma = class {
     }
     return this.convertValue(v);
   }
+  /** Handles proper rounding for non-floating-point numbers. */
   convertValue(value) {
     if (this.dtype === "float32") {
       return value;
@@ -9619,6 +9156,7 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
+  /** Handles proper rounding for non floating point numbers. */
   canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
@@ -9694,8 +9232,20 @@ function range(start, stop, step2 = 1, dtype = "float32") {
     throw new Error("Cannot have a step of zero");
   }
   const attrs = { start, stop, step: step2, dtype };
-  return ENGINE.runKernel(Range, {}, attrs);
+  return ENGINE.runKernel(
+    Range,
+    {},
+    attrs
+  );
 }
+
+// src/tfjs-core/src/ops/real.ts
+function real_(input) {
+  const $input = convertToTensor(input, "input", "real");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Real, inputs);
+}
+var real = op({ real_ });
 
 // src/tfjs-core/src/ops/reciprocal.ts
 function reciprocal_(x) {
@@ -10224,6 +9774,26 @@ function tensor2d(values, shape, dtype) {
   return makeTensor(values, shape, inferredShape, dtype);
 }
 
+// src/tfjs-core/src/ops/tensor3d.ts
+function tensor3d(values, shape, dtype) {
+  assertNonNull(values);
+  if (shape != null && shape.length !== 3) {
+    throw new Error("tensor3d() requires shape to have three numbers");
+  }
+  const inferredShape = inferShape(values, dtype);
+  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
+    throw new Error(
+      "tensor3d() requires values to be number[][][] or flat/TypedArray"
+    );
+  }
+  if (inferredShape.length === 1 && shape == null) {
+    throw new Error(
+      "tensor3d() requires shape to be provided when `values` are a flat array"
+    );
+  }
+  return makeTensor(values, shape, inferredShape, dtype);
+}
+
 // src/tfjs-core/src/ops/tensor4d.ts
 function tensor4d(values, shape, dtype) {
   assertNonNull(values);
@@ -10284,6 +9854,94 @@ function tensor6d(values, shape, dtype) {
   shape = shape || inferredShape;
   return makeTensor(values, shape, inferredShape, dtype);
 }
+
+// src/tfjs-core/src/ops/scatter_nd_util.ts
+function validateUpdateShape(shape, indices, updates) {
+  const sliceDim = indices.rank > 1 ? indices.shape[indices.rank - 1] : 1;
+  const batchDim = indices.rank > 1 ? indices.rank - 1 : 1;
+  const shapeError = `Must have updates.shape = indices.shape[:batchDim] + shape[sliceDim:], got updates.shape: ${updates.shape}, indices.shape: ${indices.shape}, shape: ${shape}, sliceDim: ${sliceDim}, and batchDim: ${batchDim}.`;
+  if (updates.rank < batchDim) {
+    throw new Error(shapeError + ` update.rank < ${batchDim}. `);
+  }
+  if (shape.length < sliceDim + (updates.rank - batchDim)) {
+    throw new Error(
+      shapeError + ` Output shape length < ${sliceDim + (updates.rank - batchDim)}`
+    );
+  }
+  if (updates.rank !== batchDim + shape.length - sliceDim) {
+    throw new Error(
+      shapeError + ` update.rank != ${batchDim + shape.length - sliceDim}`
+    );
+  }
+  for (let d = 0; d < batchDim; ++d) {
+    if (updates.shape[d] !== indices.shape[d]) {
+      throw new Error(
+        shapeError + ` updates.shape[${d}] (${updates.shape[d]}) != indices.shape[${d}] (${indices.shape[d]}).`
+      );
+    }
+  }
+  for (let d = 0; d < updates.rank - batchDim; ++d) {
+    if (updates.shape[d + batchDim] !== shape[d + sliceDim]) {
+      throw new Error(
+        shapeError + ` updates.shape[${d + batchDim}] (${updates.shape[d + batchDim]}) != shape[${d + batchDim}] (${shape[d + batchDim]})`
+      );
+    }
+  }
+}
+function validateInput(updates, indices, shape) {
+  if (indices.rank < 1) {
+    throw new Error(
+      `tf.scatterND() expects the indices to be rank 1 or higher, but the rank was ${indices.rank}.`
+    );
+  }
+  if (updates.rank < 1) {
+    throw new Error(
+      `tf.scatterND() expects the updates to be rank 1 or higher, but the rank was ${updates.rank}.`
+    );
+  }
+  if (indices.dtype !== "int32") {
+    throw new Error(`The dtype of 'indices' should be int32, but got dtype: ${indices.dtype}`);
+  }
+  if (shape.length < 1) {
+    throw new Error(
+      `Output rank must be greater or equal to 1, but got shape: ${shape}`
+    );
+  }
+  if (shape.length === 0) {
+    if (indices.size === 0) {
+      throw new Error(`Indices specified for empty output. indices shape: ${indices.shape}`);
+    }
+    if (updates.size === 0) {
+      throw new Error(`Updates specified for empty output. updates shape: ${updates.shape}`);
+    }
+  }
+  validateUpdateShape(shape, indices, updates);
+}
+
+// src/tfjs-core/src/ops/tensor_scatter_update.ts
+function tensorScatterUpdate_(tensor2, indices, updates) {
+  const $tensor = convertToTensor(tensor2, "tensor", "tensorScatterupdate");
+  const $indices = convertToTensor(indices, "indices", "tensorScatterupdate", "int32");
+  const $updates = convertToTensor(updates, "updates", "tensorScatterupdate");
+  validateInput($updates, $indices, $tensor.shape);
+  if ($tensor.dtype !== $updates.dtype) {
+    throw new Error(
+      `tensor and updates must have the same dtype, instead they are ${$tensor.dtype} and ${$updates.dtype}.`
+    );
+  }
+  const inputs = {
+    tensor: $tensor,
+    indices: $indices,
+    updates: $updates
+  };
+  const attrs = {};
+  return ENGINE.runKernel(
+    TensorScatterUpdate,
+    inputs,
+    attrs
+  );
+}
+var tensorScatterUpdate = op({ tensorScatterUpdate_ });
 
 // src/tfjs-core/src/ops/topk.ts
 function topk_(x, k = 1, sorted = true) {
@@ -10449,6 +10107,55 @@ async function booleanMaskAsync_(tensor2, mask, axis) {
   return res;
 }
 var booleanMaskAsync = booleanMaskAsync_;
+
+// src/tfjs-core/src/ops/transpose.ts
+function transpose_(x, perm, conjugate) {
+  const $x = convertToTensor(x, "x", "transpose");
+  if (perm == null) {
+    perm = $x.shape.map((s, i) => i).reverse();
+  }
+  assert(
+    $x.rank === perm.length,
+    () => `Error in transpose: rank of input ${$x.rank} must match length of perm ${perm}.`
+  );
+  perm.forEach((axis) => {
+    assert(
+      axis >= 0 && axis < $x.rank,
+      () => `All entries in 'perm' must be between 0 and ${$x.rank - 1} but got ${perm}`
+    );
+  });
+  if ($x.rank <= 1) {
+    return $x.clone();
+  }
+  const inputs = { x: $x };
+  const attrs = { perm };
+  if ($x.dtype === "complex64") {
+    return tidy(() => {
+      let $real = real($x);
+      let $imag = imag($x);
+      $real = ENGINE.runKernel(
+        Transpose,
+        { x: $real },
+        attrs
+      );
+      $imag = ENGINE.runKernel(
+        Transpose,
+        { x: $imag },
+        attrs
+      );
+      if (conjugate) {
+        $imag = neg($imag);
+      }
+      return complex($real, $imag);
+    });
+  }
+  return ENGINE.runKernel(
+    Transpose,
+    inputs,
+    attrs
+  );
+}
+var transpose = op({ transpose_ });
 
 // src/tfjs-core/src/ops/moving_average.ts
 function movingAverage_(v, x, decay, step2, zeroDebias = true) {
@@ -10928,10 +10635,13 @@ function fusedConv2d_({
   };
   if (bias == null) {
     const customOp = customGrad((x4D2, filter2, save) => {
-      let res = ENGINE.runKernel(
-        FusedConv2D,
-        inputs,
-        attrs
+      let res = (
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        ENGINE.runKernel(
+          FusedConv2D,
+          inputs,
+          attrs
+        )
       );
       save([filter2, x4D2, res]);
       if (reshapedTo4D) {
@@ -10990,10 +10700,13 @@ function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad2, 
   }
   const inputs = { dy: dy4D, filter };
   const attrs = { strides, pad: pad2, dimRoundingMode, dilations, inputShape: xShape };
-  const res = ENGINE.runKernel(
-    DepthwiseConv2dNativeBackpropInput,
-    inputs,
-    attrs
+  const res = (
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    ENGINE.runKernel(
+      DepthwiseConv2dNativeBackpropInput,
+      inputs,
+      attrs
+    )
   );
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]);
@@ -11076,6 +10789,7 @@ function fusedDepthwiseConv2d_({
     pad2,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   let $bias;
   if (bias != null) {
@@ -11264,10 +10978,13 @@ function fusedMatMul_({
   const attrs = { transposeA, transposeB, activation, leakyreluAlpha };
   if (bias == null) {
     const customOp = customGrad((a3D2, b3D2, save) => {
-      const res = ENGINE.runKernel(
-        _FusedMatMul,
-        inputs,
-        attrs
+      const res = (
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        ENGINE.runKernel(
+          _FusedMatMul,
+          inputs,
+          attrs
+        )
       );
       save([a3D2, b3D2, res]);
       return { value: reshape(res, outShape), gradFunc: grad2 };
@@ -11276,10 +10993,13 @@ function fusedMatMul_({
   } else {
     const customOpWithBias = customGrad(
       (a3D2, b3D2, $bias2, save) => {
-        const res = ENGINE.runKernel(
-          _FusedMatMul,
-          inputs,
-          attrs
+        const res = (
+          // tslint:disable-next-line: no-unnecessary-type-assertion
+          ENGINE.runKernel(
+            _FusedMatMul,
+            inputs,
+            attrs
+          )
         );
         save([a3D2, b3D2, res, $bias2]);
         return { value: reshape(res, outShape), gradFunc: grad2 };
@@ -11530,6 +11250,7 @@ function nonMaxSuppressionV3Impl(boxes, scores, maxOutputSize, iouThreshold, sco
     iouThreshold,
     scoreThreshold,
     0
+    /* softNmsSigma */
   );
 }
 function nonMaxSuppressionV4Impl(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize) {
@@ -11543,6 +11264,7 @@ function nonMaxSuppressionV4Impl(boxes, scores, maxOutputSize, iouThreshold, sco
     false,
     padToMaxOutputSize,
     true
+    /* returnValidOutputs */
   );
 }
 function nonMaxSuppressionV5Impl(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma) {
@@ -11554,6 +11276,7 @@ function nonMaxSuppressionV5Impl(boxes, scores, maxOutputSize, iouThreshold, sco
     scoreThreshold,
     softNmsSigma,
     true
+    /* returnScoresTensor */
   );
 }
 function nonMaxSuppressionImpl_(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma, returnScoresTensor = false, padToMaxOutputSize = false, returnValidOutputs = false) {
@@ -11753,6 +11476,7 @@ function nonMaxSuppressionPadded_(boxes, scores, maxOutputSize, iouThreshold = 0
     iouThreshold,
     scoreThreshold,
     null
+    /* softNmsSigma */
   );
   const $maxOutputSize = params.maxOutputSize;
   const $iouThreshold = params.iouThreshold;
@@ -11784,6 +11508,7 @@ async function nonMaxSuppressionPaddedAsync_(boxes, scores, maxOutputSize, iouTh
     iouThreshold,
     scoreThreshold,
     null
+    /* softNmsSigma */
   );
   const $maxOutputSize = params.maxOutputSize;
   const $iouThreshold = params.iouThreshold;
@@ -11994,14 +11719,6 @@ var transform = op({ transform_ });
 
 // src/tfjs-core/src/ops/linalg/band_part.ts
 function bandPart_(a, numLower, numUpper) {
-  assert(
-    numLower % 1 === 0,
-    () => `bandPart(): numLower must be an integer, got ${numLower}.`
-  );
-  assert(
-    numUpper % 1 === 0,
-    () => `bandPart(): numUpper must be an integer, got ${numUpper}.`
-  );
   const $a = convertToTensor(a, "a", "bandPart");
   assert(
     $a.rank >= 2,
@@ -12009,29 +11726,46 @@ function bandPart_(a, numLower, numUpper) {
   );
   const shape = $a.shape;
   const [M, N] = $a.shape.slice(-2);
-  if (!(numLower <= M)) {
-    throw new Error(
-      `bandPart(): numLower (${numLower}) must not be greater than the number of rows (${M}).`
+  let $numLower;
+  let $numUpper;
+  if (typeof numLower === "number") {
+    assert(
+      numLower % 1 === 0,
+      () => `bandPart(): numLower must be an integer, got ${numLower}.`
     );
-  }
-  if (!(numUpper <= N)) {
-    throw new Error(
-      `bandPart(): numUpper (${numUpper}) must not be greater than the number of columns (${N}).`
+    assert(
+      numLower <= M,
+      () => `bandPart(): numLower (${numLower}) must not be greater than the number of rows (${M}).`
     );
+    $numLower = convertToTensor(numLower < 0 ? M : numLower, "numLower", "bandPart");
+  } else {
+    assert(
+      numLower.dtype === "int32",
+      () => `bandPart(): numLower's dtype must be an int32.`
+    );
+    $numLower = where(less(numLower, 0), M, minimum(numLower, M));
   }
-  if (numLower < 0) {
-    numLower = M;
-  }
-  if (numUpper < 0) {
-    numUpper = N;
+  if (typeof numUpper === "number") {
+    assert(
+      numUpper % 1 === 0,
+      () => `bandPart(): numUpper must be an integer, got ${numUpper}.`
+    );
+    assert(
+      numUpper <= N,
+      () => `bandPart(): numUpper (${numUpper}) must not be greater than the number of columns (${N}).`
+    );
+    $numUpper = convertToTensor(numUpper < 0 ? N : numUpper, "numUpper", "bandPart");
+  } else {
+    assert(
+      numUpper.dtype === "int32",
+      () => `bandPart(): numUpper's dtype must be an int32.`
+    );
+    $numUpper = where(less(numUpper, 0), N, minimum(numUpper, N));
   }
   const i = reshape(range(0, M, 1, "int32"), [-1, 1]);
   const j = range(0, N, 1, "int32");
   const ij = sub(i, j);
-  const inBand = logicalAnd(
-    lessEqual(ij, scalar(+numLower, "int32")),
-    greaterEqual(ij, scalar(-numUpper, "int32"))
-  );
+  const inBand = logicalAnd(lessEqual(ij, $numLower), greaterEqual(ij, neg($numUpper)));
   const zero = zeros([M, N], $a.dtype);
   return reshape(
     stack(unstack(reshape($a, [-1, M, N])).map((mat) => where(inBand, mat, zero))),
@@ -12616,6 +12350,23 @@ function stringToHashBucketFast_(input, numBuckets) {
 }
 var stringToHashBucketFast = op({ stringToHashBucketFast_ });
 
+// src/tfjs-core/src/ops/string/static_regex_replace.ts
+function staticRegexReplace_(input, pattern, rewrite, replaceGlobal = true) {
+  const $input = convertToTensor(
+    input,
+    "input",
+    "staticRegexReplace",
+    "string"
+  );
+  const attrs = { pattern, rewrite, replaceGlobal };
+  return ENGINE.runKernel(
+    StaticRegexReplace,
+    { x: $input },
+    attrs
+  );
+}
+var staticRegexReplace = op({ staticRegexReplace_ });
+
 // src/tfjs-core/src/ops/ops.ts
 var spectral = {
   fft,
@@ -12670,12 +12421,95 @@ var sparse = {
 var string = {
   stringNGrams,
   stringSplit,
-  stringToHashBucketFast
+  stringToHashBucketFast,
+  staticRegexReplace
 };
+
+// src/tfjs-core/src/serialization.ts
+var Serializable = class {
+  /**
+   * Return the class name for this class to use in serialization contexts.
+   *
+   * Generally speaking this will be the same thing that constructor.name
+   * would have returned.  However, the class name needs to be robust
+   * against minification for serialization/deserialization to work properly.
+   *
+   * There's also places such as initializers.VarianceScaling, where
+   * implementation details between different languages led to different
+   * class hierarchies and a non-leaf node is used for serialization purposes.
+   */
+  getClassName() {
+    return this.constructor.className;
+  }
+  /**
+   * Creates an instance of T from a ConfigDict.
+   *
+   * This works for most descendants of serializable.  A few need to
+   * provide special handling.
+   * @param cls A Constructor for the class to instantiate.
+   * @param config The Configuration for the object.
+   */
+  /** @nocollapse */
+  static fromConfig(cls, config) {
+    return new cls(config);
+  }
+};
+var _SerializationMap = class {
+  classNameMap;
+  constructor() {
+    this.classNameMap = {};
+  }
+  /**
+   * Returns the singleton instance of the map.
+   */
+  static getMap() {
+    if (_SerializationMap.instance == null) {
+      _SerializationMap.instance = new _SerializationMap();
+    }
+    return _SerializationMap.instance;
+  }
+  /**
+   * Registers the class as serializable.
+   */
+  static register(cls) {
+    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+  }
+};
+var SerializationMap = _SerializationMap;
+__publicField(SerializationMap, "instance");
+function registerClass(cls) {
+  assert(
+    cls.className != null,
+    () => `Class being registered does not have the static className property defined.`
+  );
+  assert(
+    typeof cls.className === "string",
+    () => `className is required to be a string, but got type ` + typeof cls.className
+  );
+  assert(
+    cls.className.length > 0,
+    () => `Class being registered has an empty-string as its className, which is disallowed.`
+  );
+  SerializationMap.register(cls);
+}
 
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
   iterations_;
+  /**
+   * Executes `f()` and minimizes the scalar output of `f()` by computing
+   * gradients of y with respect to the list of trainable variables provided by
+   * `varList`. If no list is provided, it defaults to all trainable variables.
+   *
+   * @param f The function to execute and whose output to minimize.
+   * @param returnCost Whether to return the scalar cost value produced by
+   * executing `f()`.
+   * @param varList An optional list of variables to update. If specified, only
+   * the trainable variables in varList will be updated by minimize. Defaults to
+   * all trainable variables.
+   *
+   * @doc {heading: 'Training', subheading: 'Optimizers'}
+   */
   minimize(f, returnCost = false, varList) {
     const { value, grads: grads2 } = this.computeGradients(f, varList);
     if (varList != null) {
@@ -12692,6 +12526,9 @@ var Optimizer = class extends Serializable {
       return null;
     }
   }
+  /**
+   * The number of iterations that this optimizer instance has been invoked for.
+   */
   get iterations() {
     if (this.iterations_ == null) {
       this.iterations_ = 0;
@@ -12701,9 +12538,25 @@ var Optimizer = class extends Serializable {
   incrementIterations() {
     this.iterations_ = this.iterations + 1;
   }
+  /**
+   * Executes f() and computes the gradient of the scalar output of f() with
+   * respect to the list of trainable variables provided by `varList`. If no
+   * list is provided, it defaults to all trainable variables.
+   *
+   * @param f The function to execute and whose output to use for computing
+   * gradients with respect to variables.
+   * @param varList An optional list of variables to compute gradients with
+   * respect to. If specified, only the trainable variables in varList will have
+   * gradients computed with respect to. Defaults to all trainable variables.
+   *
+   * @doc {heading: 'Training', subheading: 'Optimizers'}
+   */
   computeGradients(f, varList) {
     return variableGrads(f, varList);
   }
+  /**
+   * Dispose the variables (if any) owned by this optimizer instance.
+   */
   dispose() {
     if (this.iterations_ != null) {
       dispose(this.iterations_);
@@ -12715,6 +12568,8 @@ var Optimizer = class extends Serializable {
     }
     return {
       name: "iter",
+      // Named for Python compatibility.
+      // TODO(cais): Use 'int64' type when available.
       tensor: scalar(this.iterations_, "int32")
     };
   }
@@ -12726,6 +12581,13 @@ var Optimizer = class extends Serializable {
       `setWeights() is not implemented for this optimizer class ${this.getClassName()}`
     );
   }
+  /**
+   * Extract the first element of the weight values and set it
+   * as the iterations counter variable of this instance of optimizer.
+   *
+   * @param weightValues
+   * @returns Weight values with the first element consumed and excluded.
+   */
   async extractIterations(weightValues) {
     this.iterations_ = (await weightValues[0].tensor.data())[0];
     return weightValues.slice(1);
@@ -12747,6 +12609,10 @@ var AdadeltaOptimizer = class extends Optimizer {
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adadelta";
   }
   accumulatedGrads = [];
   accumulatedUpdates = [];
@@ -12831,12 +12697,11 @@ var AdadeltaOptimizer = class extends Optimizer {
       "epsilon": this.epsilon
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"], config["rho"], config["epsilon"]);
   }
 };
-__publicField(AdadeltaOptimizer, "className", "Adadelta");
-registerClass(AdadeltaOptimizer);
 
 // src/tfjs-core/src/optimizers/adagrad_optimizer.ts
 var AdagradOptimizer = class extends Optimizer {
@@ -12844,6 +12709,10 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adagrad";
   }
   accumulatedGrads = [];
   applyGradients(variableGradients) {
@@ -12905,12 +12774,11 @@ var AdagradOptimizer = class extends Optimizer {
       "initialAccumulatorValue": this.initialAccumulatorValue
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"], config["initialAccumulatorValue"]);
   }
 };
-__publicField(AdagradOptimizer, "className", "Adagrad");
-registerClass(AdagradOptimizer);
 
 // src/tfjs-core/src/optimizers/adam_optimizer.ts
 var AdamOptimizer = class extends Optimizer {
@@ -12927,6 +12795,10 @@ var AdamOptimizer = class extends Optimizer {
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adam";
   }
   accBeta1;
   accBeta2;
@@ -13027,6 +12899,7 @@ var AdamOptimizer = class extends Optimizer {
       "epsilon": this.epsilon
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -13036,8 +12909,6 @@ var AdamOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(AdamOptimizer, "className", "Adam");
-registerClass(AdamOptimizer);
 
 // src/tfjs-core/src/optimizers/adamax_optimizer.ts
 var AdamaxOptimizer = class extends Optimizer {
@@ -13055,6 +12926,10 @@ var AdamaxOptimizer = class extends Optimizer {
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adamax";
   }
   accBeta1;
   iteration;
@@ -13131,6 +13006,7 @@ var AdamaxOptimizer = class extends Optimizer {
       "decay": this.decay
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -13141,8 +13017,6 @@ var AdamaxOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(AdamaxOptimizer, "className", "Adamax");
-registerClass(AdamaxOptimizer);
 
 // src/tfjs-core/src/optimizers/sgd_optimizer.ts
 var SGDOptimizer = class extends Optimizer {
@@ -13150,6 +13024,10 @@ var SGDOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.setLearningRate(learningRate);
+  }
+  /** @nocollapse */
+  static get className() {
+    return "SGD";
   }
   c;
   applyGradients(variableGradients) {
@@ -13167,6 +13045,9 @@ var SGDOptimizer = class extends Optimizer {
     });
     this.incrementIterations();
   }
+  /**
+   * Sets the learning rate of the optimizer.
+   */
   setLearningRate(learningRate) {
     this.learningRate = learningRate;
     if (this.c != null) {
@@ -13189,12 +13070,11 @@ var SGDOptimizer = class extends Optimizer {
   getConfig() {
     return { "learningRate": this.learningRate };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"]);
   }
 };
-__publicField(SGDOptimizer, "className", "SGD");
-registerClass(SGDOptimizer);
 
 // src/tfjs-core/src/optimizers/momentum_optimizer.ts
 var MomentumOptimizer = class extends SGDOptimizer {
@@ -13204,6 +13084,11 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.momentum = momentum;
     this.useNesterov = useNesterov;
     this.m = scalar(this.momentum);
+  }
+  /** @nocollapse */
+  // Name matters for Python compatibility.
+  static get className() {
+    return "Momentum";
   }
   m;
   accumulations = [];
@@ -13246,6 +13131,11 @@ var MomentumOptimizer = class extends SGDOptimizer {
       dispose(this.accumulations.map((v) => v.variable));
     }
   }
+  /**
+   * Sets the momentum of the optimizer.
+   *
+   * @param momentum
+   */
   setMomentum(momentum) {
     this.momentum = momentum;
   }
@@ -13268,6 +13158,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
       "useNesterov": this.useNesterov
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -13276,8 +13167,6 @@ var MomentumOptimizer = class extends SGDOptimizer {
     );
   }
 };
-__publicField(MomentumOptimizer, "className", "Momentum");
-registerClass(MomentumOptimizer);
 
 // src/tfjs-core/src/optimizers/rmsprop_optimizer.ts
 var RMSPropOptimizer = class extends Optimizer {
@@ -13294,6 +13183,10 @@ var RMSPropOptimizer = class extends Optimizer {
     if (learningRate == null) {
       throw new Error(`learningRate for RMSPropOptimizer must be defined.`);
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "RMSProp";
   }
   centered;
   accumulatedMeanSquares = [];
@@ -13425,6 +13318,7 @@ var RMSPropOptimizer = class extends Optimizer {
       "centered": this.centered
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -13435,50 +13329,781 @@ var RMSPropOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(RMSPropOptimizer, "className", "RMSProp");
-registerClass(RMSPropOptimizer);
 
-// src/tfjs-core/src/optimizers/optimizer_constructors.ts
-var OptimizerConstructors = class {
-  static sgd(learningRate) {
-    return new SGDOptimizer(learningRate);
+// src/tfjs-core/src/optimizers/register_optimizers.ts
+var OPTIMIZERS = [
+  AdadeltaOptimizer,
+  AdagradOptimizer,
+  AdamOptimizer,
+  AdamaxOptimizer,
+  MomentumOptimizer,
+  RMSPropOptimizer,
+  SGDOptimizer
+];
+function registerOptimizers() {
+  for (const optimizer of OPTIMIZERS) {
+    registerClass(optimizer);
   }
-  static momentum(learningRate, momentum, useNesterov = false) {
-    return new MomentumOptimizer(learningRate, momentum, useNesterov);
+}
+
+// src/tfjs-core/src/io/io.ts
+var io_exports = {};
+__export(io_exports, {
+  browserFiles: () => browserFiles,
+  browserHTTPRequest: () => browserHTTPRequest,
+  concatenateArrayBuffers: () => concatenateArrayBuffers,
+  copyModel: () => copyModel,
+  decodeWeights: () => decodeWeights,
+  encodeWeights: () => encodeWeights,
+  fromMemory: () => fromMemory,
+  fromMemorySync: () => fromMemorySync,
+  getLoadHandlers: () => getLoadHandlers,
+  getModelArtifactsForJSON: () => getModelArtifactsForJSON,
+  getModelArtifactsForJSONSync: () => getModelArtifactsForJSONSync,
+  getModelArtifactsInfoForJSON: () => getModelArtifactsInfoForJSON,
+  getSaveHandlers: () => getSaveHandlers,
+  getWeightSpecs: () => getWeightSpecs,
+  http: () => http,
+  isHTTPScheme: () => isHTTPScheme,
+  listModels: () => listModels,
+  loadWeights: () => loadWeights,
+  moveModel: () => moveModel,
+  registerLoadRouter: () => registerLoadRouter,
+  registerSaveRouter: () => registerSaveRouter,
+  removeModel: () => removeModel,
+  weightsLoaderFactory: () => weightsLoaderFactory,
+  withSaveHandler: () => withSaveHandler,
+  withSaveHandlerSync: () => withSaveHandlerSync
+});
+
+// src/tfjs-core/src/io/browser_files.ts
+var DEFAULT_FILE_NAME_PREFIX = "model";
+var DEFAULT_JSON_EXTENSION_NAME = ".json";
+var DEFAULT_WEIGHT_DATA_EXTENSION_NAME = ".weights.bin";
+function defer(f) {
+  return new Promise((resolve) => setTimeout(resolve)).then(f);
+}
+var _BrowserDownloads = class {
+  modelJsonFileName;
+  weightDataFileName;
+  modelJsonAnchor;
+  weightDataAnchor;
+  constructor(fileNamePrefix) {
+    if (!env().getBool("IS_BROWSER")) {
+      throw new Error(
+        "browserDownloads() cannot proceed because the current environment is not a browser."
+      );
+    }
+    if (fileNamePrefix.startsWith(_BrowserDownloads.URL_SCHEME)) {
+      fileNamePrefix = fileNamePrefix.slice(_BrowserDownloads.URL_SCHEME.length);
+    }
+    if (fileNamePrefix == null || fileNamePrefix.length === 0) {
+      fileNamePrefix = DEFAULT_FILE_NAME_PREFIX;
+    }
+    this.modelJsonFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
+    this.weightDataFileName = fileNamePrefix + DEFAULT_WEIGHT_DATA_EXTENSION_NAME;
   }
-  static rmsprop(learningRate, decay = 0.9, momentum = 0, epsilon = null, centered = false) {
-    return new RMSPropOptimizer(
-      learningRate,
-      decay,
-      momentum,
-      epsilon,
-      centered
+  async save(modelArtifacts) {
+    if (typeof document === "undefined") {
+      throw new Error(
+        "Browser downloads are not supported in this environment since `document` is not present"
+      );
+    }
+    const weightsURL = window.URL.createObjectURL(new Blob(
+      [modelArtifacts.weightData],
+      { type: "application/octet-stream" }
+    ));
+    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
+      throw new Error(
+        "BrowserDownloads.save() does not support saving model topology in binary formats yet."
+      );
+    } else {
+      const weightsManifest = [{
+        paths: ["./" + this.weightDataFileName],
+        weights: modelArtifacts.weightSpecs
+      }];
+      const modelJSON = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
+      const modelJsonURL = window.URL.createObjectURL(
+        new Blob([JSON.stringify(modelJSON)], { type: "application/json" })
+      );
+      const jsonAnchor = this.modelJsonAnchor == null ? document.createElement("a") : this.modelJsonAnchor;
+      jsonAnchor.download = this.modelJsonFileName;
+      jsonAnchor.href = modelJsonURL;
+      await defer(() => jsonAnchor.dispatchEvent(new MouseEvent("click")));
+      if (modelArtifacts.weightData != null) {
+        const weightDataAnchor = this.weightDataAnchor == null ? document.createElement("a") : this.weightDataAnchor;
+        weightDataAnchor.download = this.weightDataFileName;
+        weightDataAnchor.href = weightsURL;
+        await defer(
+          () => weightDataAnchor.dispatchEvent(new MouseEvent("click"))
+        );
+      }
+      return { modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) };
+    }
+  }
+};
+var BrowserDownloads = _BrowserDownloads;
+__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
+var BrowserFiles = class {
+  jsonFile;
+  weightsFiles;
+  constructor(files) {
+    if (files == null || files.length < 1) {
+      throw new Error(
+        `When calling browserFiles, at least 1 file is required, but received ${files}`
+      );
+    }
+    this.jsonFile = files[0];
+    this.weightsFiles = files.slice(1);
+  }
+  async load() {
+    return new Promise((resolve, reject) => {
+      const jsonReader = new FileReader();
+      jsonReader.onload = (event) => {
+        const modelJSON = JSON.parse(event.target.result);
+        const modelTopology = modelJSON.modelTopology;
+        if (modelTopology == null) {
+          reject(new Error(`modelTopology field is missing from file ${this.jsonFile.name}`));
+          return;
+        }
+        const weightsManifest = modelJSON.weightsManifest;
+        if (weightsManifest == null) {
+          reject(new Error(`weightManifest field is missing from file ${this.jsonFile.name}`));
+          return;
+        }
+        if (this.weightsFiles.length === 0) {
+          resolve({ modelTopology });
+          return;
+        }
+        const modelArtifactsPromise = getModelArtifactsForJSON(
+          modelJSON,
+          (weightsManifest2) => this.loadWeights(weightsManifest2)
+        );
+        resolve(modelArtifactsPromise);
+      };
+      jsonReader.onerror = (error) => reject(
+        `Failed to read model topology and weights manifest JSON from file '${this.jsonFile.name}'. BrowserFiles supports loading Keras-style tf.Model artifacts only.`
+      );
+      jsonReader.readAsText(this.jsonFile);
+    });
+  }
+  loadWeights(weightsManifest) {
+    const weightSpecs = [];
+    const paths = [];
+    for (const entry of weightsManifest) {
+      weightSpecs.push(...entry.weights);
+      paths.push(...entry.paths);
+    }
+    const pathToFile = this.checkManifestAndWeightFiles(weightsManifest);
+    const promises = paths.map((path) => this.loadWeightsFile(path, pathToFile[path]));
+    return Promise.all(promises).then(
+      (buffers) => [weightSpecs, concatenateArrayBuffers(buffers)]
     );
   }
-  static adam(learningRate = 1e-3, beta1 = 0.9, beta2 = 0.999, epsilon = null) {
-    return new AdamOptimizer(learningRate, beta1, beta2, epsilon);
+  loadWeightsFile(path, file) {
+    return new Promise((resolve, reject) => {
+      const weightFileReader = new FileReader();
+      weightFileReader.onload = (event) => {
+        const weightData = event.target.result;
+        resolve(weightData);
+      };
+      weightFileReader.onerror = (error) => reject(`Failed to weights data from file of path '${path}'.`);
+      weightFileReader.readAsArrayBuffer(file);
+    });
   }
-  static adadelta(learningRate = 1e-3, rho = 0.95, epsilon = null) {
-    return new AdadeltaOptimizer(learningRate, rho, epsilon);
-  }
-  static adamax(learningRate = 2e-3, beta1 = 0.9, beta2 = 0.999, epsilon = null, decay = 0) {
-    return new AdamaxOptimizer(learningRate, beta1, beta2, epsilon, decay);
-  }
-  static adagrad(learningRate, initialAccumulatorValue = 0.1) {
-    return new AdagradOptimizer(learningRate, initialAccumulatorValue);
+  /**
+   * Check the compatibility between weights manifest and weight files.
+   */
+  checkManifestAndWeightFiles(manifest) {
+    const basenames = [];
+    const fileNames = this.weightsFiles.map((file) => basename(file.name));
+    const pathToFile = {};
+    for (const group of manifest) {
+      group.paths.forEach((path) => {
+        const pathBasename = basename(path);
+        if (basenames.indexOf(pathBasename) !== -1) {
+          throw new Error(
+            `Duplicate file basename found in weights manifest: '${pathBasename}'`
+          );
+        }
+        basenames.push(pathBasename);
+        if (fileNames.indexOf(pathBasename) === -1) {
+          throw new Error(
+            `Weight file with basename '${pathBasename}' is not provided.`
+          );
+        } else {
+          pathToFile[path] = this.weightsFiles[fileNames.indexOf(pathBasename)];
+        }
+      });
+    }
+    if (basenames.length !== this.weightsFiles.length) {
+      throw new Error(
+        `Mismatch in the number of files in weights manifest (${basenames.length}) and the number of weight files provided (${this.weightsFiles.length}).`
+      );
+    }
+    return pathToFile;
   }
 };
+var browserDownloadsRouter = (url) => {
+  if (!env().getBool("IS_BROWSER")) {
+    return null;
+  } else {
+    if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {
+      return browserDownloads(url.slice(BrowserDownloads.URL_SCHEME.length));
+    } else {
+      return null;
+    }
+  }
+};
+IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
+function browserDownloads(fileNamePrefix = "model") {
+  return new BrowserDownloads(fileNamePrefix);
+}
+function browserFiles(files) {
+  return new BrowserFiles(files);
+}
 
-// src/tfjs-core/src/train.ts
-var train = {
-  sgd: OptimizerConstructors.sgd,
-  momentum: OptimizerConstructors.momentum,
-  adadelta: OptimizerConstructors.adadelta,
-  adagrad: OptimizerConstructors.adagrad,
-  rmsprop: OptimizerConstructors.rmsprop,
-  adamax: OptimizerConstructors.adamax,
-  adam: OptimizerConstructors.adam
+// src/tfjs-core/src/io/progress.ts
+function monitorPromisesProgress(promises, onProgress, startFraction, endFraction) {
+  checkPromises(promises);
+  startFraction = startFraction == null ? 0 : startFraction;
+  endFraction = endFraction == null ? 1 : endFraction;
+  checkFraction(startFraction, endFraction);
+  let resolvedPromise = 0;
+  const registerMonitor = (promise) => {
+    promise.then((value) => {
+      const fraction = startFraction + ++resolvedPromise / promises.length * (endFraction - startFraction);
+      onProgress(fraction);
+      return value;
+    });
+    return promise;
+  };
+  function checkPromises(promises2) {
+    assert(
+      promises2 != null && Array.isArray(promises2) && promises2.length > 0,
+      () => "promises must be a none empty array"
+    );
+  }
+  function checkFraction(startFraction2, endFraction2) {
+    assert(
+      startFraction2 >= 0 && startFraction2 <= 1,
+      () => `Progress fraction must be in range [0, 1], but got startFraction ${startFraction2}`
+    );
+    assert(
+      endFraction2 >= 0 && endFraction2 <= 1,
+      () => `Progress fraction must be in range [0, 1], but got endFraction ${endFraction2}`
+    );
+    assert(
+      endFraction2 >= startFraction2,
+      () => `startFraction must be no more than endFraction, but got startFraction ${startFraction2} and endFraction ${endFraction2}`
+    );
+  }
+  return Promise.all(promises.map(registerMonitor));
+}
+
+// src/tfjs-core/src/io/weights_loader.ts
+async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
+  if (loadOptions == null) {
+    loadOptions = {};
+  }
+  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch : loadOptions.fetchFunc;
+  const requests = fetchURLs.map(
+    (fetchURL) => fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true })
+  );
+  const fetchStartFraction = 0;
+  const fetchEndFraction = 0.5;
+  const responses = loadOptions.onProgress == null ? await Promise.all(requests) : await monitorPromisesProgress(
+    requests,
+    loadOptions.onProgress,
+    fetchStartFraction,
+    fetchEndFraction
+  );
+  const bufferPromises = responses.map((response) => response.arrayBuffer());
+  const bufferStartFraction = 0.5;
+  const bufferEndFraction = 1;
+  const buffers = loadOptions.onProgress == null ? await Promise.all(bufferPromises) : await monitorPromisesProgress(
+    bufferPromises,
+    loadOptions.onProgress,
+    bufferStartFraction,
+    bufferEndFraction
+  );
+  return buffers;
+}
+async function loadWeights(manifest, filePathPrefix = "", weightNames, requestInit) {
+  const fetchWeights = (fetchUrls) => loadWeightsAsArrayBuffer(fetchUrls, { requestInit });
+  const loadWeights2 = weightsLoaderFactory(fetchWeights);
+  return loadWeights2(manifest, filePathPrefix, weightNames);
+}
+function weightsLoaderFactory(fetchWeightsFunction) {
+  return async (manifest, filePathPrefix = "", weightNames) => {
+    const groupIndicesToFetchMap = manifest.map(() => false);
+    const groupWeightsToFetch = {};
+    const weightsFound = weightNames != null ? weightNames.map(() => false) : [];
+    const allManifestWeightNames = [];
+    manifest.forEach((manifestGroupConfig, groupIndex) => {
+      let groupOffset = 0;
+      manifestGroupConfig.weights.forEach((weightsEntry) => {
+        const rawDtype = "quantization" in weightsEntry ? weightsEntry.quantization.dtype : weightsEntry.dtype;
+        const weightsBytes = DTYPE_VALUE_SIZE_MAP[rawDtype] * sizeFromShape(weightsEntry.shape);
+        const enqueueWeightsForFetchingFn = () => {
+          groupIndicesToFetchMap[groupIndex] = true;
+          if (groupWeightsToFetch[groupIndex] == null) {
+            groupWeightsToFetch[groupIndex] = [];
+          }
+          groupWeightsToFetch[groupIndex].push({
+            manifestEntry: weightsEntry,
+            groupOffset,
+            sizeBytes: weightsBytes
+          });
+        };
+        if (weightNames != null) {
+          weightNames.forEach((weightName, weightIndex) => {
+            if (weightName === weightsEntry.name) {
+              enqueueWeightsForFetchingFn();
+              weightsFound[weightIndex] = true;
+            }
+          });
+        } else {
+          enqueueWeightsForFetchingFn();
+        }
+        allManifestWeightNames.push(weightsEntry.name);
+        groupOffset += weightsBytes;
+      });
+    });
+    if (!weightsFound.every((found) => found)) {
+      const weightsNotFound = weightNames.filter((_, i) => !weightsFound[i]);
+      throw new Error(
+        `Could not find weights in manifest with names: ${weightsNotFound.join(", ")}. 
+Manifest JSON has weights with names: ${allManifestWeightNames.join(", ")}.`
+      );
+    }
+    const groupIndicesToFetch = groupIndicesToFetchMap.reduce((accumulator, shouldFetch, i) => {
+      if (shouldFetch) {
+        accumulator.push(i);
+      }
+      return accumulator;
+    }, []);
+    const fetchUrls = [];
+    groupIndicesToFetch.forEach((i) => {
+      manifest[i].paths.forEach((filepath) => {
+        const fetchUrl = filePathPrefix + (!filePathPrefix.endsWith("/") ? "/" : "") + filepath;
+        fetchUrls.push(fetchUrl);
+      });
+    });
+    const buffers = await fetchWeightsFunction(fetchUrls);
+    const weightsTensorMap = {};
+    let bufferIndexOffset = 0;
+    groupIndicesToFetch.forEach((i) => {
+      const numBuffers = manifest[i].paths.length;
+      let groupBytes = 0;
+      for (let i2 = 0; i2 < numBuffers; i2++) {
+        groupBytes += buffers[bufferIndexOffset + i2].byteLength;
+      }
+      const groupBuffer = new ArrayBuffer(groupBytes);
+      const groupByteBuffer = new Uint8Array(groupBuffer);
+      let groupBufferOffset = 0;
+      for (let i2 = 0; i2 < numBuffers; i2++) {
+        const buffer2 = new Uint8Array(buffers[bufferIndexOffset + i2]);
+        groupByteBuffer.set(buffer2, groupBufferOffset);
+        groupBufferOffset += buffer2.byteLength;
+      }
+      const weightsEntries = groupWeightsToFetch[i];
+      weightsEntries.forEach((weightsEntry) => {
+        const byteBuffer = groupBuffer.slice(
+          weightsEntry.groupOffset,
+          weightsEntry.groupOffset + weightsEntry.sizeBytes
+        );
+        const nameToTensorMap = decodeWeights(byteBuffer, [weightsEntry.manifestEntry]);
+        for (const name in nameToTensorMap) {
+          weightsTensorMap[name] = nameToTensorMap[name];
+        }
+      });
+      bufferIndexOffset += numBuffers;
+    });
+    return weightsTensorMap;
+  };
+}
+
+// src/tfjs-core/src/io/http.ts
+var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
+var JSON_TYPE = "application/json";
+var HTTPRequest = class {
+  path;
+  requestInit;
+  fetch;
+  weightUrlConverter;
+  DEFAULT_METHOD = "POST";
+  weightPathPrefix;
+  onProgress;
+  constructor(path, loadOptions) {
+    if (loadOptions == null) {
+      loadOptions = {};
+    }
+    this.weightPathPrefix = loadOptions.weightPathPrefix;
+    this.onProgress = loadOptions.onProgress;
+    this.weightUrlConverter = loadOptions.weightUrlConverter;
+    if (loadOptions.fetchFunc != null) {
+      assert(
+        typeof loadOptions.fetchFunc === "function",
+        () => "Must pass a function that matches the signature of `fetch` (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)"
+      );
+      this.fetch = loadOptions.fetchFunc;
+    } else {
+      this.fetch = env().platform.fetch;
+    }
+    assert(
+      path != null && path.length > 0,
+      () => "URL path for http must not be null, undefined or empty."
+    );
+    if (Array.isArray(path)) {
+      assert(
+        path.length === 2,
+        () => `URL paths for http must have a length of 2, (actual length is ${path.length}).`
+      );
+    }
+    this.path = path;
+    if (loadOptions.requestInit != null && loadOptions.requestInit.body != null) {
+      throw new Error(
+        "requestInit is expected to have no pre-existing body, but has one."
+      );
+    }
+    this.requestInit = loadOptions.requestInit || {};
+  }
+  async save(modelArtifacts) {
+    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
+      throw new Error(
+        "BrowserHTTPRequest.save() does not support saving model topology in binary formats yet."
+      );
+    }
+    const init = Object.assign({ method: this.DEFAULT_METHOD }, this.requestInit);
+    init.body = new FormData();
+    const weightsManifest = [{
+      paths: ["./model.weights.bin"],
+      weights: modelArtifacts.weightSpecs
+    }];
+    const modelTopologyAndWeightManifest = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
+    init.body.append(
+      "model.json",
+      new Blob(
+        [JSON.stringify(modelTopologyAndWeightManifest)],
+        { type: JSON_TYPE }
+      ),
+      "model.json"
+    );
+    if (modelArtifacts.weightData != null) {
+      init.body.append(
+        "model.weights.bin",
+        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
+        "model.weights.bin"
+      );
+    }
+    const response = await this.fetch(this.path, init);
+    if (response.ok) {
+      return {
+        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
+        responses: [response]
+      };
+    } else {
+      throw new Error(
+        `BrowserHTTPRequest.save() failed due to HTTP response status ${response.status}.`
+      );
+    }
+  }
+  /**
+   * Load model artifacts via HTTP request(s).
+   *
+   * See the documentation to `tf.io.http` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model artifacts (if loading succeeds).
+   */
+  async load() {
+    const modelConfigRequest = await this.fetch(this.path, this.requestInit);
+    if (!modelConfigRequest.ok) {
+      throw new Error(
+        `Request to ${this.path} failed with status code ${modelConfigRequest.status}. Please verify this URL points to the model JSON of the model to load.`
+      );
+    }
+    let modelJSON;
+    try {
+      modelJSON = await modelConfigRequest.json();
+    } catch (e) {
+      let message = `Failed to parse model JSON of response from ${this.path}.`;
+      if (this.path.endsWith(".pb")) {
+        message += " Your path contains a .pb file extension. Support for .pb models have been removed in TensorFlow.js 1.0 in favor of .json models. You can re-convert your Python TensorFlow model using the TensorFlow.js 1.0 conversion scripts or you can convert your.pb models with the 'pb2json'NPM script in the tensorflow/tfjs-converter repository.";
+      } else {
+        message += " Please make sure the server is serving valid JSON for this request.";
+      }
+      throw new Error(message);
+    }
+    const modelTopology = modelJSON.modelTopology;
+    const weightsManifest = modelJSON.weightsManifest;
+    if (modelTopology == null && weightsManifest == null) {
+      throw new Error(
+        `The JSON from HTTP path ${this.path} contains neither model topology or manifest for weights.`
+      );
+    }
+    return getModelArtifactsForJSON(
+      modelJSON,
+      (weightsManifest2) => this.loadWeights(weightsManifest2)
+    );
+  }
+  async loadWeights(weightsManifest) {
+    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
+    const [prefix, suffix] = parseUrl(weightPath);
+    const pathPrefix = this.weightPathPrefix || prefix;
+    const weightSpecs = getWeightSpecs(weightsManifest);
+    const fetchURLs = [];
+    const urlPromises = [];
+    for (const weightsGroup of weightsManifest) {
+      for (const path of weightsGroup.paths) {
+        if (this.weightUrlConverter != null) {
+          urlPromises.push(this.weightUrlConverter(path));
+        } else {
+          fetchURLs.push(pathPrefix + path + suffix);
+        }
+      }
+    }
+    if (this.weightUrlConverter) {
+      fetchURLs.push(...await Promise.all(urlPromises));
+    }
+    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
+      requestInit: this.requestInit,
+      fetchFunc: this.fetch,
+      onProgress: this.onProgress
+    });
+    return [weightSpecs, concatenateArrayBuffers(buffers)];
+  }
 };
+__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
+function parseUrl(url) {
+  const lastSlash = url.lastIndexOf("/");
+  const lastSearchParam = url.lastIndexOf("?");
+  const prefix = url.substring(0, lastSlash);
+  const suffix = lastSearchParam > lastSlash ? url.substring(lastSearchParam) : "";
+  return [prefix + "/", suffix];
+}
+function isHTTPScheme(url) {
+  return url.match(HTTPRequest.URL_SCHEME_REGEX) != null;
+}
+var httpRouter = (url, loadOptions) => {
+  if (typeof fetch === "undefined" && (loadOptions == null || loadOptions.fetchFunc == null)) {
+    return null;
+  } else {
+    let isHTTP = true;
+    if (Array.isArray(url)) {
+      isHTTP = url.every((urlItem) => isHTTPScheme(urlItem));
+    } else {
+      isHTTP = isHTTPScheme(url);
+    }
+    if (isHTTP) {
+      return http(url, loadOptions);
+    }
+  }
+  return null;
+};
+IORouterRegistry.registerSaveRouter(httpRouter);
+IORouterRegistry.registerLoadRouter(httpRouter);
+function http(path, loadOptions) {
+  return new HTTPRequest(path, loadOptions);
+}
+function browserHTTPRequest(path, loadOptions) {
+  return http(path, loadOptions);
+}
+
+// src/tfjs-core/src/io/passthrough.ts
+var PassthroughLoader = class {
+  constructor(modelArtifacts) {
+    this.modelArtifacts = modelArtifacts;
+  }
+  load() {
+    return this.modelArtifacts;
+  }
+};
+var PassthroughSaver = class {
+  constructor(saveHandler) {
+    this.saveHandler = saveHandler;
+  }
+  save(modelArtifacts) {
+    return this.saveHandler(modelArtifacts);
+  }
+};
+var PassthroughAsync = class {
+  load;
+  save;
+  constructor(handler) {
+    if (handler.load) {
+      this.load = () => Promise.resolve(handler.load());
+    }
+    if (handler.save) {
+      this.save = (modelArtifacts) => Promise.resolve(handler.save(modelArtifacts));
+    }
+  }
+};
+function fromMemory(modelArtifacts, weightSpecs, weightData, trainingConfig) {
+  const args = arguments;
+  return new PassthroughAsync(fromMemorySync(...args));
+}
+function fromMemorySync(modelArtifacts, weightSpecs, weightData, trainingConfig) {
+  if (arguments.length === 1) {
+    const isModelArtifacts = modelArtifacts.modelTopology != null || modelArtifacts.weightSpecs != null;
+    if (isModelArtifacts) {
+      return new PassthroughLoader(modelArtifacts);
+    } else {
+      console.warn(
+        "Please call tf.io.fromMemory() with only one argument. The argument should be of type ModelArtifacts. The multi-argument signature of tf.io.fromMemory() has been deprecated and will be removed in a future release."
+      );
+      return new PassthroughLoader({ modelTopology: modelArtifacts });
+    }
+  } else {
+    console.warn(
+      "Please call tf.io.fromMemory() with only one argument. The argument should be of type ModelArtifacts. The multi-argument signature of tf.io.fromMemory() has been deprecated and will be removed in a future release."
+    );
+    return new PassthroughLoader({
+      modelTopology: modelArtifacts,
+      weightSpecs,
+      weightData,
+      trainingConfig
+    });
+  }
+}
+function withSaveHandler(saveHandler) {
+  return new PassthroughSaver(saveHandler);
+}
+function withSaveHandlerSync(saveHandler) {
+  return new PassthroughSaver(saveHandler);
+}
+
+// src/tfjs-core/src/ops/confusion_matrix.ts
+function confusionMatrix_(labels, predictions, numClasses) {
+  const $labels = convertToTensor(labels, "labels", "confusionMatrix");
+  const $predictions = convertToTensor(predictions, "predictions", "confusionMatrix");
+  assert(
+    numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
+    () => `If provided, numClasses must be a positive integer, but got ${numClasses}`
+  );
+  assert(
+    $labels.rank === 1,
+    () => `Expected the rank of labels to be 1, but got ${$labels.rank}`
+  );
+  assert(
+    $predictions.rank === 1,
+    () => `Expected the rank of predictions to be 1, but got ${$predictions.rank}`
+  );
+  assert(
+    $labels.shape[0] === $predictions.shape[0],
+    () => `Mismatch in the number of examples: ${$labels.shape[0]} vs. ${$predictions.shape[0]}. Labels and predictions should have the same number of elements.`
+  );
+  assert(
+    numClasses > 0 && Number.isInteger(numClasses),
+    () => `numClasses is required to be a positive integer, but got ${numClasses}`
+  );
+  const oneHotLabels = oneHot(cast($labels, "int32"), numClasses);
+  const oneHotPredictions = oneHot(cast($predictions, "int32"), numClasses);
+  const oneHotLabelsT = transpose(oneHotLabels);
+  const product = matMul(oneHotLabelsT, oneHotPredictions);
+  return cast(product, "int32");
+}
+var confusionMatrix = op({ confusionMatrix_ });
+
+// src/tfjs-core/src/ops/browser.ts
+var fromPixels2DContext;
+function fromPixels_(pixels, numChannels = 3) {
+  if (numChannels > 4) {
+    throw new Error(
+      "Cannot construct Tensor with more than 4 channels from pixels."
+    );
+  }
+  if (pixels == null) {
+    throw new Error("pixels passed to tf.browser.fromPixels() can not be null");
+  }
+  let isPixelData = false;
+  let isImageData = false;
+  let isVideo = false;
+  let isImage = false;
+  let isCanvasLike = false;
+  let isImageBitmap = false;
+  if (pixels.data instanceof Uint8Array) {
+    isPixelData = true;
+  } else if (typeof ImageData !== "undefined" && pixels instanceof ImageData) {
+    isImageData = true;
+  } else if (typeof HTMLVideoElement !== "undefined" && pixels instanceof HTMLVideoElement) {
+    isVideo = true;
+  } else if (typeof HTMLImageElement !== "undefined" && pixels instanceof HTMLImageElement) {
+    isImage = true;
+  } else if (pixels.getContext != null) {
+    isCanvasLike = true;
+  } else if (typeof ImageBitmap !== "undefined" && pixels instanceof ImageBitmap) {
+    isImageBitmap = true;
+  } else {
+    throw new Error(
+      `pixels passed to tf.browser.fromPixels() must be either an HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData in browser, or OffscreenCanvas, ImageData in webworker or {data: Uint32Array, width: number, height: number}, but was ${pixels.constructor.name}`
+    );
+  }
+  const kernel = getKernel(FromPixels, ENGINE.backendName);
+  if (kernel != null) {
+    const inputs = { pixels };
+    const attrs = { numChannels };
+    return ENGINE.runKernel(
+      FromPixels,
+      inputs,
+      attrs
+    );
+  }
+  const [width, height] = isVideo ? [
+    pixels.videoWidth,
+    pixels.videoHeight
+  ] : [pixels.width, pixels.height];
+  let vals;
+  if (isCanvasLike) {
+    vals = // tslint:disable-next-line:no-any
+    pixels.getContext("2d").getImageData(0, 0, width, height).data;
+  } else if (isImageData || isPixelData) {
+    vals = pixels.data;
+  } else if (isImage || isVideo || isImageBitmap) {
+    if (fromPixels2DContext == null) {
+      if (typeof document === "undefined") {
+        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
+          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
+        } else {
+          throw new Error(
+            "Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported."
+          );
+        }
+      } else {
+        fromPixels2DContext = document.createElement("canvas").getContext(
+          "2d",
+          { willReadFrequently: true }
+        );
+      }
+    }
+    fromPixels2DContext.canvas.width = width;
+    fromPixels2DContext.canvas.height = height;
+    fromPixels2DContext.drawImage(
+      pixels,
+      0,
+      0,
+      width,
+      height
+    );
+    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
+  }
+  let values;
+  if (numChannels === 4) {
+    values = new Int32Array(vals);
+  } else {
+    const numPixels = width * height;
+    values = new Int32Array(numPixels * numChannels);
+    for (let i = 0; i < numPixels; i++) {
+      for (let channel = 0; channel < numChannels; ++channel) {
+        values[i * numChannels + channel] = vals[i * 4 + channel];
+      }
+    }
+  }
+  const outShape = [height, width, numChannels];
+  return tensor3d(values, outShape, "int32");
+}
+var fromPixels = op({ fromPixels_ });
 
 // src/tfjs-core/src/browser_util.ts
 var delayCallback = (() => {
@@ -13489,6 +14114,9 @@ var delayCallback = (() => {
   }
   return (f) => f();
 })();
+
+// src/tfjs-core/src/index.ts
+registerOptimizers();
 
 // src/tfjs-converter/src/flags.ts
 var ENV3 = env();
@@ -13501,56 +14129,56 @@ ENV3.registerFlag("KEEP_INTERMEDIATE_TENSORS", () => false, (debugValue) => {
 });
 
 // src/tfjs-converter/src/data/compiled_api.ts
-var DataType2 = /* @__PURE__ */ ((DataType9) => {
-  DataType9[DataType9["DT_INVALID"] = 0] = "DT_INVALID";
-  DataType9[DataType9["DT_FLOAT"] = 1] = "DT_FLOAT";
-  DataType9[DataType9["DT_DOUBLE"] = 2] = "DT_DOUBLE";
-  DataType9[DataType9["DT_INT32"] = 3] = "DT_INT32";
-  DataType9[DataType9["DT_UINT8"] = 4] = "DT_UINT8";
-  DataType9[DataType9["DT_INT16"] = 5] = "DT_INT16";
-  DataType9[DataType9["DT_INT8"] = 6] = "DT_INT8";
-  DataType9[DataType9["DT_STRING"] = 7] = "DT_STRING";
-  DataType9[DataType9["DT_COMPLEX64"] = 8] = "DT_COMPLEX64";
-  DataType9[DataType9["DT_INT64"] = 9] = "DT_INT64";
-  DataType9[DataType9["DT_BOOL"] = 10] = "DT_BOOL";
-  DataType9[DataType9["DT_QINT8"] = 11] = "DT_QINT8";
-  DataType9[DataType9["DT_QUINT8"] = 12] = "DT_QUINT8";
-  DataType9[DataType9["DT_QINT32"] = 13] = "DT_QINT32";
-  DataType9[DataType9["DT_BFLOAT16"] = 14] = "DT_BFLOAT16";
-  DataType9[DataType9["DT_QINT16"] = 15] = "DT_QINT16";
-  DataType9[DataType9["DT_QUINT16"] = 16] = "DT_QUINT16";
-  DataType9[DataType9["DT_UINT16"] = 17] = "DT_UINT16";
-  DataType9[DataType9["DT_COMPLEX128"] = 18] = "DT_COMPLEX128";
-  DataType9[DataType9["DT_HALF"] = 19] = "DT_HALF";
-  DataType9[DataType9["DT_RESOURCE"] = 20] = "DT_RESOURCE";
-  DataType9[DataType9["DT_VARIANT"] = 21] = "DT_VARIANT";
-  DataType9[DataType9["DT_UINT32"] = 22] = "DT_UINT32";
-  DataType9[DataType9["DT_UINT64"] = 23] = "DT_UINT64";
-  DataType9[DataType9["DT_FLOAT_REF"] = 101] = "DT_FLOAT_REF";
-  DataType9[DataType9["DT_DOUBLE_REF"] = 102] = "DT_DOUBLE_REF";
-  DataType9[DataType9["DT_INT32_REF"] = 103] = "DT_INT32_REF";
-  DataType9[DataType9["DT_UINT8_REF"] = 104] = "DT_UINT8_REF";
-  DataType9[DataType9["DT_INT16_REF"] = 105] = "DT_INT16_REF";
-  DataType9[DataType9["DT_INT8_REF"] = 106] = "DT_INT8_REF";
-  DataType9[DataType9["DT_STRING_REF"] = 107] = "DT_STRING_REF";
-  DataType9[DataType9["DT_COMPLEX64_REF"] = 108] = "DT_COMPLEX64_REF";
-  DataType9[DataType9["DT_INT64_REF"] = 109] = "DT_INT64_REF";
-  DataType9[DataType9["DT_BOOL_REF"] = 110] = "DT_BOOL_REF";
-  DataType9[DataType9["DT_QINT8_REF"] = 111] = "DT_QINT8_REF";
-  DataType9[DataType9["DT_QUINT8_REF"] = 112] = "DT_QUINT8_REF";
-  DataType9[DataType9["DT_QINT32_REF"] = 113] = "DT_QINT32_REF";
-  DataType9[DataType9["DT_BFLOAT16_REF"] = 114] = "DT_BFLOAT16_REF";
-  DataType9[DataType9["DT_QINT16_REF"] = 115] = "DT_QINT16_REF";
-  DataType9[DataType9["DT_QUINT16_REF"] = 116] = "DT_QUINT16_REF";
-  DataType9[DataType9["DT_UINT16_REF"] = 117] = "DT_UINT16_REF";
-  DataType9[DataType9["DT_COMPLEX128_REF"] = 118] = "DT_COMPLEX128_REF";
-  DataType9[DataType9["DT_HALF_REF"] = 119] = "DT_HALF_REF";
-  DataType9[DataType9["DT_RESOURCE_REF"] = 120] = "DT_RESOURCE_REF";
-  DataType9[DataType9["DT_VARIANT_REF"] = 121] = "DT_VARIANT_REF";
-  DataType9[DataType9["DT_UINT32_REF"] = 122] = "DT_UINT32_REF";
-  DataType9[DataType9["DT_UINT64_REF"] = 123] = "DT_UINT64_REF";
-  return DataType9;
-})(DataType2 || {});
+var DataType3 = /* @__PURE__ */ ((DataType10) => {
+  DataType10[DataType10["DT_INVALID"] = 0] = "DT_INVALID";
+  DataType10[DataType10["DT_FLOAT"] = 1] = "DT_FLOAT";
+  DataType10[DataType10["DT_DOUBLE"] = 2] = "DT_DOUBLE";
+  DataType10[DataType10["DT_INT32"] = 3] = "DT_INT32";
+  DataType10[DataType10["DT_UINT8"] = 4] = "DT_UINT8";
+  DataType10[DataType10["DT_INT16"] = 5] = "DT_INT16";
+  DataType10[DataType10["DT_INT8"] = 6] = "DT_INT8";
+  DataType10[DataType10["DT_STRING"] = 7] = "DT_STRING";
+  DataType10[DataType10["DT_COMPLEX64"] = 8] = "DT_COMPLEX64";
+  DataType10[DataType10["DT_INT64"] = 9] = "DT_INT64";
+  DataType10[DataType10["DT_BOOL"] = 10] = "DT_BOOL";
+  DataType10[DataType10["DT_QINT8"] = 11] = "DT_QINT8";
+  DataType10[DataType10["DT_QUINT8"] = 12] = "DT_QUINT8";
+  DataType10[DataType10["DT_QINT32"] = 13] = "DT_QINT32";
+  DataType10[DataType10["DT_BFLOAT16"] = 14] = "DT_BFLOAT16";
+  DataType10[DataType10["DT_QINT16"] = 15] = "DT_QINT16";
+  DataType10[DataType10["DT_QUINT16"] = 16] = "DT_QUINT16";
+  DataType10[DataType10["DT_UINT16"] = 17] = "DT_UINT16";
+  DataType10[DataType10["DT_COMPLEX128"] = 18] = "DT_COMPLEX128";
+  DataType10[DataType10["DT_HALF"] = 19] = "DT_HALF";
+  DataType10[DataType10["DT_RESOURCE"] = 20] = "DT_RESOURCE";
+  DataType10[DataType10["DT_VARIANT"] = 21] = "DT_VARIANT";
+  DataType10[DataType10["DT_UINT32"] = 22] = "DT_UINT32";
+  DataType10[DataType10["DT_UINT64"] = 23] = "DT_UINT64";
+  DataType10[DataType10["DT_FLOAT_REF"] = 101] = "DT_FLOAT_REF";
+  DataType10[DataType10["DT_DOUBLE_REF"] = 102] = "DT_DOUBLE_REF";
+  DataType10[DataType10["DT_INT32_REF"] = 103] = "DT_INT32_REF";
+  DataType10[DataType10["DT_UINT8_REF"] = 104] = "DT_UINT8_REF";
+  DataType10[DataType10["DT_INT16_REF"] = 105] = "DT_INT16_REF";
+  DataType10[DataType10["DT_INT8_REF"] = 106] = "DT_INT8_REF";
+  DataType10[DataType10["DT_STRING_REF"] = 107] = "DT_STRING_REF";
+  DataType10[DataType10["DT_COMPLEX64_REF"] = 108] = "DT_COMPLEX64_REF";
+  DataType10[DataType10["DT_INT64_REF"] = 109] = "DT_INT64_REF";
+  DataType10[DataType10["DT_BOOL_REF"] = 110] = "DT_BOOL_REF";
+  DataType10[DataType10["DT_QINT8_REF"] = 111] = "DT_QINT8_REF";
+  DataType10[DataType10["DT_QUINT8_REF"] = 112] = "DT_QUINT8_REF";
+  DataType10[DataType10["DT_QINT32_REF"] = 113] = "DT_QINT32_REF";
+  DataType10[DataType10["DT_BFLOAT16_REF"] = 114] = "DT_BFLOAT16_REF";
+  DataType10[DataType10["DT_QINT16_REF"] = 115] = "DT_QINT16_REF";
+  DataType10[DataType10["DT_QUINT16_REF"] = 116] = "DT_QUINT16_REF";
+  DataType10[DataType10["DT_UINT16_REF"] = 117] = "DT_UINT16_REF";
+  DataType10[DataType10["DT_COMPLEX128_REF"] = 118] = "DT_COMPLEX128_REF";
+  DataType10[DataType10["DT_HALF_REF"] = 119] = "DT_HALF_REF";
+  DataType10[DataType10["DT_RESOURCE_REF"] = 120] = "DT_RESOURCE_REF";
+  DataType10[DataType10["DT_VARIANT_REF"] = 121] = "DT_VARIANT_REF";
+  DataType10[DataType10["DT_UINT32_REF"] = 122] = "DT_UINT32_REF";
+  DataType10[DataType10["DT_UINT64_REF"] = 123] = "DT_UINT64_REF";
+  return DataType10;
+})(DataType3 || {});
 var SaverDef;
 ((SaverDef2) => {
   let CheckpointFormatVersion;
@@ -13586,22 +14214,24 @@ function getParamValue(paramName, node, tensorMap, context, resourceManager) {
   if (inputParam && inputParam.inputIndexStart !== void 0) {
     const start = inputParam.inputIndexStart;
     const end = inputParam.inputIndexEnd === 0 ? void 0 : inputParam.inputIndexEnd === void 0 ? start + 1 : inputParam.inputIndexEnd;
+    const shiftedStart = start < 0 ? node.inputNames.length + start : start;
     if (inputParam.type === "tensor") {
       return getTensor(
-        node.inputNames[inputParam.inputIndexStart],
+        node.inputNames[shiftedStart],
         tensorMap,
         context,
         resourceManager
       );
     }
     if (inputParam.type === "tensors") {
-      const inputs = node.inputNames.slice(start, end);
-      return inputs.map(
+      const inputs = node.inputs.slice(start, end);
+      const inputNames = node.inputNames.slice(start, end).filter((_name, index) => inputs[index]?.op !== "NoOp");
+      return inputNames.map(
         (name) => getTensor(name, tensorMap, context, resourceManager)
       );
     }
     const tensor2 = getTensor(
-      node.inputNames.slice(start)[0],
+      node.inputNames[shiftedStart],
       tensorMap,
       context,
       resourceManager
@@ -13613,7 +14243,7 @@ function getParamValue(paramName, node, tensorMap, context, resourceManager) {
   return attrParam && attrParam.value;
 }
 function getTensor(name, tensorsMap, context, resourceManager) {
-  const [nodeName, index] = parseNodeName(name);
+  const [nodeName, index] = parseNodeName(name, context);
   if (resourceManager != null) {
     const tensor2 = resourceManager.getHashTableHandleByName(nodeName);
     if (tensor2 != null) {
@@ -13625,11 +14255,11 @@ function getTensor(name, tensorsMap, context, resourceManager) {
   });
   return contextId !== void 0 ? tensorsMap[getNodeNameWithContextId(nodeName, contextId)][index] : void 0;
 }
-function getTensorsForCurrentContenxt(name, tensorsMap, context) {
+function getTensorsForCurrentContext(name, tensorsMap, context) {
   return tensorsMap[getNodeNameWithContextId(name, context.currentContextId)];
 }
 function getNodeNameAndIndex(inputName, context) {
-  const [nodeName, index, outputName] = parseNodeName(inputName);
+  const [nodeName, index, outputName] = parseNodeName(inputName, context);
   return [
     getNodeNameWithContextId(nodeName, context && context.currentContextId),
     index,
@@ -13639,15 +14269,31 @@ function getNodeNameAndIndex(inputName, context) {
 function getNodeNameWithContextId(name, contextId) {
   return !!contextId ? `${name}-${contextId}` : name;
 }
-function parseNodeName(name) {
-  const parts = name.split(":");
-  if (parts.length === 1) {
-    return [name, 0, void 0];
+function parseNodeName(name, context) {
+  if (name === "") {
+    return ["", 0, void 0];
   }
-  const nodeName = parts[0];
-  const outputName = parts.length === 3 ? parts[1] : void 0;
-  const index = Number(parts[parts.length - 1]);
-  return [nodeName, index, outputName];
+  const isCacheEnabled = context != null && context.parseNodeNameCache != null;
+  if (isCacheEnabled) {
+    const cachedResult = context.parseNodeNameCache.get(name);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+  }
+  const parts = name.split(":");
+  let result;
+  if (parts.length === 1) {
+    result = [name, 0, void 0];
+  } else {
+    const nodeName = parts[0];
+    const outputName = parts.length === 3 ? parts[1] : void 0;
+    const index = Number(parts[parts.length - 1]);
+    result = [nodeName, index, outputName];
+  }
+  if (isCacheEnabled) {
+    context.parseNodeNameCache.set(name, result);
+  }
+  return result;
 }
 function getPadding(node, tensorMap, context) {
   let pad2 = getParamValue("pad", node, tensorMap, context);
@@ -14912,6 +15558,44 @@ var json2 = [
   },
   {
     "tfOpName": "IsNan",
+    "category": "basic_math",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "IsFinite",
+    "category": "basic_math",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "IsInf",
     "category": "basic_math",
     "inputs": [
       {
@@ -18285,6 +18969,27 @@ var json12 = [
         "type": "dtype"
       }
     ]
+  },
+  {
+    "tfOpName": "MatrixBandPart",
+    "category": "matrices",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "a",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "numLower",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "numUpper",
+        "type": "tensor"
+      }
+    ]
   }
 ];
 
@@ -19256,6 +19961,27 @@ var json15 = [
         "notSupported": true
       }
     ]
+  },
+  {
+    "tfOpName": "TensorScatterUpdate",
+    "category": "slice_join",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensor",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "indices",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "values",
+        "type": "tensor"
+      }
+    ]
   }
 ];
 
@@ -19434,6 +20160,34 @@ __export(string_exports, {
   json: () => json18
 });
 var json18 = [
+  {
+    "tfOpName": "StaticRegexReplace",
+    "category": "string",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "input",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "pattern",
+        "name": "pattern",
+        "type": "string"
+      },
+      {
+        "tfName": "rewrite",
+        "name": "rewrite",
+        "type": "string"
+      },
+      {
+        "tfName": "replace_global",
+        "name": "replaceGlobal",
+        "type": "bool"
+      }
+    ]
+  },
   {
     "tfOpName": "StringNGrams",
     "category": "string",
@@ -19788,9 +20542,11 @@ var json19 = [
 // src/tfjs-converter/src/operations/operation_mapper.ts
 var OperationMapper = class {
   opMappers;
+  // Singleton instance for the mapper
   static get Instance() {
     return this._instance || (this._instance = new this());
   }
+  // Loads the op mapping from the JSON file.
   constructor() {
     const ops = [
       arithmetic_exports,
@@ -19822,6 +20578,8 @@ var OperationMapper = class {
       {}
     );
   }
+  // Converts the model inference graph from Tensorflow GraphDef to local
+  // representation for TensorFlow.js API
   transformGraph(graph, signature = {}) {
     const tfNodes = graph.node;
     const placeholders = [];
@@ -20114,6 +20872,7 @@ var OperationMapper = class {
     }
     return newNode;
   }
+  // map the TFunctionDef to TFJS graph object
   mapFunction(functionDef) {
     const tfNodes = functionDef.nodeDef;
     const placeholders = [];
@@ -20237,7 +20996,7 @@ function getNumberParam(attrs, name, def) {
 }
 function parseDtypeParam(value) {
   if (typeof value === "string") {
-    value = DataType2[value];
+    value = DataType3[value];
   }
   switch (value) {
     case 1 /* DT_FLOAT */:
@@ -20346,9 +21105,17 @@ var NodeValueImpl = class {
   }
   inputs = [];
   attrs = {};
+  /**
+   * Return the value of the attribute or input param.
+   * @param name String: name of attribute or input param.
+   */
   getInput(name) {
     return getTensor(name, this.tensorMap, this.context);
   }
+  /**
+   * Return the value of the attribute or input param.
+   * @param name String: name of attribute or input param.
+   */
   getAttr(name, defaultValue) {
     const value = this.node.rawAttrs[name];
     if (value.tensor != null) {
@@ -20617,6 +21384,7 @@ __export(ops_for_converter_exports, {
   tensor4d: () => tensor4d,
   tensor5d: () => tensor5d,
   tensor6d: () => tensor6d,
+  tensorScatterUpdate: () => tensorScatterUpdate,
   tile: () => tile,
   topk: () => topk,
   transpose: () => transpose,
@@ -20878,9 +21646,7 @@ var executeOp2 = (node, tensorMap, context, ops = ops_for_converter_exports) => 
         getParamValue("x", node, tensorMap, context)
       )];
     case "Rsqrt":
-      return [ops.rsqrt(
-        getTensor(node.inputNames[0], tensorMap, context)
-      )];
+      return [ops.rsqrt(getTensor(node.inputNames[0], tensorMap, context))];
     case "Prod":
       return [ops.prod(
         getParamValue("x", node, tensorMap, context),
@@ -20897,7 +21663,11 @@ var executeOp2 = (node, tensorMap, context, ops = ops_for_converter_exports) => 
         getParamValue("alpha", node, tensorMap, context)
       )];
     case "IsNan":
-      return [ops.isNaN(
+      return [ops.isNaN(getTensor(node.inputNames[0], tensorMap, context))];
+    case "IsInf":
+      return [ops.isInf(getTensor(node.inputNames[0], tensorMap, context))];
+    case "IsFinite":
+      return [ops.isFinite(
         getTensor(node.inputNames[0], tensorMap, context)
       )];
     default:
@@ -20991,6 +21761,9 @@ var TensorArray = class {
   get closed() {
     return this.closed_;
   }
+  /**
+   * Dispose the tensors and idTensor and mark the TensoryArray as closed.
+   */
   clearAndClose(keepIds) {
     this.tensors.forEach((tensor2) => {
       if (keepIds == null || !keepIds.has(tensor2.tensor.id)) {
@@ -21004,6 +21777,10 @@ var TensorArray = class {
   size() {
     return this.tensors.length;
   }
+  /**
+   * Read the value at location index in the TensorArray.
+   * @param index Number the index to read from.
+   */
   read(index) {
     if (this.closed_) {
       throw new Error(`TensorArray ${this.name} has already been closed.`);
@@ -21023,9 +21800,17 @@ var TensorArray = class {
     tensorWithState.read = true;
     return tensorWithState.tensor;
   }
+  /**
+   * Helper method to read multiple tensors from the specified indices.
+   */
   readMany(indices) {
     return indices.map((index) => this.read(index));
   }
+  /**
+   * Write value into the index of the TensorArray.
+   * @param index number the index to write to.
+   * @param tensor
+   */
   write(index, tensor2) {
     if (this.closed_) {
       throw new Error(`TensorArray ${this.name} has already been closed.`);
@@ -21061,6 +21846,9 @@ var TensorArray = class {
     t.written = true;
     this.tensors[index] = t;
   }
+  /**
+   * Helper method to write multiple tensors to the specified indices.
+   */
   writeMany(indices, tensors) {
     if (indices.length !== tensors.length) {
       throw new Error(
@@ -21069,6 +21857,14 @@ var TensorArray = class {
     }
     indices.forEach((i, index) => this.write(i, tensors[index]));
   }
+  /**
+   * Return selected values in the TensorArray as a packed Tensor. All of
+   * selected values must have been written and their shapes must all match.
+   * @param [indices] number[] Optional. Taking values in [0, max_value). If the
+   *    TensorArray is not dynamic, max_value=size(). If not specified returns
+   *    all tensors in the original order.
+   * @param [dtype]
+   */
   gather(indices, dtype) {
     if (!!dtype && dtype !== this.dtype) {
       throw new Error(`TensorArray dtype is ${this.dtype} but gather requested dtype ${dtype}`);
@@ -21092,6 +21888,9 @@ var TensorArray = class {
     );
     return stack(tensors, 0);
   }
+  /**
+   * Return the values in the TensorArray as a concatenated Tensor.
+   */
   concat(dtype) {
     if (!!dtype && dtype !== this.dtype) {
       throw new Error(`TensorArray dtype is ${this.dtype} but concat requested dtype ${dtype}`);
@@ -21111,6 +21910,12 @@ var TensorArray = class {
     );
     return concat(tensors, 0);
   }
+  /**
+   * Scatter the values of a Tensor in specific indices of a TensorArray.
+   * @param indices nummber[] values in [0, max_value). If the
+   *    TensorArray is not dynamic, max_value=size().
+   * @param tensor Tensor input tensor.
+   */
   scatter(indices, tensor2) {
     if (tensor2.dtype !== this.dtype) {
       throw new Error(`TensorArray dtype is ${this.dtype} but tensor has dtype ${tensor2.dtype}`);
@@ -21126,6 +21931,12 @@ var TensorArray = class {
     }
     this.writeMany(indices, unstack(tensor2, 0));
   }
+  /**
+   * Split the values of a Tensor into the TensorArray.
+   * @param length number[] with the lengths to use when splitting value along
+   *    its first dimension.
+   * @param tensor Tensor, the tensor to split.
+   */
   split(length, tensor2) {
     if (tensor2.dtype !== this.dtype) {
       throw new Error(`TensorArray dtype is ${this.dtype} but tensor has dtype ${tensor2.dtype}`);
@@ -21167,6 +21978,15 @@ var TensorArray = class {
 
 // src/tfjs-converter/src/executor/tensor_list.ts
 var TensorList = class {
+  /**
+   *
+   * @param tensors list of tensors
+   * @param elementShape shape of each tensor, this can be a single number (any
+   * shape is allowed) or partial shape (dim = -1).
+   * @param elementDtype data type of each tensor
+   * @param maxNumElements The maximum allowed size of `tensors`. Defaults to -1
+   *   meaning that the size of `tensors` is unbounded.
+   */
   constructor(tensors, elementShape, elementDtype, maxNumElements = -1) {
     this.tensors = tensors;
     this.elementShape = elementShape;
@@ -21193,6 +22013,9 @@ var TensorList = class {
   get id() {
     return this.idTensor.id;
   }
+  /**
+   * Get a new TensorList containing a copy of the underlying tensor container.
+   */
   copy() {
     return new TensorList(
       [...this.tensors],
@@ -21200,6 +22023,9 @@ var TensorList = class {
       this.elementDtype
     );
   }
+  /**
+   * Dispose the tensors and idTensor and clear the tensor list.
+   */
   clearAndClose(keepIds) {
     this.tensors.forEach((tensor2) => {
       if (keepIds == null || !keepIds.has(tensor2.id)) {
@@ -21209,9 +22035,19 @@ var TensorList = class {
     this.tensors.length = 0;
     this.idTensor.dispose();
   }
+  /**
+   * The size of the tensors in the tensor list.
+   */
   size() {
     return this.tensors.length;
   }
+  /**
+   * Return a tensor that stacks a list of rank-R tf.Tensors into one rank-(R+1)
+   * tf.Tensor.
+   * @param elementShape shape of each tensor
+   * @param elementDtype data type of each tensor
+   * @param numElements the number of elements to stack
+   */
   stack(elementShape, elementDtype, numElements = -1) {
     if (elementDtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
@@ -21230,6 +22066,11 @@ var TensorList = class {
       return stack(reshapedTensors, 0);
     });
   }
+  /**
+   * Pop a tensor from the end of the list.
+   * @param elementShape shape of the tensor
+   * @param elementDtype data type of the tensor
+   */
   popBack(elementShape, elementDtype) {
     if (elementDtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
@@ -21247,6 +22088,10 @@ var TensorList = class {
     );
     return reshape(tensor2, outputElementShape);
   }
+  /**
+   * Push a tensor to the end of the list.
+   * @param tensor Tensor to be pushed.
+   */
   pushBack(tensor2) {
     if (tensor2.dtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${tensor2.dtype}, but list elements ${this.elementDtype}`);
@@ -21262,6 +22107,10 @@ var TensorList = class {
     keep(tensor2);
     this.tensors.push(tensor2);
   }
+  /**
+   * Update the size of the list.
+   * @param size the new size of the list.
+   */
   resize(size) {
     if (size < 0) {
       throw new Error(
@@ -21283,6 +22132,12 @@ var TensorList = class {
     }
     return destTensorList;
   }
+  /**
+   * Retrieve the element at the provided index
+   * @param elementShape shape of the tensor
+   * @param elementDtype dtype of the tensor
+   * @param elementIndex index of the tensor
+   */
   getItem(elementIndex, elementShape, elementDtype) {
     if (elementDtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
@@ -21301,6 +22156,11 @@ var TensorList = class {
     const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
     return reshape(this.tensors[elementIndex], outputElementShape);
   }
+  /**
+   * Set the tensor at the index
+   * @param elementIndex index of the tensor
+   * @param tensor the tensor to be inserted into the list
+   */
   setItem(elementIndex, tensor2) {
     if (tensor2.dtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${tensor2.dtype}, but list elements ${this.elementDtype}`);
@@ -21319,6 +22179,13 @@ var TensorList = class {
     }
     this.tensors[elementIndex] = tensor2;
   }
+  /**
+   * Return selected values in the TensorList as a stacked Tensor. All of
+   * selected values must have been written and their shapes must all match.
+   * @param indices indices of tensors to gather
+   * @param elementDtype output tensor dtype
+   * @param elementShape output tensor element shape
+   */
   gather(indices, elementDtype, elementShape) {
     if (elementDtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
@@ -21338,6 +22205,11 @@ var TensorList = class {
       return stack(tensors, 0);
     });
   }
+  /**
+   * Return the values in the TensorList as a concatenated Tensor.
+   * @param elementDtype output tensor dtype
+   * @param elementShape output tensor element shape
+   */
   concat(elementDtype, elementShape) {
     if (!!elementDtype && elementDtype !== this.elementDtype) {
       throw new Error(`TensorList dtype is ${this.elementDtype} but concat requested dtype ${elementDtype}`);
@@ -21971,6 +22843,7 @@ var executeOp4 = (node, tensorMap, context, ops = ops_for_converter_exports) => 
         pad2,
         [dilationHeight, dilationWidth],
         "NHWC"
+        /* dataFormat */
       )];
     }
     default:
@@ -22027,6 +22900,7 @@ var executeOp5 = (node, tensorMap, context, ops = ops_for_converter_exports) => 
     }
     case "RandomUniform": {
       return [ops.randomUniform(
+        // tslint:disable-next-line:no-any
         getParamValue("shape", node, tensorMap, context),
         getParamValue("minval", node, tensorMap, context),
         getParamValue("maxval", node, tensorMap, context),
@@ -22252,6 +23126,12 @@ var executeOp8 = (node, tensorMap, context, ops = ops_for_converter_exports) => 
 
 // src/tfjs-converter/src/executor/hash_table.ts
 var HashTable = class {
+  /**
+   * Constructor of HashTable. Creates a hash table.
+   *
+   * @param keyDType `dtype` of the table keys.
+   * @param valueDType `dtype` of the table values.
+   */
   constructor(keyDType, valueDType) {
     this.keyDType = keyDType;
     this.valueDType = valueDType;
@@ -22260,21 +23140,36 @@ var HashTable = class {
     keep(this.handle);
   }
   handle;
+  // tslint:disable-next-line: no-any
   tensorMap;
   get id() {
     return this.handle.id;
   }
+  /**
+   * Dispose the tensors and handle and clear the hashtable.
+   */
   clearAndClose() {
     this.tensorMap.forEach((value) => value.dispose());
     this.tensorMap.clear();
     this.handle.dispose();
   }
+  /**
+   * The number of items in the hash table.
+   */
   size() {
     return this.tensorMap.size;
   }
+  /**
+   * The number of items in the hash table as a rank-0 tensor.
+   */
   tensorSize() {
     return scalar(this.size(), "int32");
   }
+  /**
+   * Replaces the contents of the table with the specified keys and values.
+   * @param keys Keys to store in the hashtable.
+   * @param values Values to store in the hashtable.
+   */
   async import(keys, values) {
     this.checkKeyAndValueTensor(keys, values);
     const $keys = await keys.data();
@@ -22297,6 +23192,21 @@ var HashTable = class {
       return this.handle;
     });
   }
+  /**
+   * Looks up keys in a hash table, outputs the corresponding values.
+   *
+   * Performs batch lookups, for every element in the key tensor, `find`
+   * stacks the corresponding value into the return tensor.
+   *
+   * If an element is not present in the table, the given `defaultValue` is
+   * used.
+   *
+   * @param keys Keys to look up. Must have the same type as the keys of the
+   *     table.
+   * @param defaultValue The scalar `defaultValue` is the value output for keys
+   *     not present in the table. It must also be of the same type as the
+   *     table values.
+   */
   async find(keys, defaultValue) {
     this.checkKeyAndValueTensor(keys, defaultValue);
     const $keys = await keys.data();
@@ -22310,6 +23220,7 @@ var HashTable = class {
       return stack(result);
     });
   }
+  // tslint:disable-next-line: no-any
   findWithDefault(key, defaultValue) {
     const result = this.tensorMap.get(key);
     return result != null ? result : defaultValue;
@@ -22575,6 +23486,12 @@ var executeOp12 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
         preluActivationWeights: preluArg,
         leakyreluAlpha
       })];
+    case "MatrixBandPart":
+      return [ops.linalg.bandPart(
+        getParamValue("a", node, tensorMap, context),
+        getParamValue("numLower", node, tensorMap, context),
+        getParamValue("numUpper", node, tensorMap, context)
+      )];
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
@@ -22891,10 +23808,7 @@ var executeOp16 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
         const squeezedShape = ops.squeeze(tensors[0]).shape;
         const mapped = tensors.map((tensor2) => {
           const sameShape = util_exports.arraysEqual(tensor2.shape, shape);
-          if (!sameShape && !util_exports.arraysEqual(
-            ops.squeeze(tensor2).shape,
-            squeezedShape
-          )) {
+          if (!sameShape && !util_exports.arraysEqual(ops.squeeze(tensor2).shape, squeezedShape)) {
             throw new Error("the input tensors shape does not match");
           }
           return sameShape ? tensor2 : ops.reshape(tensor2, shape);
@@ -22943,6 +23857,12 @@ var executeOp16 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
         shape,
         sparseValues.dtype === defaultValue.dtype ? defaultValue : ops.cast(defaultValue, sparseValues.dtype)
       )];
+    }
+    case "TensorScatterUpdate": {
+      const indices = getParamValue("indices", node, tensorMap, context);
+      const values = getParamValue("values", node, tensorMap, context);
+      const tensor2 = getParamValue("tensor", node, tensorMap, context);
+      return [ops.tensorScatterUpdate(tensor2, indices, values)];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
@@ -23031,6 +23951,14 @@ var executeOp18 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
 // src/tfjs-converter/src/operations/executors/string_executor.ts
 var executeOp19 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
   switch (node.op) {
+    case "StaticRegexReplace": {
+      return [ops.string.staticRegexReplace(
+        getParamValue("input", node, tensorMap, context),
+        getParamValue("pattern", node, tensorMap, context),
+        getParamValue("rewrite", node, tensorMap, context),
+        getParamValue("replaceGlobal", node, tensorMap, context)
+      )];
+    }
     case "StringNGrams": {
       const { nGrams, nGramsSplits } = ops.string.stringNGrams(
         getParamValue("data", node, tensorMap, context),
@@ -23233,11 +24161,12 @@ function executeOp21(node, tensorMap, context, resourceManager, tidy2 = tidy) {
 
 // src/tfjs-converter/src/executor/execution_context.ts
 var ExecutionContext = class {
-  constructor(weightMap = {}, tensorArrayMap = {}, tensorListMap = {}, functionMap = {}) {
+  constructor(weightMap = {}, tensorArrayMap = {}, tensorListMap = {}, functionMap = {}, parseNodeNameCache) {
     this.weightMap = weightMap;
     this.tensorArrayMap = tensorArrayMap;
     this.tensorListMap = tensorListMap;
     this.functionMap = functionMap;
+    this.parseNodeNameCache = parseNodeNameCache;
     this.generateCurrentContextIds();
   }
   rootContext = { id: 0, frameName: "", iterationId: 0 };
@@ -23247,6 +24176,11 @@ var ExecutionContext = class {
   newFrame(id, frameName) {
     return { id, frameName, iterationId: 0 };
   }
+  /**
+   * Set the current context
+   * @param contexts: ExecutionContextInfo[] the current path of execution
+   * frames
+   */
   set currentContext(contexts) {
     if (this.contexts !== contexts) {
       this.contexts = contexts;
@@ -23256,9 +24190,16 @@ var ExecutionContext = class {
   get currentContext() {
     return this.contexts;
   }
+  /**
+   * Returns the current context in string format.
+   */
   get currentContextId() {
     return this._currentContextIds[0];
   }
+  /**
+   * Returns the current context and all parent contexts in string format.
+   * This allow access to the nodes in the current and parent frames.
+   */
   get currentContextIds() {
     return this._currentContextIds;
   }
@@ -23276,6 +24217,10 @@ var ExecutionContext = class {
       (context) => context.id === 0 && context.iterationId === 0 ? "" : `${context.frameName}-${context.iterationId}`
     ).join("/") : "";
   }
+  /**
+   * Enter a new frame, a new context is pushed on the current context list.
+   * @param frameId new frame id
+   */
   enterFrame(frameId) {
     if (this.contexts) {
       this.lastId++;
@@ -23284,6 +24229,10 @@ var ExecutionContext = class {
       this._currentContextIds.unshift(this.contextIdforContexts(this.contexts));
     }
   }
+  /**
+   * Exit the current frame, the last context is removed from the current
+   * context list.
+   */
   exitFrame() {
     if (this.contexts && this.contexts.length > 1) {
       this.contexts = this.contexts.slice();
@@ -23293,6 +24242,10 @@ var ExecutionContext = class {
       throw new Error("Cannot exit frame, the context is empty");
     }
   }
+  /**
+   * Enter the next iteration of a loop, the iteration id of last context is
+   * increased.
+   */
   nextIteration() {
     if (this.contexts && this.contexts.length > 0) {
       this.contexts = this.contexts.slice();
@@ -23342,11 +24295,9 @@ function getExecutionSubgraph(inputs, outputs, weightMap, initNodes) {
   let dynamicNode = null;
   let syncInputs = null;
   const seen = /* @__PURE__ */ new Set();
-  const inputNodeNames = Object.keys(inputs).map((name) => parseNodeName(name)[0]);
-  let initNodeNames = [];
-  if (initNodes != null) {
-    initNodeNames = initNodes.map((node) => parseNodeName(node.name)[0]);
-  }
+  const inputNodeNames = new Set(Object.keys(inputs).map((name) => parseNodeName(name)[0]));
+  initNodes = initNodes || [];
+  const initNodeNames = new Set(initNodes.map((node) => parseNodeName(node.name)[0]));
   const frontier = [...outputs];
   while (frontier.length > 0) {
     const node = frontier.pop();
@@ -23360,10 +24311,10 @@ function getExecutionSubgraph(inputs, outputs, weightMap, initNodes) {
     if (weightMap[node.name] != null) {
       continue;
     }
-    if (inputNodeNames.indexOf(node.name) !== -1) {
+    if (inputNodeNames.has(node.name)) {
       continue;
     }
-    if (initNodeNames.indexOf(node.name) !== -1) {
+    if (initNodeNames.has(node.name)) {
       continue;
     }
     if (node.inputs.length === 0) {
@@ -23380,45 +24331,143 @@ function getExecutionSubgraph(inputs, outputs, weightMap, initNodes) {
   }
   return { inputs, outputs, usedNodes, missingInputs, dynamicNode, syncInputs };
 }
-function getNodesInTopologicalOrder(graph, weightMap, executionInfo) {
+function getNodesInTopologicalOrder(graph, executionInfo) {
   const { usedNodes, inputs } = executionInfo;
-  const frontier = [];
   const inputNodes = Object.keys(inputs).map((name) => parseNodeName(name)[0]).map((name) => graph.nodes[name]);
-  const initNodes = graph.initNodes;
-  inputNodes.forEach((input) => {
-    if (usedNodes.has(input.name)) {
-      frontier.push(input);
-    }
-  });
-  graph.weights.forEach((weight) => {
-    if (usedNodes.has(weight.name)) {
-      frontier.push(weight);
-    }
-  });
-  if (initNodes != null) {
-    initNodes.forEach((node) => {
-      if (usedNodes.has(node.name)) {
-        frontier.push(node);
-      }
-    });
+  const initNodes = graph.initNodes || [];
+  const isUsed = (node) => usedNodes.has(typeof node === "string" ? node : node.name);
+  function unique2(nodes) {
+    return [...new Map(nodes.map((node) => [node.name, node])).values()];
   }
-  const seen = /* @__PURE__ */ new Set();
-  const orderedNodes = [];
+  const predefinedNodes = unique2([
+    ...inputNodes,
+    ...graph.weights,
+    ...initNodes
+  ]).filter(isUsed);
+  const allNodes = unique2([
+    ...predefinedNodes,
+    ...Object.values(graph.nodes)
+  ]).filter(isUsed);
+  const nameToNode = new Map(allNodes.map((node) => [node.name, node]));
+  const inCounts = {};
+  for (const node of allNodes) {
+    inCounts[node.name] = inCounts[node.name] || 0;
+    for (const child of node.children) {
+      if (!isUsed(child)) {
+        inCounts[child.name] = Number.POSITIVE_INFINITY;
+      }
+      inCounts[child.name] = (inCounts[child.name] || 0) + 1;
+    }
+  }
+  const frontier = Object.entries(inCounts).filter(([, inCount]) => inCount === 0).map(([name]) => name);
+  const orderedNodeNames = [...frontier];
   while (frontier.length > 0) {
-    const node = frontier.pop();
-    seen.add(node.name);
-    if (!weightMap[node.name]) {
-      orderedNodes.push(node);
-    }
-    node.children.forEach((child) => {
-      if (!seen.has(child.name) && usedNodes.has(child.name) && child.inputs.every((input) => seen.has(input.name))) {
-        frontier.push(child);
+    const nodeName = frontier.pop();
+    const node = nameToNode.get(nodeName);
+    for (const child of node.children.filter(isUsed)) {
+      if (--inCounts[child.name] === 0) {
+        orderedNodeNames.push(child.name);
+        frontier.push(child.name);
       }
-    });
+    }
   }
-  return orderedNodes;
+  const orderedNodes = orderedNodeNames.map((name) => nameToNode.get(name));
+  const filteredOrderedNodes = filterPredefinedReachableNodes(orderedNodes, predefinedNodes);
+  validateNodesExecutionOrder(filteredOrderedNodes, predefinedNodes);
+  return filteredOrderedNodes;
 }
-var CONTROL_FLOW_OPS = [
+function filterPredefinedReachableNodes(orderedNodes, predefinedNodes) {
+  const nameToNode = new Map(orderedNodes.map((node) => [node.name, node]));
+  const stack2 = predefinedNodes.map((node) => node.name);
+  const predefinedReachableNodeNames = new Set(stack2);
+  while (stack2.length > 0) {
+    const nodeName = stack2.pop();
+    const node = nameToNode.get(nodeName);
+    for (const child of node.children) {
+      if (!nameToNode.has(child.name) || predefinedReachableNodeNames.has(child.name)) {
+        continue;
+      }
+      predefinedReachableNodeNames.add(child.name);
+      stack2.push(child.name);
+    }
+  }
+  const filteredOrderedNodes = orderedNodes.filter(
+    (node) => predefinedReachableNodeNames.has(node.name)
+  );
+  return filteredOrderedNodes;
+}
+var NodesExecutionOrderError = class extends Error {
+  constructor(message) {
+    super(`NodesExecutionOrderError: ${message}`);
+  }
+};
+function validateNodesExecutionOrder(orderedNodes, predefinedNodes) {
+  const nodeNameToOrder = new Map(
+    orderedNodes.map((node, order) => [node.name, order])
+  );
+  const predefinedNodeNames = new Set(predefinedNodes.map((node) => node.name));
+  const isPredefined = (node) => predefinedNodeNames.has(typeof node === "string" ? node : node.name);
+  const willBeExecutedNodeNames = new Set(orderedNodes.map((node) => node.name));
+  const willBeExecuted = (node) => willBeExecutedNodeNames.has(typeof node === "string" ? node : node.name);
+  for (const node of orderedNodes) {
+    for (const child of node.children.filter(willBeExecuted)) {
+      if (!nodeNameToOrder.has(child.name)) {
+        throw new NodesExecutionOrderError(
+          `Child ${child.name} of node ${node.name} is unreachable.`
+        );
+      }
+      if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
+        throw new NodesExecutionOrderError(`Node ${node.name} is scheduled to run after its child ${child.name}.`);
+      }
+    }
+    if (!isPredefined(node)) {
+      for (const input of node.inputs) {
+        if (!nodeNameToOrder.has(input.name)) {
+          throw new NodesExecutionOrderError(
+            `Input ${input.name} of node ${node.name} is unreachable.`
+          );
+        }
+        if (nodeNameToOrder.get(input.name) > nodeNameToOrder.get(node.name)) {
+          throw new NodesExecutionOrderError(`Node ${node.name} is scheduled to run before its input ${input.name}.`);
+        }
+      }
+    }
+  }
+}
+function getNodeLiveUntilMap(orderedNodes) {
+  const nodeNameToOrder = new Map(
+    orderedNodes.map((node, order) => [node.name, order])
+  );
+  const INF_LIFE = Number.MAX_SAFE_INTEGER;
+  const selfLifespans = orderedNodes.map(
+    (node, nodeOrder) => isControlFlow(node) ? INF_LIFE : nodeOrder
+  );
+  const getSelfLifeSpan = (node) => {
+    const selfLife = selfLifespans[nodeNameToOrder.get(node.name)];
+    if (selfLife == null) {
+      return -1;
+    }
+    return selfLife;
+  };
+  const liveUntilOrders = orderedNodes.map((node, nodeOrder) => {
+    return node.children.map(getSelfLifeSpan).reduce((a, b) => Math.max(a, b), selfLifespans[nodeOrder]);
+  });
+  const liveUntilMap = /* @__PURE__ */ new Map();
+  for (let nodeOrder = 0; nodeOrder < orderedNodes.length; ++nodeOrder) {
+    const liveUntilOrder = liveUntilOrders[nodeOrder];
+    if (liveUntilOrder === INF_LIFE) {
+      continue;
+    }
+    const node = orderedNodes[nodeOrder];
+    const liveUntilNode = orderedNodes[liveUntilOrder];
+    if (!liveUntilMap.has(liveUntilNode.name)) {
+      liveUntilMap.set(liveUntilNode.name, []);
+    }
+    liveUntilMap.get(liveUntilNode.name).push(node.name);
+  }
+  return liveUntilMap;
+}
+var CONTROL_FLOW_OPS = /* @__PURE__ */ new Set([
   "Switch",
   "Merge",
   "Enter",
@@ -23428,14 +24477,14 @@ var CONTROL_FLOW_OPS = [
   "StatelessWhile",
   "if",
   "While"
-];
-var DYNAMIC_SHAPE_OPS = [
+]);
+var DYNAMIC_SHAPE_OPS = /* @__PURE__ */ new Set([
   "NonMaxSuppressionV2",
   "NonMaxSuppressionV3",
   "NonMaxSuppressionV5",
   "Where"
-];
-var HASH_TABLE_OPS = [
+]);
+var HASH_TABLE_OPS = /* @__PURE__ */ new Set([
   "HashTable",
   "HashTableV2",
   "LookupTableImport",
@@ -23444,19 +24493,27 @@ var HASH_TABLE_OPS = [
   "LookupTableFindV2",
   "LookupTableSize",
   "LookupTableSizeV2"
-];
+]);
 function isControlFlow(node) {
-  return CONTROL_FLOW_OPS.indexOf(node.op) >= 0;
+  return CONTROL_FLOW_OPS.has(node.op);
 }
 function isDynamicShape(node) {
-  return DYNAMIC_SHAPE_OPS.indexOf(node.op) >= 0;
+  return DYNAMIC_SHAPE_OPS.has(node.op);
 }
 function isHashTable(node) {
-  return HASH_TABLE_OPS.indexOf(node.op) >= 0;
+  return HASH_TABLE_OPS.has(node.op);
 }
 
 // src/tfjs-converter/src/executor/graph_executor.ts
 var GraphExecutor = class {
+  /**
+   *
+   * @param graph Graph the model or function graph to be executed.
+   * @param parent When building function exector you need to set the parent
+   * executor. Since the weights and function executor maps are set at parant
+   * level, that function executor can access the function maps and weight maps
+   * through the parent.
+   */
   constructor(graph, parent) {
     this.graph = graph;
     this.parent = parent;
@@ -23472,13 +24529,15 @@ var GraphExecutor = class {
     }
   }
   compiledMap = /* @__PURE__ */ new Map();
+  parseNodeNameCache = /* @__PURE__ */ new Map();
   _weightMap = {};
   _weightIds;
   _signature;
   _inputs;
   _outputs;
   _initNodes;
-  SEPERATOR = ",";
+  // Internal init nodes to start initialization.
+  SEPARATOR = ",";
   _functions = {};
   _functionExecutorMap = {};
   _resourceManager;
@@ -23500,6 +24559,10 @@ var GraphExecutor = class {
     this._weightIds = [].concat(...weightIds);
     this._weightMap = weightMap;
   }
+  /**
+   * Set `ResourceManager` shared by executors of a model.
+   * @param resourceManager: `ResourceManager` of the `GraphModel`.
+   */
   set resourceManager(resourceManager) {
     this._resourceManager = resourceManager;
   }
@@ -23539,8 +24602,19 @@ var GraphExecutor = class {
   getCompilationKey(inputs, outputs) {
     const sortedInputs = inputs.map((node) => node.name).sort();
     const sortedOutputs = outputs.map((node) => node.name).sort();
-    return sortedInputs.join(this.SEPERATOR) + "--" + sortedOutputs.join(this.SEPERATOR);
+    return sortedInputs.join(this.SEPARATOR) + "--" + sortedOutputs.join(this.SEPARATOR);
   }
+  /**
+   * Compiles the inference graph and returns the minimal set of nodes that are
+   * required for execution, in the correct execution order.
+   * @returns {Object} compilation The compile result.
+   * @returns {Node[]} compilation.orderedNodes Nodes in the correct execution
+   *     order.
+   * @returns {Map<Node, Node[]>} compilation.nodeLiveUntilMap A map from node
+   *     to disposable nodes after its execution. That is, for a node `x`,
+   *     `nodeLiveUntilMap[x]` indicates all nodes whose intermediate
+   *     tensors should be disposed after `x` is executed.
+   */
   compile(inputs, outputs) {
     const executionInfo = getExecutionSubgraph(inputs, outputs, this.weightMap, this._initNodes);
     const { missingInputs, dynamicNode, syncInputs } = executionInfo;
@@ -23556,11 +24630,9 @@ var GraphExecutor = class {
         `Cannot compute the outputs [${outNames}] from the provided inputs [${inNames}]. Missing the following inputs: [${missingInputs}]`
       );
     }
-    return getNodesInTopologicalOrder(
-      this.graph,
-      this.weightMap,
-      executionInfo
-    );
+    const orderedNodes = getNodesInTopologicalOrder(this.graph, executionInfo);
+    const nodeLiveUntilMap = getNodeLiveUntilMap(orderedNodes);
+    return { orderedNodes, nodeLiveUntilMap };
   }
   cloneAndKeepTensor(tensor2) {
     if (tensor2 == null) {
@@ -23586,6 +24658,15 @@ var GraphExecutor = class {
       })
     );
   }
+  /**
+   * Executes the inference for given input tensors.
+   * @param inputs Tensor map for the model inputs, keyed by the input node
+   * names.
+   * @param outputs Optional. output node name from the Tensorflow model, if
+   * no outputs are specified, the default outputs of the model would be used.
+   * You can inspect intermediate nodes of the model by adding them to the
+   * outputs array.
+   */
   execute(inputs, outputs) {
     this.disposeIntermediateTensors();
     inputs = this.mapInputs(inputs);
@@ -23596,15 +24677,16 @@ var GraphExecutor = class {
     this.checkOutputs(outputs);
     const inputNodes = names.map((name) => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputs.map((name) => parseNodeName(name)[0]);
+    const outputNodeNameSet = new Set(outputNodeNames);
     let outputNodes = outputNodeNames.map((name) => this.graph.nodes[name]);
     if (outputNodes.length === 0) {
       outputNodes = this._outputs;
     }
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
-    let orderedNodes = this.compiledMap.get(compilationKey);
-    if (orderedNodes == null) {
-      orderedNodes = this.compile(inputs, outputNodes);
-      this.compiledMap.set(compilationKey, orderedNodes);
+    let compilation = this.compiledMap.get(compilationKey);
+    if (compilation == null) {
+      compilation = this.compile(inputs, outputNodes);
+      this.compiledMap.set(compilationKey, compilation);
     }
     try {
       this.keepIntermediateTensors = env().getBool("KEEP_INTERMEDIATE_TENSORS");
@@ -23619,14 +24701,15 @@ var GraphExecutor = class {
         this.weightMap,
         tensorArrayMap,
         tensorListMap,
-        this.functionExecutorMap
+        this.functionExecutorMap,
+        this.parseNodeNameCache
       );
       const tensorsMap = { ...this.weightMap };
       if (this.keepIntermediateTensors) {
         this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
       }
       Object.keys(inputs).forEach((name) => {
-        const [nodeName, index] = parseNodeName(name);
+        const [nodeName, index] = parseNodeName(name, context);
         const tensors = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
@@ -23635,30 +24718,29 @@ var GraphExecutor = class {
         }
       });
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
-      const intermediateTensorConsumerCount = {};
-      for (let i = 0; i < orderedNodes.length; i++) {
-        const node = orderedNodes[i];
-        if (!tensorsMap[node.name]) {
-          const tensors = executeOp21(node, tensorsMap, context, this._resourceManager);
-          if (util_exports.isPromise(tensors)) {
-            throw new Error(
-              `The execution of the op '${node.op}' returned a promise. Please use model.executeAsync() instead.`
-            );
-          }
-          tensorsMap[node.name] = tensors;
-          if (this.keepIntermediateTensors) {
-            this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
-          }
-          this.checkTensorForDisposal(
-            node.name,
-            node,
-            tensorsMap,
-            context,
-            tensorsToKeep,
-            outputNodeNames,
-            intermediateTensorConsumerCount
+      const { orderedNodes, nodeLiveUntilMap } = compilation;
+      for (const node of orderedNodes) {
+        if (tensorsMap[node.name]) {
+          continue;
+        }
+        const tensors = executeOp21(node, tensorsMap, context, this._resourceManager);
+        if (util_exports.isPromise(tensors)) {
+          throw new Error(
+            `The execution of the op '${node.op}' returned a promise. Please use model.executeAsync() instead.`
           );
         }
+        tensorsMap[node.name] = tensors;
+        if (this.keepIntermediateTensors) {
+          this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
+        }
+        this.checkTensorForDisposalWithNodeLiveUntilInfo(
+          node,
+          tensorsMap,
+          context,
+          tensorsToKeep,
+          outputNodeNameSet,
+          nodeLiveUntilMap.get(node.name)
+        );
       }
       if (this.parent == null) {
         context.dispose(tensorsToKeep);
@@ -23673,34 +24755,64 @@ var GraphExecutor = class {
     );
     return new Set(ids);
   }
-  checkTensorForDisposal(nodeName, node, tensorMap, context, tensorsToKeep, outputNames, intermediateTensorConsumerCount) {
-    if (node.category === "control" || outputNames.indexOf(nodeName) !== -1) {
+  checkTensorForDisposal(nodeName, node, tensorMap, context, tensorsToKeep, outputNodeNameSet, intermediateTensorConsumerCount) {
+    if (isControlFlow(node) || outputNodeNameSet.has(nodeName)) {
       return;
     }
-    tensorMap[nodeName].forEach((tensor2) => {
-      if (tensor2 != null) {
-        intermediateTensorConsumerCount[tensor2.id] = (intermediateTensorConsumerCount[tensor2.id] || 0) + node.children.length;
+    for (const tensor2 of tensorMap[nodeName]) {
+      if (tensor2 == null) {
+        continue;
       }
-    });
-    node.inputs.forEach((input) => {
-      if (input.category !== "control") {
-        const tensors = getTensorsForCurrentContenxt(input.name, tensorMap, context);
-        if (tensors != null) {
-          tensors.forEach((tensor2) => {
-            if (tensor2 && !tensor2.kept && !tensorsToKeep.has(tensor2.id)) {
-              const count = intermediateTensorConsumerCount[tensor2.id];
-              if (count === 1) {
-                tensor2.dispose();
-                delete intermediateTensorConsumerCount[tensor2.id];
-              } else if (count != null) {
-                intermediateTensorConsumerCount[tensor2.id]--;
-              }
-            }
-          });
+      intermediateTensorConsumerCount[tensor2.id] = (intermediateTensorConsumerCount[tensor2.id] || 0) + node.children.length;
+    }
+    for (const input of node.inputs) {
+      if (isControlFlow(input)) {
+        continue;
+      }
+      const tensors = getTensorsForCurrentContext(input.name, tensorMap, context);
+      if (tensors == null) {
+        continue;
+      }
+      for (const tensor2 of tensors) {
+        if (!tensor2 || tensor2.kept || tensorsToKeep.has(tensor2.id)) {
+          continue;
+        }
+        const count = intermediateTensorConsumerCount[tensor2.id];
+        if (count === 1) {
+          tensor2.dispose();
+          delete intermediateTensorConsumerCount[tensor2.id];
+        } else if (count != null) {
+          intermediateTensorConsumerCount[tensor2.id]--;
         }
       }
-    });
+    }
   }
+  checkTensorForDisposalWithNodeLiveUntilInfo(node, tensorMap, context, tensorsToKeep, outputNodeNameSet, liveUntilNodes) {
+    if (isControlFlow(node) || outputNodeNameSet.has(node.name)) {
+      return;
+    }
+    if (liveUntilNodes == null) {
+      return;
+    }
+    for (const inputNodeName of liveUntilNodes) {
+      const tensors = getTensorsForCurrentContext(inputNodeName, tensorMap, context);
+      for (const tensor2 of tensors) {
+        if (!tensor2 || tensor2.kept || tensorsToKeep.has(tensor2.id)) {
+          continue;
+        }
+        tensor2.dispose();
+      }
+    }
+  }
+  /**
+   * Executes the inference for given input tensors in Async fashion.
+   * @param inputs Tensor map for the model inputs, keyed by the input node
+   * names.
+   * @param outputs output node name from the Tensorflow model, if no outputs
+   * are specified, the default outputs of the model would be used. You can
+   * inspect intermediate nodes of the model by adding them to the outputs
+   * array.
+   */
   async executeAsync(inputs, outputs) {
     return this._executeAsync(inputs, outputs);
   }
@@ -23720,6 +24832,20 @@ var GraphExecutor = class {
   getIntermediateTensors() {
     return this.clonedTensorsMap;
   }
+  /**
+   * Executes the inference for given input tensors in Async fashion.
+   * @param inputs Tensor map for the model inputs, keyed by the input node
+   * names.
+   * @param outputs Optional. output node name from the Tensorflow model,
+   * if no outputs are specified, the default outputs of the model would be
+   * used. You can inspect intermediate nodes of the model by adding them to
+   * the outputs array.
+   * @param isFunctionExecution Optional. Flag for executing a function.
+   * @param tensorArrayMap Optional, global TensorArray map by id. Used for
+   * function execution.
+   * @param tensorArrayMap Optinal global TensorList map by id. Used for
+   * function execution.
+   */
   async _executeAsync(inputs, outputs, isFunctionExecution = false, tensorArrayMap = {}, tensorListMap = {}) {
     this.disposeIntermediateTensors();
     if (!isFunctionExecution) {
@@ -23739,7 +24865,8 @@ var GraphExecutor = class {
       this.weightMap,
       tensorArrayMap,
       tensorListMap,
-      this.functionExecutorMap
+      this.functionExecutorMap,
+      this.parseNodeNameCache
     );
     if (this.keepIntermediateTensors) {
       this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
@@ -23779,10 +24906,22 @@ var GraphExecutor = class {
       tensorListMap
     );
   }
+  /**
+   * When there are control flow nodes in the graph, the graph execution use
+   * ExecutionContext to keep track of the frames and loop iterators.
+   * @param inputs placeholder tensors for the graph.
+   * @param context the execution context object for current execution.
+   * @param outputNames Optional. output node name from the Tensorflow model,
+   * if no outputs are specified, the default outputs of the model would be
+   * used. You can inspect intermediate nodes of the model by adding them to
+   * the outputs array.
+   * @param isFunctionExecution Flag for executing a function.
+   */
   async executeWithControlFlow(inputs, context, outputNames, isFunctionExecution) {
     const names = Object.keys(inputs);
     const inputNodes = names.map((name) => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputNames.map((name) => parseNodeName(name)[0]);
+    const outputNodeNameSet = new Set(outputNodeNames);
     let outputNodes = outputNodeNames.map((name) => this.graph.nodes[name]);
     if (outputNodes.length === 0) {
       outputNodes = this._outputs;
@@ -23818,7 +24957,7 @@ var GraphExecutor = class {
         tensorsMap,
         added,
         tensorsToKeep,
-        outputNodeNames,
+        outputNodeNameSet,
         intermediateTensorConsumerCount,
         usedNodes
       );
@@ -23843,7 +24982,7 @@ var GraphExecutor = class {
     }
     return tensorsMap;
   }
-  processStack(inputNodes, stack2, context, tensorMap, added, tensorsToKeep, outputNames, intermediateTensorConsumerCount, usedNodes) {
+  processStack(inputNodes, stack2, context, tensorMap, added, tensorsToKeep, outputNodeNameSet, intermediateTensorConsumerCount, usedNodes) {
     const promises = [];
     while (stack2.length > 0) {
       const item = stack2.pop();
@@ -23871,7 +25010,7 @@ var GraphExecutor = class {
               tensorMap,
               context,
               tensorsToKeep,
-              outputNames,
+              outputNodeNameSet,
               intermediateTensorConsumerCount
             );
             this.processChildNodes(
@@ -23895,7 +25034,7 @@ var GraphExecutor = class {
             tensorMap,
             context,
             tensorsToKeep,
-            outputNames,
+            outputNodeNameSet,
             intermediateTensorConsumerCount
           );
           this.processChildNodes(
@@ -23941,6 +25080,9 @@ var GraphExecutor = class {
       }
     });
   }
+  /**
+   * Releases the memory used by the weight tensors.
+   */
   dispose() {
     Object.keys(this.weightMap).forEach(
       (key) => this.weightMap[key].forEach((tensor2) => tensor2.dispose())
@@ -24017,16 +25159,37 @@ var ResourceManager = class {
     this.hashTableNameToHandle = hashTableNameToHandle;
     this.hashTableMap = hashTableMap;
   }
+  /**
+   * Register a `HashTable` in the resource manager.
+   *
+   * The `HashTable` can be retrieved by `resourceManager.getHashTableById`,
+   * where id is the table handle tensor's id.
+   *
+   * @param name Op node name that creates the `HashTable`.
+   * @param hashTable The `HashTable` to be added to resource manager.
+   */
   addHashTable(name, hashTable) {
     this.hashTableNameToHandle[name] = hashTable.handle;
     this.hashTableMap[hashTable.id] = hashTable;
   }
+  /**
+   * Get the table handle by node name.
+   * @param name Op node name that creates the `HashTable`. This name is also
+   *     used in the inputs list of lookup and import `HashTable` ops.
+   */
   getHashTableHandleByName(name) {
     return this.hashTableNameToHandle[name];
   }
+  /**
+   * Get the actual `HashTable` by its handle tensor's id.
+   * @param id The id of the handle tensor.
+   */
   getHashTableById(id) {
     return this.hashTableMap[id];
   }
+  /**
+   * Dispose `ResourceManager`, including its hashTables and tensors in them.
+   */
   dispose() {
     for (const key in this.hashTableMap) {
       this.hashTableMap[key].clearAndClose();
@@ -24043,6 +25206,15 @@ var ResourceManager = class {
 var TFHUB_SEARCH_PARAM = "?tfjs-format=file";
 var DEFAULT_MODEL_NAME = "model.json";
 var GraphModel = class {
+  /**
+   * @param modelUrl url for the model, or an `io.IOHandler`.
+   * @param weightManifestUrl url for the weight file generated by
+   * scripts/convert.py script.
+   * @param requestOption options for Request, which allows to send credentials
+   * and custom headers.
+   * @param onProgress Optional, progress callback function, fired periodically
+   * before the load is completed.
+   */
   constructor(modelUrl, loadOptions = {}, tfio = io_exports) {
     this.modelUrl = modelUrl;
     this.loadOptions = loadOptions;
@@ -24063,6 +25235,7 @@ var GraphModel = class {
   initializerSignature;
   structuredOutputKeys;
   io;
+  // Returns the version information for the tensorflow model GraphDef.
   get modelVersion() {
     return this.version;
   }
@@ -24113,6 +25286,10 @@ var GraphModel = class {
       this.handler = handlers[0];
     }
   }
+  /**
+   * Loads the model and weight files, construct the in memory weight map and
+   * compile the inference graph.
+   */
   load() {
     this.findIOHandler();
     if (this.handler.load == null) {
@@ -24126,6 +25303,12 @@ var GraphModel = class {
     }
     return this.loadSync(loadResult);
   }
+  /**
+   * Synchronously construct the in memory weight map and
+   * compile the inference graph.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
+   */
   loadSync(artifacts) {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology;
@@ -24159,6 +25342,50 @@ var GraphModel = class {
     }
     return true;
   }
+  /**
+   * Save the configuration and/or weights of the GraphModel.
+   *
+   * An `IOHandler` is an object that has a `save` method of the proper
+   * signature defined. The `save` method manages the storing or
+   * transmission of serialized data ("artifacts") that represent the
+   * model's topology and weights onto or via a specific medium, such as
+   * file downloads, local storage, IndexedDB in the web browser and HTTP
+   * requests to a server. TensorFlow.js provides `IOHandler`
+   * implementations for a number of frequently used saving mediums, such as
+   * `tf.io.browserDownloads` and `tf.io.browserLocalStorage`. See `tf.io`
+   * for more details.
+   *
+   * This method also allows you to refer to certain types of `IOHandler`s
+   * as URL-like string shortcuts, such as 'localstorage://' and
+   * 'indexeddb://'.
+   *
+   * Example 1: Save `model`'s topology and weights to browser [local
+   * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
+   * then load it back.
+   *
+   * ```js
+   * const modelUrl =
+   *    'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
+   * const model = await tf.loadGraphModel(modelUrl);
+   * const zeros = tf.zeros([1, 224, 224, 3]);
+   * model.predict(zeros).print();
+   *
+   * const saveResults = await model.save('localstorage://my-model-1');
+   *
+   * const loadedModel = await tf.loadGraphModel('localstorage://my-model-1');
+   * console.log('Prediction from loaded model:');
+   * model.predict(zeros).print();
+   * ```
+   *
+   * @param handlerOrURL An instance of `IOHandler` or a URL-like,
+   * scheme-based string shortcut for `IOHandler`.
+   * @param config Options for saving the model.
+   * @returns A `Promise` of `SaveResult`, which summarizes the result of
+   * the saving, such as byte sizes of the saved artifacts for the model's
+   *   topology and weight values.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
+   */
   async save(handlerOrURL, config) {
     if (typeof handlerOrURL === "string") {
       const handlers = this.io.getSaveHandlers(handlerOrURL);
@@ -24191,10 +25418,89 @@ var GraphModel = class {
     }
     return outputTensors;
   }
+  /**
+   * Execute the inference for the input tensors.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
+   * inputs params should be in either `tf.Tensor`[] if the input order is
+   * fixed, or otherwise NamedTensorMap format.
+   *
+   * For model with multiple inputs, we recommend you use NamedTensorMap as the
+   * input type, if you use `tf.Tensor`[], the order of the array needs to
+   * follow the
+   * order of inputNodes array. @see {@link GraphModel.inputNodes}
+   *
+   * You can also feed any intermediate nodes using the NamedTensorMap as the
+   * input type. For example, given the graph
+   *    InputNode => Intermediate => OutputNode,
+   * you can execute the subgraph Intermediate => OutputNode by calling
+   *    model.execute('IntermediateNode' : tf.tensor(...));
+   *
+   * This is useful for models that uses tf.dynamic_rnn, where the intermediate
+   * state needs to be fed manually.
+   *
+   * For batch inference execution, the tensors for each input need to be
+   * concatenated together. For example with mobilenet, the required input shape
+   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
+   * If we are provide a batched data of 100 images, the input tensor should be
+   * in the shape of [100, 244, 244, 3].
+   *
+   * @param config Prediction configuration for specifying the batch size.
+   * Currently the batch size option is ignored for graph model.
+   *
+   * @returns Inference result tensors. If the model is converted and it
+   * originally had structured_outputs in tensorflow, then a NamedTensorMap
+   * will be returned matching the structured_outputs. If no structured_outputs
+   * are present, the output will be single `tf.Tensor` if the model has single
+   * output node, otherwise Tensor[].
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
   predict(inputs, config) {
     const outputTensors = this.execute(inputs, this.outputNodes);
     return this.addStructuredOutputNames(outputTensors);
   }
+  /**
+   * Execute the inference for the input tensors in async fashion, use this
+   * method when your model contains control flow ops.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
+   * inputs params should be in either `tf.Tensor`[] if the input order is
+   * fixed, or otherwise NamedTensorMap format.
+   *
+   * For model with multiple inputs, we recommend you use NamedTensorMap as the
+   * input type, if you use `tf.Tensor`[], the order of the array needs to
+   * follow the
+   * order of inputNodes array. @see {@link GraphModel.inputNodes}
+   *
+   * You can also feed any intermediate nodes using the NamedTensorMap as the
+   * input type. For example, given the graph
+   *    InputNode => Intermediate => OutputNode,
+   * you can execute the subgraph Intermediate => OutputNode by calling
+   *    model.execute('IntermediateNode' : tf.tensor(...));
+   *
+   * This is useful for models that uses tf.dynamic_rnn, where the intermediate
+   * state needs to be fed manually.
+   *
+   * For batch inference execution, the tensors for each input need to be
+   * concatenated together. For example with mobilenet, the required input shape
+   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
+   * If we are provide a batched data of 100 images, the input tensor should be
+   * in the shape of [100, 244, 244, 3].
+   *
+   * @param config Prediction configuration for specifying the batch size.
+   * Currently the batch size option is ignored for graph model.
+   *
+   * @returns A Promise of inference result tensors. If the model is converted
+   * and it originally had structured_outputs in tensorflow, then a
+   * NamedTensorMap will be returned matching the structured_outputs. If no
+   * structured_outputs are present, the output will be single `tf.Tensor` if
+   * the model has single output node, otherwise Tensor[].
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
   async predictAsync(inputs, config) {
     const outputTensors = await this.executeAsync(inputs, this.outputNodes);
     return this.addStructuredOutputNames(outputTensors);
@@ -24270,6 +25576,22 @@ var GraphModel = class {
       }
     }
   }
+  /**
+   * Executes inference for the model for given input tensors.
+   * @param inputs tensor, tensor array or tensor map of the inputs for the
+   * model, keyed by the input node names.
+   * @param outputs output node name from the TensorFlow model, if no
+   * outputs are specified, the default outputs of the model would be used.
+   * You can inspect intermediate nodes of the model by adding them to the
+   * outputs array.
+   *
+   * @returns A single tensor if provided with a single output or no outputs
+   * are provided and there is only one default output, otherwise return a
+   * tensor array. The order of the tensor array is the same as the outputs
+   * if provided, otherwise the order of outputNodes attribute of the model.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
   execute(inputs, outputs) {
     if (this.resourceIdToCapturedInput == null) {
       this.setResourceIdToCapturedInput(this.executeInitializerGraph());
@@ -24279,6 +25601,22 @@ var GraphModel = class {
     const result = this.executor.execute(inputs, outputs);
     return result.length > 1 ? result : result[0];
   }
+  /**
+   * Executes inference for the model for given input tensors in async
+   * fashion, use this method when your model contains control flow ops.
+   * @param inputs tensor, tensor array or tensor map of the inputs for the
+   * model, keyed by the input node names.
+   * @param outputs output node name from the TensorFlow model, if no outputs
+   * are specified, the default outputs of the model would be used. You can
+   * inspect intermediate nodes of the model by adding them to the outputs
+   * array.
+   *
+   * @returns A Promise of single tensor if provided with a single output or
+   * no outputs are provided and there is only one default output, otherwise
+   * return a tensor map.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
   async executeAsync(inputs, outputs) {
     if (this.resourceIdToCapturedInput == null) {
       this.setResourceIdToCapturedInput(
@@ -24290,9 +25628,21 @@ var GraphModel = class {
     const result = await this.executor.executeAsync(inputs, outputs);
     return result.length > 1 ? result : result[0];
   }
+  /**
+   * Get intermediate tensors for model debugging mode (flag
+   * KEEP_INTERMEDIATE_TENSORS is true).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
   getIntermediateTensors() {
     return this.executor.getIntermediateTensors();
   }
+  /**
+   * Dispose intermediate tensors for model debugging mode (flag
+   * KEEP_INTERMEDIATE_TENSORS is true).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
   disposeIntermediateTensors() {
     this.executor.disposeIntermediateTensors();
   }
@@ -24302,6 +25652,11 @@ var GraphModel = class {
       return newMap;
     }, {});
   }
+  /**
+   * Releases the memory used by the weight tensors and resourceManager.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
   dispose() {
     this.executor.dispose();
     if (this.initializer) {

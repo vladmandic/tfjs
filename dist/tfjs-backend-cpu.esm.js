@@ -21,6 +21,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod3, isNodeMode, target) => (target = mod3 != null ? __create(__getProtoOf(mod3)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod3 || !mod3.__esModule ? __defProp(target, "default", { value: mod3, enumerable: true }) : target,
   mod3
 ));
@@ -536,25 +540,40 @@ var require_long = __commonJS({
     };
     LongPrototype.eq = LongPrototype.equals;
     LongPrototype.notEquals = function notEquals(other) {
-      return !this.eq(other);
+      return !this.eq(
+        /* validates */
+        other
+      );
     };
     LongPrototype.neq = LongPrototype.notEquals;
     LongPrototype.ne = LongPrototype.notEquals;
     LongPrototype.lessThan = function lessThan(other) {
-      return this.comp(other) < 0;
+      return this.comp(
+        /* validates */
+        other
+      ) < 0;
     };
     LongPrototype.lt = LongPrototype.lessThan;
     LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
-      return this.comp(other) <= 0;
+      return this.comp(
+        /* validates */
+        other
+      ) <= 0;
     };
     LongPrototype.lte = LongPrototype.lessThanOrEqual;
     LongPrototype.le = LongPrototype.lessThanOrEqual;
     LongPrototype.greaterThan = function greaterThan(other) {
-      return this.comp(other) > 0;
+      return this.comp(
+        /* validates */
+        other
+      ) > 0;
     };
     LongPrototype.gt = LongPrototype.greaterThan;
     LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
-      return this.comp(other) >= 0;
+      return this.comp(
+        /* validates */
+        other
+      ) >= 0;
     };
     LongPrototype.gte = LongPrototype.greaterThanOrEqual;
     LongPrototype.ge = LongPrototype.greaterThanOrEqual;
@@ -877,9 +896,9 @@ var require_long = __commonJS({
   }
 });
 
-// (disabled):src/node_modules/.pnpm/node-fetch@2.6.7/node_modules/node-fetch/browser.js
+// (disabled):src/node_modules/.pnpm/node-fetch@2.6.9/node_modules/node-fetch/browser.js
 var require_browser = __commonJS({
-  "(disabled):src/node_modules/.pnpm/node-fetch@2.6.7/node_modules/node-fetch/browser.js"() {
+  "(disabled):src/node_modules/.pnpm/node-fetch@2.6.9/node_modules/node-fetch/browser.js"() {
   }
 });
 
@@ -974,7 +993,9 @@ var require_alea = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1046,7 +1067,9 @@ var require_xor128 = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1125,7 +1148,9 @@ var require_xorwow = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1220,7 +1245,9 @@ var require_xorshift7 = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1329,8 +1356,11 @@ var require_xor4096 = __commonJS({
       }
     })(
       exports,
+      // window object or global
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1408,7 +1438,9 @@ var require_tychei = __commonJS({
     })(
       exports,
       typeof module == "object" && module,
+      // present in node.js
       typeof define == "function" && define
+      // present with an AMD loader
     );
   }
 });
@@ -1557,9 +1589,13 @@ var require_seedrandom = __commonJS({
         math["seed" + rngname] = seedrandom3;
       }
     })(
+      // global: `self` in browsers (including strict mode and web workers),
+      // otherwise `this` in Node and other environments
       typeof self !== "undefined" ? self : exports,
       [],
+      // pool: entropy pool starts empty
       Math
+      // math: package containing random, pow, and seedrandom
     );
   }
 });
@@ -1649,15 +1685,17 @@ var KernelBackend = class {
   move(dataId, values, shape, dtype, refCount) {
     return notYetImplemented("move");
   }
-  createTensorFromTexture(values, shape, dtype) {
-    return notYetImplemented("createTensorFromTexture");
+  createTensorFromGPUData(values, shape, dtype) {
+    return notYetImplemented("createTensorFromGPUData");
   }
   memory() {
     return notYetImplemented("memory");
   }
+  /** Returns the highest precision for floats in bits (e.g. 16 or 32) */
   floatPrecision() {
     return notYetImplemented("floatPrecision");
   }
+  /** Returns the smallest representable number.  */
   epsilon() {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
   }
@@ -1742,19 +1780,6 @@ function assertNonNull(a) {
     a != null,
     () => `The input to the tensor constructor must be a non-null value.`
   );
-}
-function flatten(arr, result = [], skipTypedArray = false) {
-  if (result == null) {
-    result = [];
-  }
-  if (Array.isArray(arr) || isTypedArray(arr) && !skipTypedArray) {
-    for (let i = 0; i < arr.length; ++i) {
-      flatten(arr[i], result, skipTypedArray);
-    }
-  } else {
-    result.push(arr);
-  }
-  return result;
 }
 function sizeFromShape(shape) {
   if (shape.length === 0) {
@@ -1922,17 +1947,7 @@ function squeezeShape(shape, axis) {
   return { newShape, keptDims };
 }
 function getTypedArrayFromDType(dtype, size) {
-  let values = null;
-  if (dtype == null || dtype === "float32") {
-    values = new Float32Array(size);
-  } else if (dtype === "int32") {
-    values = new Int32Array(size);
-  } else if (dtype === "bool") {
-    values = new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type ${dtype}`);
-  }
-  return values;
+  return getArrayFromDType(dtype, size);
 }
 function getArrayFromDType(dtype, size) {
   let values = null;
@@ -1974,9 +1989,6 @@ function hasEncodingLoss(oldType, newType) {
     return false;
   }
   return true;
-}
-function isTypedArray(a) {
-  return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
 function bytesPerElement(dtype) {
   if (dtype === "float32" || dtype === "int32") {
@@ -2076,6 +2088,20 @@ function toNestedArray(shape, a, isComplex = false) {
   }
   return createNestedArray(0, shape, a, isComplex);
 }
+function convertBackendValuesAndArrayBuffer(data, dtype) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === "float32") {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === "int32") {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === "bool" || dtype === "string") {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
 function makeOnesTypedArray(size, dtype) {
   const array = makeZerosTypedArray(size, dtype);
   for (let i = 0; i < array.length; i++) {
@@ -2147,6 +2173,7 @@ function isPromise(object) {
 // src/tfjs-core/src/environment.ts
 var TENSORFLOWJS_FLAGS_PREFIX = "tfjsflags";
 var Environment = class {
+  // tslint:disable-next-line: no-any
   constructor(global2) {
     this.global = global2;
     this.populateURLFlags();
@@ -2156,6 +2183,7 @@ var Environment = class {
   urlFlags = {};
   platformName;
   platform;
+  // Jasmine spies on this in 'environment_test.ts'
   getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
@@ -2209,6 +2237,7 @@ var Environment = class {
   getFlags() {
     return this.flags;
   }
+  // For backwards compatibility.
   get features() {
     return this.flags;
   }
@@ -2449,6 +2478,7 @@ var Reverse = "Reverse";
 var Round = "Round";
 var Rsqrt = "Rsqrt";
 var ScatterNd = "ScatterNd";
+var TensorScatterUpdate = "TensorScatterUpdate";
 var SearchSorted = "SearchSorted";
 var Select = "Select";
 var Selu = "Selu";
@@ -2470,6 +2500,7 @@ var SparseSegmentSum = "SparseSegmentSum";
 var SparseToDense = "SparseToDense";
 var SquaredDifference = "SquaredDifference";
 var Square = "Square";
+var StaticRegexReplace = "StaticRegexReplace";
 var StridedSlice = "StridedSlice";
 var StringNGrams = "StringNGrams";
 var StringSplit = "StringSplit";
@@ -2557,6 +2588,7 @@ __export(util_exports, {
   checkConversionForErrors: () => checkConversionForErrors,
   clamp: () => clamp,
   computeStrides: () => computeStrides,
+  convertBackendValuesAndArrayBuffer: () => convertBackendValuesAndArrayBuffer,
   createScalarValue: () => createScalarValue,
   createShuffledIndices: () => createShuffledIndices,
   decodeString: () => decodeString,
@@ -2606,7 +2638,10 @@ __export(util_exports, {
 
 // src/tfjs-core/src/hash_util.ts
 var LongExports = __toESM(require_long());
-var Long = LongExports.default || LongExports;
+var Long = (
+  // tslint:disable-next-line
+  LongExports.default || LongExports
+);
 function hexToLong(hex) {
   return Long.fromString(hex, true, 16);
 }
@@ -2823,6 +2858,32 @@ function encodeString(s, encoding = "utf-8") {
 function decodeString(bytes, encoding = "utf-8") {
   encoding = encoding || "utf-8";
   return env().platform.decode(bytes, encoding);
+}
+function isTypedArray(a) {
+  return env().platform.isTypedArray(a);
+}
+function flatten(arr, result = [], skipTypedArray = false) {
+  if (result == null) {
+    result = [];
+  }
+  if (typeof arr === "boolean" || typeof arr === "number" || typeof arr === "string" || isPromise(arr) || arr == null || isTypedArray(arr) && skipTypedArray) {
+    result.push(arr);
+  } else if (Array.isArray(arr) || isTypedArray(arr)) {
+    for (let i = 0; i < arr.length; ++i) {
+      flatten(arr[i], result, skipTypedArray);
+    }
+  } else {
+    let maxIndex = -1;
+    for (const key of Object.keys(arr)) {
+      if (/^([1-9]+[0-9]*|0)$/.test(key)) {
+        maxIndex = Math.max(maxIndex, Number(key));
+      }
+    }
+    for (let i = 0; i <= maxIndex; i++) {
+      flatten(arr[i], result, skipTypedArray);
+    }
+  }
+  return result;
 }
 
 // src/tfjs-core/src/profiler.ts
@@ -3146,6 +3207,7 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         false
+        /* isLast */
       ));
     }
     lines.push("...");
@@ -3159,6 +3221,7 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         i === size - 1
+        /* isLast */
       ));
     }
   } else {
@@ -3172,11 +3235,12 @@ function subTensorToString(vals, shape, dtype, strides, padPerCol, isLast = true
         substrides,
         padPerCol,
         i === size - 1
+        /* isLast */
       ));
     }
   }
   const sep = rank === 2 ? "," : "";
-  lines[0] = "[" + lines[0] + sep;
+  lines[0] = "[" + (size > 0 ? lines[0] + sep : "");
   for (let i = 1; i < lines.length - 1; i++) {
     lines[i] = " " + lines[i] + sep;
   }
@@ -3220,6 +3284,14 @@ var TensorBuffer = class {
   shape;
   strides;
   values;
+  /**
+   * Sets a value in the buffer at a given location.
+   *
+   * @param value The value to set.
+   * @param locs  The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   set(value, ...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -3231,6 +3303,13 @@ var TensorBuffer = class {
     const index = this.locToIndex(locs);
     this.values[index] = value;
   }
+  /**
+   * Returns the value in the buffer at the provided location.
+   *
+   * @param locs The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   get(...locs) {
     if (locs.length === 0) {
       locs = [0];
@@ -3278,6 +3357,11 @@ var TensorBuffer = class {
   get rank() {
     return this.shape.length;
   }
+  /**
+   * Creates an immutable `tf.Tensor` object from the buffer.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
+   */
   toTensor() {
     return trackerFn().makeTensor(this.values, this.shape, this.dtype);
   }
@@ -3295,14 +3379,30 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
+  /** Unique id of this tensor. */
   id;
+  /**
+   * Id of the bucket holding the data for this tensor. Multiple arrays can
+   * point to the same bucket (e.g. when calling array.reshape()).
+   */
   dataId;
+  /** The shape of the tensor. */
   shape;
+  /** Number of elements in the tensor. */
   size;
+  /** The data type for the array. */
   dtype;
+  /** The rank type for the array (see `Rank` enum). */
   rankType;
+  /** Whether this tensor has been globally kept. */
   kept = false;
+  /** The id of the scope this tensor is being tracked in. */
   scopeId;
+  /**
+   * Number of elements to skip in each dimension when indexing. See
+   * https://docs.scipy.org/doc/numpy/reference/generated/\
+   * numpy.ndarray.strides.html
+   */
   strides;
   constructor(shape, dtype, dataId, id) {
     this.shape = shape.slice();
@@ -3316,17 +3416,38 @@ var Tensor = class {
   get rank() {
     return this.shape.length;
   }
+  /**
+   * Returns a promise of `tf.TensorBuffer` that holds the underlying data.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async buffer() {
     const vals = await this.data();
     return opHandler.buffer(this.shape, this.dtype, vals);
   }
+  /**
+   * Returns a `tf.TensorBuffer` that holds the underlying data.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   bufferSync() {
     return opHandler.buffer(this.shape, this.dtype, this.dataSync());
   }
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * asynchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async array() {
     const vals = await this.data();
     return toNestedArray(this.shape, vals, this.dtype === "complex64");
   }
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * synchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   arraySync() {
     return toNestedArray(
       this.shape,
@@ -3334,6 +3455,12 @@ var Tensor = class {
       this.dtype === "complex64"
     );
   }
+  /**
+   * Asynchronously downloads the values from the `tf.Tensor`. Returns a
+   * promise of `TypedArray` that resolves when the computation has finished.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   async data() {
     this.throwIfDisposed();
     const data = trackerFn().read(this.dataId);
@@ -3349,10 +3476,52 @@ var Tensor = class {
     }
     return data;
   }
+  /**
+   * Copy the tensor's data to a new GPU resource. Comparing to the `dataSync()`
+   * and `data()`, this method prevents data from being downloaded to CPU.
+   *
+   * For WebGL backend, the data will be stored on a densely packed texture.
+   * This means that the texture will use the RGBA channels to store value.
+   *
+   * For WebGPU backend, the data will be stored on a buffer. There is no
+   * parameter, so can not use a user-defined size to create the buffer.
+   *
+   * @param options:
+   *     For WebGL,
+   *         - customTexShape: Optional. If set, will use the user defined
+   *     texture shape to create the texture.
+   *
+   * @returns For WebGL backend, a GPUData contains the new texture and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this texture,
+   *        texture: WebGLTexture,
+   *        texShape: [number, number] // [height, width]
+   *     }
+   *
+   *     For WebGPU backend, a GPUData contains the new buffer and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this buffer,
+   *        buffer: GPUBuffer,
+   *        bufSize: number
+   *     }
+   *
+   *     Remember to dispose the GPUData after it is used by
+   *     `res.tensorRef.dispose()`.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dataToGPU(options) {
     this.throwIfDisposed();
     return trackerFn().readToGPU(this.dataId, options);
   }
+  /**
+   * Synchronously downloads the values from the `tf.Tensor`. This blocks the
+   * UI thread until the values are ready, which can cause performance issues.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dataSync() {
     this.throwIfDisposed();
     const data = trackerFn().readSync(this.dataId);
@@ -3367,6 +3536,7 @@ var Tensor = class {
     }
     return data;
   }
+  /** Returns the underlying bytes of the tensor's data. */
   async bytes() {
     this.throwIfDisposed();
     const data = await trackerFn().read(this.dataId);
@@ -3376,6 +3546,11 @@ var Tensor = class {
       return new Uint8Array(data.buffer);
     }
   }
+  /**
+   * Disposes `tf.Tensor` from memory.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   dispose() {
     if (this.isDisposed) {
       return;
@@ -3392,13 +3567,30 @@ var Tensor = class {
       throw new Error(`Tensor is disposed.`);
     }
   }
+  /**
+   * Prints the `tf.Tensor`. See `tf.print` for details.
+   *
+   * @param verbose Whether to print verbose information about the tensor,
+   *    including dtype and size.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   print(verbose = false) {
     return opHandler.print(this, verbose);
   }
+  /**
+   * Returns a copy of the tensor. See `tf.clone` for details.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   clone() {
     this.throwIfDisposed();
     return opHandler.clone(this);
   }
+  /**
+   * Returns a human-readable description of the tensor. Useful for logging.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   toString(verbose = false) {
     const vals = this.dataSync();
     return tensorToString(vals, this.shape, this.dtype, verbose);
@@ -3435,6 +3627,14 @@ var Variable = class extends Tensor {
     this.name = name;
   }
   name;
+  /**
+   * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
+   * the same shape and dtype as the old `tf.Tensor`.
+   *
+   * @param newValue New tensor to be assigned to this variable.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   assign(newValue) {
     if (newValue.dtype !== this.dtype) {
       throw new Error(
@@ -3448,7 +3648,11 @@ var Variable = class extends Tensor {
     }
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    trackerFn().incRef(this, null);
+    trackerFn().incRef(
+      this,
+      null
+      /* backend */
+    );
   }
   dispose() {
     trackerFn().disposeVariable(this);
@@ -3505,6 +3709,12 @@ function upcastType(typeA, typeB) {
   }
   return upcastTypeMap[typeA][typeB];
 }
+function isWebGLData(values) {
+  return values != null && typeof values === "object" && "texture" in values && values.texture instanceof WebGLTexture;
+}
+function isWebGPUData(values) {
+  return typeof GPUBuffer !== "undefined" && values != null && typeof values === "object" && "buffer" in values && values.buffer instanceof GPUBuffer;
+}
 
 // src/tfjs-core/src/tensor_util.ts
 function makeTypesMatch(a, b) {
@@ -3555,6 +3765,7 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
+  // Public since optimizers will use it.
   registeredVariables = {};
   nextTapeNodeId = 0;
   numBytes = 0;
@@ -3562,10 +3773,20 @@ var EngineState = class {
   numStringTensors = 0;
   numDataBuffers = 0;
   activeTape;
+  // Number of nested tf.grad() statements when computing higher-order
+  // gradients. E.g. `1` for first-order gradients and `2` for second-order
+  // gradients. Used to track if the tape should be removed after a backprop.
   gradientDepth = 0;
+  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+  // off the tape.
   kernelDepth = 0;
+  // Keep Tensors that parallel the tapes.
   activeScope;
   scopeStack = [];
+  /**
+   * Keeps track of the number of data moves during a kernel execution. We
+   * maintain a stack since kernels can call other kernels, recursively.
+   */
   numDataMovesStack = [];
   nextScopeId = 0;
   tensorInfo = /* @__PURE__ */ new WeakMap();
@@ -3703,6 +3924,12 @@ var _Engine = class {
       }
     });
   }
+  /**
+   * Initializes a backend by looking up the backend name in the factory
+   * registry and calling the factory method. Returns a boolean representing
+   * whether the initialization of the backend suceeded. Throws an error if
+   * there is no backend in the factory registry.
+   */
   initializeBackend(backendName) {
     const registryFactoryEntry = this.registryFactory[backendName];
     if (registryFactoryEntry == null) {
@@ -3844,8 +4071,17 @@ var _Engine = class {
   nextVariableId() {
     return _Engine.nextVariableId++;
   }
+  /**
+   * This method is called instead of the public-facing tensor.clone() when
+   * saving a tensor for backwards pass. It makes sure to add the clone
+   * operation to the tape regardless of being called inside a kernel
+   * execution.
+   */
   clone(x) {
-    const y = ENGINE.runKernel(Identity, { x });
+    const y = ENGINE.runKernel(
+      Identity,
+      { x }
+    );
     const inputs = { x };
     const grad2 = (dy) => ({
       x: () => {
@@ -3855,6 +4091,7 @@ var _Engine = class {
         return ENGINE.runKernel(
           Cast,
           gradInputs,
+          // tslint:disable-next-line: no-unnecessary-type-assertion
           attrs
         );
       }
@@ -3863,6 +4100,19 @@ var _Engine = class {
     this.addTapeNode(this.state.activeScope.name, inputs, [y], grad2, saved, {});
     return y;
   }
+  /**
+   * Execute a kernel with the given name and return the output tensor.
+   *
+   * @param kernelName The name of the kernel to execute.
+   * @param inputs A map of input names to tensors.
+   * @param attrs A map of attribute names to their values. An attribute is a
+   *     primitive (non-tensor) input to the kernel.
+   * @param inputsToSave A list of tensors, inputs to save for the backprop
+   *     computation.
+   * @param outputsToSave A list of booleans, specifying which output to save
+   *     for the backprop computation. These are booleans since the output
+   * tensors are not visible to the user.
+   */
   runKernel(kernelName, inputs, attrs) {
     if (this.backendName == null) {
       this.backend;
@@ -3890,6 +4140,11 @@ var _Engine = class {
       );
     }
   }
+  /**
+   * Internal helper method to execute a kernel Func
+   *
+   * Use `runKernel` to execute kernels from outside of engine.
+   */
   runKernelFunc(kernelParams) {
     let outputs;
     let saved = [];
@@ -3956,6 +4211,7 @@ var _Engine = class {
     const backwardsFunc = isRegisteredKernelInvocation(kernelParams) ? null : kernelParams.backwardsFunc;
     let kernelProfile;
     this.scopedRun(
+      // Stop recording to a tape when running a kernel.
       () => this.state.kernelDepth++,
       () => this.state.kernelDepth--,
       () => {
@@ -4001,10 +4257,22 @@ var _Engine = class {
     }
     return Array.isArray(out) ? outputs : outputs[0];
   }
+  /**
+   * Saves tensors used in forward mode for use in backward mode.
+   *
+   * @param tensors the list of tensors to save.
+   */
   saveTensorsForBackwardMode(tensors) {
     const saved = tensors.map((tensor2) => this.keep(this.clone(tensor2)));
     return saved;
   }
+  /**
+   * Returns a list of tensors to save for a given gradient calculation.
+   *
+   * @param kernelName name of kernel to look up gradient for.
+   * @param inputs a map of input tensors.
+   * @param outputs an array of output tensors from forward mode of kernel.
+   */
   getTensorsForGradient(kernelName, inputs, outputs) {
     const gradConfig = getGradient(kernelName);
     if (gradConfig != null) {
@@ -4025,6 +4293,11 @@ var _Engine = class {
     }
     return [];
   }
+  /**
+   * Internal method used by public APIs for tensor creation. Makes a new
+   * tensor with the provided shape, dtype and values. It always
+   * creates a new data id and writes the values to the underlying backend.
+   */
   makeTensor(values, shape, dtype, backend) {
     if (values == null) {
       throw new Error("Values passed to engine.makeTensor() are null");
@@ -4046,11 +4319,22 @@ var _Engine = class {
     }
     return t;
   }
+  /**
+   * Internal method used by backends. Makes a new tensor
+   * that is a wrapper around an existing data id. It doesn't create
+   * a new data id, only increments the ref count used in memory tracking.
+   * @deprecated
+   */
   makeTensorFromDataId(dataId, shape, dtype, backend) {
     dtype = dtype || "float32";
     const tensorInfo = { dataId, shape, dtype };
     return this.makeTensorFromTensorInfo(tensorInfo, backend);
   }
+  /**
+   * Internal method used by backends. Makes a new tensor that is a wrapper
+   * around an existing data id in TensorInfo. It doesn't create a new data id,
+   * only increments the ref count used in memory tracking.
+   */
   makeTensorFromTensorInfo(tensorInfo, backend) {
     const { dataId, shape, dtype } = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
@@ -4093,6 +4377,11 @@ var _Engine = class {
       this.track(a);
     }
   }
+  // Track the tensor by dataId and increase the refCount for the dataId in the
+  // backend.
+  // TODO(pyu10055): This is currently used by makeVariable method, to increase
+  // refCount on the backend for the dataId. It can potentially be replaced with
+  // Identity op indead of calling backend directly.
   incRef(a, backend) {
     this.trackTensor(a, backend);
     this.backend.incRef(a.dataId);
@@ -4204,6 +4493,10 @@ var _Engine = class {
   endTape() {
     this.state.gradientDepth--;
   }
+  /**
+   * Start a scope. Use this with endScope() to achieve the same functionality
+   * as scope() without the need for a function closure.
+   */
   startScope(name) {
     const scopeInfo = {
       track: [],
@@ -4216,6 +4509,10 @@ var _Engine = class {
     this.state.scopeStack.push(scopeInfo);
     this.state.activeScope = scopeInfo;
   }
+  /**
+   * End a scope. Use this with startScope() to achieve the same functionality
+   * as scope() without the need for a function closure.
+   */
   endScope(result) {
     const tensorsToTrackInParent = getTensorsInContainer(result);
     const tensorsToTrackInParentSet = new Set(tensorsToTrackInParent.map((t) => t.id));
@@ -4233,6 +4530,12 @@ var _Engine = class {
       }
     });
   }
+  /**
+   * Returns gradients of `f` with respect to each of the `xs`. The gradients
+   * returned are of the same length as `xs`, but some might be null if `f`
+   * was not a function of that `x`. It also takes optional dy to multiply the
+   * gradient, which defaults to `1`.
+   */
   gradients(f, xs, dy, allowNoGradients = false) {
     assert(
       xs.length > 0,
@@ -4262,7 +4565,9 @@ var _Engine = class {
       backpropagateGradients(
         accumulatedGradientMap,
         filteredTape,
+        // Pass the tidy function to avoid circular dep with `tape.ts`.
         (f2) => this.tidy(f2),
+        // Pass an add function to avoide a circular dep with `tape.ts`.
         add
       );
       const grads2 = xs.map((x) => accumulatedGradientMap[x.id]);
@@ -4346,6 +4651,12 @@ var _Engine = class {
     timingInfo.wallMs = now() - start;
     return timingInfo;
   }
+  /**
+   * Tracks a Tensor in the current scope to be automatically cleaned up
+   * when the current scope ends, and returns the value.
+   *
+   * @param result The Tensor to track in the current scope.
+   */
   track(result) {
     if (this.state.activeScope != null) {
       result.scopeId = this.state.activeScope.id;
@@ -4356,6 +4667,10 @@ var _Engine = class {
   get registeredVariables() {
     return this.state.registeredVariables;
   }
+  /**
+   * Resets the engine state. Removes all backends but does not remove
+   * registered backend factories.
+   */
   reset() {
     this.pendingBackendInitId++;
     this.state.dispose();
@@ -4396,7 +4711,8 @@ function add(a, b) {
 
 // src/tfjs-core/src/device_util.ts
 function isBrowser() {
-  return typeof window !== "undefined" && window.document != null || typeof WorkerGlobalScope !== "undefined";
+  return typeof window !== "undefined" && window.document != null || //@ts-ignore
+  typeof WorkerGlobalScope !== "undefined";
 }
 
 // src/tfjs-core/src/flags.ts
@@ -4417,6 +4733,10 @@ ENV2.registerFlag(
   "IS_CHROME",
   () => typeof navigator !== "undefined" && navigator != null && navigator.userAgent != null && /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
 );
+ENV2.registerFlag(
+  "IS_SAFARI",
+  () => typeof navigator !== "undefined" && navigator != null && navigator.userAgent != null && /Safari/.test(navigator.userAgent) && /Apple/.test(navigator.vendor)
+);
 ENV2.registerFlag("PROD", () => false);
 ENV2.registerFlag(
   "TENSORLIKE_CHECK_SHAPE_CONSISTENCY",
@@ -4424,7 +4744,7 @@ ENV2.registerFlag(
 );
 ENV2.registerFlag("DEPRECATION_WARNINGS_ENABLED", () => true);
 ENV2.registerFlag("IS_TEST", () => false);
-ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => true);
+ENV2.registerFlag("CHECK_COMPUTATION_FOR_ERRORS", () => ENV2.getBool("DEBUG"));
 ENV2.registerFlag("WRAP_TO_IMAGEBITMAP", () => false);
 ENV2.registerFlag("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU", () => false);
 ENV2.registerFlag("USE_SETTIMEOUTCUSTOM", () => false);
@@ -4435,9 +4755,11 @@ function inferShape(val, dtype) {
   if (isTypedArray(val)) {
     return dtype === "string" ? [] : [val.length];
   }
-  if (typeof val === "object" && "texture" in val) {
+  if (isWebGLData(val)) {
     const usedChannels = val.channels || "RGBA";
     return [val.height, val.width * usedChannels.length];
+  } else if (isWebGPUData(val)) {
+    return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
   }
   if (!Array.isArray(val)) {
     return [];
@@ -4574,20 +4896,18 @@ var complex = op({ complex_ });
 function makeTensor(values, shape, inferredShape, dtype) {
   if (dtype == null) {
     dtype = inferDtype(values);
-  }
-  if (dtype === "complex64") {
+  } else if (dtype === "complex64") {
     throw new Error(
       `Cannot construct a complex64 tensor directly. Please use tf.complex(real, imag).`
     );
   }
-  if (typeof values === "object" && "texture" in values) {
+  if (isWebGPUData(values) || isWebGLData(values)) {
     if (dtype !== "float32" && dtype !== "int32") {
       throw new Error(
-        `Creating tensor from texture only supports 'float32'|'int32' dtype, while the dtype is ${dtype}.`
+        `Creating tensor from GPU data only supports 'float32'|'int32' dtype, while the dtype is ${dtype}.`
       );
     }
-    values.channels = values.channels || "RGBA";
-    return ENGINE.backend.createTensorFromTexture(
+    return ENGINE.backend.createTensorFromGPUData(
       values,
       shape || inferredShape,
       dtype
@@ -4777,15 +5097,43 @@ var _IORouterRegistry = class {
     }
     return _IORouterRegistry.instance;
   }
+  /**
+   * Register a save-handler router.
+   *
+   * @param saveRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `save` method defined or `null`.
+   */
   static registerSaveRouter(saveRouter) {
     _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
+  /**
+   * Register a load-handler router.
+   *
+   * @param loadRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `load` method defined or `null`.
+   */
   static registerLoadRouter(loadRouter) {
     _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
+  /**
+   * Look up IOHandler for saving, given a URL-like string.
+   *
+   * @param url
+   * @returns If only one match is found, an instance of IOHandler with the
+   * `save` method defined. If no match is found, `null`.
+   * @throws Error, if more than one match is found.
+   */
   static getSaveHandlers(url) {
     return _IORouterRegistry.getHandlers(url, "save");
   }
+  /**
+   * Look up IOHandler for loading, given a URL-like string.
+   *
+   * @param url
+   * @param loadOptions Optional, custom load options.
+   * @returns All valid handlers for `url`, given the currently registered
+   *   handler routers.
+   */
   static getLoadHandlers(url, loadOptions) {
     return _IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
@@ -4802,6 +5150,7 @@ var _IORouterRegistry = class {
   }
 };
 var IORouterRegistry = _IORouterRegistry;
+// Singleton instance.
 __publicField(IORouterRegistry, "instance");
 
 // src/tfjs-core/src/io/indexed_db.ts
@@ -4852,6 +5201,20 @@ var BrowserIndexedDB = class {
   async load() {
     return this.databaseAction(this.modelPath);
   }
+  /**
+   * Perform database action to put model artifacts into or read model artifacts
+   * from IndexedDB object store.
+   *
+   * Whether the action is put or get depends on whether `modelArtifacts` is
+   * specified. If it is specified, the action will be put; otherwise the action
+   * will be get.
+   *
+   * @param modelPath A unique string path for the model.
+   * @param modelArtifacts If specified, it will be the model artifacts to be
+   *   stored in IndexedDB.
+   * @returns A `Promise` of `SaveResult`, if the action is put, or a `Promise`
+   *   of `ModelArtifacts`, if the action is get.
+   */
   databaseAction(modelPath, modelArtifacts) {
     return new Promise((resolve, reject) => {
       const openRequest = this.indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
@@ -4881,16 +5244,26 @@ var BrowserIndexedDB = class {
           const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
           const infoTx = db.transaction(INFO_STORE_NAME, "readwrite");
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
-          const putInfoRequest = infoStore.put({ modelPath: this.modelPath, modelArtifactsInfo });
+          let putInfoRequest;
+          try {
+            putInfoRequest = infoStore.put({ modelPath: this.modelPath, modelArtifactsInfo });
+          } catch (error) {
+            return reject(error);
+          }
           let modelTx;
           putInfoRequest.onsuccess = () => {
             modelTx = db.transaction(MODEL_STORE_NAME, "readwrite");
             const modelStore = modelTx.objectStore(MODEL_STORE_NAME);
-            const putModelRequest = modelStore.put({
-              modelPath: this.modelPath,
-              modelArtifacts,
-              modelArtifactsInfo
-            });
+            let putModelRequest;
+            try {
+              putModelRequest = modelStore.put({
+                modelPath: this.modelPath,
+                modelArtifacts,
+                modelArtifactsInfo
+              });
+            } catch (error) {
+              return reject(error);
+            }
             putModelRequest.onsuccess = () => resolve({ modelArtifactsInfo });
             putModelRequest.onerror = (error) => {
               infoStore = infoTx.objectStore(INFO_STORE_NAME);
@@ -5076,6 +5449,15 @@ var BrowserLocalStorage = class {
     this.modelPath = modelPath;
     this.keys = getModelKeys(this.modelPath);
   }
+  /**
+   * Save model artifacts to browser local storage.
+   *
+   * See the documentation to `browserLocalStorage` for details on the saved
+   * artifacts.
+   *
+   * @param modelArtifacts The model artifacts to be stored.
+   * @returns An instance of SaveResult.
+   */
   async save(modelArtifacts) {
     if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
       throw new Error(
@@ -5113,6 +5495,14 @@ var BrowserLocalStorage = class {
       }
     }
   }
+  /**
+   * Load a model from local storage.
+   *
+   * See the documentation to `browserLocalStorage` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model (if loading succeeds).
+   */
   async load() {
     const info = JSON.parse(this.LS.getItem(this.keys.info));
     if (info == null) {
@@ -5242,6 +5632,12 @@ var _ModelStoreManagerRegistry = class {
     }
     return _ModelStoreManagerRegistry.instance;
   }
+  /**
+   * Register a save-handler router.
+   *
+   * @param saveRouter A function that maps a URL-like string onto an instance
+   * of `IOHandler` with the `save` method defined or `null`.
+   */
   static registerManager(scheme, manager) {
     assert(scheme != null, () => "scheme must not be undefined or null.");
     if (scheme.endsWith(URL_SCHEME_SUFFIX)) {
@@ -5267,11 +5663,15 @@ var _ModelStoreManagerRegistry = class {
   }
 };
 var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
+// Singleton instance.
 __publicField(ModelStoreManagerRegistry, "instance");
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
+  // According to the spec, the built-in encoder can do only UTF-8 encoding.
+  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
   textEncoder;
+  // For setTimeoutCustom
   messageName = "setTimeoutCustom";
   functionRefs = [];
   handledMessageCount = 0;
@@ -5296,6 +5696,10 @@ var PlatformBrowser = class {
   decode(bytes, encoding) {
     return new TextDecoder(encoding).decode(bytes);
   }
+  // If the setTimeout nesting level is greater than 5 and timeout is less
+  // than 4ms, timeout will be clamped to 4ms, which hurts the perf.
+  // Interleaving window.postMessage and setTimeout will trick the browser and
+  // avoid the clamp.
   setTimeoutCustom(functionRef, delay) {
     if (typeof window === "undefined" || !env().getBool("USE_SETTIMEOUTCUSTOM")) {
       setTimeout(functionRef, delay);
@@ -5324,6 +5728,9 @@ var PlatformBrowser = class {
       }, true);
     }
   }
+  isTypedArray(a) {
+    return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+  }
 };
 if (env().get("IS_BROWSER")) {
   env().setPlatform("browser", new PlatformBrowser());
@@ -5345,11 +5752,13 @@ if (env().get("IS_BROWSER")) {
 
 // src/tfjs-core/src/platforms/platform_node.ts
 var getNodeFetch = {
+  // tslint:disable-next-line:no-require-imports
   importFetch: () => require_browser()
 };
 var systemFetch;
 var PlatformNode = class {
   textEncoder;
+  // tslint:disable-next-line:no-any
   util;
   constructor() {
     this.util = require_util();
@@ -5381,6 +5790,9 @@ var PlatformNode = class {
       return "";
     }
     return new this.util.TextDecoder(encoding).decode(bytes);
+  }
+  isTypedArray(a) {
+    return this.util.types.isFloat32Array(a) || this.util.types.isInt32Array(a) || this.util.types.isUint8Array(a) || this.util.types.isUint8ClampedArray(a);
   }
 };
 if (env().get("IS_NODE") && !env().get("IS_BROWSER")) {
@@ -5436,364 +5848,6 @@ var opHandler2 = {
 };
 setOpHandler(opHandler2);
 
-// src/tfjs-core/src/io/browser_files.ts
-var DEFAULT_FILE_NAME_PREFIX = "model";
-var DEFAULT_JSON_EXTENSION_NAME = ".json";
-var DEFAULT_WEIGHT_DATA_EXTENSION_NAME = ".weights.bin";
-function defer(f) {
-  return new Promise((resolve) => setTimeout(resolve)).then(f);
-}
-var _BrowserDownloads = class {
-  modelJsonFileName;
-  weightDataFileName;
-  modelJsonAnchor;
-  weightDataAnchor;
-  constructor(fileNamePrefix) {
-    if (!env().getBool("IS_BROWSER")) {
-      throw new Error(
-        "browserDownloads() cannot proceed because the current environment is not a browser."
-      );
-    }
-    if (fileNamePrefix.startsWith(_BrowserDownloads.URL_SCHEME)) {
-      fileNamePrefix = fileNamePrefix.slice(_BrowserDownloads.URL_SCHEME.length);
-    }
-    if (fileNamePrefix == null || fileNamePrefix.length === 0) {
-      fileNamePrefix = DEFAULT_FILE_NAME_PREFIX;
-    }
-    this.modelJsonFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
-    this.weightDataFileName = fileNamePrefix + DEFAULT_WEIGHT_DATA_EXTENSION_NAME;
-  }
-  async save(modelArtifacts) {
-    if (typeof document === "undefined") {
-      throw new Error(
-        "Browser downloads are not supported in this environment since `document` is not present"
-      );
-    }
-    const weightsURL = window.URL.createObjectURL(new Blob(
-      [modelArtifacts.weightData],
-      { type: "application/octet-stream" }
-    ));
-    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
-      throw new Error(
-        "BrowserDownloads.save() does not support saving model topology in binary formats yet."
-      );
-    } else {
-      const weightsManifest = [{
-        paths: ["./" + this.weightDataFileName],
-        weights: modelArtifacts.weightSpecs
-      }];
-      const modelJSON = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
-      const modelJsonURL = window.URL.createObjectURL(
-        new Blob([JSON.stringify(modelJSON)], { type: "application/json" })
-      );
-      const jsonAnchor = this.modelJsonAnchor == null ? document.createElement("a") : this.modelJsonAnchor;
-      jsonAnchor.download = this.modelJsonFileName;
-      jsonAnchor.href = modelJsonURL;
-      await defer(() => jsonAnchor.dispatchEvent(new MouseEvent("click")));
-      if (modelArtifacts.weightData != null) {
-        const weightDataAnchor = this.weightDataAnchor == null ? document.createElement("a") : this.weightDataAnchor;
-        weightDataAnchor.download = this.weightDataFileName;
-        weightDataAnchor.href = weightsURL;
-        await defer(
-          () => weightDataAnchor.dispatchEvent(new MouseEvent("click"))
-        );
-      }
-      return { modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) };
-    }
-  }
-};
-var BrowserDownloads = _BrowserDownloads;
-__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
-var browserDownloadsRouter = (url) => {
-  if (!env().getBool("IS_BROWSER")) {
-    return null;
-  } else {
-    if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {
-      return browserDownloads(url.slice(BrowserDownloads.URL_SCHEME.length));
-    } else {
-      return null;
-    }
-  }
-};
-IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
-function browserDownloads(fileNamePrefix = "model") {
-  return new BrowserDownloads(fileNamePrefix);
-}
-
-// src/tfjs-core/src/io/progress.ts
-function monitorPromisesProgress(promises, onProgress, startFraction, endFraction) {
-  checkPromises(promises);
-  startFraction = startFraction == null ? 0 : startFraction;
-  endFraction = endFraction == null ? 1 : endFraction;
-  checkFraction(startFraction, endFraction);
-  let resolvedPromise = 0;
-  const registerMonitor = (promise) => {
-    promise.then((value) => {
-      const fraction = startFraction + ++resolvedPromise / promises.length * (endFraction - startFraction);
-      onProgress(fraction);
-      return value;
-    });
-    return promise;
-  };
-  function checkPromises(promises2) {
-    assert(
-      promises2 != null && Array.isArray(promises2) && promises2.length > 0,
-      () => "promises must be a none empty array"
-    );
-  }
-  function checkFraction(startFraction2, endFraction2) {
-    assert(
-      startFraction2 >= 0 && startFraction2 <= 1,
-      () => `Progress fraction must be in range [0, 1], but got startFraction ${startFraction2}`
-    );
-    assert(
-      endFraction2 >= 0 && endFraction2 <= 1,
-      () => `Progress fraction must be in range [0, 1], but got endFraction ${endFraction2}`
-    );
-    assert(
-      endFraction2 >= startFraction2,
-      () => `startFraction must be no more than endFraction, but got startFraction ${startFraction2} and endFraction ${endFraction2}`
-    );
-  }
-  return Promise.all(promises.map(registerMonitor));
-}
-
-// src/tfjs-core/src/io/weights_loader.ts
-async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
-  if (loadOptions == null) {
-    loadOptions = {};
-  }
-  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch : loadOptions.fetchFunc;
-  const requests = fetchURLs.map(
-    (fetchURL) => fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true })
-  );
-  const fetchStartFraction = 0;
-  const fetchEndFraction = 0.5;
-  const responses = loadOptions.onProgress == null ? await Promise.all(requests) : await monitorPromisesProgress(
-    requests,
-    loadOptions.onProgress,
-    fetchStartFraction,
-    fetchEndFraction
-  );
-  const bufferPromises = responses.map((response) => response.arrayBuffer());
-  const bufferStartFraction = 0.5;
-  const bufferEndFraction = 1;
-  const buffers = loadOptions.onProgress == null ? await Promise.all(bufferPromises) : await monitorPromisesProgress(
-    bufferPromises,
-    loadOptions.onProgress,
-    bufferStartFraction,
-    bufferEndFraction
-  );
-  return buffers;
-}
-
-// src/tfjs-core/src/io/http.ts
-var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
-var JSON_TYPE = "application/json";
-var HTTPRequest = class {
-  path;
-  requestInit;
-  fetch;
-  weightUrlConverter;
-  DEFAULT_METHOD = "POST";
-  weightPathPrefix;
-  onProgress;
-  constructor(path, loadOptions) {
-    if (loadOptions == null) {
-      loadOptions = {};
-    }
-    this.weightPathPrefix = loadOptions.weightPathPrefix;
-    this.onProgress = loadOptions.onProgress;
-    this.weightUrlConverter = loadOptions.weightUrlConverter;
-    if (loadOptions.fetchFunc != null) {
-      assert(
-        typeof loadOptions.fetchFunc === "function",
-        () => "Must pass a function that matches the signature of `fetch` (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)"
-      );
-      this.fetch = loadOptions.fetchFunc;
-    } else {
-      this.fetch = env().platform.fetch;
-    }
-    assert(
-      path != null && path.length > 0,
-      () => "URL path for http must not be null, undefined or empty."
-    );
-    if (Array.isArray(path)) {
-      assert(
-        path.length === 2,
-        () => `URL paths for http must have a length of 2, (actual length is ${path.length}).`
-      );
-    }
-    this.path = path;
-    if (loadOptions.requestInit != null && loadOptions.requestInit.body != null) {
-      throw new Error(
-        "requestInit is expected to have no pre-existing body, but has one."
-      );
-    }
-    this.requestInit = loadOptions.requestInit || {};
-  }
-  async save(modelArtifacts) {
-    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
-      throw new Error(
-        "BrowserHTTPRequest.save() does not support saving model topology in binary formats yet."
-      );
-    }
-    const init = Object.assign({ method: this.DEFAULT_METHOD }, this.requestInit);
-    init.body = new FormData();
-    const weightsManifest = [{
-      paths: ["./model.weights.bin"],
-      weights: modelArtifacts.weightSpecs
-    }];
-    const modelTopologyAndWeightManifest = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
-    init.body.append(
-      "model.json",
-      new Blob(
-        [JSON.stringify(modelTopologyAndWeightManifest)],
-        { type: JSON_TYPE }
-      ),
-      "model.json"
-    );
-    if (modelArtifacts.weightData != null) {
-      init.body.append(
-        "model.weights.bin",
-        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
-        "model.weights.bin"
-      );
-    }
-    const response = await this.fetch(this.path, init);
-    if (response.ok) {
-      return {
-        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
-        responses: [response]
-      };
-    } else {
-      throw new Error(
-        `BrowserHTTPRequest.save() failed due to HTTP response status ${response.status}.`
-      );
-    }
-  }
-  async load() {
-    const modelConfigRequest = await this.fetch(this.path, this.requestInit);
-    if (!modelConfigRequest.ok) {
-      throw new Error(
-        `Request to ${this.path} failed with status code ${modelConfigRequest.status}. Please verify this URL points to the model JSON of the model to load.`
-      );
-    }
-    let modelJSON;
-    try {
-      modelJSON = await modelConfigRequest.json();
-    } catch (e) {
-      let message = `Failed to parse model JSON of response from ${this.path}.`;
-      if (this.path.endsWith(".pb")) {
-        message += " Your path contains a .pb file extension. Support for .pb models have been removed in TensorFlow.js 1.0 in favor of .json models. You can re-convert your Python TensorFlow model using the TensorFlow.js 1.0 conversion scripts or you can convert your.pb models with the 'pb2json'NPM script in the tensorflow/tfjs-converter repository.";
-      } else {
-        message += " Please make sure the server is serving valid JSON for this request.";
-      }
-      throw new Error(message);
-    }
-    const modelTopology = modelJSON.modelTopology;
-    const weightsManifest = modelJSON.weightsManifest;
-    if (modelTopology == null && weightsManifest == null) {
-      throw new Error(
-        `The JSON from HTTP path ${this.path} contains neither model topology or manifest for weights.`
-      );
-    }
-    return getModelArtifactsForJSON(
-      modelJSON,
-      (weightsManifest2) => this.loadWeights(weightsManifest2)
-    );
-  }
-  async loadWeights(weightsManifest) {
-    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
-    const [prefix, suffix] = parseUrl(weightPath);
-    const pathPrefix = this.weightPathPrefix || prefix;
-    const weightSpecs = getWeightSpecs(weightsManifest);
-    const fetchURLs = [];
-    const urlPromises = [];
-    for (const weightsGroup of weightsManifest) {
-      for (const path of weightsGroup.paths) {
-        if (this.weightUrlConverter != null) {
-          urlPromises.push(this.weightUrlConverter(path));
-        } else {
-          fetchURLs.push(pathPrefix + path + suffix);
-        }
-      }
-    }
-    if (this.weightUrlConverter) {
-      fetchURLs.push(...await Promise.all(urlPromises));
-    }
-    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
-      requestInit: this.requestInit,
-      fetchFunc: this.fetch,
-      onProgress: this.onProgress
-    });
-    return [weightSpecs, concatenateArrayBuffers(buffers)];
-  }
-};
-__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
-function parseUrl(url) {
-  const lastSlash = url.lastIndexOf("/");
-  const lastSearchParam = url.lastIndexOf("?");
-  const prefix = url.substring(0, lastSlash);
-  const suffix = lastSearchParam > lastSlash ? url.substring(lastSearchParam) : "";
-  return [prefix + "/", suffix];
-}
-function isHTTPScheme(url) {
-  return url.match(HTTPRequest.URL_SCHEME_REGEX) != null;
-}
-var httpRouter = (url, loadOptions) => {
-  if (typeof fetch === "undefined" && (loadOptions == null || loadOptions.fetchFunc == null)) {
-    return null;
-  } else {
-    let isHTTP = true;
-    if (Array.isArray(url)) {
-      isHTTP = url.every((urlItem) => isHTTPScheme(urlItem));
-    } else {
-      isHTTP = isHTTPScheme(url);
-    }
-    if (isHTTP) {
-      return http(url, loadOptions);
-    }
-  }
-  return null;
-};
-IORouterRegistry.registerSaveRouter(httpRouter);
-IORouterRegistry.registerLoadRouter(httpRouter);
-function http(path, loadOptions) {
-  return new HTTPRequest(path, loadOptions);
-}
-
-// src/tfjs-core/src/ops/mat_mul.ts
-function matMul_(a, b, transposeA = false, transposeB = false) {
-  let $a = convertToTensor(a, "a", "matMul");
-  let $b = convertToTensor(b, "b", "matMul");
-  [$a, $b] = makeTypesMatch($a, $b);
-  const inputs = { a: $a, b: $b };
-  const attrs = { transposeA, transposeB };
-  return ENGINE.runKernel(
-    BatchMatMul,
-    inputs,
-    attrs
-  );
-}
-var matMul = op({ matMul_ });
-
-// src/tfjs-core/src/ops/one_hot.ts
-function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
-  if (depth < 2) {
-    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
-  }
-  const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
-  const inputs = { indices: $indices };
-  const attrs = { dtype, depth, onValue, offValue };
-  return ENGINE.runKernel(
-    OneHot,
-    inputs,
-    attrs
-  );
-}
-var oneHot = op({ oneHot_ });
-
 // src/tfjs-core/src/globals.ts
 function deprecationWarn(msg) {
   if (env().getBool("DEPRECATION_WARNINGS_ENABLED")) {
@@ -5818,959 +5872,6 @@ function keep(result) {
 }
 function registerBackend(name, factory, priority = 1) {
   return ENGINE.registerBackend(name, factory, priority);
-}
-
-// src/tfjs-core/src/ops/imag.ts
-function imag_(input) {
-  const $input = convertToTensor(input, "input", "imag");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Imag, inputs);
-}
-var imag = op({ imag_ });
-
-// src/tfjs-core/src/ops/neg.ts
-function neg_(x) {
-  const $x = convertToTensor(x, "x", "neg");
-  const inputs = { x: $x };
-  return ENGINE.runKernel(Neg, inputs);
-}
-var neg = op({ neg_ });
-
-// src/tfjs-core/src/ops/real.ts
-function real_(input) {
-  const $input = convertToTensor(input, "input", "real");
-  const inputs = { input: $input };
-  return ENGINE.runKernel(Real, inputs);
-}
-var real = op({ real_ });
-
-// src/tfjs-core/src/ops/transpose.ts
-function transpose_(x, perm, conjugate) {
-  const $x = convertToTensor(x, "x", "transpose");
-  if (perm == null) {
-    perm = $x.shape.map((s, i) => i).reverse();
-  }
-  assert(
-    $x.rank === perm.length,
-    () => `Error in transpose: rank of input ${$x.rank} must match length of perm ${perm}.`
-  );
-  perm.forEach((axis) => {
-    assert(
-      axis >= 0 && axis < $x.rank,
-      () => `All entries in 'perm' must be between 0 and ${$x.rank - 1} but got ${perm}`
-    );
-  });
-  if ($x.rank <= 1) {
-    return $x.clone();
-  }
-  const inputs = { x: $x };
-  const attrs = { perm };
-  if ($x.dtype === "complex64") {
-    return tidy(() => {
-      let $real = real($x);
-      let $imag = imag($x);
-      $real = ENGINE.runKernel(
-        Transpose,
-        { x: $real },
-        attrs
-      );
-      $imag = ENGINE.runKernel(
-        Transpose,
-        { x: $imag },
-        attrs
-      );
-      if (conjugate) {
-        $imag = neg($imag);
-      }
-      return complex($real, $imag);
-    });
-  }
-  return ENGINE.runKernel(
-    Transpose,
-    inputs,
-    attrs
-  );
-}
-var transpose = op({ transpose_ });
-
-// src/tfjs-core/src/ops/confusion_matrix.ts
-function confusionMatrix_(labels, predictions, numClasses) {
-  const $labels = convertToTensor(labels, "labels", "confusionMatrix");
-  const $predictions = convertToTensor(predictions, "predictions", "confusionMatrix");
-  assert(
-    numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
-    () => `If provided, numClasses must be a positive integer, but got ${numClasses}`
-  );
-  assert(
-    $labels.rank === 1,
-    () => `Expected the rank of labels to be 1, but got ${$labels.rank}`
-  );
-  assert(
-    $predictions.rank === 1,
-    () => `Expected the rank of predictions to be 1, but got ${$predictions.rank}`
-  );
-  assert(
-    $labels.shape[0] === $predictions.shape[0],
-    () => `Mismatch in the number of examples: ${$labels.shape[0]} vs. ${$predictions.shape[0]}. Labels and predictions should have the same number of elements.`
-  );
-  assert(
-    numClasses > 0 && Number.isInteger(numClasses),
-    () => `numClasses is required to be a positive integer, but got ${numClasses}`
-  );
-  const oneHotLabels = oneHot(cast($labels, "int32"), numClasses);
-  const oneHotPredictions = oneHot(cast($predictions, "int32"), numClasses);
-  const oneHotLabelsT = transpose(oneHotLabels);
-  const product = matMul(oneHotLabelsT, oneHotPredictions);
-  return cast(product, "int32");
-}
-var confusionMatrix = op({ confusionMatrix_ });
-
-// src/tfjs-core/src/ops/broadcast_util.ts
-var broadcast_util_exports = {};
-__export(broadcast_util_exports, {
-  assertAndGetBroadcastShape: () => assertAndGetBroadcastShape,
-  getBroadcastDims: () => getBroadcastDims,
-  getReductionAxes: () => getReductionAxes
-});
-function getBroadcastDims(inShape, outShape) {
-  const inRank = inShape.length;
-  const dims = [];
-  for (let i = 0; i < inRank; i++) {
-    const dim = inRank - 1 - i;
-    const a = inShape[dim] || 1;
-    const b = outShape[outShape.length - 1 - i] || 1;
-    if (b > 1 && a === 1) {
-      dims.unshift(dim);
-    }
-  }
-  return dims;
-}
-function getReductionAxes(inShape, outShape) {
-  const result = [];
-  for (let i = 0; i < outShape.length; i++) {
-    const inDim = inShape[inShape.length - i - 1];
-    const outAxis = outShape.length - i - 1;
-    const outDim = outShape[outAxis];
-    if (inDim == null || inDim === 1 && outDim > 1) {
-      result.unshift(outAxis);
-    }
-  }
-  return result;
-}
-function assertAndGetBroadcastShape(shapeA, shapeB) {
-  const result = [];
-  const l = Math.max(shapeA.length, shapeB.length);
-  for (let i = 0; i < l; i++) {
-    let a = shapeA[shapeA.length - i - 1];
-    if (a == null) {
-      a = 1;
-    }
-    let b = shapeB[shapeB.length - i - 1];
-    if (b == null) {
-      b = 1;
-    }
-    if (a === 1) {
-      result.unshift(b);
-    } else if (b === 1) {
-      result.unshift(a);
-    } else if (a !== b) {
-      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
-      throw Error(errMsg);
-    } else {
-      result.unshift(a);
-    }
-  }
-  return result;
-}
-
-// src/tfjs-core/src/ops/tensor3d.ts
-function tensor3d(values, shape, dtype) {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 3) {
-    throw new Error("tensor3d() requires shape to have three numbers");
-  }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
-    throw new Error(
-      "tensor3d() requires values to be number[][][] or flat/TypedArray"
-    );
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error(
-      "tensor3d() requires shape to be provided when `values` are a flat array"
-    );
-  }
-  return makeTensor(values, shape, inferredShape, dtype);
-}
-
-// src/tfjs-core/src/ops/browser.ts
-var fromPixels2DContext;
-function fromPixels_(pixels, numChannels = 3) {
-  if (numChannels > 4) {
-    throw new Error(
-      "Cannot construct Tensor with more than 4 channels from pixels."
-    );
-  }
-  if (pixels == null) {
-    throw new Error("pixels passed to tf.browser.fromPixels() can not be null");
-  }
-  let isPixelData = false;
-  let isImageData = false;
-  let isVideo = false;
-  let isImage = false;
-  let isCanvasLike = false;
-  let isImageBitmap = false;
-  if (pixels.data instanceof Uint8Array) {
-    isPixelData = true;
-  } else if (typeof ImageData !== "undefined" && pixels instanceof ImageData) {
-    isImageData = true;
-  } else if (typeof HTMLVideoElement !== "undefined" && pixels instanceof HTMLVideoElement) {
-    isVideo = true;
-  } else if (typeof HTMLImageElement !== "undefined" && pixels instanceof HTMLImageElement) {
-    isImage = true;
-  } else if (pixels.getContext != null) {
-    isCanvasLike = true;
-  } else if (typeof ImageBitmap !== "undefined" && pixels instanceof ImageBitmap) {
-    isImageBitmap = true;
-  } else {
-    throw new Error(
-      `pixels passed to tf.browser.fromPixels() must be either an HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData in browser, or OffscreenCanvas, ImageData in webworker or {data: Uint32Array, width: number, height: number}, but was ${pixels.constructor.name}`
-    );
-  }
-  const kernel = getKernel(FromPixels, ENGINE.backendName);
-  if (kernel != null) {
-    const inputs = { pixels };
-    const attrs = { numChannels };
-    return ENGINE.runKernel(
-      FromPixels,
-      inputs,
-      attrs
-    );
-  }
-  const [width, height] = isVideo ? [
-    pixels.videoWidth,
-    pixels.videoHeight
-  ] : [pixels.width, pixels.height];
-  let vals;
-  if (isCanvasLike) {
-    vals = pixels.getContext("2d").getImageData(0, 0, width, height).data;
-  } else if (isImageData || isPixelData) {
-    vals = pixels.data;
-  } else if (isImage || isVideo || isImageBitmap) {
-    if (fromPixels2DContext == null) {
-      if (typeof document === "undefined") {
-        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
-          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
-        } else {
-          throw new Error(
-            "Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported."
-          );
-        }
-      } else {
-        fromPixels2DContext = document.createElement("canvas").getContext(
-          "2d",
-          { willReadFrequently: true }
-        );
-      }
-    }
-    fromPixels2DContext.canvas.width = width;
-    fromPixels2DContext.canvas.height = height;
-    fromPixels2DContext.drawImage(
-      pixels,
-      0,
-      0,
-      width,
-      height
-    );
-    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
-  }
-  let values;
-  if (numChannels === 4) {
-    values = new Int32Array(vals);
-  } else {
-    const numPixels = width * height;
-    values = new Int32Array(numPixels * numChannels);
-    for (let i = 0; i < numPixels; i++) {
-      for (let channel = 0; channel < numChannels; ++channel) {
-        values[i * numChannels + channel] = vals[i * 4 + channel];
-      }
-    }
-  }
-  const outShape = [height, width, numChannels];
-  return tensor3d(values, outShape, "int32");
-}
-var fromPixels = op({ fromPixels_ });
-
-// src/tfjs-core/src/ops/gather_nd_util.ts
-function prepareAndValidate(tensor2, indices) {
-  const tensorRank = tensor2.shape.length;
-  const indicesRank = indices.shape.length;
-  if (tensorRank < 1) {
-    throw new Error(
-      `tf.gatherND() expects the input to be rank 1 or higher, but the rank was ${tensorRank}.`
-    );
-  }
-  if (indicesRank < 1) {
-    throw new Error(
-      `tf.gatherND() expects the indices to be rank 1 or higher, but the rank was ${indicesRank}.`
-    );
-  }
-  if (indices.dtype !== "int32") {
-    throw new Error(
-      `tf.gatherND() expects the indices to be int32 type, but the dtype was ${indices.dtype}.`
-    );
-  }
-  if (indices.shape[indicesRank - 1] > tensorRank) {
-    throw new Error(
-      `index innermost dimension length must be <= tensor rank; saw: ${indices.shape[indicesRank - 1]} vs. ${tensorRank}`
-    );
-  }
-  if (sizeFromShape(tensor2.shape) === 0) {
-    throw new Error(
-      `Requested more than 0 entries, but input is empty. Input shape: ${tensor2.shape}.`
-    );
-  }
-  const indicesShape = indices.shape;
-  const sliceRank = indicesShape[indicesShape.length - 1];
-  let nResult = 1;
-  for (let i = 0; i < indicesShape.length - 1; ++i) {
-    nResult *= indicesShape[i];
-  }
-  const inputShape = tensor2.shape;
-  const resultShape = indicesShape.slice();
-  resultShape.pop();
-  let sliceSize = 1;
-  for (let i = sliceRank; i < tensorRank; ++i) {
-    sliceSize *= inputShape[i];
-    resultShape.push(inputShape[i]);
-  }
-  const strides = [
-    ...computeStrides(tensor2.shape).map((stride) => stride / sliceSize),
-    1
-  ].slice(0, sliceRank);
-  return [resultShape, nResult, sliceSize, strides];
-}
-
-// src/tfjs-core/src/ops/scatter_nd_util.ts
-function validateUpdateShape(shape, indices, updates) {
-  const sliceDim = indices.rank > 1 ? indices.shape[indices.rank - 1] : 1;
-  const batchDim = indices.rank > 1 ? indices.rank - 1 : 1;
-  const shapeError = `Must have updates.shape = indices.shape[:batchDim] + shape[sliceDim:], got updates.shape: ${updates.shape}, indices.shape: ${indices.shape}, shape: ${shape}, sliceDim: ${sliceDim}, and batchDim: ${batchDim}.`;
-  if (updates.rank < batchDim) {
-    throw new Error(shapeError + ` update.rank < ${batchDim}. `);
-  }
-  if (shape.length < sliceDim + (updates.rank - batchDim)) {
-    throw new Error(
-      shapeError + ` Output shape length < ${sliceDim + (updates.rank - batchDim)}`
-    );
-  }
-  if (updates.rank !== batchDim + shape.length - sliceDim) {
-    throw new Error(
-      shapeError + ` update.rank != ${batchDim + shape.length - sliceDim}`
-    );
-  }
-  for (let d = 0; d < batchDim; ++d) {
-    if (updates.shape[d] !== indices.shape[d]) {
-      throw new Error(
-        shapeError + ` updates.shape[${d}] (${updates.shape[d]}) != indices.shape[${d}] (${indices.shape[d]}).`
-      );
-    }
-  }
-  for (let d = 0; d < updates.rank - batchDim; ++d) {
-    if (updates.shape[d + batchDim] !== shape[d + sliceDim]) {
-      throw new Error(
-        shapeError + ` updates.shape[${d + batchDim}] (${updates.shape[d + batchDim]}) != shape[${d + batchDim}] (${shape[d + batchDim]})`
-      );
-    }
-  }
-}
-function validateInput(updates, indices, shape) {
-  if (indices.rank < 1) {
-    throw new Error(
-      `tf.scatterND() expects the indices to be rank 1 or higher, but the rank was ${indices.rank}.`
-    );
-  }
-  if (updates.rank < 1) {
-    throw new Error(
-      `tf.scatterND() expects the updates to be rank 1 or higher, but the rank was ${updates.rank}.`
-    );
-  }
-  if (indices.dtype !== "int32") {
-    throw new Error(`The dtype of 'indices' should be int32, but got dtype: ${indices.dtype}`);
-  }
-  if (shape.length < 1) {
-    throw new Error(
-      `Output rank must be greater or equal to 1, but got shape: ${shape}`
-    );
-  }
-  if (shape.length === 0) {
-    if (indices.size === 0) {
-      throw new Error(`Indices specified for empty output. indices shape: ${indices.shape}`);
-    }
-    if (updates.size === 0) {
-      throw new Error(`Updates specified for empty output. updates shape: ${updates.shape}`);
-    }
-  }
-  validateUpdateShape(shape, indices, updates);
-}
-function calculateShapes(updates, indices, shape) {
-  const indicesRank = indices.shape.length;
-  const sliceRank = indicesRank > 1 ? indices.shape[indicesRank - 1] : 1;
-  const totalNd = shape.length;
-  let sliceSize = 1;
-  for (let i = sliceRank; i < totalNd; ++i) {
-    sliceSize *= shape[i];
-  }
-  const safeSliceDim = sliceRank < 1 ? 1 : sliceRank;
-  const numUpdates = sizeFromShape(indices.shape) / safeSliceDim;
-  const strides = [...computeStrides(shape.slice(0, sliceRank)), 1];
-  const outputSize = sizeFromShape(shape);
-  return { sliceRank, numUpdates, sliceSize, strides, outputSize };
-}
-
-// src/tfjs-core/src/ops/slice_util.ts
-var slice_util_exports = {};
-__export(slice_util_exports, {
-  assertParamsValid: () => assertParamsValid,
-  computeFlatOffset: () => computeFlatOffset,
-  computeOutShape: () => computeOutShape,
-  getNormalizedAxes: () => getNormalizedAxes,
-  isSliceContinous: () => isSliceContinous,
-  maskToAxes: () => maskToAxes,
-  parseSliceParams: () => parseSliceParams,
-  sliceInfo: () => sliceInfo,
-  startForAxis: () => startForAxis,
-  startIndicesWithElidedDims: () => startIndicesWithElidedDims,
-  stopForAxis: () => stopForAxis,
-  stopIndicesWithElidedDims: () => stopIndicesWithElidedDims,
-  stridesForAxis: () => stridesForAxis,
-  stridesWithElidedDims: () => stridesWithElidedDims
-});
-var NEW_AXIS = -2;
-var SHRINK_AXIS = -1;
-function assertParamsValid(input, begin, size) {
-  const inputRank = input.shape.length;
-  assert(
-    inputRank === begin.length,
-    () => `Error in slice${inputRank}D: Length of begin ${begin} must match the rank of the array (${inputRank}).`
-  );
-  assert(
-    inputRank === size.length,
-    () => `Error in slice${inputRank}D: Length of size ${size} must match the rank of the array (${inputRank}).`
-  );
-  for (let i = 0; i < inputRank; ++i) {
-    assert(
-      begin[i] + size[i] <= input.shape[i],
-      () => `Error in slice${inputRank}D: begin[${i}] + size[${i}] (${begin[i] + size[i]}) would overflow input.shape[${i}] (${input.shape[i]})`
-    );
-  }
-}
-function maskToAxes(mask) {
-  const axes = [];
-  let axis = 0;
-  while (mask > 0) {
-    if (mask & 1) {
-      axes.push(axis);
-    }
-    mask /= 2;
-    axis++;
-  }
-  return axes;
-}
-function computeOutShape(begin, end, strides) {
-  const size = [];
-  for (let axis = 0; axis < begin.length; axis++) {
-    size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
-  }
-  return size;
-}
-function stridesWithElidedDims(strides, ellipsisInsertionIndex, numElidedAxes, inputShape) {
-  const newStrides = [...strides];
-  for (let i = newStrides.length; i < inputShape.length; i++) {
-    newStrides.push(1);
-  }
-  for (let i = 0; i < numElidedAxes; i++) {
-    if (i === 0) {
-      newStrides[ellipsisInsertionIndex] = 1;
-    } else {
-      newStrides.splice(
-        ellipsisInsertionIndex,
-        0,
-        1
-      );
-      newStrides.pop();
-    }
-  }
-  return newStrides;
-}
-function unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, normalizedAxis) {
-  if (normalizedAxis <= ellipsisInsertionIndex) {
-    return normalizedAxis;
-  }
-  return normalizedAxis - (numElidedAxes - 1);
-}
-function getElidedAxes(numElidedAxes, ellipsisInsertionIndex) {
-  const elidedAxes = [];
-  for (let i = 0; i < numElidedAxes; i++) {
-    elidedAxes.push(ellipsisInsertionIndex + i);
-  }
-  return elidedAxes;
-}
-function getNormalizedAxes(inputShape, ellipsisAxes, numInterpolatedAxes, begin, end, strides, beginMask, endMask, ellipsisMask) {
-  const inputRank = inputShape.length;
-  let normalizedBegin = new Array(inputRank), normalizedEnd = new Array(inputRank), normalizedStrides = new Array(inputRank);
-  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
-    const fullIndex = ellipsisAxes[0];
-    const numElidedAxes = numInterpolatedAxes + 1;
-    normalizedBegin = startIndicesWithElidedDims(
-      beginMask,
-      fullIndex,
-      numElidedAxes,
-      begin,
-      inputShape
-    );
-    normalizedEnd = stopIndicesWithElidedDims(
-      endMask,
-      fullIndex,
-      numElidedAxes,
-      end,
-      inputShape
-    );
-    normalizedStrides = stridesWithElidedDims(strides, fullIndex, numElidedAxes, inputShape);
-  } else {
-    for (let axis = 0; axis < inputRank; axis++) {
-      normalizedBegin[axis] = startForAxis(
-        beginMask,
-        begin,
-        strides,
-        inputShape,
-        axis,
-        ellipsisMask
-      );
-      normalizedEnd[axis] = stopForAxis(endMask, end, strides, inputShape, axis, ellipsisMask);
-      normalizedStrides[axis] = stridesForAxis(strides, axis, ellipsisMask);
-    }
-  }
-  return {
-    begin: normalizedBegin,
-    end: normalizedEnd,
-    strides: normalizedStrides
-  };
-}
-function startIndicesWithElidedDims(beginMask, ellipsisInsertionIndex, numElidedAxes, originalBegin, inputShape) {
-  const newIndices = [...inputShape];
-  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
-  for (let axis = 0; axis < newIndices.length; axis++) {
-    if (elidedAxes.indexOf(axis) > -1) {
-      newIndices[axis] = 0;
-    } else {
-      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
-      let originalValue = originalBegin[originalAxis];
-      if (beginMask & 1 << originalAxis) {
-        originalValue = 0;
-      }
-      newIndices[axis] = originalValue;
-    }
-  }
-  return newIndices;
-}
-function stopIndicesWithElidedDims(endMask, ellipsisInsertionIndex, numElidedAxes, originalEnd, inputShape) {
-  const newIndices = [...inputShape];
-  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
-  for (let axis = 0; axis < newIndices.length; axis++) {
-    if (elidedAxes.indexOf(axis) > -1) {
-      newIndices[axis] = Number.MAX_SAFE_INTEGER;
-    } else {
-      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
-      let originalValue = originalEnd[originalAxis];
-      if (endMask & 1 << originalAxis) {
-        originalValue = Number.MAX_SAFE_INTEGER;
-      }
-      newIndices[axis] = originalValue;
-    }
-  }
-  for (let i = 0; i < newIndices.length; i++) {
-    const axisSize = inputShape[i];
-    if (newIndices[i] < 0) {
-      newIndices[i] += axisSize;
-    }
-    newIndices[i] = clamp(0, newIndices[i], inputShape[i]);
-  }
-  return newIndices;
-}
-function stridesForAxis(strides, axis, ellipsisMask) {
-  let stride = strides[axis];
-  if (ellipsisMask & 1 << axis || stride == null) {
-    stride = 1;
-  }
-  return stride;
-}
-function startForAxis(beginMask, startIndices, strides, inputShape, axis, ellipsisMask) {
-  let start = startIndices[axis];
-  const stride = strides[axis] || 1;
-  if (beginMask & 1 << axis || ellipsisMask & 1 << axis || start == null) {
-    if (stride > 0) {
-      start = Number.MIN_SAFE_INTEGER;
-    } else {
-      start = Number.MAX_SAFE_INTEGER;
-    }
-  }
-  const axisSize = inputShape[axis];
-  if (start < 0) {
-    start += axisSize;
-  }
-  start = clamp(0, start, axisSize - 1);
-  return start;
-}
-function stopForAxis(endMask, stopIndices, strides, inputShape, axis, ellipsisMask) {
-  let stop = stopIndices[axis];
-  const stride = strides[axis] || 1;
-  if (endMask & 1 << axis || ellipsisMask & 1 << axis || stop == null) {
-    if (stride > 0) {
-      stop = Number.MAX_SAFE_INTEGER;
-    } else {
-      stop = Number.MIN_SAFE_INTEGER;
-    }
-  }
-  const axisSize = inputShape[axis];
-  if (stop < 0) {
-    stop += axisSize;
-  }
-  if (stride > 0) {
-    stop = clamp(0, stop, axisSize);
-  } else {
-    stop = clamp(-1, stop, axisSize - 1);
-  }
-  return stop;
-}
-function isSliceContinous(shape, begin, size) {
-  let firstNonOneAxis = size.length;
-  for (let i = 0; i < size.length; i++) {
-    if (size[i] > 1) {
-      firstNonOneAxis = i;
-      break;
-    }
-  }
-  for (let i = firstNonOneAxis + 1; i < size.length; i++) {
-    if (begin[i] > 0 || size[i] !== shape[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-function computeFlatOffset(begin, strides) {
-  let flatOffset = begin.length > 0 ? begin[begin.length - 1] : 1;
-  for (let i = 0; i < begin.length - 1; i++) {
-    flatOffset += begin[i] * strides[i];
-  }
-  return flatOffset;
-}
-function parseSliceParams(x, begin, size) {
-  let begin_;
-  const xRank = x.shape.length;
-  if (typeof begin === "number") {
-    begin_ = [begin, ...new Array(xRank - 1).fill(0)];
-  } else if (begin.length < xRank) {
-    begin_ = begin.concat(new Array(xRank - begin.length).fill(0));
-  } else {
-    begin_ = begin.slice();
-  }
-  begin_.forEach((d) => {
-    assert(
-      d !== -1,
-      () => "slice() does not support negative begin indexing."
-    );
-  });
-  let size_;
-  if (size == null) {
-    size_ = new Array(xRank).fill(-1);
-  } else if (typeof size === "number") {
-    size_ = [size, ...new Array(xRank - 1).fill(-1)];
-  } else if (size.length < xRank) {
-    size_ = size.concat(new Array(xRank - size.length).fill(-1));
-  } else {
-    size_ = size;
-  }
-  size_ = size_.map((d, i) => {
-    if (d >= 0) {
-      return d;
-    } else {
-      assert(
-        d === -1,
-        () => `Negative size values should be exactly -1 but got ${d} for the slice() size at index ${i}.`
-      );
-      return x.shape[i] - begin_[i];
-    }
-  });
-  return [begin_, size_];
-}
-function sliceInfo(xShape, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask) {
-  let stridesNonNull;
-  if (strides == null) {
-    stridesNonNull = new Array(begin.length);
-    stridesNonNull.fill(1);
-  } else {
-    stridesNonNull = strides;
-  }
-  if (ellipsisMask != null && (ellipsisMask & ellipsisMask - 1) !== 0) {
-    throw new Error("Multiple ellipses in slice is not allowed.");
-  }
-  let ellipsisSeen = false;
-  const sparseSpec = {
-    dims: stridesNonNull.length,
-    numAddAxisAfterEllipsis: 0,
-    begin: begin.slice(),
-    end: end.slice(),
-    strides: stridesNonNull.slice(),
-    beginMask,
-    endMask,
-    ellipsisMask,
-    newAxisMask,
-    shrinkAxisMask
-  };
-  for (let i = 0; i < sparseSpec.dims; i++) {
-    if (ellipsisSeen && (1 << i & newAxisMask) !== 0) {
-      sparseSpec.numAddAxisAfterEllipsis++;
-    }
-    if (1 << i & ellipsisMask) {
-      ellipsisSeen = true;
-    }
-  }
-  if (!ellipsisSeen) {
-    sparseSpec.ellipsisMask |= 1 << sparseSpec.dims;
-    sparseSpec.dims++;
-  }
-  const denseSpec = {
-    dims: xShape.length,
-    beginMask: 0,
-    endMask: 0,
-    beginValid: false,
-    endValid: false
-  };
-  buildDenseSpec(sparseSpec, denseSpec);
-  let isIdentity = true;
-  let sliceDim0 = true;
-  let isSimpleSlice = true;
-  const processingShape = [];
-  const finalShape = [];
-  for (let i = 0; i < xShape.length; ++i) {
-    if (denseSpec.strides[i] === 0) {
-      throw Error(`strides[${i}] must be non-zero`);
-    }
-    const shrinkI = !!(denseSpec.shrinkAxisMask & 1 << i);
-    const dimI = xShape[i];
-    if (dimI === -1) {
-      processingShape.push(shrinkI ? 1 : -1);
-      continue;
-    }
-    const masks = [denseSpec.beginMask & 1 << i, denseSpec.endMask & 1 << i];
-    const validRange = [
-      denseSpec.strides[i] > 0 ? 0 : -1,
-      denseSpec.strides[i] > 0 ? dimI : dimI - 1
-    ];
-    if (shrinkI && denseSpec.strides[i] <= 0) {
-      throw Error("only stride 1 allowed on non-range indexing.");
-    }
-    isSimpleSlice = isSimpleSlice && denseSpec.strides[i] === 1;
-    const beginAndEndMasked = !!(denseSpec.beginMask & 1 << i && denseSpec.endMask & 1 << i);
-    if (denseSpec.beginValid && denseSpec.endValid) {
-      if (shrinkI) {
-        const xFwd = denseSpec.begin[i] < 0 ? dimI + denseSpec.begin[i] : denseSpec.begin[i];
-        denseSpec.begin[i] = xFwd;
-        denseSpec.end[i] = denseSpec.begin[i] + 1;
-        if (xFwd < 0 || xFwd >= dimI) {
-          throw Error(`slice index ${denseSpec.begin[i]} of dimension ${i} out of bounds.`);
-        }
-      } else {
-        denseSpec.begin[i] = canonical(
-          denseSpec.begin[i],
-          0,
-          denseSpec.strides[i],
-          dimI,
-          masks,
-          validRange
-        );
-        denseSpec.end[i] = canonical(
-          denseSpec.end[i],
-          1,
-          denseSpec.strides[i],
-          dimI,
-          masks,
-          validRange
-        );
-      }
-      const takeAllInDimension = denseSpec.strides[i] === 1 && denseSpec.begin[i] === 0 && denseSpec.end[i] === dimI;
-      isIdentity = isIdentity && takeAllInDimension;
-      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || takeAllInDimension);
-    } else {
-      isIdentity = isIdentity && (denseSpec.strides[i] === 1 && beginAndEndMasked);
-      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || beginAndEndMasked);
-    }
-    let intervalLength;
-    let knownInterval = false;
-    if (denseSpec.beginValid && denseSpec.endValid) {
-      intervalLength = denseSpec.end[i] - denseSpec.begin[i];
-      knownInterval = true;
-    } else if (shrinkI) {
-      intervalLength = 1;
-      knownInterval = true;
-    } else if (beginAndEndMasked) {
-      if (dimI >= 0) {
-        if (denseSpec.strides[i] < 0) {
-          intervalLength = -dimI;
-        } else {
-          intervalLength = dimI;
-        }
-        knownInterval = true;
-      }
-    }
-    if (knownInterval) {
-      let sizeI;
-      if (intervalLength === 0 || intervalLength < 0 !== denseSpec.strides[i] < 0) {
-        sizeI = 0;
-      } else {
-        sizeI = Math.trunc(intervalLength / denseSpec.strides[i]) + (intervalLength % denseSpec.strides[i] !== 0 ? 1 : 0);
-      }
-      processingShape.push(sizeI);
-    } else {
-      processingShape.push(-1);
-    }
-  }
-  for (let denseDim = 0; denseDim < denseSpec.finalShapeGatherIndices.length; ++denseDim) {
-    const gatherIndex = denseSpec.finalShapeGatherIndices[denseDim];
-    if (gatherIndex >= 0) {
-      finalShape.push(processingShape[gatherIndex]);
-    } else if (gatherIndex === NEW_AXIS) {
-      finalShape.push(1);
-    }
-  }
-  const finalShapeSparse = finalShape.filter(
-    (dim, i) => denseSpec.finalShapeGatherIndices[i] !== NEW_AXIS
-  );
-  return {
-    finalShapeSparse,
-    finalShape,
-    isIdentity,
-    sliceDim0,
-    isSimpleSlice,
-    begin: denseSpec.begin,
-    end: denseSpec.end,
-    strides: denseSpec.strides
-  };
-}
-function buildDenseSpec(sparse, dense) {
-  dense.beginMask = 0;
-  dense.endMask = 0;
-  dense.shrinkAxisMask = 0;
-  let fullIndex = 0;
-  dense.beginValid = sparse.begin != null;
-  dense.endValid = sparse.end != null;
-  dense.begin = new Array(dense.dims);
-  dense.end = new Array(dense.dims);
-  dense.strides = new Array(dense.dims);
-  dense.finalShapeGatherIndices = [];
-  dense.finalShapeGatherIndicesSparse = [];
-  dense.inputShapeGatherIndicesSparse = new Array(dense.dims);
-  for (let i = 0; i < sparse.dims; i++) {
-    if (1 << i & sparse.ellipsisMask) {
-      const nextIndex = Math.min(
-        dense.dims - (sparse.dims - i) + 1 + sparse.numAddAxisAfterEllipsis,
-        dense.dims
-      );
-      for (; fullIndex < nextIndex; fullIndex++) {
-        dense.begin[fullIndex] = 0;
-        dense.end[fullIndex] = 0;
-        dense.strides[fullIndex] = 1;
-        dense.beginMask |= 1 << fullIndex;
-        dense.endMask |= 1 << fullIndex;
-        dense.finalShapeGatherIndices.push(fullIndex);
-        dense.finalShapeGatherIndicesSparse.push(-1);
-        dense.inputShapeGatherIndicesSparse[fullIndex] = i;
-      }
-    } else if (1 << i & sparse.newAxisMask) {
-      dense.finalShapeGatherIndices.push(NEW_AXIS);
-      dense.finalShapeGatherIndicesSparse.push(-1);
-    } else {
-      if (fullIndex === dense.begin.length) {
-        throw Error(
-          `Index out of range using input dim ${fullIndex}; input has only ${dense.dims} dims, ${dense.begin.length}.`
-        );
-      }
-      if (sparse.begin != null) {
-        dense.begin[fullIndex] = sparse.begin[i];
-      }
-      if (sparse.end != null) {
-        dense.end[fullIndex] = sparse.end[i];
-      }
-      dense.strides[fullIndex] = sparse.strides[i];
-      if (sparse.beginMask & 1 << i) {
-        dense.beginMask |= 1 << fullIndex;
-      }
-      if (sparse.endMask & 1 << i) {
-        dense.endMask |= 1 << fullIndex;
-      }
-      if (sparse.shrinkAxisMask & 1 << i) {
-        dense.finalShapeGatherIndices.push(SHRINK_AXIS);
-        dense.finalShapeGatherIndicesSparse.push(-1);
-        dense.shrinkAxisMask |= 1 << fullIndex;
-      } else {
-        dense.finalShapeGatherIndices.push(fullIndex);
-        dense.finalShapeGatherIndicesSparse.push(i);
-      }
-      dense.inputShapeGatherIndicesSparse[fullIndex] = i;
-      fullIndex++;
-    }
-  }
-}
-function canonical(x, c, strideI, dimI, masks, validRange) {
-  if (masks[c]) {
-    return strideI > 0 ? validRange[c] : validRange[c + 1 & 1];
-  } else {
-    const xFwd = x < 0 ? dimI + x : x;
-    return xFwd < validRange[0] ? validRange[0] : xFwd > validRange[1] ? validRange[1] : xFwd;
-  }
-}
-
-// src/tfjs-core/src/serialization.ts
-var Serializable = class {
-  getClassName() {
-    return this.constructor.className;
-  }
-  static fromConfig(cls, config) {
-    return new cls(config);
-  }
-};
-var _SerializationMap = class {
-  classNameMap;
-  constructor() {
-    this.classNameMap = {};
-  }
-  static getMap() {
-    if (_SerializationMap.instance == null) {
-      _SerializationMap.instance = new _SerializationMap();
-    }
-    return _SerializationMap.instance;
-  }
-  static register(cls) {
-    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
-  }
-};
-var SerializationMap = _SerializationMap;
-__publicField(SerializationMap, "instance");
-function registerClass(cls) {
-  assert(
-    cls.className != null,
-    () => `Class being registered does not have the static className property defined.`
-  );
-  assert(
-    typeof cls.className === "string",
-    () => `className is required to be a string, but got type ` + typeof cls.className
-  );
-  assert(
-    cls.className.length > 0,
-    () => `Class being registered has an empty-string as its className, which is disallowed.`
-  );
-  SerializationMap.register(cls);
 }
 
 // src/tfjs-core/src/ops/add.ts
@@ -6803,7 +5904,11 @@ function div_(a, b) {
   }
   const inputs = { a: $a, b: $b };
   const attrs = {};
-  return ENGINE.runKernel(RealDiv, inputs, attrs);
+  return ENGINE.runKernel(
+    RealDiv,
+    inputs,
+    attrs
+  );
 }
 var div = op({ div_ });
 
@@ -7161,17 +6266,20 @@ function computeOutputShape2D(inShape, fieldSize, stride, zeroPad, roundingMode)
   const outputCols = round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
   return [outputRows, outputCols];
 }
-function computeOutputShape4D(inShape, fieldSize, outChannels, stride, zeroPad, roundingMode) {
+function computeOutputShape4D(inShape, filterShape, outChannels, strides, zeroPad, roundingMode) {
   if (zeroPad == null) {
-    zeroPad = computeDefaultPad(inShape, fieldSize, stride);
+    zeroPad = computeDefaultPad(inShape, filterShape[0], strides[0]);
   }
-  const inputDepth = inShape[0];
-  const inputRows = inShape[1];
-  const inputCols = inShape[2];
-  const outputDepths = round((inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputRows = round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputCols = round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  return [outputDepths, outputRows, outputCols, outChannels];
+  const outShape = [0, 0, 0, outChannels];
+  for (let index = 0; index < 3; index++) {
+    if (inShape[index] + 2 * zeroPad >= filterShape[index]) {
+      outShape[index] = round(
+        (inShape[index] - filterShape[index] + 2 * zeroPad) / strides[index] + 1,
+        roundingMode
+      );
+    }
+  }
+  return outShape;
 }
 function computeDefaultPad(inputShape, fieldSize, stride, dilation = 1) {
   const effectiveFieldSize = getEffectiveFilterSize(fieldSize, dilation);
@@ -7252,6 +6360,9 @@ function get3DPadAndOutInfo(pad2, inDepth, inHeight, inWidth, strideDepth, strid
   let outDepth;
   let outHeight;
   let outWidth;
+  if (pad2 === "valid") {
+    pad2 = 0;
+  }
   if (typeof pad2 === "number") {
     const padType = pad2 === 0 ? "VALID" : "NUMBER";
     padInfo = {
@@ -7265,9 +6376,9 @@ function get3DPadAndOutInfo(pad2, inDepth, inHeight, inWidth, strideDepth, strid
     };
     const outShape = computeOutputShape4D(
       [inDepth, inHeight, inWidth, 1],
-      filterDepth,
+      [filterDepth, filterHeight, filterWidth],
       1,
-      strideDepth,
+      [strideDepth, strideHeight, strideWidth],
       pad2,
       roundingMode
     );
@@ -7288,19 +6399,6 @@ function get3DPadAndOutInfo(pad2, inDepth, inHeight, inWidth, strideDepth, strid
     const left = Math.floor(padAlongWidth / 2);
     const right = padAlongWidth - left;
     padInfo = { top, bottom, left, right, front, back, type: "SAME" };
-  } else if (pad2 === "valid") {
-    padInfo = {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      front: 0,
-      back: 0,
-      type: "VALID"
-    };
-    outDepth = Math.ceil((inDepth - filterDepth + 1) / strideDepth);
-    outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
-    outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
   } else {
     throw Error(`Unknown padding parameter: ${pad2}`);
   }
@@ -7327,6 +6425,9 @@ function tupleValuesAreOne(param) {
 }
 function eitherStridesOrDilationsAreOne(strides, dilations) {
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
+}
+function stridesOrDilationsArePositive(values) {
+  return parseTupleParam(values).every((value) => value > 0);
 }
 function convertConv2DDataFormat(dataFormat) {
   if (dataFormat === "NHWC") {
@@ -7427,6 +6528,10 @@ function avgPool3d_(x, filterSize, strides, pad2, dimRoundingMode, dataFormat = 
     dataFormat === "NDHWC",
     () => `Error in avgPool3d: Only NDHWC is currently supported, but got dataFormat of ${dataFormat}`
   );
+  assert(
+    typeof strides === "number" && strides > 0 || Array.isArray(strides) && strides[0] > 0 && strides[1] > 0 && strides[2] > 0,
+    () => `Error in avgPool3d: Stride must be > 0, but got '${strides}'`
+  );
   checkPadOnDimRoundingMode("avgPool3d", pad2, dimRoundingMode);
   const inputs = { x: x5D };
   const attrs = { filterSize, strides, pad: pad2, dimRoundingMode, dataFormat };
@@ -7470,6 +6575,21 @@ function concat_(tensors, axis = 0) {
   );
 }
 var concat = op({ concat_ });
+
+// src/tfjs-core/src/ops/mat_mul.ts
+function matMul_(a, b, transposeA = false, transposeB = false) {
+  let $a = convertToTensor(a, "a", "matMul");
+  let $b = convertToTensor(b, "b", "matMul");
+  [$a, $b] = makeTypesMatch($a, $b);
+  const inputs = { a: $a, b: $b };
+  const attrs = { transposeA, transposeB };
+  return ENGINE.runKernel(
+    BatchMatMul,
+    inputs,
+    attrs
+  );
+}
+var matMul = op({ matMul_ });
 
 // src/tfjs-core/src/ops/sigmoid.ts
 function sigmoid_(x) {
@@ -7833,6 +6953,7 @@ var ceil = op({ ceil_ });
 // src/tfjs-core/src/ops/fill.ts
 function fill(shape, value, dtype) {
   assertNonNegativeIntegerDimensions(shape);
+  dtype = dtype || inferDtype(value);
   const attrs = { shape, value, dtype };
   return ENGINE.runKernel(Fill, {}, attrs);
 }
@@ -7859,7 +6980,11 @@ var clipByValue = op({ clipByValue_ });
 
 // src/tfjs-core/src/ops/concat_1d.ts
 function concat1d_(tensors) {
-  return concat(tensors, 0);
+  return concat(
+    tensors,
+    0
+    /* axis */
+  );
 }
 var concat1d = op({ concat1d_ });
 
@@ -7909,6 +7034,14 @@ function conv2d_(x, filter, strides, pad2, dataFormat = "NHWC", dilations = [1, 
     eitherStridesOrDilationsAreOne(strides, dilations),
     () => `Error in conv2D: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`
   );
+  assert(
+    stridesOrDilationsArePositive(dilations),
+    () => "Error in conv2D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(strides),
+    () => "Error in conv2D: Strides should be larger than 0."
+  );
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad2, dataFormat, dilations, dimRoundingMode };
   const res = ENGINE.runKernel(
@@ -7949,6 +7082,14 @@ function conv1d_(x, filter, stride, pad2, dataFormat = "NWC", dilation = 1, dimR
   assert(
     eitherStridesOrDilationsAreOne(stride, dilation),
     () => `Error in conv1D: Either stride or dilation must be 1. Got stride ${stride} and dilation '${dilation}'`
+  );
+  assert(
+    stridesOrDilationsArePositive(dilation),
+    () => "Error in conv1D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(stride),
+    () => "Error in conv1D: Stride should be larger than 0."
   );
   assert(
     dataFormat === "NWC",
@@ -8074,6 +7215,14 @@ function conv3d_(x, filter, strides, pad2, dataFormat = "NDHWC", dilations = [1,
   assert(
     dataFormat === "NDHWC",
     () => `Error in conv3d: got dataFormat of ${dataFormat} but only NDHWC is currently supported.`
+  );
+  assert(
+    stridesOrDilationsArePositive(dilations),
+    () => "Error in conv3D: Dilated rates should be larger than 0."
+  );
+  assert(
+    stridesOrDilationsArePositive(strides),
+    () => "Error in conv3D: Strides should be larger than 0."
   );
   const inputs = { x: x5D, filter: $filter };
   const attrs = { strides, pad: pad2, dataFormat, dilations };
@@ -8326,6 +7475,10 @@ function dilation2d_(x, filter, strides, pad2, dilations = [1, 1], dataFormat = 
     x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     reshapedTo4D = true;
   }
+  assert(
+    x4D.shape[3] === $filter.shape[2],
+    () => `Error in dilation2d:  input and filter must have the same depth: ${x4D.shape[3]} vs ${$filter.shape[2]}`
+  );
   const inputs = { x: x4D, filter: $filter };
   const attrs = { strides, pad: pad2, dilations };
   const res = ENGINE.runKernel(
@@ -8339,6 +7492,64 @@ function dilation2d_(x, filter, strides, pad2, dilations = [1, 1], dataFormat = 
   return res;
 }
 var dilation2d = op({ dilation2d_ });
+
+// src/tfjs-core/src/ops/broadcast_util.ts
+var broadcast_util_exports = {};
+__export(broadcast_util_exports, {
+  assertAndGetBroadcastShape: () => assertAndGetBroadcastShape,
+  getBroadcastDims: () => getBroadcastDims,
+  getReductionAxes: () => getReductionAxes
+});
+function getBroadcastDims(inShape, outShape) {
+  const inRank = inShape.length;
+  const dims = [];
+  for (let i = 0; i < inRank; i++) {
+    const dim = inRank - 1 - i;
+    const a = inShape[dim] || 1;
+    const b = outShape[outShape.length - 1 - i] || 1;
+    if (b > 1 && a === 1) {
+      dims.unshift(dim);
+    }
+  }
+  return dims;
+}
+function getReductionAxes(inShape, outShape) {
+  const result = [];
+  for (let i = 0; i < outShape.length; i++) {
+    const inDim = inShape[inShape.length - i - 1];
+    const outAxis = outShape.length - i - 1;
+    const outDim = outShape[outAxis];
+    if (inDim == null || inDim === 1 && outDim > 1) {
+      result.unshift(outAxis);
+    }
+  }
+  return result;
+}
+function assertAndGetBroadcastShape(shapeA, shapeB) {
+  const l = Math.max(shapeA.length, shapeB.length);
+  const result = new Array(l);
+  for (let i = 0; i < l; i++) {
+    let a = shapeA[shapeA.length - i - 1];
+    if (a == null) {
+      a = 1;
+    }
+    let b = shapeB[shapeB.length - i - 1];
+    if (b == null) {
+      b = 1;
+    }
+    if (a === 1) {
+      result[l - i - 1] = b;
+    } else if (b === 1) {
+      result[l - i - 1] = a;
+    } else if (a !== b) {
+      const errMsg = `Operands could not be broadcast together with shapes ${shapeA} and ${shapeB}.`;
+      throw Error(errMsg);
+    } else {
+      result[l - i - 1] = a;
+    }
+  }
+  return result;
+}
 
 // src/tfjs-core/src/ops/equal.ts
 function equal_(a, b) {
@@ -8803,6 +8014,14 @@ function greaterEqual_(a, b) {
 }
 var greaterEqual = op({ greaterEqual_ });
 
+// src/tfjs-core/src/ops/imag.ts
+function imag_(input) {
+  const $input = convertToTensor(input, "input", "imag");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Imag, inputs);
+}
+var imag = op({ imag_ });
+
 // src/tfjs-core/src/ops/is_finite.ts
 function isFinite_(x) {
   const $x = convertToTensor(x, "x", "isFinite");
@@ -8960,6 +8179,14 @@ function customGrad(f) {
   return ENGINE.customGrad(f);
 }
 
+// src/tfjs-core/src/ops/neg.ts
+function neg_(x) {
+  const $x = convertToTensor(x, "x", "neg");
+  const inputs = { x: $x };
+  return ENGINE.runKernel(Neg, inputs);
+}
+var neg = op({ neg_ });
+
 // src/tfjs-core/src/ops/softplus.ts
 function softplus_(x) {
   const $x = convertToTensor(x, "x", "softplus");
@@ -9026,7 +8253,12 @@ var logSoftmax = op({ logSoftmax_ });
 function logSumExp_(x, axis = null, keepDims = false) {
   const $x = convertToTensor(x, "x", "logSumExp");
   const axes = parseAxisParam(axis, $x.shape);
-  const xMax = max($x, axes, true);
+  const xMax = max(
+    $x,
+    axes,
+    true
+    /* keepDims */
+  );
   const a = sub($x, xMax);
   const b = exp(a);
   const c = sum2(b, axes);
@@ -9380,6 +8612,22 @@ function notEqual_(a, b) {
 }
 var notEqual = op({ notEqual_ });
 
+// src/tfjs-core/src/ops/one_hot.ts
+function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = "int32") {
+  if (depth < 2) {
+    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
+  }
+  const $indices = convertToTensor(indices, "indices", "oneHot", "int32");
+  const inputs = { indices: $indices };
+  const attrs = { dtype, depth, onValue, offValue };
+  return ENGINE.runKernel(
+    OneHot,
+    inputs,
+    attrs
+  );
+}
+var oneHot = op({ oneHot_ });
+
 // src/tfjs-core/src/ops/ones_like.ts
 function onesLike_(x) {
   const $x = convertToTensor(x, "x", "onesLike");
@@ -9714,6 +8962,7 @@ var MPRandGauss = class {
     const seedValue = seed ? seed : Math.random();
     this.random = seedrandom.alea(seedValue.toString());
   }
+  /** Returns next sample from a Gaussian distribution. */
   nextValue() {
     if (!isNaN(this.nextVal)) {
       const value = this.nextVal;
@@ -9741,12 +8990,14 @@ var MPRandGauss = class {
     }
     return this.convertValue(resultX);
   }
+  /** Handles proper rounding for non-floating-point numbers. */
   convertValue(value) {
     if (this.dtype == null || this.dtype === "float32") {
       return value;
     }
     return Math.round(value);
   }
+  /** Returns true if less than 2-standard-deviations from the mean. */
   isValidTruncated(value) {
     return value <= this.upper && value >= this.lower;
   }
@@ -9773,6 +9024,7 @@ var RandGamma = class {
     }
     this.c = 1 / Math.sqrt(9 * this.d);
   }
+  /** Returns next sample from a gamma distribution. */
   nextValue() {
     let x2, v0, v1, x, u, v;
     while (true) {
@@ -9795,6 +9047,7 @@ var RandGamma = class {
     }
     return this.convertValue(v);
   }
+  /** Handles proper rounding for non-floating-point numbers. */
   convertValue(value) {
     if (this.dtype === "float32") {
       return value;
@@ -9824,6 +9077,7 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
+  /** Handles proper rounding for non floating point numbers. */
   canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
@@ -9899,8 +9153,20 @@ function range(start, stop, step3 = 1, dtype = "float32") {
     throw new Error("Cannot have a step of zero");
   }
   const attrs = { start, stop, step: step3, dtype };
-  return ENGINE.runKernel(Range, {}, attrs);
+  return ENGINE.runKernel(
+    Range,
+    {},
+    attrs
+  );
 }
+
+// src/tfjs-core/src/ops/real.ts
+function real_(input) {
+  const $input = convertToTensor(input, "input", "real");
+  const inputs = { input: $input };
+  return ENGINE.runKernel(Real, inputs);
+}
+var real = op({ real_ });
 
 // src/tfjs-core/src/ops/reciprocal.ts
 function reciprocal_(x) {
@@ -10391,6 +9657,128 @@ function tensor2d(values, shape, dtype) {
   return makeTensor(values, shape, inferredShape, dtype);
 }
 
+// src/tfjs-core/src/ops/tensor3d.ts
+function tensor3d(values, shape, dtype) {
+  assertNonNull(values);
+  if (shape != null && shape.length !== 3) {
+    throw new Error("tensor3d() requires shape to have three numbers");
+  }
+  const inferredShape = inferShape(values, dtype);
+  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
+    throw new Error(
+      "tensor3d() requires values to be number[][][] or flat/TypedArray"
+    );
+  }
+  if (inferredShape.length === 1 && shape == null) {
+    throw new Error(
+      "tensor3d() requires shape to be provided when `values` are a flat array"
+    );
+  }
+  return makeTensor(values, shape, inferredShape, dtype);
+}
+
+// src/tfjs-core/src/ops/scatter_nd_util.ts
+function validateUpdateShape(shape, indices, updates) {
+  const sliceDim = indices.rank > 1 ? indices.shape[indices.rank - 1] : 1;
+  const batchDim = indices.rank > 1 ? indices.rank - 1 : 1;
+  const shapeError = `Must have updates.shape = indices.shape[:batchDim] + shape[sliceDim:], got updates.shape: ${updates.shape}, indices.shape: ${indices.shape}, shape: ${shape}, sliceDim: ${sliceDim}, and batchDim: ${batchDim}.`;
+  if (updates.rank < batchDim) {
+    throw new Error(shapeError + ` update.rank < ${batchDim}. `);
+  }
+  if (shape.length < sliceDim + (updates.rank - batchDim)) {
+    throw new Error(
+      shapeError + ` Output shape length < ${sliceDim + (updates.rank - batchDim)}`
+    );
+  }
+  if (updates.rank !== batchDim + shape.length - sliceDim) {
+    throw new Error(
+      shapeError + ` update.rank != ${batchDim + shape.length - sliceDim}`
+    );
+  }
+  for (let d = 0; d < batchDim; ++d) {
+    if (updates.shape[d] !== indices.shape[d]) {
+      throw new Error(
+        shapeError + ` updates.shape[${d}] (${updates.shape[d]}) != indices.shape[${d}] (${indices.shape[d]}).`
+      );
+    }
+  }
+  for (let d = 0; d < updates.rank - batchDim; ++d) {
+    if (updates.shape[d + batchDim] !== shape[d + sliceDim]) {
+      throw new Error(
+        shapeError + ` updates.shape[${d + batchDim}] (${updates.shape[d + batchDim]}) != shape[${d + batchDim}] (${shape[d + batchDim]})`
+      );
+    }
+  }
+}
+function validateInput(updates, indices, shape) {
+  if (indices.rank < 1) {
+    throw new Error(
+      `tf.scatterND() expects the indices to be rank 1 or higher, but the rank was ${indices.rank}.`
+    );
+  }
+  if (updates.rank < 1) {
+    throw new Error(
+      `tf.scatterND() expects the updates to be rank 1 or higher, but the rank was ${updates.rank}.`
+    );
+  }
+  if (indices.dtype !== "int32") {
+    throw new Error(`The dtype of 'indices' should be int32, but got dtype: ${indices.dtype}`);
+  }
+  if (shape.length < 1) {
+    throw new Error(
+      `Output rank must be greater or equal to 1, but got shape: ${shape}`
+    );
+  }
+  if (shape.length === 0) {
+    if (indices.size === 0) {
+      throw new Error(`Indices specified for empty output. indices shape: ${indices.shape}`);
+    }
+    if (updates.size === 0) {
+      throw new Error(`Updates specified for empty output. updates shape: ${updates.shape}`);
+    }
+  }
+  validateUpdateShape(shape, indices, updates);
+}
+function calculateShapes(updates, indices, shape) {
+  const indicesRank = indices.shape.length;
+  const sliceRank = indicesRank > 1 ? indices.shape[indicesRank - 1] : 1;
+  const totalNd = shape.length;
+  let sliceSize = 1;
+  for (let i = sliceRank; i < totalNd; ++i) {
+    sliceSize *= shape[i];
+  }
+  const safeSliceDim = sliceRank < 1 ? 1 : sliceRank;
+  const numUpdates = sizeFromShape(indices.shape) / safeSliceDim;
+  const strides = [...computeStrides(shape.slice(0, sliceRank)), 1];
+  const outputSize = sizeFromShape(shape);
+  return { sliceRank, numUpdates, sliceSize, strides, outputSize };
+}
+
+// src/tfjs-core/src/ops/tensor_scatter_update.ts
+function tensorScatterUpdate_(tensor2, indices, updates) {
+  const $tensor = convertToTensor(tensor2, "tensor", "tensorScatterupdate");
+  const $indices = convertToTensor(indices, "indices", "tensorScatterupdate", "int32");
+  const $updates = convertToTensor(updates, "updates", "tensorScatterupdate");
+  validateInput($updates, $indices, $tensor.shape);
+  if ($tensor.dtype !== $updates.dtype) {
+    throw new Error(
+      `tensor and updates must have the same dtype, instead they are ${$tensor.dtype} and ${$updates.dtype}.`
+    );
+  }
+  const inputs = {
+    tensor: $tensor,
+    indices: $indices,
+    updates: $updates
+  };
+  const attrs = {};
+  return ENGINE.runKernel(
+    TensorScatterUpdate,
+    inputs,
+    attrs
+  );
+}
+var tensorScatterUpdate = op({ tensorScatterUpdate_ });
+
 // src/tfjs-core/src/ops/topk.ts
 function topk_(x, k = 1, sorted = true) {
   const $x = convertToTensor(x, "x", "topk");
@@ -10496,6 +9884,55 @@ function whereImpl(condShape, condVals) {
   }
   return out.toTensor();
 }
+
+// src/tfjs-core/src/ops/transpose.ts
+function transpose_(x, perm, conjugate) {
+  const $x = convertToTensor(x, "x", "transpose");
+  if (perm == null) {
+    perm = $x.shape.map((s, i) => i).reverse();
+  }
+  assert(
+    $x.rank === perm.length,
+    () => `Error in transpose: rank of input ${$x.rank} must match length of perm ${perm}.`
+  );
+  perm.forEach((axis) => {
+    assert(
+      axis >= 0 && axis < $x.rank,
+      () => `All entries in 'perm' must be between 0 and ${$x.rank - 1} but got ${perm}`
+    );
+  });
+  if ($x.rank <= 1) {
+    return $x.clone();
+  }
+  const inputs = { x: $x };
+  const attrs = { perm };
+  if ($x.dtype === "complex64") {
+    return tidy(() => {
+      let $real = real($x);
+      let $imag = imag($x);
+      $real = ENGINE.runKernel(
+        Transpose,
+        { x: $real },
+        attrs
+      );
+      $imag = ENGINE.runKernel(
+        Transpose,
+        { x: $imag },
+        attrs
+      );
+      if (conjugate) {
+        $imag = neg($imag);
+      }
+      return complex($real, $imag);
+    });
+  }
+  return ENGINE.runKernel(
+    Transpose,
+    inputs,
+    attrs
+  );
+}
+var transpose = op({ transpose_ });
 
 // src/tfjs-core/src/ops/moving_average.ts
 function movingAverage_(v, x, decay, step3, zeroDebias = true) {
@@ -10915,10 +10352,13 @@ function fusedConv2d_({
   };
   if (bias == null) {
     const customOp = customGrad((x4D2, filter2, save) => {
-      let res = ENGINE.runKernel(
-        FusedConv2D,
-        inputs,
-        attrs
+      let res = (
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        ENGINE.runKernel(
+          FusedConv2D,
+          inputs,
+          attrs
+        )
       );
       save([filter2, x4D2, res]);
       if (reshapedTo4D) {
@@ -10977,10 +10417,13 @@ function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad2, 
   }
   const inputs = { dy: dy4D, filter };
   const attrs = { strides, pad: pad2, dimRoundingMode, dilations, inputShape: xShape };
-  const res = ENGINE.runKernel(
-    DepthwiseConv2dNativeBackpropInput,
-    inputs,
-    attrs
+  const res = (
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    ENGINE.runKernel(
+      DepthwiseConv2dNativeBackpropInput,
+      inputs,
+      attrs
+    )
   );
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]);
@@ -11063,6 +10506,7 @@ function fusedDepthwiseConv2d_({
     pad2,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   let $bias;
   if (bias != null) {
@@ -11251,10 +10695,13 @@ function fusedMatMul_({
   const attrs = { transposeA, transposeB, activation, leakyreluAlpha };
   if (bias == null) {
     const customOp = customGrad((a3D2, b3D2, save) => {
-      const res = ENGINE.runKernel(
-        _FusedMatMul,
-        inputs,
-        attrs
+      const res = (
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        ENGINE.runKernel(
+          _FusedMatMul,
+          inputs,
+          attrs
+        )
       );
       save([a3D2, b3D2, res]);
       return { value: reshape(res, outShape), gradFunc: grad2 };
@@ -11263,10 +10710,13 @@ function fusedMatMul_({
   } else {
     const customOpWithBias = customGrad(
       (a3D2, b3D2, $bias2, save) => {
-        const res = ENGINE.runKernel(
-          _FusedMatMul,
-          inputs,
-          attrs
+        const res = (
+          // tslint:disable-next-line: no-unnecessary-type-assertion
+          ENGINE.runKernel(
+            _FusedMatMul,
+            inputs,
+            attrs
+          )
         );
         save([a3D2, b3D2, res, $bias2]);
         return { value: reshape(res, outShape), gradFunc: grad2 };
@@ -11517,6 +10967,7 @@ function nonMaxSuppressionV3Impl(boxes, scores, maxOutputSize, iouThreshold, sco
     iouThreshold,
     scoreThreshold,
     0
+    /* softNmsSigma */
   );
 }
 function nonMaxSuppressionV4Impl(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize) {
@@ -11530,6 +10981,7 @@ function nonMaxSuppressionV4Impl(boxes, scores, maxOutputSize, iouThreshold, sco
     false,
     padToMaxOutputSize,
     true
+    /* returnValidOutputs */
   );
 }
 function nonMaxSuppressionV5Impl(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma) {
@@ -11541,6 +10993,7 @@ function nonMaxSuppressionV5Impl(boxes, scores, maxOutputSize, iouThreshold, sco
     scoreThreshold,
     softNmsSigma,
     true
+    /* returnScoresTensor */
   );
 }
 function nonMaxSuppressionImpl_(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma, returnScoresTensor = false, padToMaxOutputSize = false, returnValidOutputs = false) {
@@ -11666,6 +11119,7 @@ function nonMaxSuppressionPadded_(boxes, scores, maxOutputSize, iouThreshold = 0
     iouThreshold,
     scoreThreshold,
     null
+    /* softNmsSigma */
   );
   const $maxOutputSize = params.maxOutputSize;
   const $iouThreshold = params.iouThreshold;
@@ -11870,14 +11324,6 @@ var transform = op({ transform_ });
 
 // src/tfjs-core/src/ops/linalg/band_part.ts
 function bandPart_(a, numLower, numUpper) {
-  assert(
-    numLower % 1 === 0,
-    () => `bandPart(): numLower must be an integer, got ${numLower}.`
-  );
-  assert(
-    numUpper % 1 === 0,
-    () => `bandPart(): numUpper must be an integer, got ${numUpper}.`
-  );
   const $a = convertToTensor(a, "a", "bandPart");
   assert(
     $a.rank >= 2,
@@ -11885,29 +11331,46 @@ function bandPart_(a, numLower, numUpper) {
   );
   const shape = $a.shape;
   const [M, N] = $a.shape.slice(-2);
-  if (!(numLower <= M)) {
-    throw new Error(
-      `bandPart(): numLower (${numLower}) must not be greater than the number of rows (${M}).`
+  let $numLower;
+  let $numUpper;
+  if (typeof numLower === "number") {
+    assert(
+      numLower % 1 === 0,
+      () => `bandPart(): numLower must be an integer, got ${numLower}.`
     );
-  }
-  if (!(numUpper <= N)) {
-    throw new Error(
-      `bandPart(): numUpper (${numUpper}) must not be greater than the number of columns (${N}).`
+    assert(
+      numLower <= M,
+      () => `bandPart(): numLower (${numLower}) must not be greater than the number of rows (${M}).`
     );
+    $numLower = convertToTensor(numLower < 0 ? M : numLower, "numLower", "bandPart");
+  } else {
+    assert(
+      numLower.dtype === "int32",
+      () => `bandPart(): numLower's dtype must be an int32.`
+    );
+    $numLower = where(less(numLower, 0), M, minimum(numLower, M));
   }
-  if (numLower < 0) {
-    numLower = M;
-  }
-  if (numUpper < 0) {
-    numUpper = N;
+  if (typeof numUpper === "number") {
+    assert(
+      numUpper % 1 === 0,
+      () => `bandPart(): numUpper must be an integer, got ${numUpper}.`
+    );
+    assert(
+      numUpper <= N,
+      () => `bandPart(): numUpper (${numUpper}) must not be greater than the number of columns (${N}).`
+    );
+    $numUpper = convertToTensor(numUpper < 0 ? N : numUpper, "numUpper", "bandPart");
+  } else {
+    assert(
+      numUpper.dtype === "int32",
+      () => `bandPart(): numUpper's dtype must be an int32.`
+    );
+    $numUpper = where(less(numUpper, 0), N, minimum(numUpper, N));
   }
   const i = reshape(range(0, M, 1, "int32"), [-1, 1]);
   const j = range(0, N, 1, "int32");
   const ij = sub(i, j);
-  const inBand = logicalAnd(
-    lessEqual(ij, scalar(+numLower, "int32")),
-    greaterEqual(ij, scalar(-numUpper, "int32"))
-  );
+  const inBand = logicalAnd(lessEqual(ij, $numLower), greaterEqual(ij, neg($numUpper)));
   const zero = zeros([M, N], $a.dtype);
   return reshape(
     stack(unstack(reshape($a, [-1, M, N])).map((mat) => where(inBand, mat, zero))),
@@ -12492,9 +11955,108 @@ function stringToHashBucketFast_(input, numBuckets) {
 }
 var stringToHashBucketFast = op({ stringToHashBucketFast_ });
 
+// src/tfjs-core/src/ops/string/static_regex_replace.ts
+function staticRegexReplace_(input, pattern, rewrite, replaceGlobal = true) {
+  const $input = convertToTensor(
+    input,
+    "input",
+    "staticRegexReplace",
+    "string"
+  );
+  const attrs = { pattern, rewrite, replaceGlobal };
+  return ENGINE.runKernel(
+    StaticRegexReplace,
+    { x: $input },
+    attrs
+  );
+}
+var staticRegexReplace = op({ staticRegexReplace_ });
+
+// src/tfjs-core/src/serialization.ts
+var Serializable = class {
+  /**
+   * Return the class name for this class to use in serialization contexts.
+   *
+   * Generally speaking this will be the same thing that constructor.name
+   * would have returned.  However, the class name needs to be robust
+   * against minification for serialization/deserialization to work properly.
+   *
+   * There's also places such as initializers.VarianceScaling, where
+   * implementation details between different languages led to different
+   * class hierarchies and a non-leaf node is used for serialization purposes.
+   */
+  getClassName() {
+    return this.constructor.className;
+  }
+  /**
+   * Creates an instance of T from a ConfigDict.
+   *
+   * This works for most descendants of serializable.  A few need to
+   * provide special handling.
+   * @param cls A Constructor for the class to instantiate.
+   * @param config The Configuration for the object.
+   */
+  /** @nocollapse */
+  static fromConfig(cls, config) {
+    return new cls(config);
+  }
+};
+var _SerializationMap = class {
+  classNameMap;
+  constructor() {
+    this.classNameMap = {};
+  }
+  /**
+   * Returns the singleton instance of the map.
+   */
+  static getMap() {
+    if (_SerializationMap.instance == null) {
+      _SerializationMap.instance = new _SerializationMap();
+    }
+    return _SerializationMap.instance;
+  }
+  /**
+   * Registers the class as serializable.
+   */
+  static register(cls) {
+    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+  }
+};
+var SerializationMap = _SerializationMap;
+__publicField(SerializationMap, "instance");
+function registerClass(cls) {
+  assert(
+    cls.className != null,
+    () => `Class being registered does not have the static className property defined.`
+  );
+  assert(
+    typeof cls.className === "string",
+    () => `className is required to be a string, but got type ` + typeof cls.className
+  );
+  assert(
+    cls.className.length > 0,
+    () => `Class being registered has an empty-string as its className, which is disallowed.`
+  );
+  SerializationMap.register(cls);
+}
+
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
   iterations_;
+  /**
+   * Executes `f()` and minimizes the scalar output of `f()` by computing
+   * gradients of y with respect to the list of trainable variables provided by
+   * `varList`. If no list is provided, it defaults to all trainable variables.
+   *
+   * @param f The function to execute and whose output to minimize.
+   * @param returnCost Whether to return the scalar cost value produced by
+   * executing `f()`.
+   * @param varList An optional list of variables to update. If specified, only
+   * the trainable variables in varList will be updated by minimize. Defaults to
+   * all trainable variables.
+   *
+   * @doc {heading: 'Training', subheading: 'Optimizers'}
+   */
   minimize(f, returnCost = false, varList) {
     const { value, grads: grads2 } = this.computeGradients(f, varList);
     if (varList != null) {
@@ -12511,6 +12073,9 @@ var Optimizer = class extends Serializable {
       return null;
     }
   }
+  /**
+   * The number of iterations that this optimizer instance has been invoked for.
+   */
   get iterations() {
     if (this.iterations_ == null) {
       this.iterations_ = 0;
@@ -12520,9 +12085,25 @@ var Optimizer = class extends Serializable {
   incrementIterations() {
     this.iterations_ = this.iterations + 1;
   }
+  /**
+   * Executes f() and computes the gradient of the scalar output of f() with
+   * respect to the list of trainable variables provided by `varList`. If no
+   * list is provided, it defaults to all trainable variables.
+   *
+   * @param f The function to execute and whose output to use for computing
+   * gradients with respect to variables.
+   * @param varList An optional list of variables to compute gradients with
+   * respect to. If specified, only the trainable variables in varList will have
+   * gradients computed with respect to. Defaults to all trainable variables.
+   *
+   * @doc {heading: 'Training', subheading: 'Optimizers'}
+   */
   computeGradients(f, varList) {
     return variableGrads(f, varList);
   }
+  /**
+   * Dispose the variables (if any) owned by this optimizer instance.
+   */
   dispose() {
     if (this.iterations_ != null) {
       dispose(this.iterations_);
@@ -12534,6 +12115,8 @@ var Optimizer = class extends Serializable {
     }
     return {
       name: "iter",
+      // Named for Python compatibility.
+      // TODO(cais): Use 'int64' type when available.
       tensor: scalar(this.iterations_, "int32")
     };
   }
@@ -12545,6 +12128,13 @@ var Optimizer = class extends Serializable {
       `setWeights() is not implemented for this optimizer class ${this.getClassName()}`
     );
   }
+  /**
+   * Extract the first element of the weight values and set it
+   * as the iterations counter variable of this instance of optimizer.
+   *
+   * @param weightValues
+   * @returns Weight values with the first element consumed and excluded.
+   */
   async extractIterations(weightValues) {
     this.iterations_ = (await weightValues[0].tensor.data())[0];
     return weightValues.slice(1);
@@ -12566,6 +12156,10 @@ var AdadeltaOptimizer = class extends Optimizer {
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adadelta";
   }
   accumulatedGrads = [];
   accumulatedUpdates = [];
@@ -12650,12 +12244,11 @@ var AdadeltaOptimizer = class extends Optimizer {
       "epsilon": this.epsilon
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"], config["rho"], config["epsilon"]);
   }
 };
-__publicField(AdadeltaOptimizer, "className", "Adadelta");
-registerClass(AdadeltaOptimizer);
 
 // src/tfjs-core/src/optimizers/adagrad_optimizer.ts
 var AdagradOptimizer = class extends Optimizer {
@@ -12663,6 +12256,10 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adagrad";
   }
   accumulatedGrads = [];
   applyGradients(variableGradients) {
@@ -12724,12 +12321,11 @@ var AdagradOptimizer = class extends Optimizer {
       "initialAccumulatorValue": this.initialAccumulatorValue
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"], config["initialAccumulatorValue"]);
   }
 };
-__publicField(AdagradOptimizer, "className", "Adagrad");
-registerClass(AdagradOptimizer);
 
 // src/tfjs-core/src/optimizers/adam_optimizer.ts
 var AdamOptimizer = class extends Optimizer {
@@ -12746,6 +12342,10 @@ var AdamOptimizer = class extends Optimizer {
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adam";
   }
   accBeta1;
   accBeta2;
@@ -12846,6 +12446,7 @@ var AdamOptimizer = class extends Optimizer {
       "epsilon": this.epsilon
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -12855,8 +12456,6 @@ var AdamOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(AdamOptimizer, "className", "Adam");
-registerClass(AdamOptimizer);
 
 // src/tfjs-core/src/optimizers/adamax_optimizer.ts
 var AdamaxOptimizer = class extends Optimizer {
@@ -12874,6 +12473,10 @@ var AdamaxOptimizer = class extends Optimizer {
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "Adamax";
   }
   accBeta1;
   iteration;
@@ -12950,6 +12553,7 @@ var AdamaxOptimizer = class extends Optimizer {
       "decay": this.decay
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -12960,8 +12564,6 @@ var AdamaxOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(AdamaxOptimizer, "className", "Adamax");
-registerClass(AdamaxOptimizer);
 
 // src/tfjs-core/src/optimizers/sgd_optimizer.ts
 var SGDOptimizer = class extends Optimizer {
@@ -12969,6 +12571,10 @@ var SGDOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.setLearningRate(learningRate);
+  }
+  /** @nocollapse */
+  static get className() {
+    return "SGD";
   }
   c;
   applyGradients(variableGradients) {
@@ -12986,6 +12592,9 @@ var SGDOptimizer = class extends Optimizer {
     });
     this.incrementIterations();
   }
+  /**
+   * Sets the learning rate of the optimizer.
+   */
   setLearningRate(learningRate) {
     this.learningRate = learningRate;
     if (this.c != null) {
@@ -13008,12 +12617,11 @@ var SGDOptimizer = class extends Optimizer {
   getConfig() {
     return { "learningRate": this.learningRate };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(config["learningRate"]);
   }
 };
-__publicField(SGDOptimizer, "className", "SGD");
-registerClass(SGDOptimizer);
 
 // src/tfjs-core/src/optimizers/momentum_optimizer.ts
 var MomentumOptimizer = class extends SGDOptimizer {
@@ -13023,6 +12631,11 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.momentum = momentum;
     this.useNesterov = useNesterov;
     this.m = scalar(this.momentum);
+  }
+  /** @nocollapse */
+  // Name matters for Python compatibility.
+  static get className() {
+    return "Momentum";
   }
   m;
   accumulations = [];
@@ -13065,6 +12678,11 @@ var MomentumOptimizer = class extends SGDOptimizer {
       dispose(this.accumulations.map((v) => v.variable));
     }
   }
+  /**
+   * Sets the momentum of the optimizer.
+   *
+   * @param momentum
+   */
   setMomentum(momentum) {
     this.momentum = momentum;
   }
@@ -13087,6 +12705,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
       "useNesterov": this.useNesterov
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -13095,8 +12714,6 @@ var MomentumOptimizer = class extends SGDOptimizer {
     );
   }
 };
-__publicField(MomentumOptimizer, "className", "Momentum");
-registerClass(MomentumOptimizer);
 
 // src/tfjs-core/src/optimizers/rmsprop_optimizer.ts
 var RMSPropOptimizer = class extends Optimizer {
@@ -13113,6 +12730,10 @@ var RMSPropOptimizer = class extends Optimizer {
     if (learningRate == null) {
       throw new Error(`learningRate for RMSPropOptimizer must be defined.`);
     }
+  }
+  /** @nocollapse */
+  static get className() {
+    return "RMSProp";
   }
   centered;
   accumulatedMeanSquares = [];
@@ -13244,6 +12865,7 @@ var RMSPropOptimizer = class extends Optimizer {
       "centered": this.centered
     };
   }
+  /** @nocollapse */
   static fromConfig(cls, config) {
     return new cls(
       config["learningRate"],
@@ -13254,50 +12876,1042 @@ var RMSPropOptimizer = class extends Optimizer {
     );
   }
 };
-__publicField(RMSPropOptimizer, "className", "RMSProp");
-registerClass(RMSPropOptimizer);
 
-// src/tfjs-core/src/optimizers/optimizer_constructors.ts
-var OptimizerConstructors = class {
-  static sgd(learningRate) {
-    return new SGDOptimizer(learningRate);
+// src/tfjs-core/src/optimizers/register_optimizers.ts
+var OPTIMIZERS = [
+  AdadeltaOptimizer,
+  AdagradOptimizer,
+  AdamOptimizer,
+  AdamaxOptimizer,
+  MomentumOptimizer,
+  RMSPropOptimizer,
+  SGDOptimizer
+];
+function registerOptimizers() {
+  for (const optimizer of OPTIMIZERS) {
+    registerClass(optimizer);
   }
-  static momentum(learningRate, momentum, useNesterov = false) {
-    return new MomentumOptimizer(learningRate, momentum, useNesterov);
+}
+
+// src/tfjs-core/src/io/browser_files.ts
+var DEFAULT_FILE_NAME_PREFIX = "model";
+var DEFAULT_JSON_EXTENSION_NAME = ".json";
+var DEFAULT_WEIGHT_DATA_EXTENSION_NAME = ".weights.bin";
+function defer(f) {
+  return new Promise((resolve) => setTimeout(resolve)).then(f);
+}
+var _BrowserDownloads = class {
+  modelJsonFileName;
+  weightDataFileName;
+  modelJsonAnchor;
+  weightDataAnchor;
+  constructor(fileNamePrefix) {
+    if (!env().getBool("IS_BROWSER")) {
+      throw new Error(
+        "browserDownloads() cannot proceed because the current environment is not a browser."
+      );
+    }
+    if (fileNamePrefix.startsWith(_BrowserDownloads.URL_SCHEME)) {
+      fileNamePrefix = fileNamePrefix.slice(_BrowserDownloads.URL_SCHEME.length);
+    }
+    if (fileNamePrefix == null || fileNamePrefix.length === 0) {
+      fileNamePrefix = DEFAULT_FILE_NAME_PREFIX;
+    }
+    this.modelJsonFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
+    this.weightDataFileName = fileNamePrefix + DEFAULT_WEIGHT_DATA_EXTENSION_NAME;
   }
-  static rmsprop(learningRate, decay = 0.9, momentum = 0, epsilon2 = null, centered = false) {
-    return new RMSPropOptimizer(
-      learningRate,
-      decay,
-      momentum,
-      epsilon2,
-      centered
+  async save(modelArtifacts) {
+    if (typeof document === "undefined") {
+      throw new Error(
+        "Browser downloads are not supported in this environment since `document` is not present"
+      );
+    }
+    const weightsURL = window.URL.createObjectURL(new Blob(
+      [modelArtifacts.weightData],
+      { type: "application/octet-stream" }
+    ));
+    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
+      throw new Error(
+        "BrowserDownloads.save() does not support saving model topology in binary formats yet."
+      );
+    } else {
+      const weightsManifest = [{
+        paths: ["./" + this.weightDataFileName],
+        weights: modelArtifacts.weightSpecs
+      }];
+      const modelJSON = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
+      const modelJsonURL = window.URL.createObjectURL(
+        new Blob([JSON.stringify(modelJSON)], { type: "application/json" })
+      );
+      const jsonAnchor = this.modelJsonAnchor == null ? document.createElement("a") : this.modelJsonAnchor;
+      jsonAnchor.download = this.modelJsonFileName;
+      jsonAnchor.href = modelJsonURL;
+      await defer(() => jsonAnchor.dispatchEvent(new MouseEvent("click")));
+      if (modelArtifacts.weightData != null) {
+        const weightDataAnchor = this.weightDataAnchor == null ? document.createElement("a") : this.weightDataAnchor;
+        weightDataAnchor.download = this.weightDataFileName;
+        weightDataAnchor.href = weightsURL;
+        await defer(
+          () => weightDataAnchor.dispatchEvent(new MouseEvent("click"))
+        );
+      }
+      return { modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) };
+    }
+  }
+};
+var BrowserDownloads = _BrowserDownloads;
+__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
+var browserDownloadsRouter = (url) => {
+  if (!env().getBool("IS_BROWSER")) {
+    return null;
+  } else {
+    if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {
+      return browserDownloads(url.slice(BrowserDownloads.URL_SCHEME.length));
+    } else {
+      return null;
+    }
+  }
+};
+IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
+function browserDownloads(fileNamePrefix = "model") {
+  return new BrowserDownloads(fileNamePrefix);
+}
+
+// src/tfjs-core/src/io/progress.ts
+function monitorPromisesProgress(promises, onProgress, startFraction, endFraction) {
+  checkPromises(promises);
+  startFraction = startFraction == null ? 0 : startFraction;
+  endFraction = endFraction == null ? 1 : endFraction;
+  checkFraction(startFraction, endFraction);
+  let resolvedPromise = 0;
+  const registerMonitor = (promise) => {
+    promise.then((value) => {
+      const fraction = startFraction + ++resolvedPromise / promises.length * (endFraction - startFraction);
+      onProgress(fraction);
+      return value;
+    });
+    return promise;
+  };
+  function checkPromises(promises2) {
+    assert(
+      promises2 != null && Array.isArray(promises2) && promises2.length > 0,
+      () => "promises must be a none empty array"
     );
   }
-  static adam(learningRate = 1e-3, beta1 = 0.9, beta2 = 0.999, epsilon2 = null) {
-    return new AdamOptimizer(learningRate, beta1, beta2, epsilon2);
+  function checkFraction(startFraction2, endFraction2) {
+    assert(
+      startFraction2 >= 0 && startFraction2 <= 1,
+      () => `Progress fraction must be in range [0, 1], but got startFraction ${startFraction2}`
+    );
+    assert(
+      endFraction2 >= 0 && endFraction2 <= 1,
+      () => `Progress fraction must be in range [0, 1], but got endFraction ${endFraction2}`
+    );
+    assert(
+      endFraction2 >= startFraction2,
+      () => `startFraction must be no more than endFraction, but got startFraction ${startFraction2} and endFraction ${endFraction2}`
+    );
   }
-  static adadelta(learningRate = 1e-3, rho = 0.95, epsilon2 = null) {
-    return new AdadeltaOptimizer(learningRate, rho, epsilon2);
-  }
-  static adamax(learningRate = 2e-3, beta1 = 0.9, beta2 = 0.999, epsilon2 = null, decay = 0) {
-    return new AdamaxOptimizer(learningRate, beta1, beta2, epsilon2, decay);
-  }
-  static adagrad(learningRate, initialAccumulatorValue = 0.1) {
-    return new AdagradOptimizer(learningRate, initialAccumulatorValue);
-  }
-};
+  return Promise.all(promises.map(registerMonitor));
+}
 
-// src/tfjs-core/src/train.ts
-var train = {
-  sgd: OptimizerConstructors.sgd,
-  momentum: OptimizerConstructors.momentum,
-  adadelta: OptimizerConstructors.adadelta,
-  adagrad: OptimizerConstructors.adagrad,
-  rmsprop: OptimizerConstructors.rmsprop,
-  adamax: OptimizerConstructors.adamax,
-  adam: OptimizerConstructors.adam
+// src/tfjs-core/src/io/weights_loader.ts
+async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
+  if (loadOptions == null) {
+    loadOptions = {};
+  }
+  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch : loadOptions.fetchFunc;
+  const requests = fetchURLs.map(
+    (fetchURL) => fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true })
+  );
+  const fetchStartFraction = 0;
+  const fetchEndFraction = 0.5;
+  const responses = loadOptions.onProgress == null ? await Promise.all(requests) : await monitorPromisesProgress(
+    requests,
+    loadOptions.onProgress,
+    fetchStartFraction,
+    fetchEndFraction
+  );
+  const bufferPromises = responses.map((response) => response.arrayBuffer());
+  const bufferStartFraction = 0.5;
+  const bufferEndFraction = 1;
+  const buffers = loadOptions.onProgress == null ? await Promise.all(bufferPromises) : await monitorPromisesProgress(
+    bufferPromises,
+    loadOptions.onProgress,
+    bufferStartFraction,
+    bufferEndFraction
+  );
+  return buffers;
+}
+
+// src/tfjs-core/src/io/http.ts
+var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
+var JSON_TYPE = "application/json";
+var HTTPRequest = class {
+  path;
+  requestInit;
+  fetch;
+  weightUrlConverter;
+  DEFAULT_METHOD = "POST";
+  weightPathPrefix;
+  onProgress;
+  constructor(path, loadOptions) {
+    if (loadOptions == null) {
+      loadOptions = {};
+    }
+    this.weightPathPrefix = loadOptions.weightPathPrefix;
+    this.onProgress = loadOptions.onProgress;
+    this.weightUrlConverter = loadOptions.weightUrlConverter;
+    if (loadOptions.fetchFunc != null) {
+      assert(
+        typeof loadOptions.fetchFunc === "function",
+        () => "Must pass a function that matches the signature of `fetch` (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)"
+      );
+      this.fetch = loadOptions.fetchFunc;
+    } else {
+      this.fetch = env().platform.fetch;
+    }
+    assert(
+      path != null && path.length > 0,
+      () => "URL path for http must not be null, undefined or empty."
+    );
+    if (Array.isArray(path)) {
+      assert(
+        path.length === 2,
+        () => `URL paths for http must have a length of 2, (actual length is ${path.length}).`
+      );
+    }
+    this.path = path;
+    if (loadOptions.requestInit != null && loadOptions.requestInit.body != null) {
+      throw new Error(
+        "requestInit is expected to have no pre-existing body, but has one."
+      );
+    }
+    this.requestInit = loadOptions.requestInit || {};
+  }
+  async save(modelArtifacts) {
+    if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
+      throw new Error(
+        "BrowserHTTPRequest.save() does not support saving model topology in binary formats yet."
+      );
+    }
+    const init = Object.assign({ method: this.DEFAULT_METHOD }, this.requestInit);
+    init.body = new FormData();
+    const weightsManifest = [{
+      paths: ["./model.weights.bin"],
+      weights: modelArtifacts.weightSpecs
+    }];
+    const modelTopologyAndWeightManifest = getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
+    init.body.append(
+      "model.json",
+      new Blob(
+        [JSON.stringify(modelTopologyAndWeightManifest)],
+        { type: JSON_TYPE }
+      ),
+      "model.json"
+    );
+    if (modelArtifacts.weightData != null) {
+      init.body.append(
+        "model.weights.bin",
+        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
+        "model.weights.bin"
+      );
+    }
+    const response = await this.fetch(this.path, init);
+    if (response.ok) {
+      return {
+        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
+        responses: [response]
+      };
+    } else {
+      throw new Error(
+        `BrowserHTTPRequest.save() failed due to HTTP response status ${response.status}.`
+      );
+    }
+  }
+  /**
+   * Load model artifacts via HTTP request(s).
+   *
+   * See the documentation to `tf.io.http` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model artifacts (if loading succeeds).
+   */
+  async load() {
+    const modelConfigRequest = await this.fetch(this.path, this.requestInit);
+    if (!modelConfigRequest.ok) {
+      throw new Error(
+        `Request to ${this.path} failed with status code ${modelConfigRequest.status}. Please verify this URL points to the model JSON of the model to load.`
+      );
+    }
+    let modelJSON;
+    try {
+      modelJSON = await modelConfigRequest.json();
+    } catch (e) {
+      let message = `Failed to parse model JSON of response from ${this.path}.`;
+      if (this.path.endsWith(".pb")) {
+        message += " Your path contains a .pb file extension. Support for .pb models have been removed in TensorFlow.js 1.0 in favor of .json models. You can re-convert your Python TensorFlow model using the TensorFlow.js 1.0 conversion scripts or you can convert your.pb models with the 'pb2json'NPM script in the tensorflow/tfjs-converter repository.";
+      } else {
+        message += " Please make sure the server is serving valid JSON for this request.";
+      }
+      throw new Error(message);
+    }
+    const modelTopology = modelJSON.modelTopology;
+    const weightsManifest = modelJSON.weightsManifest;
+    if (modelTopology == null && weightsManifest == null) {
+      throw new Error(
+        `The JSON from HTTP path ${this.path} contains neither model topology or manifest for weights.`
+      );
+    }
+    return getModelArtifactsForJSON(
+      modelJSON,
+      (weightsManifest2) => this.loadWeights(weightsManifest2)
+    );
+  }
+  async loadWeights(weightsManifest) {
+    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
+    const [prefix, suffix] = parseUrl(weightPath);
+    const pathPrefix = this.weightPathPrefix || prefix;
+    const weightSpecs = getWeightSpecs(weightsManifest);
+    const fetchURLs = [];
+    const urlPromises = [];
+    for (const weightsGroup of weightsManifest) {
+      for (const path of weightsGroup.paths) {
+        if (this.weightUrlConverter != null) {
+          urlPromises.push(this.weightUrlConverter(path));
+        } else {
+          fetchURLs.push(pathPrefix + path + suffix);
+        }
+      }
+    }
+    if (this.weightUrlConverter) {
+      fetchURLs.push(...await Promise.all(urlPromises));
+    }
+    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
+      requestInit: this.requestInit,
+      fetchFunc: this.fetch,
+      onProgress: this.onProgress
+    });
+    return [weightSpecs, concatenateArrayBuffers(buffers)];
+  }
 };
+__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
+function parseUrl(url) {
+  const lastSlash = url.lastIndexOf("/");
+  const lastSearchParam = url.lastIndexOf("?");
+  const prefix = url.substring(0, lastSlash);
+  const suffix = lastSearchParam > lastSlash ? url.substring(lastSearchParam) : "";
+  return [prefix + "/", suffix];
+}
+function isHTTPScheme(url) {
+  return url.match(HTTPRequest.URL_SCHEME_REGEX) != null;
+}
+var httpRouter = (url, loadOptions) => {
+  if (typeof fetch === "undefined" && (loadOptions == null || loadOptions.fetchFunc == null)) {
+    return null;
+  } else {
+    let isHTTP = true;
+    if (Array.isArray(url)) {
+      isHTTP = url.every((urlItem) => isHTTPScheme(urlItem));
+    } else {
+      isHTTP = isHTTPScheme(url);
+    }
+    if (isHTTP) {
+      return http(url, loadOptions);
+    }
+  }
+  return null;
+};
+IORouterRegistry.registerSaveRouter(httpRouter);
+IORouterRegistry.registerLoadRouter(httpRouter);
+function http(path, loadOptions) {
+  return new HTTPRequest(path, loadOptions);
+}
+
+// src/tfjs-core/src/ops/confusion_matrix.ts
+function confusionMatrix_(labels, predictions, numClasses) {
+  const $labels = convertToTensor(labels, "labels", "confusionMatrix");
+  const $predictions = convertToTensor(predictions, "predictions", "confusionMatrix");
+  assert(
+    numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
+    () => `If provided, numClasses must be a positive integer, but got ${numClasses}`
+  );
+  assert(
+    $labels.rank === 1,
+    () => `Expected the rank of labels to be 1, but got ${$labels.rank}`
+  );
+  assert(
+    $predictions.rank === 1,
+    () => `Expected the rank of predictions to be 1, but got ${$predictions.rank}`
+  );
+  assert(
+    $labels.shape[0] === $predictions.shape[0],
+    () => `Mismatch in the number of examples: ${$labels.shape[0]} vs. ${$predictions.shape[0]}. Labels and predictions should have the same number of elements.`
+  );
+  assert(
+    numClasses > 0 && Number.isInteger(numClasses),
+    () => `numClasses is required to be a positive integer, but got ${numClasses}`
+  );
+  const oneHotLabels = oneHot(cast($labels, "int32"), numClasses);
+  const oneHotPredictions = oneHot(cast($predictions, "int32"), numClasses);
+  const oneHotLabelsT = transpose(oneHotLabels);
+  const product = matMul(oneHotLabelsT, oneHotPredictions);
+  return cast(product, "int32");
+}
+var confusionMatrix = op({ confusionMatrix_ });
+
+// src/tfjs-core/src/ops/browser.ts
+var fromPixels2DContext;
+function fromPixels_(pixels, numChannels = 3) {
+  if (numChannels > 4) {
+    throw new Error(
+      "Cannot construct Tensor with more than 4 channels from pixels."
+    );
+  }
+  if (pixels == null) {
+    throw new Error("pixels passed to tf.browser.fromPixels() can not be null");
+  }
+  let isPixelData = false;
+  let isImageData = false;
+  let isVideo = false;
+  let isImage = false;
+  let isCanvasLike = false;
+  let isImageBitmap = false;
+  if (pixels.data instanceof Uint8Array) {
+    isPixelData = true;
+  } else if (typeof ImageData !== "undefined" && pixels instanceof ImageData) {
+    isImageData = true;
+  } else if (typeof HTMLVideoElement !== "undefined" && pixels instanceof HTMLVideoElement) {
+    isVideo = true;
+  } else if (typeof HTMLImageElement !== "undefined" && pixels instanceof HTMLImageElement) {
+    isImage = true;
+  } else if (pixels.getContext != null) {
+    isCanvasLike = true;
+  } else if (typeof ImageBitmap !== "undefined" && pixels instanceof ImageBitmap) {
+    isImageBitmap = true;
+  } else {
+    throw new Error(
+      `pixels passed to tf.browser.fromPixels() must be either an HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData in browser, or OffscreenCanvas, ImageData in webworker or {data: Uint32Array, width: number, height: number}, but was ${pixels.constructor.name}`
+    );
+  }
+  const kernel = getKernel(FromPixels, ENGINE.backendName);
+  if (kernel != null) {
+    const inputs = { pixels };
+    const attrs = { numChannels };
+    return ENGINE.runKernel(
+      FromPixels,
+      inputs,
+      attrs
+    );
+  }
+  const [width, height] = isVideo ? [
+    pixels.videoWidth,
+    pixels.videoHeight
+  ] : [pixels.width, pixels.height];
+  let vals;
+  if (isCanvasLike) {
+    vals = // tslint:disable-next-line:no-any
+    pixels.getContext("2d").getImageData(0, 0, width, height).data;
+  } else if (isImageData || isPixelData) {
+    vals = pixels.data;
+  } else if (isImage || isVideo || isImageBitmap) {
+    if (fromPixels2DContext == null) {
+      if (typeof document === "undefined") {
+        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
+          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
+        } else {
+          throw new Error(
+            "Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported."
+          );
+        }
+      } else {
+        fromPixels2DContext = document.createElement("canvas").getContext(
+          "2d",
+          { willReadFrequently: true }
+        );
+      }
+    }
+    fromPixels2DContext.canvas.width = width;
+    fromPixels2DContext.canvas.height = height;
+    fromPixels2DContext.drawImage(
+      pixels,
+      0,
+      0,
+      width,
+      height
+    );
+    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
+  }
+  let values;
+  if (numChannels === 4) {
+    values = new Int32Array(vals);
+  } else {
+    const numPixels = width * height;
+    values = new Int32Array(numPixels * numChannels);
+    for (let i = 0; i < numPixels; i++) {
+      for (let channel = 0; channel < numChannels; ++channel) {
+        values[i * numChannels + channel] = vals[i * 4 + channel];
+      }
+    }
+  }
+  const outShape = [height, width, numChannels];
+  return tensor3d(values, outShape, "int32");
+}
+var fromPixels = op({ fromPixels_ });
+
+// src/tfjs-core/src/ops/gather_nd_util.ts
+function prepareAndValidate(tensor2, indices) {
+  const tensorRank = tensor2.shape.length;
+  const indicesRank = indices.shape.length;
+  if (tensorRank < 1) {
+    throw new Error(
+      `tf.gatherND() expects the input to be rank 1 or higher, but the rank was ${tensorRank}.`
+    );
+  }
+  if (indicesRank < 1) {
+    throw new Error(
+      `tf.gatherND() expects the indices to be rank 1 or higher, but the rank was ${indicesRank}.`
+    );
+  }
+  if (indices.dtype !== "int32") {
+    throw new Error(
+      `tf.gatherND() expects the indices to be int32 type, but the dtype was ${indices.dtype}.`
+    );
+  }
+  if (indices.shape[indicesRank - 1] > tensorRank) {
+    throw new Error(
+      `index innermost dimension length must be <= tensor rank; saw: ${indices.shape[indicesRank - 1]} vs. ${tensorRank}`
+    );
+  }
+  if (sizeFromShape(tensor2.shape) === 0) {
+    throw new Error(
+      `Requested more than 0 entries, but input is empty. Input shape: ${tensor2.shape}.`
+    );
+  }
+  const indicesShape = indices.shape;
+  const sliceRank = indicesShape[indicesShape.length - 1];
+  let nResult = 1;
+  for (let i = 0; i < indicesShape.length - 1; ++i) {
+    nResult *= indicesShape[i];
+  }
+  const inputShape = tensor2.shape;
+  const resultShape = indicesShape.slice();
+  resultShape.pop();
+  let sliceSize = 1;
+  for (let i = sliceRank; i < tensorRank; ++i) {
+    sliceSize *= inputShape[i];
+    resultShape.push(inputShape[i]);
+  }
+  const strides = [
+    ...computeStrides(tensor2.shape).map((stride) => stride / sliceSize),
+    1
+  ].slice(0, sliceRank);
+  return [resultShape, nResult, sliceSize, strides];
+}
+
+// src/tfjs-core/src/ops/slice_util.ts
+var slice_util_exports = {};
+__export(slice_util_exports, {
+  assertParamsValid: () => assertParamsValid,
+  computeFlatOffset: () => computeFlatOffset,
+  computeOutShape: () => computeOutShape,
+  getNormalizedAxes: () => getNormalizedAxes,
+  isSliceContinous: () => isSliceContinous,
+  maskToAxes: () => maskToAxes,
+  parseSliceParams: () => parseSliceParams,
+  sliceInfo: () => sliceInfo,
+  startForAxis: () => startForAxis,
+  startIndicesWithElidedDims: () => startIndicesWithElidedDims,
+  stopForAxis: () => stopForAxis,
+  stopIndicesWithElidedDims: () => stopIndicesWithElidedDims,
+  stridesForAxis: () => stridesForAxis,
+  stridesWithElidedDims: () => stridesWithElidedDims
+});
+var NEW_AXIS = -2;
+var SHRINK_AXIS = -1;
+function assertParamsValid(input, begin, size) {
+  const inputRank = input.shape.length;
+  assert(
+    inputRank === begin.length,
+    () => `Error in slice${inputRank}D: Length of begin ${begin} must match the rank of the array (${inputRank}).`
+  );
+  assert(
+    inputRank === size.length,
+    () => `Error in slice${inputRank}D: Length of size ${size} must match the rank of the array (${inputRank}).`
+  );
+  for (let i = 0; i < inputRank; ++i) {
+    assert(
+      begin[i] + size[i] <= input.shape[i],
+      () => `Error in slice${inputRank}D: begin[${i}] + size[${i}] (${begin[i] + size[i]}) would overflow input.shape[${i}] (${input.shape[i]})`
+    );
+  }
+}
+function maskToAxes(mask) {
+  const axes = [];
+  let axis = 0;
+  while (mask > 0) {
+    if (mask & 1) {
+      axes.push(axis);
+    }
+    mask /= 2;
+    axis++;
+  }
+  return axes;
+}
+function computeOutShape(begin, end, strides) {
+  const size = [];
+  for (let axis = 0; axis < begin.length; axis++) {
+    size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
+  }
+  return size;
+}
+function stridesWithElidedDims(strides, ellipsisInsertionIndex, numElidedAxes, inputShape) {
+  const newStrides = [...strides];
+  for (let i = newStrides.length; i < inputShape.length; i++) {
+    newStrides.push(1);
+  }
+  for (let i = 0; i < numElidedAxes; i++) {
+    if (i === 0) {
+      newStrides[ellipsisInsertionIndex] = 1;
+    } else {
+      newStrides.splice(
+        ellipsisInsertionIndex,
+        0,
+        1
+        /* element to add */
+      );
+      newStrides.pop();
+    }
+  }
+  return newStrides;
+}
+function unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, normalizedAxis) {
+  if (normalizedAxis <= ellipsisInsertionIndex) {
+    return normalizedAxis;
+  }
+  return normalizedAxis - (numElidedAxes - 1);
+}
+function getElidedAxes(numElidedAxes, ellipsisInsertionIndex) {
+  const elidedAxes = [];
+  for (let i = 0; i < numElidedAxes; i++) {
+    elidedAxes.push(ellipsisInsertionIndex + i);
+  }
+  return elidedAxes;
+}
+function getNormalizedAxes(inputShape, ellipsisAxes, numInterpolatedAxes, begin, end, strides, beginMask, endMask, ellipsisMask) {
+  const inputRank = inputShape.length;
+  let normalizedBegin = new Array(inputRank), normalizedEnd = new Array(inputRank), normalizedStrides = new Array(inputRank);
+  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
+    const fullIndex = ellipsisAxes[0];
+    const numElidedAxes = numInterpolatedAxes + 1;
+    normalizedBegin = startIndicesWithElidedDims(
+      beginMask,
+      fullIndex,
+      numElidedAxes,
+      begin,
+      inputShape
+    );
+    normalizedEnd = stopIndicesWithElidedDims(
+      endMask,
+      fullIndex,
+      numElidedAxes,
+      end,
+      inputShape
+    );
+    normalizedStrides = stridesWithElidedDims(strides, fullIndex, numElidedAxes, inputShape);
+  } else {
+    for (let axis = 0; axis < inputRank; axis++) {
+      normalizedBegin[axis] = startForAxis(
+        beginMask,
+        begin,
+        strides,
+        inputShape,
+        axis,
+        ellipsisMask
+      );
+      normalizedEnd[axis] = stopForAxis(endMask, end, strides, inputShape, axis, ellipsisMask);
+      normalizedStrides[axis] = stridesForAxis(strides, axis, ellipsisMask);
+    }
+  }
+  return {
+    begin: normalizedBegin,
+    end: normalizedEnd,
+    strides: normalizedStrides
+  };
+}
+function startIndicesWithElidedDims(beginMask, ellipsisInsertionIndex, numElidedAxes, originalBegin, inputShape) {
+  const newIndices = [...inputShape];
+  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
+  for (let axis = 0; axis < newIndices.length; axis++) {
+    if (elidedAxes.indexOf(axis) > -1) {
+      newIndices[axis] = 0;
+    } else {
+      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
+      let originalValue = originalBegin[originalAxis];
+      if (beginMask & 1 << originalAxis) {
+        originalValue = 0;
+      }
+      newIndices[axis] = originalValue;
+    }
+  }
+  return newIndices;
+}
+function stopIndicesWithElidedDims(endMask, ellipsisInsertionIndex, numElidedAxes, originalEnd, inputShape) {
+  const newIndices = [...inputShape];
+  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
+  for (let axis = 0; axis < newIndices.length; axis++) {
+    if (elidedAxes.indexOf(axis) > -1) {
+      newIndices[axis] = Number.MAX_SAFE_INTEGER;
+    } else {
+      const originalAxis = unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
+      let originalValue = originalEnd[originalAxis];
+      if (endMask & 1 << originalAxis) {
+        originalValue = Number.MAX_SAFE_INTEGER;
+      }
+      newIndices[axis] = originalValue;
+    }
+  }
+  for (let i = 0; i < newIndices.length; i++) {
+    const axisSize = inputShape[i];
+    if (newIndices[i] < 0) {
+      newIndices[i] += axisSize;
+    }
+    newIndices[i] = clamp(0, newIndices[i], inputShape[i]);
+  }
+  return newIndices;
+}
+function stridesForAxis(strides, axis, ellipsisMask) {
+  let stride = strides[axis];
+  if (ellipsisMask & 1 << axis || stride == null) {
+    stride = 1;
+  }
+  return stride;
+}
+function startForAxis(beginMask, startIndices, strides, inputShape, axis, ellipsisMask) {
+  let start = startIndices[axis];
+  const stride = strides[axis] || 1;
+  if (beginMask & 1 << axis || ellipsisMask & 1 << axis || start == null) {
+    if (stride > 0) {
+      start = Number.MIN_SAFE_INTEGER;
+    } else {
+      start = Number.MAX_SAFE_INTEGER;
+    }
+  }
+  const axisSize = inputShape[axis];
+  if (start < 0) {
+    start += axisSize;
+  }
+  start = clamp(0, start, axisSize - 1);
+  return start;
+}
+function stopForAxis(endMask, stopIndices, strides, inputShape, axis, ellipsisMask) {
+  let stop = stopIndices[axis];
+  const stride = strides[axis] || 1;
+  if (endMask & 1 << axis || ellipsisMask & 1 << axis || stop == null) {
+    if (stride > 0) {
+      stop = Number.MAX_SAFE_INTEGER;
+    } else {
+      stop = Number.MIN_SAFE_INTEGER;
+    }
+  }
+  const axisSize = inputShape[axis];
+  if (stop < 0) {
+    stop += axisSize;
+  }
+  if (stride > 0) {
+    stop = clamp(0, stop, axisSize);
+  } else {
+    stop = clamp(-1, stop, axisSize - 1);
+  }
+  return stop;
+}
+function isSliceContinous(shape, begin, size) {
+  let firstNonOneAxis = size.length;
+  for (let i = 0; i < size.length; i++) {
+    if (size[i] > 1) {
+      firstNonOneAxis = i;
+      break;
+    }
+  }
+  for (let i = firstNonOneAxis + 1; i < size.length; i++) {
+    if (begin[i] > 0 || size[i] !== shape[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+function computeFlatOffset(begin, strides) {
+  let flatOffset = begin.length > 0 ? begin[begin.length - 1] : 1;
+  for (let i = 0; i < begin.length - 1; i++) {
+    flatOffset += begin[i] * strides[i];
+  }
+  return flatOffset;
+}
+function parseSliceParams(x, begin, size) {
+  let begin_;
+  const xRank = x.shape.length;
+  if (typeof begin === "number") {
+    begin_ = [begin, ...new Array(xRank - 1).fill(0)];
+  } else if (begin.length < xRank) {
+    begin_ = begin.concat(new Array(xRank - begin.length).fill(0));
+  } else {
+    begin_ = begin.slice();
+  }
+  begin_.forEach((d) => {
+    assert(
+      d !== -1,
+      () => "slice() does not support negative begin indexing."
+    );
+  });
+  let size_;
+  if (size == null) {
+    size_ = new Array(xRank).fill(-1);
+  } else if (typeof size === "number") {
+    size_ = [size, ...new Array(xRank - 1).fill(-1)];
+  } else if (size.length < xRank) {
+    size_ = size.concat(new Array(xRank - size.length).fill(-1));
+  } else {
+    size_ = size;
+  }
+  size_ = size_.map((d, i) => {
+    if (d >= 0) {
+      return d;
+    } else {
+      assert(
+        d === -1,
+        () => `Negative size values should be exactly -1 but got ${d} for the slice() size at index ${i}.`
+      );
+      return x.shape[i] - begin_[i];
+    }
+  });
+  return [begin_, size_];
+}
+function sliceInfo(xShape, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask) {
+  let stridesNonNull;
+  if (strides == null) {
+    stridesNonNull = new Array(begin.length);
+    stridesNonNull.fill(1);
+  } else {
+    stridesNonNull = strides;
+  }
+  if (ellipsisMask != null && (ellipsisMask & ellipsisMask - 1) !== 0) {
+    throw new Error("Multiple ellipses in slice is not allowed.");
+  }
+  let ellipsisSeen = false;
+  const sparseSpec = {
+    dims: stridesNonNull.length,
+    numAddAxisAfterEllipsis: 0,
+    begin: begin.slice(),
+    end: end.slice(),
+    strides: stridesNonNull.slice(),
+    beginMask,
+    endMask,
+    ellipsisMask,
+    newAxisMask,
+    shrinkAxisMask
+  };
+  for (let i = 0; i < sparseSpec.dims; i++) {
+    if (ellipsisSeen && (1 << i & newAxisMask) !== 0) {
+      sparseSpec.numAddAxisAfterEllipsis++;
+    }
+    if (1 << i & ellipsisMask) {
+      ellipsisSeen = true;
+    }
+  }
+  if (!ellipsisSeen) {
+    sparseSpec.ellipsisMask |= 1 << sparseSpec.dims;
+    sparseSpec.dims++;
+  }
+  const denseSpec = {
+    dims: xShape.length,
+    beginMask: 0,
+    endMask: 0,
+    beginValid: false,
+    endValid: false
+  };
+  buildDenseSpec(sparseSpec, denseSpec);
+  let isIdentity = true;
+  let sliceDim0 = true;
+  let isSimpleSlice = true;
+  const processingShape = [];
+  const finalShape = [];
+  for (let i = 0; i < xShape.length; ++i) {
+    if (denseSpec.strides[i] === 0) {
+      throw Error(`strides[${i}] must be non-zero`);
+    }
+    const shrinkI = !!(denseSpec.shrinkAxisMask & 1 << i);
+    const dimI = xShape[i];
+    if (dimI === -1) {
+      processingShape.push(shrinkI ? 1 : -1);
+      continue;
+    }
+    const masks = [denseSpec.beginMask & 1 << i, denseSpec.endMask & 1 << i];
+    const validRange = [
+      denseSpec.strides[i] > 0 ? 0 : -1,
+      denseSpec.strides[i] > 0 ? dimI : dimI - 1
+    ];
+    if (shrinkI && denseSpec.strides[i] <= 0) {
+      throw Error("only stride 1 allowed on non-range indexing.");
+    }
+    isSimpleSlice = isSimpleSlice && denseSpec.strides[i] === 1;
+    const beginAndEndMasked = !!(denseSpec.beginMask & 1 << i && denseSpec.endMask & 1 << i);
+    if (denseSpec.beginValid && denseSpec.endValid) {
+      if (shrinkI) {
+        const xFwd = denseSpec.begin[i] < 0 ? dimI + denseSpec.begin[i] : denseSpec.begin[i];
+        denseSpec.begin[i] = xFwd;
+        denseSpec.end[i] = denseSpec.begin[i] + 1;
+        if (xFwd < 0 || xFwd >= dimI) {
+          throw Error(`slice index ${denseSpec.begin[i]} of dimension ${i} out of bounds.`);
+        }
+      } else {
+        denseSpec.begin[i] = canonical(
+          denseSpec.begin[i],
+          0,
+          denseSpec.strides[i],
+          dimI,
+          masks,
+          validRange
+        );
+        denseSpec.end[i] = canonical(
+          denseSpec.end[i],
+          1,
+          denseSpec.strides[i],
+          dimI,
+          masks,
+          validRange
+        );
+      }
+      const takeAllInDimension = denseSpec.strides[i] === 1 && denseSpec.begin[i] === 0 && denseSpec.end[i] === dimI;
+      isIdentity = isIdentity && takeAllInDimension;
+      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || takeAllInDimension);
+    } else {
+      isIdentity = isIdentity && (denseSpec.strides[i] === 1 && beginAndEndMasked);
+      sliceDim0 = sliceDim0 && (i === 0 && denseSpec.strides[i] === 1 || beginAndEndMasked);
+    }
+    let intervalLength;
+    let knownInterval = false;
+    if (denseSpec.beginValid && denseSpec.endValid) {
+      intervalLength = denseSpec.end[i] - denseSpec.begin[i];
+      knownInterval = true;
+    } else if (shrinkI) {
+      intervalLength = 1;
+      knownInterval = true;
+    } else if (beginAndEndMasked) {
+      if (dimI >= 0) {
+        if (denseSpec.strides[i] < 0) {
+          intervalLength = -dimI;
+        } else {
+          intervalLength = dimI;
+        }
+        knownInterval = true;
+      }
+    }
+    if (knownInterval) {
+      let sizeI;
+      if (intervalLength === 0 || intervalLength < 0 !== denseSpec.strides[i] < 0) {
+        sizeI = 0;
+      } else {
+        sizeI = Math.trunc(intervalLength / denseSpec.strides[i]) + (intervalLength % denseSpec.strides[i] !== 0 ? 1 : 0);
+      }
+      processingShape.push(sizeI);
+    } else {
+      processingShape.push(-1);
+    }
+  }
+  for (let denseDim = 0; denseDim < denseSpec.finalShapeGatherIndices.length; ++denseDim) {
+    const gatherIndex = denseSpec.finalShapeGatherIndices[denseDim];
+    if (gatherIndex >= 0) {
+      finalShape.push(processingShape[gatherIndex]);
+    } else if (gatherIndex === NEW_AXIS) {
+      finalShape.push(1);
+    }
+  }
+  const finalShapeSparse = finalShape.filter(
+    (dim, i) => denseSpec.finalShapeGatherIndices[i] !== NEW_AXIS
+  );
+  return {
+    finalShapeSparse,
+    finalShape,
+    isIdentity,
+    sliceDim0,
+    isSimpleSlice,
+    begin: denseSpec.begin,
+    end: denseSpec.end,
+    strides: denseSpec.strides
+  };
+}
+function buildDenseSpec(sparse, dense) {
+  dense.beginMask = 0;
+  dense.endMask = 0;
+  dense.shrinkAxisMask = 0;
+  let fullIndex = 0;
+  dense.beginValid = sparse.begin != null;
+  dense.endValid = sparse.end != null;
+  dense.begin = new Array(dense.dims);
+  dense.end = new Array(dense.dims);
+  dense.strides = new Array(dense.dims);
+  dense.finalShapeGatherIndices = [];
+  dense.finalShapeGatherIndicesSparse = [];
+  dense.inputShapeGatherIndicesSparse = new Array(dense.dims);
+  for (let i = 0; i < sparse.dims; i++) {
+    if (1 << i & sparse.ellipsisMask) {
+      const nextIndex = Math.min(
+        dense.dims - (sparse.dims - i) + 1 + sparse.numAddAxisAfterEllipsis,
+        dense.dims
+      );
+      for (; fullIndex < nextIndex; fullIndex++) {
+        dense.begin[fullIndex] = 0;
+        dense.end[fullIndex] = 0;
+        dense.strides[fullIndex] = 1;
+        dense.beginMask |= 1 << fullIndex;
+        dense.endMask |= 1 << fullIndex;
+        dense.finalShapeGatherIndices.push(fullIndex);
+        dense.finalShapeGatherIndicesSparse.push(-1);
+        dense.inputShapeGatherIndicesSparse[fullIndex] = i;
+      }
+    } else if (1 << i & sparse.newAxisMask) {
+      dense.finalShapeGatherIndices.push(NEW_AXIS);
+      dense.finalShapeGatherIndicesSparse.push(-1);
+    } else {
+      if (fullIndex === dense.begin.length) {
+        throw Error(
+          `Index out of range using input dim ${fullIndex}; input has only ${dense.dims} dims, ${dense.begin.length}.`
+        );
+      }
+      if (sparse.begin != null) {
+        dense.begin[fullIndex] = sparse.begin[i];
+      }
+      if (sparse.end != null) {
+        dense.end[fullIndex] = sparse.end[i];
+      }
+      dense.strides[fullIndex] = sparse.strides[i];
+      if (sparse.beginMask & 1 << i) {
+        dense.beginMask |= 1 << fullIndex;
+      }
+      if (sparse.endMask & 1 << i) {
+        dense.endMask |= 1 << fullIndex;
+      }
+      if (sparse.shrinkAxisMask & 1 << i) {
+        dense.finalShapeGatherIndices.push(SHRINK_AXIS);
+        dense.finalShapeGatherIndicesSparse.push(-1);
+        dense.shrinkAxisMask |= 1 << fullIndex;
+      } else {
+        dense.finalShapeGatherIndices.push(fullIndex);
+        dense.finalShapeGatherIndicesSparse.push(i);
+      }
+      dense.inputShapeGatherIndicesSparse[fullIndex] = i;
+      fullIndex++;
+    }
+  }
+}
+function canonical(x, c, strideI, dimI, masks, validRange) {
+  if (masks[c]) {
+    return strideI > 0 ? validRange[c] : validRange[c + 1 & 1];
+  } else {
+    const xFwd = x < 0 ? dimI + x : x;
+    return xFwd < validRange[0] ? validRange[0] : xFwd > validRange[1] ? validRange[1] : xFwd;
+  }
+}
 
 // src/tfjs-core/src/browser_util.ts
 var delayCallback = (() => {
@@ -13391,6 +14005,7 @@ __export(backend_util_exports, {
   shouldFuse: () => shouldFuse,
   slice_util: () => slice_util_exports,
   splitRealAndImagArrays: () => splitRealAndImagArrays,
+  stridesOrDilationsArePositive: () => stridesOrDilationsArePositive,
   tupleValuesAreOne: () => tupleValuesAreOne,
   upcastType: () => upcastType,
   validateDefaultValueShape: () => validateDefaultValueShape,
@@ -14025,6 +14640,9 @@ __export(kernel_impls_exports, {
   whereImpl: () => whereImpl
 });
 
+// src/tfjs-core/src/index.ts
+registerOptimizers();
+
 // src/tfjs-backend-cpu/src/cpu_util.ts
 function assertNotComplex(tensor2, opName) {
   if (!Array.isArray(tensor2)) {
@@ -14066,6 +14684,12 @@ var _MathBackendCPU = class extends KernelBackend {
     this.data.set(dataId, { values, dtype, refCount: 1 });
     return dataId;
   }
+  /**
+   * Create a data bucket in cpu backend.
+   * @param shape Shape of the `TensorInfo`.
+   * @param dtype DType of the `TensorInfo`.
+   * @param values The value of the `TensorInfo` stored as a flattened array.
+   */
   makeTensorInfo(shape, dtype, values) {
     let outId;
     if (dtype === "string" && values != null && values.length > 0 && util_exports.isString(values[0])) {
@@ -14076,6 +14700,7 @@ var _MathBackendCPU = class extends KernelBackend {
     }
     return { dataId: outId, shape, dtype };
   }
+  /** Return refCount of a `TensorData`. */
   refCount(dataId) {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
@@ -14083,10 +14708,12 @@ var _MathBackendCPU = class extends KernelBackend {
     }
     return 0;
   }
+  /** Increase refCount of a `TensorData`. */
   incRef(dataId) {
     const tensorData = this.data.get(dataId);
     tensorData.refCount++;
   }
+  /** Decrease refCount of a `TensorData`. */
   decRef(dataId) {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
@@ -14109,7 +14736,10 @@ var _MathBackendCPU = class extends KernelBackend {
       const imagValues = this.readSync(complexTensorInfos.imag.dataId);
       return backend_util_exports.mergeRealAndImagArrays(realValues, imagValues);
     }
-    return this.data.get(dataId).values;
+    return util_exports.convertBackendValuesAndArrayBuffer(
+      this.data.get(dataId).values,
+      dtype
+    );
   }
   bufferSync(t) {
     const data = this.readSync(t.dataId);
@@ -14129,6 +14759,13 @@ var _MathBackendCPU = class extends KernelBackend {
       this
     );
   }
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released or memory is not managed in this backend, false if memory is
+   * not cleared.
+   * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
+   */
   disposeData(dataId, force = false) {
     if (this.data.has(dataId)) {
       this.data.get(dataId).refCount--;
@@ -14155,6 +14792,7 @@ var _MathBackendCPU = class extends KernelBackend {
   }
   memory() {
     return {
+      // Unreliable due to automatic gc. The numbers above are cumulative.
       unreliable: true,
       reasons: ["The reported memory is an upper bound. Due to automatic garbage collection, the true allocated memory may be less."]
     };
@@ -14169,6 +14807,7 @@ var _MathBackendCPU = class extends KernelBackend {
   floatPrecision() {
     return 32;
   }
+  /** Returns the smallest representable number.  */
   epsilon() {
     return super.epsilon();
   }
@@ -14188,6 +14827,7 @@ __export(shared_exports, {
   equalImpl: () => equalImpl,
   expImpl: () => expImpl,
   expm1Impl: () => expm1Impl,
+  floorDivImpl: () => floorDivImpl,
   floorImpl: () => floorImpl,
   gatherNdImpl: () => gatherNdImpl,
   gatherV2Impl: () => gatherV2Impl,
@@ -14218,6 +14858,7 @@ __export(shared_exports, {
   sparseSegmentReductionImpl: () => sparseSegmentReductionImpl,
   sqrtImpl: () => sqrtImpl,
   squaredDifferenceImpl: () => squaredDifferenceImpl,
+  staticRegexReplaceImpl: () => staticRegexReplaceImpl,
   stridedSliceImpl: () => stridedSliceImpl,
   stringNGramsImpl: () => stringNGramsImpl,
   stringSplitImpl: () => stringSplitImpl,
@@ -14403,8 +15044,14 @@ function binaryKernelFunc(name, simpleImpl, complexImpl, dtype) {
       assertNotComplex([a, b], name);
       const aVals = cpuBackend.data.get(a.dataId).values;
       const bVals = cpuBackend.data.get(b.dataId).values;
-      const decodedAVals = a.dtype === "string" ? backend_util_exports.fromUint8ToStringArray(aVals) : aVals;
-      const decodedBVals = a.dtype === "string" ? backend_util_exports.fromUint8ToStringArray(bVals) : bVals;
+      const decodedAVals = a.dtype === "string" ? (
+        // tslint:disable-next-line: no-any
+        backend_util_exports.fromUint8ToStringArray(aVals)
+      ) : aVals;
+      const decodedBVals = a.dtype === "string" ? (
+        // tslint:disable-next-line: no-any
+        backend_util_exports.fromUint8ToStringArray(bVals)
+      ) : bVals;
       const $dtype = dtype || a.dtype;
       const [resultData, resultShape] = simpleImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
       return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
@@ -14571,7 +15218,7 @@ function bincountReduceImpl(xBuf, weightsBuf, size, binaryOutput = false) {
 // src/tfjs-backend-cpu/src/utils/unary_impl.ts
 function createSimpleUnaryImpl(op2) {
   return (values, dtype, attrs) => {
-    const newValues = util_exports.getTypedArrayFromDType(dtype, values.length);
+    const newValues = util_exports.getArrayFromDType(dtype, values.length);
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = op2(values[i], attrs);
     }
@@ -14581,34 +15228,26 @@ function createSimpleUnaryImpl(op2) {
 
 // src/tfjs-backend-cpu/src/utils/unary_utils.ts
 function unaryKernelFunc(name, op2, dtype) {
-  return ({ inputs, attrs, backend }) => {
-    const { x } = inputs;
-    assertNotComplex(x, name);
-    if (x.dtype === "string" || dtype === "string") {
-      throw new Error("unaryKernelFunc does not support string input/output");
-    }
-    const cpuBackend = backend;
-    const values = cpuBackend.data.get(x.dataId).values;
-    const xSize = util_exports.sizeFromShape(x.shape);
-    const $dtype = dtype || x.dtype;
-    const newValues = util_exports.getArrayFromDType($dtype, xSize);
-    for (let i = 0; i < xSize; ++i) {
-      newValues[i] = op2(values[i], attrs);
-    }
-    return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
-  };
+  const impl = createSimpleUnaryImpl(op2);
+  return unaryKernelFuncFromImpl(name, impl, dtype);
 }
 function unaryKernelFuncFromImpl(name, unaryImpl, dtype) {
   return ({ inputs, attrs, backend }) => {
     const { x } = inputs;
     assertNotComplex(x, name);
-    if (x.dtype === "string" || dtype === "string") {
-      throw new Error("unaryKernelFunc does not support string input/output");
-    }
     const cpuBackend = backend;
     const values = cpuBackend.data.get(x.dataId).values;
+    let decoded;
+    if (x.dtype === "string") {
+      if (!Array.isArray(values)) {
+        throw new Error("String tensor's value was not an instance of Array");
+      }
+      decoded = backend_util_exports.fromUint8ToStringArray(values);
+    } else {
+      decoded = values;
+    }
     const $dtype = dtype || x.dtype;
-    const newValues = unaryImpl(values, $dtype, attrs);
+    const newValues = unaryImpl(decoded, $dtype, attrs);
     return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
   };
 }
@@ -14683,6 +15322,15 @@ var floorConfig = {
   kernelName: Floor,
   backendName: "cpu",
   kernelFunc: floor2
+};
+
+// src/tfjs-backend-cpu/src/kernels/FloorDiv.ts
+var floorDivImpl = createSimpleBinaryKernelImpl((a, b) => Math.floor(a / b));
+var floorDiv2 = binaryKernelFunc(FloorDiv, floorDivImpl, null, "int32");
+var floorDivConfig = {
+  kernelName: FloorDiv,
+  backendName: "cpu",
+  kernelFunc: floorDiv2
 };
 
 // src/tfjs-backend-cpu/src/kernels/GatherNd_Impl.ts
@@ -15215,6 +15863,7 @@ var RaggedTensorToTensorOp = class {
       return this.rowPartitionTypes[dimension];
     }
   }
+  // Returns the relationship between dimension and dimension + 1.
   getRowPartitionTensor(dimension) {
     if (this.rowPartitionTypes[0] === RowPartitionType2.FIRST_DIM_SIZE) {
       return this.rowPartitionValues[dimension + 1];
@@ -15299,6 +15948,16 @@ var RaggedTensorToTensorOp = class {
     }
     return result;
   }
+  /**
+   * The outputIndex represents the index in the output tensor
+   * where the first element of a particular dimension would be written.
+   * If it is -1, it indicates that the index is out of scope.
+   * Example, given firstDimension = 10, firstDimensionOutput = 6,
+   * and outputIndexMultiplier = 100:
+   * result = [0 100 200 300 400 500 -1 -1 -1 -1]
+   * If firstDimensionOutput = 11 instead, then:
+   * result = [0 100 200 300 400 500 600 700 800 900]
+   */
   calculateFirstParentOutputIndex(firstDimension, outputIndexMultiplier, firstDimensionOutput) {
     const minDimension = Math.min(firstDimension, firstDimensionOutput);
     const result = [];
@@ -15338,6 +15997,27 @@ var RaggedTensorToTensorOp = class {
     }
     return result;
   }
+  // Calculate the output index of the first element of a list.
+  // The parentOutputIndex is the same computation for the previous list.
+  // -1 indicates an element or list that is out of range.
+  // The outputIndexMultiplier is the number of output indices one moves
+  // forward for each column.
+  // E.g., given:
+  // valueRowIds:[0 1 2 2 2 3 5 5 6]
+  // parentOutputIndex:[1000 1100 2000 2100 -1 3000 4000]
+  // outputIndexMultiplier: 10
+  // outputSize: 2
+  // You get:
+  // result = [1000 1100 2000 2010 -1 2100 -1 -1 3000]
+  // result[0] = parentOutputIndex[valueRowIds[0]]
+  // result[1] = parentOutputIndex[valueRowIds[1]]
+  // result[2] = parentOutputIndex[valueRowIds[2]]
+  // result[3] = parentOutputIndex[valueRowIds[2] + 10]
+  // result[4] = -1 because it is the third element the size is 2.
+  // result[5] = parentOutputIndex[valueRowIds[3]]
+  // result[6] = -1 because parentOutputIndex[valueRowIds[6]] == -1
+  // result[7] = -1 because parentOutputIndex[valueRowIds[6]] == -1
+  // result[8] = parentOutputIndex[valueRowIds[7]]
   calculateOutputIndexValueRowID(valueRowIds, parentOutputIndex, outputIndexMultiplier, outputSize) {
     const indexSize = valueRowIds.length;
     const result = [];
@@ -15600,7 +16280,7 @@ function scatterImpl(indices, updates, shape, outputSize, sliceSize, numUpdates,
   if (outputSize === 0) {
     return buffer(shape, updates.dtype);
   }
-  const outBuf = buffer(flattenShape, updates.dtype);
+  const outBuf = defaultValue instanceof TensorBuffer ? defaultValue : buffer(flattenShape, updates.dtype);
   if (typeof defaultValue === "string") {
     outBuf.values.fill(defaultValue);
   } else if (typeof defaultValue === "number") {
@@ -15986,6 +16666,18 @@ var squaredDifferenceConfig = {
   kernelFunc: squaredDifference2
 };
 
+// src/tfjs-backend-cpu/src/kernels/StaticRegexReplace.ts
+var staticRegexReplaceImpl = createSimpleUnaryImpl((x, attrs) => {
+  const { pattern, replaceGlobal, rewrite } = attrs;
+  return x.replace(new RegExp(pattern, replaceGlobal ? "g" : ""), rewrite);
+});
+var staticRegexReplace2 = unaryKernelFuncFromImpl(StaticRegexReplace, staticRegexReplaceImpl);
+var staticRegexReplaceConfig = {
+  kernelName: StaticRegexReplace,
+  backendName: "cpu",
+  kernelFunc: staticRegexReplace2
+};
+
 // src/tfjs-backend-cpu/src/kernels/StridedSlice_impl.ts
 function stridedSliceImpl(outShape, xBuf, strides, begin) {
   const outBuf = buffer(outShape, xBuf.dtype);
@@ -16068,6 +16760,9 @@ var StringNGramsOp = class {
       }
     }
   }
+  // Data and splits together form the definition of the ragged tensor,
+  // where data is 1 dimensional and contains the values of the tensor
+  // and splits denotes the indices at which each row starts.
   compute(data, splits) {
     const inputDataSize = data.length;
     const splitsSize = splits.length;
@@ -16361,7 +17056,7 @@ function uniqueImpl(values, axis, shape, dtype) {
   for (let i = $axis + 1; i < shape.length; i++) {
     newShape[2] *= shape[i];
   }
-  const uniqueElements = {};
+  const uniqueElements = /* @__PURE__ */ new Map();
   const indices = new Int32Array(shape[$axis]);
   const inputBuffer = new TensorBuffer(newShape, dtype, values);
   const uniqueIndices = [];
@@ -16379,17 +17074,18 @@ function uniqueImpl(values, axis, shape, dtype) {
       }
       element = axisValues.join(",");
     }
-    if (uniqueElements[element] !== void 0) {
-      indices[i] = uniqueElements[element];
+    const existingIndex = uniqueElements.get(element);
+    if (existingIndex != null) {
+      indices[i] = existingIndex;
     } else {
-      const uniqueIndex = Object.keys(uniqueElements).length;
-      uniqueElements[element] = uniqueIndex;
+      const uniqueIndex = uniqueElements.size;
+      uniqueElements.set(element, uniqueIndex);
       indices[i] = uniqueIndex;
       uniqueIndices.push(i);
     }
   }
   const outputTmpShape = newShape.slice();
-  outputTmpShape[1] = Object.keys(uniqueElements).length;
+  outputTmpShape[1] = uniqueElements.size;
   const outputBuffer = new TensorBuffer(outputTmpShape, dtype);
   uniqueIndices.forEach((uniqueElementIndex, i) => {
     for (let m = 0; m < newShape[0]; m++) {
@@ -16411,7 +17107,12 @@ function uniqueImpl(values, axis, shape, dtype) {
 var version2 = "0.0.0";
 
 // src/tfjs-backend-cpu/src/base.ts
-registerBackend("cpu", () => new MathBackendCPU(), 1);
+registerBackend(
+  "cpu",
+  () => new MathBackendCPU(),
+  1
+  /* priority */
+);
 
 // src/tfjs-backend-cpu/src/kernels/Elu.ts
 var elu2 = unaryKernelFunc(Elu, (xi) => xi >= 0 ? xi : Math.exp(xi) - 1);
@@ -16570,20 +17271,26 @@ function batchMatMul(args) {
   const resVals = result.values;
   const blockSize = backend.blockSize;
   for (let bi = 0; bi < batchDim; bi++) {
+    const batchIndexA = bi % batchDimA;
+    const batchIndexB = bi % batchDimB;
     for (let i0 = 0; i0 < leftDim; i0 += blockSize) {
+      const iBlock = Math.min(i0 + blockSize, leftDim);
       for (let j0 = 0; j0 < rightDim; j0 += blockSize) {
+        const jBlock = Math.min(j0 + blockSize, rightDim);
         for (let k02 = 0; k02 < sharedDim; k02 += blockSize) {
-          const iBlock = Math.min(i0 + blockSize, leftDim);
-          const jBlock = Math.min(j0 + blockSize, rightDim);
           const kBlock = Math.min(k02 + blockSize, sharedDim);
           for (let i = i0; i < iBlock; i++) {
             for (let j = j0; j < jBlock; j++) {
               let sum4 = 0;
               for (let k = k02; k < kBlock; k++) {
-                const batchOffsetA = Math.min(bi, batchDimA - 1) * aBatch;
-                const batchOffsetB = Math.min(bi, batchDimB - 1) * bBatch;
-                const aVal = a3dValues[batchOffsetA + i * aOuterStep + k * aInnerStep];
-                const bVal = b3dValues[k * bInnerStep + j * bOuterStep + batchOffsetB];
+                const aVal = (
+                  // tslint:disable-next-line: max-line-length
+                  a3dValues[batchIndexA * aBatch + i * aOuterStep + k * aInnerStep]
+                );
+                const bVal = (
+                  // tslint:disable-next-line: max-line-length
+                  b3dValues[k * bInnerStep + j * bOuterStep + batchIndexB * bBatch]
+                );
                 sum4 += aVal * bVal;
               }
               resVals[bi * size + (i * rightDim + j)] += sum4;
@@ -17094,7 +17801,7 @@ function pool3d(xValues, xShape, dtype, strides, convInfo, poolType) {
               }
             }
             const outputOffset = outputColOffset + channel;
-            outputVals[outputOffset] = poolType === "avg" ? avgValue / count : minMaxValue;
+            outputVals[outputOffset] = poolType === "avg" ? avgValue / Math.max(count, 1) : minMaxValue;
           }
         }
       }
@@ -17599,7 +18306,11 @@ function concat2(args) {
   const inputsValShapes = inputs2D.map((t) => {
     return { vals: backend.data.get(t.dataId).values, shape: t.shape };
   });
-  outShape = backend_util_exports.computeOutShape(inputs2D.map((t) => t.shape), 1);
+  outShape = backend_util_exports.computeOutShape(
+    inputs2D.map((t) => t.shape),
+    1
+    /* axis */
+  );
   const simplyConcat = inputs2D[0].shape[0] === 1;
   const outVals = concatImpl(inputsValShapes, outShape, inputs[0].dtype, simplyConcat);
   const finalOutShape = backend_util_exports.computeOutShape($inputs.map((t) => t.shape), $axis);
@@ -18433,6 +19144,7 @@ function depthwiseConv2dNative(args) {
     pad2,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   const { filterHeight, filterWidth, dilationHeight, dilationWidth, padInfo } = convInfo;
   const padLeft = padInfo.left;
@@ -18502,6 +19214,7 @@ function depthwiseConv2dNativeBackpropFilter2(args) {
     pad2,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   const { strideHeight, strideWidth, filterHeight, filterWidth } = convInfo;
   const dW = new TensorBuffer(convInfo.filterShape, "float32");
@@ -18565,6 +19278,7 @@ function depthwiseConv2dNativeBackpropInput2(args) {
     pad2,
     dimRoundingMode,
     true
+    /* depthwise */
   );
   const dx = new TensorBuffer(convInfo.inShape, "float32");
   const dxValues = dx.values;
@@ -19046,7 +19760,7 @@ function eluGrad(args) {
   const dyValues = backend.data.get(dy.dataId).values;
   for (let i = 0; i < values.length; ++i) {
     const v = values[i];
-    if (v >= 1) {
+    if (v >= 0) {
       resultValues[i] = dyValues[i];
     } else {
       resultValues[i] = dyValues[i] * (v + 1);
@@ -19407,15 +20121,6 @@ var flipLeftRightConfig = {
     const dataId = cpuBackend.write(output, image.shape, image.dtype);
     return { dataId, shape: image.shape, dtype: image.dtype };
   }
-};
-
-// src/tfjs-backend-cpu/src/kernels/FloorDiv.ts
-var floorDivImpl = createSimpleBinaryKernelImpl((a, b) => Math.floor(a / b));
-var floorDiv2 = binaryKernelFunc(FloorDiv, floorDivImpl, null, "int32");
-var floorDivConfig = {
-  kernelName: FloorDiv,
-  backendName: "cpu",
-  kernelFunc: floorDiv2
 };
 
 // src/tfjs-backend-cpu/src/kernels/FusedConv2D.ts
@@ -20196,6 +20901,7 @@ function mirrorPad2(args) {
   assertNotComplex(x, "mirrorPad");
   const outShape = paddings.map(
     (p2, i) => p2[0] + x.shape[i] + p2[1]
+    /* afterPad */
   );
   const start = paddings.map((p2) => p2[0]);
   const end = paddings.map((p2, i) => p2[0] + x.shape[i]);
@@ -20558,6 +21264,7 @@ function padV2(args) {
   assertNotComplex(x, "pad");
   const outShape = paddings.map(
     (p2, i) => p2[0] + x.shape[i] + p2[1]
+    /* afterPad */
   );
   const start = paddings.map((p2) => p2[0]);
   const xVals = backend.data.get(x.dataId).values;
@@ -21849,6 +22556,35 @@ var tanhConfig = {
   kernelFunc: tanh3
 };
 
+// src/tfjs-backend-cpu/src/kernels/TensorScatterUpdate.ts
+function tensorScatterUpdate2(args) {
+  const { inputs, backend } = args;
+  const { tensor: tensor2, indices, updates } = inputs;
+  const { sliceRank, numUpdates, sliceSize, strides, outputSize } = backend_util_exports.calculateShapes(updates, indices, tensor2.shape);
+  const sumDupeIndices = false;
+  const indicesBuf = backend.bufferSync(indices);
+  const updatesBuf = backend.bufferSync(updates);
+  const tensorBuf = backend.bufferSync(tensor2);
+  const outBuf = scatterImpl(
+    indicesBuf,
+    updatesBuf,
+    tensor2.shape,
+    outputSize,
+    sliceSize,
+    numUpdates,
+    sliceRank,
+    strides,
+    tensorBuf,
+    sumDupeIndices
+  );
+  return backend.makeTensorInfo(tensor2.shape, outBuf.dtype, outBuf.values);
+}
+var tensorScatterUpdateConfig = {
+  kernelName: TensorScatterUpdate,
+  backendName: "cpu",
+  kernelFunc: tensorScatterUpdate2
+};
+
 // src/tfjs-backend-cpu/src/kernels/Tile.ts
 function tile2(args) {
   const { inputs, backend, attrs } = args;
@@ -22199,7 +22935,10 @@ function unsortedSegmentSum2(args) {
     intermediates.push(expanded);
   }
   for (let i = 0; i < numSegments; ++i) {
-    const scalarValue = util_exports.createScalarValue(i, "int32");
+    const scalarValue = util_exports.createScalarValue(
+      i,
+      "int32"
+    );
     const segmentId = backend.makeTensorInfo([], "int32", scalarValue);
     const mask = equal2({ inputs: { a: segmentId, b: $segmentIds }, backend });
     const maskCasted = cast2({ inputs: { x: mask }, backend, attrs: { dtype: "float32" } });
@@ -22375,6 +23114,7 @@ var kernelConfigs = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  staticRegexReplaceConfig,
   stepConfig,
   stridedSliceConfig,
   stringNGramsConfig,
@@ -22384,6 +23124,7 @@ var kernelConfigs = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,
