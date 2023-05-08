@@ -1794,6 +1794,23 @@ function sizeFromShape(shape) {
 function isScalarShape(shape) {
   return shape.length === 0;
 }
+function arraysEqualWithNull(n1, n2) {
+  if (n1 === n2) {
+    return true;
+  }
+  if (n1 == null || n2 == null) {
+    return false;
+  }
+  if (n1.length !== n2.length) {
+    return false;
+  }
+  for (let i = 0; i < n1.length; i++) {
+    if (n1[i] !== null && n2[i] !== null && n1[i] !== n2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 function arraysEqual(n1, n2) {
   if (n1 === n2) {
     return true;
@@ -2234,6 +2251,9 @@ var Environment = class {
   getBool(flagName) {
     return this.get(flagName);
   }
+  getString(flagName) {
+    return this.get(flagName);
+  }
   getFlags() {
     return this.flags;
   }
@@ -2294,15 +2314,14 @@ function decodeParam(params, name, value) {
   params[decodeURIComponent(name)] = decodeURIComponent(value || "");
 }
 function parseValue(flagName, value) {
-  value = value.toLowerCase();
-  if (value === "true" || value === "false") {
-    return value === "true";
-  } else if (`${+value}` === value) {
-    return +value;
+  const lowerCaseValue = value.toLowerCase();
+  if (lowerCaseValue === "true" || lowerCaseValue === "false") {
+    return lowerCaseValue === "true";
+  } else if (`${+lowerCaseValue}` === lowerCaseValue) {
+    return +lowerCaseValue;
+  } else {
+    return value;
   }
-  throw new Error(
-    `Could not parse value flag value ${value} for flag ${flagName}.`
-  );
 }
 function env() {
   return ENV;
@@ -2372,6 +2391,7 @@ var AvgPool3DGrad = "AvgPool3DGrad";
 var BatchMatMul = "BatchMatMul";
 var BatchToSpaceND = "BatchToSpaceND";
 var Bincount = "Bincount";
+var BitwiseAnd = "BitwiseAnd";
 var BroadcastArgs = "BroadcastArgs";
 var Cast = "Cast";
 var Ceil = "Ceil";
@@ -2399,6 +2419,7 @@ var Diag = "Diag";
 var Dilation2D = "Dilation2D";
 var Dilation2DBackpropInput = "Dilation2DBackpropInput";
 var Dilation2DBackpropFilter = "Dilation2DBackpropFilter";
+var Draw = "Draw";
 var RealDiv = "RealDiv";
 var Einsum = "Einsum";
 var Elu = "Elu";
@@ -2579,6 +2600,7 @@ function makeKey(kernelName, backendName) {
 var util_exports = {};
 __export(util_exports, {
   arraysEqual: () => arraysEqual,
+  arraysEqualWithNull: () => arraysEqualWithNull,
   assert: () => assert,
   assertNonNegativeIntegerDimensions: () => assertNonNegativeIntegerDimensions,
   assertNonNull: () => assertNonNull,
@@ -2635,6 +2657,11 @@ __export(util_exports, {
   toNestedArray: () => toNestedArray,
   toTypedArray: () => toTypedArray
 });
+
+// src/tfjs-core/src/platforms/is_typed_array_browser.ts
+function isTypedArrayBrowser(a) {
+  return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+}
 
 // src/tfjs-core/src/hash_util.ts
 var LongExports = __toESM(require_long());
@@ -2860,7 +2887,11 @@ function decodeString(bytes, encoding = "utf-8") {
   return env().platform.decode(bytes, encoding);
 }
 function isTypedArray(a) {
-  return env().platform.isTypedArray(a);
+  if (env().platform.isTypedArray != null) {
+    return env().platform.isTypedArray(a);
+  } else {
+    return isTypedArrayBrowser(a);
+  }
 }
 function flatten(arr, result = [], skipTypedArray = false) {
   if (result == null) {
@@ -3499,12 +3530,10 @@ var Tensor = class {
    *        texShape: [number, number] // [height, width]
    *     }
    *
-   *     For WebGPU backend, a GPUData contains the new buffer and
-   *     its information.
+   *     For WebGPU backend, a GPUData contains the new buffer.
    *     {
    *        tensorRef: The tensor that is associated with this buffer,
    *        buffer: GPUBuffer,
-   *        bufSize: number
    *     }
    *
    *     Remember to dispose the GPUData after it is used by
@@ -4949,11 +4978,146 @@ function tensor(values, shape, dtype) {
   return makeTensor(values, shape, inferredShape, dtype);
 }
 
+// src/tfjs-core/src/io/composite_array_buffer.ts
+var CompositeArrayBuffer = class {
+  shards = [];
+  previousShardIndex = 0;
+  bufferUniformSize;
+  byteLength;
+  /**
+   * Concatenate a number of ArrayBuffers into one.
+   *
+   * @param buffers An array of ArrayBuffers to concatenate, or a single
+   *     ArrayBuffer.
+   * @returns Result of concatenating `buffers` in order.
+   */
+  static join(buffers) {
+    return new CompositeArrayBuffer(buffers).slice();
+  }
+  constructor(buffers) {
+    if (buffers == null) {
+      return;
+    }
+    if (!(buffers instanceof Array)) {
+      buffers = [buffers];
+    }
+    buffers = buffers.map((bufferOrTypedArray) => {
+      if (isTypedArray(bufferOrTypedArray)) {
+        return bufferOrTypedArray.buffer;
+      }
+      return bufferOrTypedArray;
+    });
+    if (buffers.length === 0) {
+      return;
+    }
+    this.bufferUniformSize = buffers[0].byteLength;
+    let start = 0;
+    for (let i = 0; i < buffers.length; i++) {
+      const buffer2 = buffers[i];
+      if (i !== buffers.length - 1 && buffer2.byteLength !== this.bufferUniformSize) {
+        this.bufferUniformSize = void 0;
+      }
+      const end = start + buffer2.byteLength;
+      this.shards.push({ buffer: buffer2, start, end });
+      start = end;
+    }
+    if (this.shards.length === 0) {
+      this.byteLength = 0;
+    }
+    this.byteLength = this.shards[this.shards.length - 1].end;
+  }
+  slice(start = 0, end = this.byteLength) {
+    if (this.shards.length === 0) {
+      return new ArrayBuffer(0);
+    }
+    start = isNaN(Number(start)) ? 0 : start;
+    end = isNaN(Number(end)) ? 0 : end;
+    start = Math.max(0, start);
+    end = Math.min(this.byteLength, end);
+    if (end <= start) {
+      return new ArrayBuffer(0);
+    }
+    const startShardIndex = this.findShardForByte(start);
+    if (startShardIndex === -1) {
+      throw new Error(`Could not find start shard for byte ${start}`);
+    }
+    const size = end - start;
+    const outputBuffer = new ArrayBuffer(size);
+    const outputArray = new Uint8Array(outputBuffer);
+    let sliced = 0;
+    for (let i = startShardIndex; i < this.shards.length; i++) {
+      const shard = this.shards[i];
+      const globalStart = start + sliced;
+      const localStart = globalStart - shard.start;
+      const outputStart = sliced;
+      const globalEnd = Math.min(end, shard.end);
+      const localEnd = globalEnd - shard.start;
+      const outputSlice = new Uint8Array(
+        shard.buffer,
+        localStart,
+        localEnd - localStart
+      );
+      outputArray.set(outputSlice, outputStart);
+      sliced += outputSlice.length;
+      if (end < shard.end) {
+        break;
+      }
+    }
+    return outputBuffer;
+  }
+  /**
+   * Get the index of the shard that contains the byte at `byteIndex`.
+   */
+  findShardForByte(byteIndex) {
+    if (this.shards.length === 0 || byteIndex < 0 || byteIndex >= this.byteLength) {
+      return -1;
+    }
+    if (this.bufferUniformSize != null) {
+      this.previousShardIndex = Math.floor(byteIndex / this.bufferUniformSize);
+      return this.previousShardIndex;
+    }
+    function check(shard) {
+      if (byteIndex < shard.start) {
+        return -1;
+      }
+      if (byteIndex >= shard.end) {
+        return 1;
+      }
+      return 0;
+    }
+    if (check(this.shards[this.previousShardIndex]) === 0) {
+      return this.previousShardIndex;
+    }
+    const index = search(this.shards, check);
+    if (index === -1) {
+      return -1;
+    }
+    this.previousShardIndex = index;
+    return this.previousShardIndex;
+  }
+};
+function search(sortedArray, compare) {
+  let min3 = 0;
+  let max3 = sortedArray.length;
+  while (min3 <= max3) {
+    const middle = Math.floor((max3 - min3) / 2) + min3;
+    const side = compare(sortedArray[middle]);
+    if (side === 0) {
+      return middle;
+    } else if (side < 0) {
+      max3 = middle;
+    } else {
+      min3 = middle + 1;
+    }
+  }
+  return -1;
+}
+
 // src/tfjs-core/src/io/io_utils.ts
 var useNodeBuffer = typeof Buffer !== "undefined" && (typeof Blob === "undefined" || typeof atob === "undefined" || typeof btoa === "undefined");
 function stringByteLength(str) {
   if (useNodeBuffer) {
-    return Buffer.byteLength(str);
+    return Buffer.byteLength(str, "utf8");
   }
   return new Blob([str]).size;
 }
@@ -4979,22 +5143,6 @@ function base64StringToArrayBuffer(str) {
     buffer2.set([s.charCodeAt(i)], i);
   }
   return buffer2.buffer;
-}
-function concatenateArrayBuffers(buffers) {
-  if (buffers.length === 1) {
-    return buffers[0];
-  }
-  let totalByteLength = 0;
-  buffers.forEach((buffer2) => {
-    totalByteLength += buffer2.byteLength;
-  });
-  const temp = new Uint8Array(totalByteLength);
-  let offset = 0;
-  buffers.forEach((buffer2) => {
-    temp.set(new Uint8Array(buffer2), offset);
-    offset += buffer2.byteLength;
-  });
-  return temp.buffer;
 }
 function getModelJSONForModelArtifacts(artifacts, manifest) {
   const result = {
@@ -5072,7 +5220,7 @@ function getModelArtifactsInfoForJSON(modelArtifacts) {
     modelTopologyType: "JSON",
     modelTopologyBytes: modelArtifacts.modelTopology == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),
     weightSpecsBytes: modelArtifacts.weightSpecs == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
-    weightDataBytes: modelArtifacts.weightData == null ? 0 : modelArtifacts.weightData.byteLength
+    weightDataBytes: modelArtifacts.weightData == null ? 0 : new CompositeArrayBuffer(modelArtifacts.weightData).byteLength
   };
 }
 function getWeightSpecs(weightsManifest) {
@@ -5467,13 +5615,14 @@ var BrowserLocalStorage = class {
       const topology = JSON.stringify(modelArtifacts.modelTopology);
       const weightSpecs = JSON.stringify(modelArtifacts.weightSpecs);
       const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
       try {
         this.LS.setItem(this.keys.info, JSON.stringify(modelArtifactsInfo));
         this.LS.setItem(this.keys.topology, topology);
         this.LS.setItem(this.keys.weightSpecs, weightSpecs);
         this.LS.setItem(
           this.keys.weightData,
-          arrayBufferToBase64String(modelArtifacts.weightData)
+          arrayBufferToBase64String(weightBuffer)
         );
         const metadata = {
           format: modelArtifacts.format,
@@ -5729,7 +5878,7 @@ var PlatformBrowser = class {
     }
   }
   isTypedArray(a) {
-    return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+    return isTypedArrayBrowser(a);
   }
 };
 if (env().get("IS_BROWSER")) {
@@ -6883,6 +7032,23 @@ function bincount_(x, weights, size) {
 }
 var bincount = op({ bincount_ });
 
+// src/tfjs-core/src/ops/bitwise_and.ts
+function bitwiseAnd_(x, y) {
+  const $x = convertToTensor(x, "x", "bitwiseAnd");
+  const $y = convertToTensor(y, "y", "bitwiseAnd");
+  if (!arraysEqual($x.shape, $y.shape)) {
+    throw new Error(`BitwiseAnd: Tensors must have the same shape. x: ${$x.shape}, y: ${$y.shape}`);
+  }
+  if ($x.dtype !== "int32" || $y.dtype !== "int32") {
+    throw new Error(
+      `BitwiseAnd: Only supports 'int32' values in tensor, found type of x: ${$x.dtype} and type of y: ${$y.dtype}`
+    );
+  }
+  const inputs = { a: $x, b: $y };
+  return ENGINE.runKernel(BitwiseAnd, inputs);
+}
+var bitwiseAnd = op({ bitwiseAnd_ });
+
 // src/tfjs-core/src/ops/broadcast_args.ts
 function broadcastArgs_(s0, s1) {
   const shape1Input = convertToTensor(s0, "s0", "broadcastArgs", "int32");
@@ -7658,6 +7824,16 @@ function elu_(x) {
   return ENGINE.runKernel(Elu, inputs);
 }
 var elu = op({ elu_ });
+
+// src/tfjs-core/src/ops/ensure_shape.ts
+function ensureShape_(x, shape) {
+  const $x = convertToTensor(x, "x", "ensureShape", "string_or_numeric");
+  if (!arraysEqualWithNull($x.shape, shape)) {
+    throw new Error(`EnsureShape: Shape of tensor ${$x.shape} is not compatible with expected shape ${shape}`);
+  }
+  return x;
+}
+var ensureShape = op({ ensureShape_ });
 
 // src/tfjs-core/src/ops/erf.ts
 function erf_(x) {
@@ -9146,6 +9322,12 @@ function randomUniform_(shape, minval = 0, maxval = 1, dtype = "float32", seed) 
   return res.toTensor();
 }
 var randomUniform = op({ randomUniform_ });
+
+// src/tfjs-core/src/ops/random_uniform_int.ts
+function randomUniformInt_(shape, minval, maxval, seed) {
+  return randomUniform(shape, minval, maxval, "int32", seed);
+}
+var randomUniformInt = op({ randomUniformInt_ });
 
 // src/tfjs-core/src/ops/range.ts
 function range(start, stop, step3 = 1, dtype = "float32") {
@@ -12926,8 +13108,9 @@ var _BrowserDownloads = class {
         "Browser downloads are not supported in this environment since `document` is not present"
       );
     }
+    const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
     const weightsURL = window.URL.createObjectURL(new Blob(
-      [modelArtifacts.weightData],
+      [weightBuffer],
       { type: "application/octet-stream" }
     ));
     if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
@@ -13111,9 +13294,10 @@ var HTTPRequest = class {
       "model.json"
     );
     if (modelArtifacts.weightData != null) {
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
       init.body.append(
         "model.weights.bin",
-        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
+        new Blob([weightBuffer], { type: OCTET_STREAM_MIME_TYPE }),
         "model.weights.bin"
       );
     }
@@ -13192,7 +13376,7 @@ var HTTPRequest = class {
       fetchFunc: this.fetch,
       onProgress: this.onProgress
     });
-    return [weightSpecs, concatenateArrayBuffers(buffers)];
+    return [weightSpecs, buffers];
   }
 };
 __publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
@@ -14821,6 +15005,7 @@ __export(shared_exports, {
   addImpl: () => addImpl,
   bincountImpl: () => bincountImpl,
   bincountReduceImpl: () => bincountReduceImpl,
+  bitwiseAndImpl: () => bitwiseAndImpl,
   castImpl: () => castImpl,
   ceilImpl: () => ceilImpl,
   concatImpl: () => concatImpl,
@@ -15214,6 +15399,15 @@ function bincountReduceImpl(xBuf, weightsBuf, size, binaryOutput = false) {
   }
   return outBuf;
 }
+
+// src/tfjs-backend-cpu/src/kernels/BitwiseAnd.ts
+var bitwiseAndImpl = createSimpleBinaryKernelImpl((a, b) => a & b);
+var bitwiseAnd2 = binaryKernelFunc(BitwiseAnd, bitwiseAndImpl);
+var bitwiseAndConfig = {
+  kernelName: BitwiseAnd,
+  backendName: "cpu",
+  kernelFunc: bitwiseAnd2
+};
 
 // src/tfjs-backend-cpu/src/utils/unary_impl.ts
 function createSimpleUnaryImpl(op2) {
@@ -17854,7 +18048,13 @@ function maxPool3dPositions(xBuf, convInfo) {
                 const wRow = xRow - xRowCorner;
                 for (let xCol = xColMin; xCol < xColMax; xCol += dilationWidth) {
                   const wCol = xCol - xColCorner;
-                  const pixel = xBuf.get(batch, xDepth, xRow, xCol, channel);
+                  const pixel = xBuf.get(
+                    batch,
+                    xDepth,
+                    xRow,
+                    xCol,
+                    channel
+                  );
                   if (pixel >= maxValue) {
                     maxValue = pixel;
                     maxPosition = wDepth * effectiveFilterHeight * effectiveFilterWidth + wRow * effectiveFilterHeight + wCol;
@@ -19624,6 +19824,72 @@ var dilation2DBackpropInputConfig = {
     );
     return { dataId, shape: x.shape, dtype: x.dtype };
   }
+};
+
+// src/tfjs-backend-cpu/src/kernels/Draw.ts
+function draw(args) {
+  const { inputs, backend, attrs } = args;
+  const { image } = inputs;
+  const { canvas, options } = attrs;
+  const { contextOptions, imageOptions } = options || {};
+  const alpha = imageOptions?.alpha || 1;
+  const contextType = contextOptions?.contextType || "2d";
+  if (contextType !== "2d") {
+    throw new Error(`Context type ${contextOptions.contextType} is not supported by the CPU backend.`);
+  }
+  const ctx = canvas.getContext(
+    contextType,
+    contextOptions?.contextAttributes || {}
+  );
+  if (ctx == null) {
+    throw new Error(`Could not get the context with ${contextType} type.`);
+  }
+  const [height, width] = image.shape.slice(0, 2);
+  const depth = image.shape.length === 2 ? 1 : image.shape[2];
+  const data = backend.data.get(image.dataId).values;
+  const multiplier = image.dtype === "float32" ? 255 : 1;
+  const bytes = new Uint8ClampedArray(width * height * 4);
+  for (let i = 0; i < height * width; ++i) {
+    const rgba = [0, 0, 0, 255 * alpha];
+    for (let d = 0; d < depth; d++) {
+      const value = data[i * depth + d];
+      if (image.dtype === "float32") {
+        if (value < 0 || value > 1) {
+          throw new Error(
+            `Tensor values for a float32 Tensor must be in the range [0 - 1] but encountered ${value}.`
+          );
+        }
+      } else if (image.dtype === "int32") {
+        if (value < 0 || value > 255) {
+          throw new Error(
+            `Tensor values for a int32 Tensor must be in the range [0 - 255] but encountered ${value}.`
+          );
+        }
+      }
+      if (depth === 1) {
+        rgba[0] = value * multiplier;
+        rgba[1] = value * multiplier;
+        rgba[2] = value * multiplier;
+      } else {
+        rgba[d] = value * multiplier;
+      }
+    }
+    const j = i * 4;
+    bytes[j + 0] = Math.round(rgba[0]);
+    bytes[j + 1] = Math.round(rgba[1]);
+    bytes[j + 2] = Math.round(rgba[2]);
+    bytes[j + 3] = Math.round(rgba[3]);
+  }
+  canvas.width = width;
+  canvas.height = height;
+  const imageData = new ImageData(bytes, width, height);
+  ctx.putImageData(imageData, 0, 0);
+  return image;
+}
+var drawConfig = {
+  kernelName: Draw,
+  backendName: "cpu",
+  kernelFunc: draw
 };
 
 // src/tfjs-backend-cpu/src/kernels/Sum.ts
@@ -22986,6 +23252,7 @@ var kernelConfigs = [
   batchNormConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  bitwiseAndConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
@@ -23013,6 +23280,7 @@ var kernelConfigs = [
   dilation2DConfig,
   dilation2DBackpropFilterConfig,
   dilation2DBackpropInputConfig,
+  drawConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,

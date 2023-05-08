@@ -1892,6 +1892,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         var UTF8Decoder = typeof TextDecoder != "undefined" ? new TextDecoder("utf8") : void 0;
         function UTF8ArrayToString(heapOrArray, idx, maxBytesToRead) {
+          idx >>>= 0;
           var endIdx = idx + maxBytesToRead;
           var endPtr = idx;
           while (heapOrArray[endPtr] && !(endPtr >= endIdx))
@@ -1927,9 +1928,11 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return str;
         }
         function UTF8ToString(ptr, maxBytesToRead) {
+          ptr >>>= 0;
           return ptr ? UTF8ArrayToString(GROWABLE_HEAP_U8(), ptr, maxBytesToRead) : "";
         }
         function stringToUTF8Array(str, heap, outIdx, maxBytesToWrite) {
+          outIdx >>>= 0;
           if (!(maxBytesToWrite > 0))
             return 0;
           var startIdx = outIdx;
@@ -1943,28 +1946,28 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             if (u <= 127) {
               if (outIdx >= endIdx)
                 break;
-              heap[outIdx++] = u;
+              heap[outIdx++ >>> 0] = u;
             } else if (u <= 2047) {
               if (outIdx + 1 >= endIdx)
                 break;
-              heap[outIdx++] = 192 | u >> 6;
-              heap[outIdx++] = 128 | u & 63;
+              heap[outIdx++ >>> 0] = 192 | u >> 6;
+              heap[outIdx++ >>> 0] = 128 | u & 63;
             } else if (u <= 65535) {
               if (outIdx + 2 >= endIdx)
                 break;
-              heap[outIdx++] = 224 | u >> 12;
-              heap[outIdx++] = 128 | u >> 6 & 63;
-              heap[outIdx++] = 128 | u & 63;
+              heap[outIdx++ >>> 0] = 224 | u >> 12;
+              heap[outIdx++ >>> 0] = 128 | u >> 6 & 63;
+              heap[outIdx++ >>> 0] = 128 | u & 63;
             } else {
               if (outIdx + 3 >= endIdx)
                 break;
-              heap[outIdx++] = 240 | u >> 18;
-              heap[outIdx++] = 128 | u >> 12 & 63;
-              heap[outIdx++] = 128 | u >> 6 & 63;
-              heap[outIdx++] = 128 | u & 63;
+              heap[outIdx++ >>> 0] = 240 | u >> 18;
+              heap[outIdx++ >>> 0] = 128 | u >> 12 & 63;
+              heap[outIdx++ >>> 0] = 128 | u >> 6 & 63;
+              heap[outIdx++ >>> 0] = 128 | u & 63;
             }
           }
-          heap[outIdx] = 0;
+          heap[outIdx >>> 0] = 0;
           return outIdx - startIdx;
         }
         function stringToUTF8(str, outPtr, maxBytesToWrite) {
@@ -1993,7 +1996,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           if (Module["wasmMemory"]) {
             wasmMemory = Module["wasmMemory"];
           } else {
-            wasmMemory = new WebAssembly.Memory({ "initial": INITIAL_MEMORY / 65536, "maximum": 2147483648 / 65536, "shared": true });
+            wasmMemory = new WebAssembly.Memory({ "initial": INITIAL_MEMORY / 65536, "maximum": 4294967296 / 65536, "shared": true });
             if (!(wasmMemory.buffer instanceof SharedArrayBuffer)) {
               err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");
               if (ENVIRONMENT_IS_NODE) {
@@ -2251,7 +2254,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         var SYSCALLS = { varargs: void 0, get: function() {
           SYSCALLS.varargs += 4;
-          var ret = GROWABLE_HEAP_I32()[SYSCALLS.varargs - 4 >> 2];
+          var ret = GROWABLE_HEAP_I32()[SYSCALLS.varargs - 4 >>> 2];
           return ret;
         }, getStr: function(ptr) {
           var ret = UTF8ToString(ptr);
@@ -2417,8 +2420,8 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         }
         function establishStackSpace() {
           var pthread_ptr = _pthread_self();
-          var stackTop = GROWABLE_HEAP_I32()[pthread_ptr + 52 >> 2];
-          var stackSize = GROWABLE_HEAP_I32()[pthread_ptr + 56 >> 2];
+          var stackTop = GROWABLE_HEAP_I32()[pthread_ptr + 52 >>> 2];
+          var stackSize = GROWABLE_HEAP_I32()[pthread_ptr + 56 >>> 2];
           var stackMax = stackTop - stackSize;
           _emscripten_stack_set_limits(stackTop, stackMax);
           stackRestore(stackTop);
@@ -2546,7 +2549,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return Date.now();
         }
         function getHeapMax() {
-          return 2147483648;
+          return 4294901760;
         }
         function _emscripten_get_heap_max() {
           return getHeapMax();
@@ -2560,7 +2563,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         } else
           _emscripten_get_now = () => performance.timeOrigin + performance.now();
         function _emscripten_memcpy_big(dest, src, num) {
-          GROWABLE_HEAP_U8().copyWithin(dest, src, src + num);
+          GROWABLE_HEAP_U8().copyWithin(dest >>> 0, src >>> 0, src + num >>> 0);
         }
         function _emscripten_num_logical_cores() {
           if (ENVIRONMENT_IS_NODE)
@@ -2582,7 +2585,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             var b = args >> 3;
             for (var i = 0; i < numCallArgs; i++) {
               var arg = outerArgs[2 + i];
-              GROWABLE_HEAP_F64()[b + i] = arg;
+              GROWABLE_HEAP_F64()[b + i >>> 0] = arg;
             }
             return _emscripten_run_in_main_runtime_thread_js(index, serializedNumCallArgs, args, sync);
           });
@@ -2592,7 +2595,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           _emscripten_receive_on_main_thread_js_callArgs.length = numCallArgs;
           var b = args >> 3;
           for (var i = 0; i < numCallArgs; i++) {
-            _emscripten_receive_on_main_thread_js_callArgs[i] = GROWABLE_HEAP_F64()[b + i];
+            _emscripten_receive_on_main_thread_js_callArgs[i] = GROWABLE_HEAP_F64()[b + i >>> 0];
           }
           var isEmAsmConst = index < 0;
           var func2 = !isEmAsmConst ? proxiedFunctionTable[index] : ASM_CONSTS[-index - 1];
@@ -2656,15 +2659,15 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
             return _emscripten_proxy_to_main_thread_js(6, 1, fd, iov, iovcnt, pnum);
           var num = 0;
           for (var i = 0; i < iovcnt; i++) {
-            var ptr = GROWABLE_HEAP_U32()[iov >> 2];
-            var len = GROWABLE_HEAP_U32()[iov + 4 >> 2];
+            var ptr = GROWABLE_HEAP_U32()[iov >>> 2];
+            var len = GROWABLE_HEAP_U32()[iov + 4 >>> 2];
             iov += 8;
             for (var j = 0; j < len; j++) {
-              printChar(fd, GROWABLE_HEAP_U8()[ptr + j]);
+              printChar(fd, GROWABLE_HEAP_U8()[ptr + j >>> 0]);
             }
             num += len;
           }
-          GROWABLE_HEAP_U32()[pnum >> 2] = num;
+          GROWABLE_HEAP_U32()[pnum >>> 2] = num;
           return 0;
         }
         function getCFunc(ident) {
@@ -2672,7 +2675,7 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
           return func2;
         }
         function writeArrayToMemory(array2, buffer3) {
-          GROWABLE_HEAP_I8().set(array2, buffer3);
+          GROWABLE_HEAP_I8().set(array2, buffer3 >>> 0);
         }
         function ccall(ident, returnType, argTypes, args, opts) {
           var toC = { "string": (str) => {
@@ -3475,6 +3478,7 @@ var require_tfjs_backend_wasm = __commonJS({
         }
         var UTF8Decoder = typeof TextDecoder != "undefined" ? new TextDecoder("utf8") : void 0;
         function UTF8ArrayToString(heapOrArray, idx, maxBytesToRead) {
+          idx >>>= 0;
           var endIdx = idx + maxBytesToRead;
           var endPtr = idx;
           while (heapOrArray[endPtr] && !(endPtr >= endIdx))
@@ -3510,9 +3514,11 @@ var require_tfjs_backend_wasm = __commonJS({
           return str;
         }
         function UTF8ToString(ptr, maxBytesToRead) {
+          ptr >>>= 0;
           return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : "";
         }
         function stringToUTF8Array(str, heap, outIdx, maxBytesToWrite) {
+          outIdx >>>= 0;
           if (!(maxBytesToWrite > 0))
             return 0;
           var startIdx = outIdx;
@@ -3526,28 +3532,28 @@ var require_tfjs_backend_wasm = __commonJS({
             if (u <= 127) {
               if (outIdx >= endIdx)
                 break;
-              heap[outIdx++] = u;
+              heap[outIdx++ >>> 0] = u;
             } else if (u <= 2047) {
               if (outIdx + 1 >= endIdx)
                 break;
-              heap[outIdx++] = 192 | u >> 6;
-              heap[outIdx++] = 128 | u & 63;
+              heap[outIdx++ >>> 0] = 192 | u >> 6;
+              heap[outIdx++ >>> 0] = 128 | u & 63;
             } else if (u <= 65535) {
               if (outIdx + 2 >= endIdx)
                 break;
-              heap[outIdx++] = 224 | u >> 12;
-              heap[outIdx++] = 128 | u >> 6 & 63;
-              heap[outIdx++] = 128 | u & 63;
+              heap[outIdx++ >>> 0] = 224 | u >> 12;
+              heap[outIdx++ >>> 0] = 128 | u >> 6 & 63;
+              heap[outIdx++ >>> 0] = 128 | u & 63;
             } else {
               if (outIdx + 3 >= endIdx)
                 break;
-              heap[outIdx++] = 240 | u >> 18;
-              heap[outIdx++] = 128 | u >> 12 & 63;
-              heap[outIdx++] = 128 | u >> 6 & 63;
-              heap[outIdx++] = 128 | u & 63;
+              heap[outIdx++ >>> 0] = 240 | u >> 18;
+              heap[outIdx++ >>> 0] = 128 | u >> 12 & 63;
+              heap[outIdx++ >>> 0] = 128 | u >> 6 & 63;
+              heap[outIdx++ >>> 0] = 128 | u & 63;
             }
           }
-          heap[outIdx] = 0;
+          heap[outIdx >>> 0] = 0;
           return outIdx - startIdx;
         }
         function stringToUTF8(str, outPtr, maxBytesToWrite) {
@@ -3763,10 +3769,10 @@ var require_tfjs_backend_wasm = __commonJS({
           abort("");
         }
         function _emscripten_memcpy_big(dest, src, num) {
-          HEAPU8.copyWithin(dest, src, src + num);
+          HEAPU8.copyWithin(dest >>> 0, src >>> 0, src + num >>> 0);
         }
         function getHeapMax() {
-          return 2147483648;
+          return 4294901760;
         }
         function emscripten_realloc_buffer(size) {
           try {
@@ -3797,7 +3803,7 @@ var require_tfjs_backend_wasm = __commonJS({
         }
         var SYSCALLS = { varargs: void 0, get: function() {
           SYSCALLS.varargs += 4;
-          var ret = HEAP32[SYSCALLS.varargs - 4 >> 2];
+          var ret = HEAP32[SYSCALLS.varargs - 4 >>> 2];
           return ret;
         }, getStr: function(ptr) {
           var ret = UTF8ToString(ptr);
@@ -3822,15 +3828,15 @@ var require_tfjs_backend_wasm = __commonJS({
         function _fd_write(fd, iov, iovcnt, pnum) {
           var num = 0;
           for (var i = 0; i < iovcnt; i++) {
-            var ptr = HEAPU32[iov >> 2];
-            var len = HEAPU32[iov + 4 >> 2];
+            var ptr = HEAPU32[iov >>> 2];
+            var len = HEAPU32[iov + 4 >>> 2];
             iov += 8;
             for (var j = 0; j < len; j++) {
-              printChar(fd, HEAPU8[ptr + j]);
+              printChar(fd, HEAPU8[ptr + j >>> 0]);
             }
             num += len;
           }
-          HEAPU32[pnum >> 2] = num;
+          HEAPU32[pnum >>> 2] = num;
           return 0;
         }
         function getCFunc(ident) {
@@ -3838,7 +3844,7 @@ var require_tfjs_backend_wasm = __commonJS({
           return func2;
         }
         function writeArrayToMemory(array2, buffer3) {
-          HEAP8.set(array2, buffer3);
+          HEAP8.set(array2, buffer3 >>> 0);
         }
         function ccall(ident, returnType, argTypes, args, opts) {
           var toC = { "string": (str) => {
@@ -4597,6 +4603,23 @@ function sizeFromShape(shape) {
 function isScalarShape(shape) {
   return shape.length === 0;
 }
+function arraysEqualWithNull(n1, n2) {
+  if (n1 === n2) {
+    return true;
+  }
+  if (n1 == null || n2 == null) {
+    return false;
+  }
+  if (n1.length !== n2.length) {
+    return false;
+  }
+  for (let i = 0; i < n1.length; i++) {
+    if (n1[i] !== null && n2[i] !== null && n1[i] !== n2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 function arraysEqual(n1, n2) {
   if (n1 === n2) {
     return true;
@@ -5037,6 +5060,9 @@ var Environment = class {
   getBool(flagName) {
     return this.get(flagName);
   }
+  getString(flagName) {
+    return this.get(flagName);
+  }
   getFlags() {
     return this.flags;
   }
@@ -5097,15 +5123,14 @@ function decodeParam(params, name, value) {
   params[decodeURIComponent(name)] = decodeURIComponent(value || "");
 }
 function parseValue(flagName, value) {
-  value = value.toLowerCase();
-  if (value === "true" || value === "false") {
-    return value === "true";
-  } else if (`${+value}` === value) {
-    return +value;
+  const lowerCaseValue = value.toLowerCase();
+  if (lowerCaseValue === "true" || lowerCaseValue === "false") {
+    return lowerCaseValue === "true";
+  } else if (`${+lowerCaseValue}` === lowerCaseValue) {
+    return +lowerCaseValue;
+  } else {
+    return value;
   }
-  throw new Error(
-    `Could not parse value flag value ${value} for flag ${flagName}.`
-  );
 }
 function env() {
   return ENV;
@@ -5175,6 +5200,7 @@ var AvgPool3DGrad = "AvgPool3DGrad";
 var BatchMatMul = "BatchMatMul";
 var BatchToSpaceND = "BatchToSpaceND";
 var Bincount = "Bincount";
+var BitwiseAnd = "BitwiseAnd";
 var BroadcastTo = "BroadcastTo";
 var BroadcastArgs = "BroadcastArgs";
 var Cast = "Cast";
@@ -5203,6 +5229,7 @@ var Diag = "Diag";
 var Dilation2D = "Dilation2D";
 var Dilation2DBackpropInput = "Dilation2DBackpropInput";
 var Dilation2DBackpropFilter = "Dilation2DBackpropFilter";
+var Draw = "Draw";
 var RealDiv = "RealDiv";
 var Einsum = "Einsum";
 var Elu = "Elu";
@@ -5422,6 +5449,7 @@ function makeKey(kernelName, backendName) {
 var util_exports = {};
 __export(util_exports, {
   arraysEqual: () => arraysEqual,
+  arraysEqualWithNull: () => arraysEqualWithNull,
   assert: () => assert,
   assertNonNegativeIntegerDimensions: () => assertNonNegativeIntegerDimensions,
   assertNonNull: () => assertNonNull,
@@ -5478,6 +5506,11 @@ __export(util_exports, {
   toNestedArray: () => toNestedArray,
   toTypedArray: () => toTypedArray
 });
+
+// src/tfjs-core/src/platforms/is_typed_array_browser.ts
+function isTypedArrayBrowser(a) {
+  return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+}
 
 // src/tfjs-core/src/hash_util.ts
 var LongExports = __toESM(require_long());
@@ -5703,7 +5736,11 @@ function decodeString(bytes, encoding = "utf-8") {
   return env().platform.decode(bytes, encoding);
 }
 function isTypedArray(a) {
-  return env().platform.isTypedArray(a);
+  if (env().platform.isTypedArray != null) {
+    return env().platform.isTypedArray(a);
+  } else {
+    return isTypedArrayBrowser(a);
+  }
 }
 function flatten(arr, result = [], skipTypedArray = false) {
   if (result == null) {
@@ -6342,12 +6379,10 @@ var Tensor = class {
    *        texShape: [number, number] // [height, width]
    *     }
    *
-   *     For WebGPU backend, a GPUData contains the new buffer and
-   *     its information.
+   *     For WebGPU backend, a GPUData contains the new buffer.
    *     {
    *        tensorRef: The tensor that is associated with this buffer,
    *        buffer: GPUBuffer,
-   *        bufSize: number
    *     }
    *
    *     Remember to dispose the GPUData after it is used by
@@ -7863,6 +7898,141 @@ var DTYPE_VALUE_SIZE_MAP = {
   "complex64": 8
 };
 
+// src/tfjs-core/src/io/composite_array_buffer.ts
+var CompositeArrayBuffer = class {
+  shards = [];
+  previousShardIndex = 0;
+  bufferUniformSize;
+  byteLength;
+  /**
+   * Concatenate a number of ArrayBuffers into one.
+   *
+   * @param buffers An array of ArrayBuffers to concatenate, or a single
+   *     ArrayBuffer.
+   * @returns Result of concatenating `buffers` in order.
+   */
+  static join(buffers) {
+    return new CompositeArrayBuffer(buffers).slice();
+  }
+  constructor(buffers) {
+    if (buffers == null) {
+      return;
+    }
+    if (!(buffers instanceof Array)) {
+      buffers = [buffers];
+    }
+    buffers = buffers.map((bufferOrTypedArray) => {
+      if (isTypedArray(bufferOrTypedArray)) {
+        return bufferOrTypedArray.buffer;
+      }
+      return bufferOrTypedArray;
+    });
+    if (buffers.length === 0) {
+      return;
+    }
+    this.bufferUniformSize = buffers[0].byteLength;
+    let start = 0;
+    for (let i = 0; i < buffers.length; i++) {
+      const buffer2 = buffers[i];
+      if (i !== buffers.length - 1 && buffer2.byteLength !== this.bufferUniformSize) {
+        this.bufferUniformSize = void 0;
+      }
+      const end = start + buffer2.byteLength;
+      this.shards.push({ buffer: buffer2, start, end });
+      start = end;
+    }
+    if (this.shards.length === 0) {
+      this.byteLength = 0;
+    }
+    this.byteLength = this.shards[this.shards.length - 1].end;
+  }
+  slice(start = 0, end = this.byteLength) {
+    if (this.shards.length === 0) {
+      return new ArrayBuffer(0);
+    }
+    start = isNaN(Number(start)) ? 0 : start;
+    end = isNaN(Number(end)) ? 0 : end;
+    start = Math.max(0, start);
+    end = Math.min(this.byteLength, end);
+    if (end <= start) {
+      return new ArrayBuffer(0);
+    }
+    const startShardIndex = this.findShardForByte(start);
+    if (startShardIndex === -1) {
+      throw new Error(`Could not find start shard for byte ${start}`);
+    }
+    const size = end - start;
+    const outputBuffer = new ArrayBuffer(size);
+    const outputArray = new Uint8Array(outputBuffer);
+    let sliced = 0;
+    for (let i = startShardIndex; i < this.shards.length; i++) {
+      const shard = this.shards[i];
+      const globalStart = start + sliced;
+      const localStart = globalStart - shard.start;
+      const outputStart = sliced;
+      const globalEnd = Math.min(end, shard.end);
+      const localEnd = globalEnd - shard.start;
+      const outputSlice = new Uint8Array(
+        shard.buffer,
+        localStart,
+        localEnd - localStart
+      );
+      outputArray.set(outputSlice, outputStart);
+      sliced += outputSlice.length;
+      if (end < shard.end) {
+        break;
+      }
+    }
+    return outputBuffer;
+  }
+  /**
+   * Get the index of the shard that contains the byte at `byteIndex`.
+   */
+  findShardForByte(byteIndex) {
+    if (this.shards.length === 0 || byteIndex < 0 || byteIndex >= this.byteLength) {
+      return -1;
+    }
+    if (this.bufferUniformSize != null) {
+      this.previousShardIndex = Math.floor(byteIndex / this.bufferUniformSize);
+      return this.previousShardIndex;
+    }
+    function check(shard) {
+      if (byteIndex < shard.start) {
+        return -1;
+      }
+      if (byteIndex >= shard.end) {
+        return 1;
+      }
+      return 0;
+    }
+    if (check(this.shards[this.previousShardIndex]) === 0) {
+      return this.previousShardIndex;
+    }
+    const index = search(this.shards, check);
+    if (index === -1) {
+      return -1;
+    }
+    this.previousShardIndex = index;
+    return this.previousShardIndex;
+  }
+};
+function search(sortedArray, compare) {
+  let min7 = 0;
+  let max7 = sortedArray.length;
+  while (min7 <= max7) {
+    const middle = Math.floor((max7 - min7) / 2) + min7;
+    const side = compare(sortedArray[middle]);
+    if (side === 0) {
+      return middle;
+    } else if (side < 0) {
+      max7 = middle;
+    } else {
+      min7 = middle + 1;
+    }
+  }
+  return -1;
+}
+
 // src/tfjs-core/src/io/io_utils.ts
 var NUM_BYTES_STRING_LENGTH = 4;
 async function encodeWeights(tensors, group) {
@@ -7904,7 +8074,8 @@ async function encodeWeights(tensors, group) {
   const tensorValues = await Promise.all(dataPromises);
   return { data: concatenateTypedArrays(tensorValues), specs };
 }
-function decodeWeights(buffer2, specs) {
+function decodeWeights(weightData, specs) {
+  const compositeBuffer = new CompositeArrayBuffer(weightData);
   const out = {};
   let float16Decode;
   let offset = 0;
@@ -7934,7 +8105,7 @@ function decodeWeights(buffer2, specs) {
         );
       }
       const quantizationSizeFactor = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
-      const byteBuffer = buffer2.slice(offset, offset + size * quantizationSizeFactor);
+      const byteBuffer = compositeBuffer.slice(offset, offset + size * quantizationSizeFactor);
       const quantizedArray = quantization.dtype === "uint8" ? new Uint8Array(byteBuffer) : new Uint16Array(byteBuffer);
       if (dtype === "float32") {
         if (quantization.dtype === "uint8" || quantization.dtype === "uint16") {
@@ -7973,16 +8144,21 @@ function decodeWeights(buffer2, specs) {
       values = [];
       for (let i = 0; i < size2; i++) {
         const byteLength = new Uint32Array(
-          buffer2.slice(offset, offset + NUM_BYTES_STRING_LENGTH)
+          compositeBuffer.slice(offset, offset + NUM_BYTES_STRING_LENGTH)
         )[0];
         offset += NUM_BYTES_STRING_LENGTH;
-        const bytes = new Uint8Array(buffer2.slice(offset, offset + byteLength));
+        const bytes = new Uint8Array(
+          compositeBuffer.slice(offset, offset + byteLength)
+        );
         values.push(bytes);
         offset += byteLength;
       }
     } else {
       const dtypeFactor = DTYPE_VALUE_SIZE_MAP[dtype];
-      const byteBuffer = buffer2.slice(offset, offset + size * dtypeFactor);
+      const byteBuffer = compositeBuffer.slice(
+        offset,
+        offset + size * dtypeFactor
+      );
       if (dtype === "float32") {
         values = new Float32Array(byteBuffer);
       } else if (dtype === "int32") {
@@ -8039,7 +8215,7 @@ function concatenateTypedArrays(xs) {
 var useNodeBuffer = typeof Buffer !== "undefined" && (typeof Blob === "undefined" || typeof atob === "undefined" || typeof btoa === "undefined");
 function stringByteLength(str) {
   if (useNodeBuffer) {
-    return Buffer.byteLength(str);
+    return Buffer.byteLength(str, "utf8");
   }
   return new Blob([str]).size;
 }
@@ -8067,20 +8243,7 @@ function base64StringToArrayBuffer(str) {
   return buffer2.buffer;
 }
 function concatenateArrayBuffers(buffers) {
-  if (buffers.length === 1) {
-    return buffers[0];
-  }
-  let totalByteLength = 0;
-  buffers.forEach((buffer2) => {
-    totalByteLength += buffer2.byteLength;
-  });
-  const temp = new Uint8Array(totalByteLength);
-  let offset = 0;
-  buffers.forEach((buffer2) => {
-    temp.set(new Uint8Array(buffer2), offset);
-    offset += buffer2.byteLength;
-  });
-  return temp.buffer;
+  return CompositeArrayBuffer.join(buffers);
 }
 function basename(path) {
   const SEPARATOR = "/";
@@ -8167,7 +8330,7 @@ function getModelArtifactsInfoForJSON(modelArtifacts) {
     modelTopologyType: "JSON",
     modelTopologyBytes: modelArtifacts.modelTopology == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),
     weightSpecsBytes: modelArtifacts.weightSpecs == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
-    weightDataBytes: modelArtifacts.weightData == null ? 0 : modelArtifacts.weightData.byteLength
+    weightDataBytes: modelArtifacts.weightData == null ? 0 : new CompositeArrayBuffer(modelArtifacts.weightData).byteLength
   };
 }
 function getWeightSpecs(weightsManifest) {
@@ -8625,13 +8788,14 @@ var BrowserLocalStorage = class {
       const topology = JSON.stringify(modelArtifacts.modelTopology);
       const weightSpecs = JSON.stringify(modelArtifacts.weightSpecs);
       const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
       try {
         this.LS.setItem(this.keys.info, JSON.stringify(modelArtifactsInfo));
         this.LS.setItem(this.keys.topology, topology);
         this.LS.setItem(this.keys.weightSpecs, weightSpecs);
         this.LS.setItem(
           this.keys.weightData,
-          arrayBufferToBase64String(modelArtifacts.weightData)
+          arrayBufferToBase64String(weightBuffer)
         );
         const metadata = {
           format: modelArtifacts.format,
@@ -8961,7 +9125,7 @@ var PlatformBrowser = class {
     }
   }
   isTypedArray(a) {
-    return a instanceof Float32Array || a instanceof Int32Array || a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+    return isTypedArrayBrowser(a);
   }
 };
 if (env().get("IS_BROWSER")) {
@@ -10161,6 +10325,23 @@ function bincount_(x, weights, size) {
 }
 var bincount = op({ bincount_ });
 
+// src/tfjs-core/src/ops/bitwise_and.ts
+function bitwiseAnd_(x, y) {
+  const $x = convertToTensor(x, "x", "bitwiseAnd");
+  const $y = convertToTensor(y, "y", "bitwiseAnd");
+  if (!arraysEqual($x.shape, $y.shape)) {
+    throw new Error(`BitwiseAnd: Tensors must have the same shape. x: ${$x.shape}, y: ${$y.shape}`);
+  }
+  if ($x.dtype !== "int32" || $y.dtype !== "int32") {
+    throw new Error(
+      `BitwiseAnd: Only supports 'int32' values in tensor, found type of x: ${$x.dtype} and type of y: ${$y.dtype}`
+    );
+  }
+  const inputs = { a: $x, b: $y };
+  return ENGINE.runKernel(BitwiseAnd, inputs);
+}
+var bitwiseAnd = op({ bitwiseAnd_ });
+
 // src/tfjs-core/src/ops/broadcast_args.ts
 function broadcastArgs_(s0, s1) {
   const shape1Input = convertToTensor(s0, "s0", "broadcastArgs", "int32");
@@ -10936,6 +11117,16 @@ function elu_(x) {
   return ENGINE.runKernel(Elu, inputs);
 }
 var elu = op({ elu_ });
+
+// src/tfjs-core/src/ops/ensure_shape.ts
+function ensureShape_(x, shape) {
+  const $x = convertToTensor(x, "x", "ensureShape", "string_or_numeric");
+  if (!arraysEqualWithNull($x.shape, shape)) {
+    throw new Error(`EnsureShape: Shape of tensor ${$x.shape} is not compatible with expected shape ${shape}`);
+  }
+  return x;
+}
+var ensureShape = op({ ensureShape_ });
 
 // src/tfjs-core/src/ops/erf.ts
 function erf_(x) {
@@ -12764,6 +12955,12 @@ function randomUniform_(shape, minval = 0, maxval = 1, dtype = "float32", seed) 
   return res.toTensor();
 }
 var randomUniform = op({ randomUniform_ });
+
+// src/tfjs-core/src/ops/random_uniform_int.ts
+function randomUniformInt_(shape, minval, maxval, seed) {
+  return randomUniform(shape, minval, maxval, "int32", seed);
+}
+var randomUniformInt = op({ randomUniformInt_ });
 
 // src/tfjs-core/src/ops/range.ts
 function range(start, stop, step6 = 1, dtype = "float32") {
@@ -16923,6 +17120,7 @@ function registerOptimizers() {
 // src/tfjs-core/src/io/io.ts
 var io_exports = {};
 __export(io_exports, {
+  CompositeArrayBuffer: () => CompositeArrayBuffer,
   browserFiles: () => browserFiles,
   browserHTTPRequest: () => browserHTTPRequest,
   concatenateArrayBuffers: () => concatenateArrayBuffers,
@@ -16983,8 +17181,9 @@ var _BrowserDownloads = class {
         "Browser downloads are not supported in this environment since `document` is not present"
       );
     }
+    const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
     const weightsURL = window.URL.createObjectURL(new Blob(
-      [modelArtifacts.weightData],
+      [weightBuffer],
       { type: "application/octet-stream" }
     ));
     if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
@@ -17071,7 +17270,7 @@ var BrowserFiles = class {
     const pathToFile = this.checkManifestAndWeightFiles(weightsManifest);
     const promises = paths.map((path) => this.loadWeightsFile(path, pathToFile[path]));
     return Promise.all(promises).then(
-      (buffers) => [weightSpecs, concatenateArrayBuffers(buffers)]
+      (buffers) => [weightSpecs, buffers]
     );
   }
   loadWeightsFile(path, file) {
@@ -17269,21 +17468,12 @@ Manifest JSON has weights with names: ${allManifestWeightNames.join(", ")}.`
     let bufferIndexOffset = 0;
     groupIndicesToFetch.forEach((i) => {
       const numBuffers = manifest[i].paths.length;
-      let groupBytes = 0;
-      for (let i2 = 0; i2 < numBuffers; i2++) {
-        groupBytes += buffers[bufferIndexOffset + i2].byteLength;
-      }
-      const groupBuffer = new ArrayBuffer(groupBytes);
-      const groupByteBuffer = new Uint8Array(groupBuffer);
-      let groupBufferOffset = 0;
-      for (let i2 = 0; i2 < numBuffers; i2++) {
-        const buffer2 = new Uint8Array(buffers[bufferIndexOffset + i2]);
-        groupByteBuffer.set(buffer2, groupBufferOffset);
-        groupBufferOffset += buffer2.byteLength;
-      }
+      const weightsBuffer = new CompositeArrayBuffer(
+        buffers.slice(bufferIndexOffset, bufferIndexOffset + numBuffers)
+      );
       const weightsEntries = groupWeightsToFetch[i];
       weightsEntries.forEach((weightsEntry) => {
-        const byteBuffer = groupBuffer.slice(
+        const byteBuffer = weightsBuffer.slice(
           weightsEntry.groupOffset,
           weightsEntry.groupOffset + weightsEntry.sizeBytes
         );
@@ -17365,9 +17555,10 @@ var HTTPRequest = class {
       "model.json"
     );
     if (modelArtifacts.weightData != null) {
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
       init2.body.append(
         "model.weights.bin",
-        new Blob([modelArtifacts.weightData], { type: OCTET_STREAM_MIME_TYPE }),
+        new Blob([weightBuffer], { type: OCTET_STREAM_MIME_TYPE }),
         "model.weights.bin"
       );
     }
@@ -17446,7 +17637,7 @@ var HTTPRequest = class {
       fetchFunc: this.fetch,
       onProgress: this.onProgress
     });
-    return [weightSpecs, concatenateArrayBuffers(buffers)];
+    return [weightSpecs, buffers];
   }
 };
 __publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
@@ -17589,11 +17780,13 @@ var confusionMatrix = op({ confusionMatrix_ });
 // src/tfjs-core/src/ops/browser.ts
 var browser_exports = {};
 __export(browser_exports, {
+  draw: () => draw,
   fromPixels: () => fromPixels,
   fromPixelsAsync: () => fromPixelsAsync,
   toPixels: () => toPixels
 });
 var fromPixels2DContext;
+var hasToPixelsWarned = false;
 function fromPixels_(pixels, numChannels = 3) {
   if (numChannels > 4) {
     throw new Error(
@@ -17723,6 +17916,30 @@ async function fromPixelsAsync(pixels, numChannels = 3) {
   }
   return fromPixels_(inputs, numChannels);
 }
+function validateImgTensor(img) {
+  if (img.rank !== 2 && img.rank !== 3) {
+    throw new Error(
+      `toPixels only supports rank 2 or 3 tensors, got rank ${img.rank}.`
+    );
+  }
+  const depth = img.rank === 2 ? 1 : img.shape[2];
+  if (depth > 4 || depth === 2) {
+    throw new Error(
+      `toPixels only supports depth of size 1, 3 or 4 but got ${depth}`
+    );
+  }
+  if (img.dtype !== "float32" && img.dtype !== "int32") {
+    throw new Error(
+      `Unsupported type for toPixels: ${img.dtype}. Please use float32 or int32 tensors.`
+    );
+  }
+}
+function validateImageOptions(imageOptions) {
+  const alpha = imageOptions?.alpha || 1;
+  if (alpha > 1 || alpha < 0) {
+    throw new Error(`Alpha value ${alpha} is suppoed to be in range [0 - 1].`);
+  }
+}
 async function toPixels(img, canvas) {
   let $img = convertToTensor(img, "img", "toPixels");
   if (!(img instanceof Tensor)) {
@@ -17730,23 +17947,9 @@ async function toPixels(img, canvas) {
     $img = cast(originalImgTensor, "int32");
     originalImgTensor.dispose();
   }
-  if ($img.rank !== 2 && $img.rank !== 3) {
-    throw new Error(
-      `toPixels only supports rank 2 or 3 tensors, got rank ${$img.rank}.`
-    );
-  }
+  validateImgTensor($img);
   const [height, width] = $img.shape.slice(0, 2);
   const depth = $img.rank === 2 ? 1 : $img.shape[2];
-  if (depth > 4 || depth === 2) {
-    throw new Error(
-      `toPixels only supports depth of size 1, 3 or 4 but got ${depth}`
-    );
-  }
-  if ($img.dtype !== "float32" && $img.dtype !== "int32") {
-    throw new Error(
-      `Unsupported type for toPixels: ${$img.dtype}. Please use float32 or int32 tensors.`
-    );
-  }
   const data = await $img.data();
   const multiplier = $img.dtype === "float32" ? 255 : 1;
   const bytes = new Uint8ClampedArray(width * height * 4);
@@ -17782,6 +17985,12 @@ async function toPixels(img, canvas) {
     bytes[j + 3] = Math.round(rgba[3]);
   }
   if (canvas != null) {
+    if (!hasToPixelsWarned) {
+      console.warn(
+        "tf.browser.toPixels is not efficient to draw tensor on canvas. Please try tf.browser.draw instead."
+      );
+      hasToPixelsWarned = true;
+    }
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d");
@@ -17792,6 +18001,23 @@ async function toPixels(img, canvas) {
     $img.dispose();
   }
   return bytes;
+}
+function draw(image2, canvas, options) {
+  let $img = convertToTensor(image2, "img", "draw");
+  if (!(image2 instanceof Tensor)) {
+    const originalImgTensor = $img;
+    $img = cast(originalImgTensor, "int32");
+    originalImgTensor.dispose();
+  }
+  validateImgTensor($img);
+  validateImageOptions(options?.imageOptions);
+  const inputs = { image: $img };
+  const attrs = { canvas, options };
+  ENGINE.runKernel(
+    Draw,
+    inputs,
+    attrs
+  );
 }
 var fromPixels = op({ fromPixels_ });
 
@@ -29113,8 +29339,8 @@ async function loadLayersModelFromIOHandler(handler, customObjects, options) {
   }
   return model2;
 }
-function decodeModelAndOptimizerWeights(buffer2, specs) {
-  const name2Tensor = io_exports.decodeWeights(buffer2, specs);
+function decodeModelAndOptimizerWeights(weightData, specs) {
+  const name2Tensor = io_exports.decodeWeights(weightData, specs);
   const modelWeights = {};
   const optimizerWeights = [];
   specs.forEach((spec) => {
@@ -36383,7 +36609,6 @@ var RandomWidth = class extends BaseRandomLayer {
   widthLower;
   widthUpper;
   imgHeight;
-  adjustedWidth;
   widthFactor;
   constructor(args) {
     super(args);
@@ -36433,7 +36658,7 @@ var RandomWidth = class extends BaseRandomLayer {
   computeOutputShape(inputShape) {
     inputShape = getExactlyOneShape(inputShape);
     const numChannels = inputShape[2];
-    return [this.imgHeight, this.adjustedWidth, numChannels];
+    return [this.imgHeight, -1, numChannels];
   }
   call(inputs, kwargs) {
     return tidy(() => {
@@ -36447,9 +36672,9 @@ var RandomWidth = class extends BaseRandomLayer {
         "float32",
         this.randomGenerator.next()
       );
-      this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
-      this.adjustedWidth = Math.round(this.adjustedWidth);
-      const size = [this.imgHeight, this.adjustedWidth];
+      let adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
+      adjustedWidth = Math.round(adjustedWidth);
+      const size = [this.imgHeight, adjustedWidth];
       switch (this.interpolation) {
         case "bilinear":
           return image.resizeBilinear(inputs, size);
@@ -38265,36 +38490,6 @@ var json2 = [
       }
     ],
     "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Prod",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axes",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool",
-        "notSupported": true
-      },
       {
         "tfName": "T",
         "name": "dtype",
@@ -40174,6 +40369,42 @@ var json5 = [
     ]
   },
   {
+    "tfOpName": "RandomUniformInt",
+    "category": "creation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "shape",
+        "type": "number[]"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "minval",
+        "name": "minval",
+        "type": "number"
+      },
+      {
+        "tfName": "maxval",
+        "name": "maxval",
+        "type": "number"
+      },
+      {
+        "tfName": "seed",
+        "name": "seed",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "tfName": "seed2",
+        "name": "seed2",
+        "type": "number",
+        "defaultValue": 0,
+        "notSupported": true
+      }
+    ]
+  },
+  {
     "tfOpName": "Range",
     "category": "creation",
     "inputs": [
@@ -41506,6 +41737,22 @@ var json11 = [
         "notSupported": true
       }
     ]
+  },
+  {
+    "tfOpName": "BitwiseAnd",
+    "category": "logical",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "y",
+        "type": "tensor"
+      }
+    ]
   }
 ];
 
@@ -41988,41 +42235,6 @@ var json13 = [
         "type": "tensor"
       }
     ]
-  },
-  {
-    "tfOpName": "SparseToDense",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "sparseIndices",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "outputShape",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "sparseValues",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "defaultValue",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "validate_indices",
-        "name": "validateIndices",
-        "type": "bool",
-        "defaultValue": true,
-        "notSupported": true
-      }
-    ]
   }
 ];
 
@@ -42271,6 +42483,12 @@ var json14 = [
         "tfName": "keep_dims",
         "name": "keepDims",
         "type": "bool"
+      },
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
       }
     ]
   },
@@ -43192,6 +43410,22 @@ var json19 = [
     ]
   },
   {
+    "tfOpName": "EnsureShape",
+    "category": "transformation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "shape",
+        "type": "number[]"
+      }
+    ]
+  },
+  {
     "tfOpName": "Squeeze",
     "category": "transformation",
     "inputs": [
@@ -43980,6 +44214,7 @@ __export(ops_for_converter_exports, {
   batchNorm4d: () => batchNorm4d,
   batchToSpaceND: () => batchToSpaceND,
   bincount: () => bincount,
+  bitwiseAnd: () => bitwiseAnd,
   booleanMaskAsync: () => booleanMaskAsync,
   broadcastArgs: () => broadcastArgs,
   broadcastTo: () => broadcastTo,
@@ -44016,6 +44251,7 @@ __export(ops_for_converter_exports, {
   einsum: () => einsum,
   elu: () => elu,
   enclosingPowerOfTwo: () => enclosingPowerOfTwo,
+  ensureShape: () => ensureShape,
   equal: () => equal,
   erf: () => erf,
   euclideanNorm: () => euclideanNorm,
@@ -44100,6 +44336,7 @@ __export(ops_for_converter_exports, {
   randomNormal: () => randomNormal,
   randomStandardNormal: () => randomStandardNormal,
   randomUniform: () => randomUniform,
+  randomUniformInt: () => randomUniformInt,
   range: () => range,
   real: () => real,
   reciprocal: () => reciprocal,
@@ -44419,11 +44656,6 @@ var executeOp2 = (node, tensorMap, context, ops = ops_for_converter_exports) => 
       )];
     case "Rsqrt":
       return [ops.rsqrt(getTensor(node.inputNames[0], tensorMap, context))];
-    case "Prod":
-      return [ops.prod(
-        getParamValue("x", node, tensorMap, context),
-        getParamValue("axes", node, tensorMap, context)
-      )];
     case "LeakyRelu":
       return [ops.leakyRelu(
         getParamValue("x", node, tensorMap, context),
@@ -45679,6 +45911,14 @@ var executeOp5 = (node, tensorMap, context, ops = ops_for_converter_exports) => 
         getParamValue("dtype", node, tensorMap, context)
       )];
     }
+    case "RandomUniformInt": {
+      return [ops.randomUniformInt(
+        getParamValue("shape", node, tensorMap, context),
+        getParamValue("minval", node, tensorMap, context),
+        getParamValue("maxval", node, tensorMap, context),
+        getParamValue("seed", node, tensorMap, context)
+      )];
+    }
     case "Range": {
       const start = getParamValue("start", node, tensorMap, context);
       const stop = getParamValue("stop", node, tensorMap, context);
@@ -46202,6 +46442,12 @@ var executeOp11 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
         getParamValue("b", node, tensorMap, context)
       )];
     }
+    case "BitwiseAnd": {
+      return [ops.bitwiseAnd(
+        getParamValue("a", node, tensorMap, context),
+        getParamValue("b", node, tensorMap, context)
+      )];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
@@ -46316,14 +46562,6 @@ var executeOp13 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
     case "LogSoftmax": {
       return [ops.logSoftmax(
         getParamValue("x", node, tensorMap, context)
-      )];
-    }
-    case "SparseToDense": {
-      return [ops.sparseToDense(
-        getParamValue("sparseIndices", node, tensorMap, context),
-        getParamValue("outputShape", node, tensorMap, context),
-        getParamValue("sparseValues", node, tensorMap, context),
-        getParamValue("defaultValue", node, tensorMap, context)
       )];
     }
     default:
@@ -46798,6 +47036,12 @@ var executeOp20 = (node, tensorMap, context, ops = ops_for_converter_exports) =>
         getParamValue("shape", node, tensorMap, context)
       )];
     }
+    case "EnsureShape": {
+      return [ops.ensureShape(
+        getParamValue("x", node, tensorMap, context),
+        getParamValue("shape", node, tensorMap, context)
+      )];
+    }
     case "MirrorPad": {
       return [ops.mirrorPad(
         getParamValue("x", node, tensorMap, context),
@@ -47235,7 +47479,7 @@ function getNodeLiveUntilMap(orderedNodes) {
     if (!liveUntilMap.has(liveUntilNode.name)) {
       liveUntilMap.set(liveUntilNode.name, []);
     }
-    liveUntilMap.get(liveUntilNode.name).push(node.name);
+    liveUntilMap.get(liveUntilNode.name).push(node);
   }
   return liveUntilMap;
 }
@@ -47382,7 +47626,7 @@ var GraphExecutor = class {
    * @returns {Object} compilation The compile result.
    * @returns {Node[]} compilation.orderedNodes Nodes in the correct execution
    *     order.
-   * @returns {Map<Node, Node[]>} compilation.nodeLiveUntilMap A map from node
+   * @returns {Map<string, Node[]>} compilation.nodeLiveUntilMap A map from node
    *     to disposable nodes after its execution. That is, for a node `x`,
    *     `nodeLiveUntilMap[x]` indicates all nodes whose intermediate
    *     tensors should be disposed after `x` is executed.
@@ -47560,14 +47804,21 @@ var GraphExecutor = class {
     }
   }
   checkTensorForDisposalWithNodeLiveUntilInfo(node, tensorMap, context, tensorsToKeep, outputNodeNameSet, liveUntilNodes) {
-    if (isControlFlow(node) || outputNodeNameSet.has(node.name)) {
+    function isNonDisposableNode(node2) {
+      return isControlFlow(node2) || outputNodeNameSet.has(node2.name);
+    }
+    if (isControlFlow(node) || liveUntilNodes == null) {
       return;
     }
-    if (liveUntilNodes == null) {
-      return;
-    }
-    for (const inputNodeName of liveUntilNodes) {
-      const tensors = getTensorsForCurrentContext(inputNodeName, tensorMap, context);
+    for (const nodeToDispose of liveUntilNodes) {
+      if (isNonDisposableNode(nodeToDispose)) {
+        continue;
+      }
+      const tensors = getTensorsForCurrentContext(
+        nodeToDispose.name,
+        tensorMap,
+        context
+      );
       for (const tensor2 of tensors) {
         if (!tensor2 || tensor2.kept || tensorsToKeep.has(tensor2.id)) {
           continue;
@@ -51243,6 +51494,7 @@ __export(shared_exports, {
   addImpl: () => addImpl,
   bincountImpl: () => bincountImpl,
   bincountReduceImpl: () => bincountReduceImpl,
+  bitwiseAndImpl: () => bitwiseAndImpl,
   castImpl: () => castImpl,
   ceilImpl: () => ceilImpl,
   concatImpl: () => concatImpl,
@@ -51636,6 +51888,15 @@ function bincountReduceImpl(xBuf, weightsBuf, size, binaryOutput = false) {
   }
   return outBuf;
 }
+
+// src/tfjs-backend-cpu/src/kernels/BitwiseAnd.ts
+var bitwiseAndImpl = createSimpleBinaryKernelImpl((a, b) => a & b);
+var bitwiseAnd2 = binaryKernelFunc(BitwiseAnd, bitwiseAndImpl);
+var bitwiseAndConfig = {
+  kernelName: BitwiseAnd,
+  backendName: "cpu",
+  kernelFunc: bitwiseAnd2
+};
 
 // src/tfjs-backend-cpu/src/utils/unary_impl.ts
 function createSimpleUnaryImpl(op2) {
@@ -54276,7 +54537,13 @@ function maxPool3dPositions(xBuf, convInfo) {
                 const wRow = xRow - xRowCorner;
                 for (let xCol = xColMin; xCol < xColMax; xCol += dilationWidth) {
                   const wCol = xCol - xColCorner;
-                  const pixel = xBuf.get(batch, xDepth, xRow, xCol, channel);
+                  const pixel = xBuf.get(
+                    batch,
+                    xDepth,
+                    xRow,
+                    xCol,
+                    channel
+                  );
                   if (pixel >= maxValue) {
                     maxValue = pixel;
                     maxPosition = wDepth * effectiveFilterHeight * effectiveFilterWidth + wRow * effectiveFilterHeight + wCol;
@@ -56046,6 +56313,72 @@ var dilation2DBackpropInputConfig = {
     );
     return { dataId, shape: x.shape, dtype: x.dtype };
   }
+};
+
+// src/tfjs-backend-cpu/src/kernels/Draw.ts
+function draw2(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { image: image2 } = inputs;
+  const { canvas, options } = attrs;
+  const { contextOptions, imageOptions } = options || {};
+  const alpha = imageOptions?.alpha || 1;
+  const contextType = contextOptions?.contextType || "2d";
+  if (contextType !== "2d") {
+    throw new Error(`Context type ${contextOptions.contextType} is not supported by the CPU backend.`);
+  }
+  const ctx = canvas.getContext(
+    contextType,
+    contextOptions?.contextAttributes || {}
+  );
+  if (ctx == null) {
+    throw new Error(`Could not get the context with ${contextType} type.`);
+  }
+  const [height, width] = image2.shape.slice(0, 2);
+  const depth = image2.shape.length === 2 ? 1 : image2.shape[2];
+  const data = backend2.data.get(image2.dataId).values;
+  const multiplier = image2.dtype === "float32" ? 255 : 1;
+  const bytes = new Uint8ClampedArray(width * height * 4);
+  for (let i = 0; i < height * width; ++i) {
+    const rgba = [0, 0, 0, 255 * alpha];
+    for (let d = 0; d < depth; d++) {
+      const value = data[i * depth + d];
+      if (image2.dtype === "float32") {
+        if (value < 0 || value > 1) {
+          throw new Error(
+            `Tensor values for a float32 Tensor must be in the range [0 - 1] but encountered ${value}.`
+          );
+        }
+      } else if (image2.dtype === "int32") {
+        if (value < 0 || value > 255) {
+          throw new Error(
+            `Tensor values for a int32 Tensor must be in the range [0 - 255] but encountered ${value}.`
+          );
+        }
+      }
+      if (depth === 1) {
+        rgba[0] = value * multiplier;
+        rgba[1] = value * multiplier;
+        rgba[2] = value * multiplier;
+      } else {
+        rgba[d] = value * multiplier;
+      }
+    }
+    const j = i * 4;
+    bytes[j + 0] = Math.round(rgba[0]);
+    bytes[j + 1] = Math.round(rgba[1]);
+    bytes[j + 2] = Math.round(rgba[2]);
+    bytes[j + 3] = Math.round(rgba[3]);
+  }
+  canvas.width = width;
+  canvas.height = height;
+  const imageData = new ImageData(bytes, width, height);
+  ctx.putImageData(imageData, 0, 0);
+  return image2;
+}
+var drawConfig = {
+  kernelName: Draw,
+  backendName: "cpu",
+  kernelFunc: draw2
 };
 
 // src/tfjs-backend-cpu/src/kernels/Sum.ts
@@ -59408,6 +59741,7 @@ var kernelConfigs = [
   batchNormConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  bitwiseAndConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
@@ -59435,6 +59769,7 @@ var kernelConfigs = [
   dilation2DConfig,
   dilation2DBackpropFilterConfig,
   dilation2DBackpropInputConfig,
+  drawConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig2,
@@ -62338,6 +62673,7 @@ function compileProgram(gpgpu, program, inputs, output) {
   const fragmentShader = createFragmentShader(gpgpu.gl, source);
   const webGLProgram = gpgpu.createProgram(fragmentShader);
   if (!env().get("ENGINE_COMPILE_ONLY")) {
+    gpgpu.buildVao(webGLProgram);
     return {
       program,
       fragmentShader,
@@ -62472,6 +62808,7 @@ function runProgram(gpgpu, binary, inputs, output, customUniformValues) {
     );
   }
   gpgpu.setProgram(binary.webGLProgram);
+  gpgpu.bindVertexArray(binary.webGLProgram.vao);
   if (env().getNumber("WEBGL_VERSION") === 1) {
     if (binary.infLoc !== null) {
       gpgpu.gl.uniform1f(binary.infLoc, Infinity);
@@ -63604,30 +63941,25 @@ var GPGPUContext = class {
     );
     callAndCheck(gl, () => gl.attachShader(program, fragmentShader));
     linkProgram(gl, program);
-    let program2;
-    {
-      program2 = Object.assign(program, {
-        vao: this.createVertexArray()
-      });
-      this.bindVertexArray(program2.vao);
-      callAndCheck(
-        gl,
-        () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer)
-      );
-      console.assert(
-        bindVertexProgramAttributeStreams(
-          gl,
-          program2,
-          this.vertexBuffer
-        ),
-        "gpgpu_util.bindVertexProgramAttributeStreams not fully successful."
-      );
-      if (this.debug) {
-        validateProgram(gl, program2);
-      }
+    const program2 = Object.assign(program, { vao: this.createVertexArray() });
+    if (this.debug) {
+      validateProgram(gl, program2);
     }
-    this.setProgram(program2);
     return program2;
+  }
+  buildVao(program) {
+    this.setProgram(program);
+    this.bindVertexArray(program.vao);
+    const gl = this.gl;
+    callAndCheck(
+      gl,
+      () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer)
+    );
+    bindVertexProgramAttributeStreams(
+      gl,
+      program,
+      this.vertexBuffer
+    );
   }
   deleteProgram(program) {
     this.throwIfDisposed();
@@ -63643,7 +63975,6 @@ var GPGPUContext = class {
     this.throwIfDisposed();
     this.program = program;
     if (this.program != null) {
-      this.bindVertexArray(this.program.vao);
       if (this.debug) {
         validateProgram(this.gl, this.program);
       }
@@ -63933,6 +64264,7 @@ var {
   addImpl: addImplCPU,
   bincountImpl: bincountImplCPU,
   bincountReduceImpl: bincountReduceImplCPU,
+  bitwiseAndImpl: bitwiseAndImplCPU,
   castImpl: castImplCPU,
   ceilImpl: ceilImplCPU,
   concatImpl: concatImplCPU,
@@ -65466,6 +65798,7 @@ var _MathBackendWebGL = class extends KernelBackend {
   }
   getUniformLocations() {
     for (const binary of Object.values(this.binaryCache)) {
+      this.gpgpu.buildVao(binary.webGLProgram);
       const {
         variablesLocations,
         customUniformLocations,
@@ -68233,6 +68566,45 @@ var bincountConfig2 = {
   kernelName: Bincount,
   backendName: "webgl",
   kernelFunc: bincount3
+};
+
+// src/tfjs-backend-webgl/src/kernels/BitwiseAnd.ts
+var BITWISEAND = `
+  int r = int(a.r) & int(b.r);
+  int g = int(a.g) & int(b.g);
+  int rb = int(a.b) & int(b.b);
+  int ra = int(a.a) & int(b.a);
+  return vec4(r, g, rb, ra);
+`;
+var BITWISEAND_UNPACKED = `
+  return float(int(a.r) & int(b.r));
+`;
+function bitwiseAnd3(args) {
+  const { inputs, backend: backend2 } = args;
+  const { a, b } = inputs;
+  const shouldUsePackedProgram = env().getBool("WEBGL_PACK_BINARY_OPERATIONS");
+  const versionNumber = env().getNumber("WEBGL_VERSION");
+  if (backend2.shouldExecuteOnCPU([a, b]) || versionNumber === 1) {
+    const aVals = backend2.texData.get(a.dataId).values;
+    const bVals = backend2.texData.get(b.dataId).values;
+    const [outValues, outShape] = bitwiseAndImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
+    const out = backend2.makeTensorInfo(outShape, a.dtype);
+    const outData = backend2.texData.get(out.dataId);
+    outData.values = outValues;
+    return out;
+  }
+  let program;
+  if (shouldUsePackedProgram) {
+    program = new BinaryOpPackedProgram(BITWISEAND, a.shape, b.shape, false);
+  } else {
+    program = new BinaryOpProgram(BITWISEAND_UNPACKED, a.shape, b.shape);
+  }
+  return backend2.runWebGLProgram(program, [a, b], a.dtype);
+}
+var bitwiseAndConfig2 = {
+  kernelName: BitwiseAnd,
+  backendName: "webgl",
+  kernelFunc: bitwiseAnd3
 };
 
 // src/tfjs-backend-webgl/src/kernels/BroadcastArgs.ts
@@ -76848,6 +77220,7 @@ var kernelConfigs2 = [
   batchNormConfig2,
   batchToSpaceNDConfig2,
   bincountConfig2,
+  bitwiseAndConfig2,
   broadcastArgsConfig2,
   castConfig2,
   ceilConfig2,
@@ -77012,6 +77385,8 @@ ENV6.registerFlag("WEBGPU_IMPORT_EXTERNAL_TEXTURE", () => true);
 ENV6.registerFlag("WEBGPU_USE_NAIVE_CONV2D_DEBUG", () => false);
 ENV6.registerFlag("WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL", () => 0);
 ENV6.registerFlag("WEBGPU_CONV_SEPARATE_IM2COL_SHADER", () => false);
+ENV6.registerFlag("WEBGPU_PRINT_SHADER", () => "");
+ENV6.registerFlag("WEBGPU_ENGINE_COMPILE_ONLY", () => false);
 
 // src/tfjs-backend-webgpu/src/adapter_info.ts
 var AdapterInfo = class {
@@ -77051,59 +77426,55 @@ var BufferManager = class {
   usedBuffers = /* @__PURE__ */ new Map();
   numBytesUsed = 0;
   numBytesAllocated = 0;
-  acquireUploadBuffer(size, usage) {
-    return this.acquireBuffer(size, usage, true);
-  }
-  acquireBuffer(size, usage, mappedAtCreation = false) {
+  acquireBuffer(size, usage, mappedAtCreation = false, reuse = true) {
+    let buffer2;
     const key = getBufferKey(size, usage);
-    if (!this.freeBuffers.has(key)) {
-      this.freeBuffers.set(key, []);
+    if (reuse) {
+      if (!this.freeBuffers.has(key)) {
+        this.freeBuffers.set(key, []);
+      }
+      if (this.freeBuffers.get(key).length > 0) {
+        buffer2 = this.freeBuffers.get(key).pop();
+        this.numFreeBuffers--;
+      } else {
+        buffer2 = this.device.createBuffer({ size, usage, mappedAtCreation });
+        this.numBytesAllocated += size;
+      }
+    } else {
+      buffer2 = this.device.createBuffer({ size, usage, mappedAtCreation });
+      this.numBytesAllocated += size;
     }
     if (!this.usedBuffers.has(key)) {
       this.usedBuffers.set(key, []);
     }
-    this.numBytesUsed += size;
+    this.usedBuffers.get(key).push(buffer2);
     this.numUsedBuffers++;
-    if (this.freeBuffers.get(key).length > 0) {
-      this.numFreeBuffers--;
-      const newBuffer2 = this.freeBuffers.get(key).shift();
-      this.usedBuffers.get(key).push(newBuffer2);
-      return newBuffer2;
-    }
-    this.numBytesAllocated += size;
-    const newBuffer = this.device.createBuffer({ size, usage, mappedAtCreation });
-    this.usedBuffers.get(key).push(newBuffer);
-    return newBuffer;
+    this.numBytesUsed += size;
+    return buffer2;
   }
-  releaseBuffer(buffer2, size, usage) {
+  releaseBuffer(buffer2, reuse = true) {
     if (this.freeBuffers.size === 0) {
       return;
     }
+    const size = buffer2.size;
+    const usage = buffer2.usage;
     const key = getBufferKey(size, usage);
-    if (!this.freeBuffers.has(key)) {
-      this.freeBuffers.set(key, []);
+    const bufferArray = this.usedBuffers.get(key);
+    const index = bufferArray.indexOf(buffer2);
+    if (index < 0) {
+      throw new Error("Cannot find the buffer in buffer manager");
     }
-    this.freeBuffers.get(key).push(buffer2);
-    this.numFreeBuffers++;
+    bufferArray[index] = bufferArray[bufferArray.length - 1];
+    bufferArray.pop();
     this.numUsedBuffers--;
-    const bufferList = this.usedBuffers.get(key);
-    const bufferIndex = bufferList.indexOf(buffer2);
-    if (bufferIndex < 0) {
-      throw new Error(
-        "Cannot release a buffer that was never provided by this buffer manager"
-      );
-    }
-    bufferList.splice(bufferIndex, 1);
     this.numBytesUsed -= size;
-  }
-  releaseUploadBuffer(buffer2, size, usage) {
-    buffer2.mapAsync(GPUMapMode.WRITE).then(
-      () => {
-        this.releaseBuffer(buffer2, size, usage);
-      },
-      (err) => {
-      }
-    );
+    if (reuse) {
+      this.freeBuffers.get(key).push(buffer2);
+      this.numFreeBuffers++;
+    } else {
+      buffer2.destroy();
+      this.numBytesAllocated -= size;
+    }
   }
   getNumUsedBuffers() {
     return this.numUsedBuffers;
@@ -77172,10 +77543,14 @@ var TextureManager2 = class {
     this.usedTextures.get(key).push(newTexture);
     return newTexture;
   }
-  releaseTexture(texture, width, height, format, usage) {
+  releaseTexture(texture) {
     if (this.freeTextures.size === 0) {
       return;
     }
+    const width = texture.width;
+    const height = texture.height;
+    const format = texture.format;
+    const usage = texture.usage;
     const key = getTextureKey(width, height, format, usage);
     if (!this.freeTextures.has(key)) {
       this.freeTextures.set(key, []);
@@ -77267,18 +77642,37 @@ var atomicAddSnippet = (ptr, v, type) => {
 };
 
 // src/tfjs-backend-webgpu/src/webgpu_program.ts
-var compileProgram2 = (device, program, inputsData, output) => {
+var compileProgram2 = (device, program, inputsData, output, parallelCompilation) => {
   const outputData = { dtype: output.dtype, shape: output.shape };
   const source = makeShader2(inputsData, outputData, program);
   const module = device.createShaderModule(
     { code: source, label: program.constructor.name }
   );
-  const pipeline = device.createComputePipeline({
-    compute: { module, entryPoint: "_start" },
-    label: program.constructor.name,
-    layout: "auto"
-  });
-  return pipeline;
+  let printShaderString = env().get("WEBGPU_PRINT_SHADER");
+  if (printShaderString !== "") {
+    printShaderString = printShaderString.toLowerCase();
+    const printShaderArray = printShaderString.split(",");
+    if (printShaderString === "all" || printShaderArray.some(
+      (item) => program.shaderKey.toLowerCase().includes(item)
+    )) {
+      console.group(program.shaderKey);
+      console.debug(source);
+      console.groupEnd();
+    }
+  }
+  if (parallelCompilation) {
+    return device.createComputePipelineAsync({
+      compute: { module, entryPoint: "_start" },
+      label: program.constructor.name,
+      layout: "auto"
+    });
+  } else {
+    return device.createComputePipeline({
+      compute: { module, entryPoint: "_start" },
+      label: program.constructor.name,
+      layout: "auto"
+    });
+  }
 };
 var typeSnippet = (component, type = "f32") => {
   switch (component) {
@@ -77490,12 +77884,19 @@ function makeShader2(inputInfo, outputData, program) {
   const source = sources.join("\n");
   return source;
 }
-function makeShaderKey2(program, shapes, inputsData, output) {
+function makeShaderKey2(program, inputsData, output) {
   let key = program.shaderKey;
   if (program.isFromPixels) {
     return key;
   }
-  const types = inputsData.map((d) => d.dtype).concat(output.dtype);
+  const shapes = [];
+  const types = [];
+  inputsData.forEach((element) => {
+    shapes.push(element.shape);
+    types.push(element.dtype);
+  });
+  shapes.push(output.shape);
+  types.push(output.dtype);
   const broadcastDims = inputsData.map((d) => backend_util_exports.getBroadcastDims(d.shape, output.shape));
   const inputShapesEqualsOutShape = inputsData.map((d) => util_exports.arraysEqual(d.shape, output.shape)).join("_");
   const broadcastDimsKey = broadcastDims.map((d) => d.join("_")).join(";");
@@ -78053,6 +78454,7 @@ var _WebGPUBackend = class extends KernelBackend {
   supportTimeQuery;
   uniformPendingDisposal = [];
   uploadWaitMs = 0;
+  hasReadSyncWarned = false;
   nextDataId() {
     return _WebGPUBackend.nextDataId++;
   }
@@ -78092,9 +78494,6 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   floatPrecision() {
     return 32;
-  }
-  defaultGpuBufferUsage() {
-    return GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
   }
   /**
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
@@ -78137,35 +78536,19 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   releaseResource(dataId) {
     const tensorData = this.tensorMap.get(dataId);
-    if (!tensorData || !tensorData.resourceInfo) {
+    if (!tensorData || !tensorData.resource) {
       return;
     }
     if (tensorData.external) {
-      tensorData.resourceInfo = null;
+      tensorData.resource = null;
       return;
     }
-    if ("texture" in tensorData.resourceInfo) {
-      const textureInfo = tensorData.resourceInfo;
-      if (textureInfo.texture instanceof GPUTexture) {
-        this.textureManager.releaseTexture(
-          textureInfo.texture,
-          textureInfo.width,
-          textureInfo.height,
-          textureInfo.format,
-          textureInfo.usage
-        );
-      }
-      textureInfo.texture = null;
-    } else {
-      const bufferInfo = tensorData.resourceInfo;
-      this.bufferManager.releaseBuffer(
-        bufferInfo.buffer,
-        bufferInfo.size,
-        bufferInfo.usage
-      );
-      bufferInfo.buffer = null;
+    if (tensorData.resource instanceof GPUBuffer) {
+      this.bufferManager.releaseBuffer(tensorData.resource);
+    } else if (tensorData.resource instanceof GPUTexture) {
+      this.textureManager.releaseTexture(tensorData.resource);
     }
-    tensorData.resourceInfo = null;
+    tensorData.resource = null;
   }
   /** Return refCount of a `TensorData`. */
   refCount(dataId) {
@@ -78216,10 +78599,10 @@ var _WebGPUBackend = class extends KernelBackend {
       this.tensorMap.delete(d);
     });
     this.uniformPendingDisposal.forEach(
-      (d) => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage)
+      (b) => this.bufferManager.releaseBuffer(b)
     );
     this.stagingPendingDisposal.forEach(
-      (d) => this.bufferManager.releaseUploadBuffer(d.buffer, d.size, d.usage)
+      (b) => this.bufferManager.releaseBuffer(b, false)
     );
     this.tensorDataPendingDisposal = [];
     this.uniformPendingDisposal = [];
@@ -78242,24 +78625,45 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     return this.currentComputePass;
   }
-  async getBufferData(buffer2, size) {
-    const staging = this.bufferManager.acquireBuffer(
+  // Check if parallel compilation is done.
+  async checkCompileCompletionAsync() {
+    let pipelines;
+    try {
+      pipelines = await Promise.all(Object.values(this.pipelineCache));
+    } catch (e) {
+      throw new Error(e.message);
+    }
+    Object.keys(this.pipelineCache).map((key, i) => {
+      this.pipelineCache[key] = pipelines[i];
+    });
+  }
+  async getBufferData(buffer2) {
+    if (env().getBool("WEBGPU_ENGINE_COMPILE_ONLY")) {
+      console.warn(
+        "The data may be invalid since WEBGPU_ENGINE_COMPILE_ONLY is true, this can only be called when WEBGPU_ENGINE_COMPILE_ONLY is false"
+      );
+      return null;
+    }
+    const size = buffer2.size;
+    const stagingBuffer = this.bufferManager.acquireBuffer(
       size,
       GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
     );
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
-    this.currentCommandEncoder.copyBufferToBuffer(buffer2, 0, staging, 0, size);
+    this.currentCommandEncoder.copyBufferToBuffer(
+      buffer2,
+      0,
+      stagingBuffer,
+      0,
+      size
+    );
     this.submitQueue();
-    await staging.mapAsync(GPUMapMode.READ);
-    const values = staging.getMappedRange().slice(0);
-    staging.unmap();
-    if (staging != null) {
-      this.bufferManager.releaseBuffer(
-        staging,
-        size,
-        GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
-      );
+    await stagingBuffer.mapAsync(GPUMapMode.READ);
+    const values = stagingBuffer.getMappedRange().slice(0);
+    stagingBuffer.unmap();
+    if (stagingBuffer != null) {
+      this.bufferManager.releaseBuffer(stagingBuffer);
     }
     if (env().getBool("WEBGPU_USE_PROFILE_TOOL")) {
       util_exports.assert(
@@ -78276,17 +78680,108 @@ var _WebGPUBackend = class extends KernelBackend {
     tensorData.values = data;
     return tensorData.values;
   }
-  // TODO: Remove once this is fixed:
-  // https://github.com/tensorflow/tfjs/issues/1595
   readSync(dataId) {
-    const tensorData = this.tensorMap.get(dataId);
-    const { values } = tensorData;
-    if (values == null) {
-      throw new Error(
-        "WebGPU readSync is only available for CPU-resident tensors."
+    if (!this.hasReadSyncWarned) {
+      this.hasReadSyncWarned = true;
+      console.warn(
+        `The performance of synchronously reading data from GPU to CPU is poor on the webgpu backend, please use asynchronous APIs instead.`
       );
     }
-    return values;
+    const tensorData = this.tensorMap.get(dataId);
+    const { values, complexTensorInfos } = tensorData;
+    if (values != null || tensorData.dtype === "string") {
+      return values;
+    }
+    if (tensorData.dtype === "complex64") {
+      const realValues = this.readSync(complexTensorInfos.real.dataId);
+      const imagValues = this.readSync(complexTensorInfos.imag.dataId);
+      const complexVals = util_exports.convertBackendValuesAndArrayBuffer(
+        backend_util_exports.mergeRealAndImagArrays(realValues, imagValues).buffer,
+        "float32"
+      );
+      this.convertAndCacheOnCPU(dataId, complexVals);
+      return complexVals;
+    }
+    const alphaModes = ["opaque", "premultiplied"];
+    const buffer2 = tensorData.resource;
+    const bufferSize = buffer2.size;
+    util_exports.assert(
+      bufferSize % 4 === 0,
+      () => "Because there is 4 bytes for one pixel, buffer size must be multiple of 4."
+    );
+    const pixelsSize = bufferSize / 4;
+    const valsGPU = new ArrayBuffer(bufferSize);
+    const canvasWidth = 256, canvasHeight = 256;
+    const stagingDeviceStorage = alphaModes.map((_) => new OffscreenCanvas(canvasWidth, canvasHeight));
+    const stagingHostStorage = new OffscreenCanvas(canvasWidth, canvasHeight);
+    this.ensureComputePassEnded();
+    stagingDeviceStorage.map((storage, index) => {
+      const context = storage.getContext("webgpu");
+      context.configure({
+        device: this.device,
+        format: "bgra8unorm",
+        usage: GPUTextureUsage.COPY_DST,
+        alphaMode: alphaModes[index]
+      });
+      return context.getCurrentTexture();
+    }).map((texture, index) => {
+      const bytesPerRow = canvasWidth * 4;
+      const readDataGPUToCPU = (width2, height2, offset2) => {
+        this.ensureCommandEncoderReady();
+        this.currentCommandEncoder.copyBufferToTexture(
+          {
+            buffer: buffer2,
+            bytesPerRow,
+            offset: offset2
+          },
+          {
+            texture
+          },
+          {
+            width: width2,
+            height: height2
+          }
+        );
+        this.submitQueue();
+        const context = stagingHostStorage.getContext("2d", {
+          willReadFrequently: true
+        });
+        context.clearRect(0, 0, width2, height2);
+        context.drawImage(stagingDeviceStorage[index], 0, 0);
+        const stagingValues = context.getImageData(0, 0, width2, height2).data;
+        const alphaMode = alphaModes[index];
+        const span = new Uint8ClampedArray(valsGPU, offset2, width2 * height2 * 4);
+        for (let k = 0; k < span.length; k += 4) {
+          if (alphaMode === "premultiplied") {
+            span[k + 3] = stagingValues[k + 3];
+          } else {
+            const value = stagingValues[k];
+            span[k] = stagingValues[k + 2];
+            span[k + 1] = stagingValues[k + 1];
+            span[k + 2] = value;
+          }
+        }
+      };
+      const fullyReadCount = Math.floor(pixelsSize / (canvasWidth * canvasHeight));
+      let width = canvasWidth, height = canvasHeight, offset = 0;
+      for (let i = 0; i < fullyReadCount; i++) {
+        readDataGPUToCPU(width, height, offset);
+        offset += canvasWidth * canvasHeight * 4;
+      }
+      const remainSize = pixelsSize % (canvasWidth * canvasHeight);
+      height = Math.floor(remainSize / canvasWidth);
+      if (height > 0) {
+        readDataGPUToCPU(width, height, offset);
+        offset += height * (canvasWidth * 4);
+      }
+      width = remainSize % canvasWidth;
+      if (width > 0) {
+        readDataGPUToCPU(width, 1, offset);
+      }
+    });
+    const vals = util_exports.convertBackendValuesAndArrayBuffer(valsGPU, tensorData.dtype);
+    this.convertAndCacheOnCPU(dataId, vals);
+    return vals;
   }
   async read(dataId) {
     if (!this.tensorMap.has(dataId)) {
@@ -78295,7 +78790,7 @@ var _WebGPUBackend = class extends KernelBackend {
     const tensorData = this.tensorMap.get(dataId);
     const { values } = tensorData;
     if (values != null) {
-      return this.convertAndCacheOnCPU(dataId, values);
+      return values;
     }
     let vals;
     if (tensorData.dtype === "complex64") {
@@ -78310,8 +78805,7 @@ var _WebGPUBackend = class extends KernelBackend {
         imagValues
       );
     } else {
-      const bufferInfo = tensorData.resourceInfo;
-      const data = await this.getBufferData(bufferInfo.buffer, bufferInfo.size);
+      const data = await this.getBufferData(tensorData.resource);
       vals = util_exports.convertBackendValuesAndArrayBuffer(data, tensorData.dtype);
     }
     this.convertAndCacheOnCPU(dataId, vals);
@@ -78319,7 +78813,9 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   // The source GPUBuffer and destination GPUBuffer have the same size and
   // usage.
-  copyBuffer(srcBuffer, size, usage) {
+  copyBuffer(srcBuffer) {
+    const size = srcBuffer.size;
+    const usage = srcBuffer.usage;
     const dstBuffer = this.bufferManager.acquireBuffer(size, usage);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
@@ -78336,29 +78832,32 @@ var _WebGPUBackend = class extends KernelBackend {
   /**
    * Create a TF.js tensor out of an existing WebGPU buffer.
    */
-  createTensorFromGPUData(values, shape, dtype) {
-    let buffer2 = values.buffer;
+  createTensorFromGPUData(webGPUData, shape, dtype) {
+    let buffer2 = webGPUData.buffer;
     if (dtype === "complex64") {
       throw new Error(`Cannot write to a complex64 dtype. `);
     }
     const dataId = { id: this.nextDataId() };
-    this.tensorMap.set(
-      dataId,
-      { dtype, shape, values: null, refCount: 1, external: values.zeroCopy }
-    );
+    this.tensorMap.set(dataId, {
+      dtype,
+      shape,
+      values: null,
+      refCount: 1,
+      external: webGPUData.zeroCopy
+    });
     const tensorData = this.tensorMap.get(dataId);
     const size = GPUBytesPerElement(tensorData.dtype) * util_exports.sizeFromShape(tensorData.shape);
-    if (values.buffer.size < size) {
-      throw new Error(`GPUBuffer size(${values.buffer.size}) is smaller than tensor size(${size})!`);
-    } else if ((values.buffer.usage & (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC)) !== (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC)) {
+    if (webGPUData.buffer.size < size) {
+      throw new Error(`GPUBuffer size(${webGPUData.buffer.size}) is smaller than tensor size(${size})!`);
+    } else if ((webGPUData.buffer.usage & (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC)) !== (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC)) {
       throw new Error(
         "GPUBuffer.usage should include GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC!"
       );
     }
-    if (values.zeroCopy !== true) {
-      buffer2 = this.copyBuffer(buffer2, size, buffer2.usage);
+    if (webGPUData.zeroCopy !== true) {
+      buffer2 = this.copyBuffer(buffer2);
     }
-    tensorData.resourceInfo = { size: buffer2.size, usage: buffer2.usage, buffer: buffer2 };
+    tensorData.resource = buffer2;
     return engine().makeTensorFromDataId(dataId, shape, dtype, this);
   }
   /**
@@ -78367,23 +78866,25 @@ var _WebGPUBackend = class extends KernelBackend {
    */
   readToGPU(dataId) {
     const srcTensorData = this.tensorMap.get(dataId);
-    const { values, dtype, shape, resourceInfo } = srcTensorData;
+    const { values, dtype, shape, resource } = srcTensorData;
     if (dtype === "complex64") {
       throw new Error("Does not support reading buffer for complex64 dtype.");
     }
-    if (resourceInfo == null) {
+    if (resource == null) {
       if (values != null) {
         throw new Error("Data is not on GPU but on CPU.");
       } else {
         throw new Error("There is no data on GPU or CPU.");
       }
     }
-    const size = resourceInfo.size;
-    const buffer2 = this.bufferManager.acquireBuffer(size, resourceInfo.usage);
+    const srcBuffer = resource;
+    const size = srcBuffer.size;
+    const usage = srcBuffer.usage;
+    const buffer2 = this.bufferManager.acquireBuffer(size, usage);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
-      resourceInfo.buffer,
+      resource,
       0,
       buffer2,
       0,
@@ -78393,8 +78894,8 @@ var _WebGPUBackend = class extends KernelBackend {
     const tensorInfo = this.makeTensorInfo(shape, dtype);
     const tensorRef = engine().makeTensorFromTensorInfo(tensorInfo);
     const tensorData = this.tensorMap.get(tensorInfo.dataId);
-    tensorData.resourceInfo = { size, usage: this.defaultGpuBufferUsage(), buffer: buffer2 };
-    return { tensorRef, buffer: buffer2, bufSize: size };
+    tensorData.resource = buffer2;
+    return { tensorRef, buffer: buffer2 };
   }
   bufferSync(t) {
     const data = this.readSync(t.dataId);
@@ -78456,16 +78957,14 @@ var _WebGPUBackend = class extends KernelBackend {
       return null;
     }
     const tensorData = this.tensorMap.get(tensor2.dataId);
-    if ("texture" in tensorData.resourceInfo) {
-      const info = tensorData.resourceInfo;
-      if (info.texture instanceof GPUExternalTexture) {
-        return info.texture;
-      } else {
-        return info.texture.createView();
-      }
+    const resource = tensorData.resource;
+    if (resource instanceof GPUBuffer) {
+      return { buffer: resource };
     }
-    const bufferInfo = tensorData.resourceInfo;
-    return { offset: 0, size: bufferInfo.size, buffer: bufferInfo.buffer };
+    if (resource instanceof GPUTexture) {
+      return resource.createView();
+    }
+    return resource;
   }
   async getQueryTime(query) {
     if (this.supportTimeQuery) {
@@ -78476,40 +78975,52 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   uploadToGPU(dataId) {
     const tensorData = this.tensorMap.get(dataId);
-    if (tensorData.resourceInfo) {
+    if (tensorData.resource != null) {
       return;
     }
     const size = GPUBytesPerElement(tensorData.dtype) * util_exports.sizeFromShape(tensorData.shape);
-    const buffer2 = this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
-    tensorData.resourceInfo = { size, usage: this.defaultGpuBufferUsage(), buffer: buffer2 };
+    let buffer2;
+    const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
     if (tensorData.values) {
-      const stagingBuffer = this.bufferManager.acquireUploadBuffer(
-        size,
-        GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC
-      );
-      const arrayBuffer = stagingBuffer.getMappedRange();
-      if (tensorData.dtype === "int32" || tensorData.dtype === "bool") {
-        new Int32Array(arrayBuffer).set(tensorData.values);
+      buffer2 = this.bufferManager.acquireBuffer(size, usage, true);
+      if (buffer2.mapState === "unmapped") {
+        const stagingBuffer = this.bufferManager.acquireBuffer(
+          size,
+          GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+          true,
+          false
+        );
+        const arrayBuffer = stagingBuffer.getMappedRange();
+        if (tensorData.dtype === "int32" || tensorData.dtype === "bool") {
+          new Int32Array(arrayBuffer).set(tensorData.values);
+        } else {
+          new Float32Array(arrayBuffer).set(tensorData.values);
+        }
+        stagingBuffer.unmap();
+        this.ensureCommandEncoderReady();
+        this.ensureComputePassEnded();
+        this.currentCommandEncoder.copyBufferToBuffer(
+          stagingBuffer,
+          0,
+          buffer2,
+          0,
+          size
+        );
+        this.stagingPendingDisposal.push(stagingBuffer);
       } else {
-        new Float32Array(arrayBuffer).set(tensorData.values);
+        const arrayBuffer = buffer2.getMappedRange();
+        if (tensorData.dtype === "int32" || tensorData.dtype === "bool") {
+          new Int32Array(arrayBuffer).set(tensorData.values);
+        } else {
+          new Float32Array(arrayBuffer).set(tensorData.values);
+        }
+        buffer2.unmap();
       }
-      stagingBuffer.unmap();
-      this.ensureCommandEncoderReady();
-      this.ensureComputePassEnded();
-      this.currentCommandEncoder.copyBufferToBuffer(
-        stagingBuffer,
-        0,
-        buffer2,
-        0,
-        size
-      );
-      const stagingInfo = {
-        size,
-        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
-        buffer: stagingBuffer
-      };
-      this.stagingPendingDisposal.push(stagingInfo);
+      tensorData.values = null;
+    } else {
+      buffer2 = this.bufferManager.acquireBuffer(size, usage);
     }
+    tensorData.resource = buffer2;
   }
   makeUniforms(programUniform) {
     let currentOffset = 0;
@@ -78571,12 +79082,7 @@ var _WebGPUBackend = class extends KernelBackend {
       GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
     );
     this.queue.writeBuffer(uniformBuffer, 0, arrayBuffer, 0, currentOffset);
-    const uniformInfo = {
-      size: currentOffset,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-      buffer: uniformBuffer
-    };
-    this.uniformPendingDisposal.push(uniformInfo);
+    this.uniformPendingDisposal.push(uniformBuffer);
     return { offset: 0, size: currentOffset, buffer: uniformBuffer };
   }
   runWebGPUProgram(program, inputs, outputDtype, programDefinedUniform, output) {
@@ -78589,6 +79095,44 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
+    const inputsData = inputs.map((input2, i) => {
+      if (input2.dtype === "complex64") {
+        throw new Error(
+          `GPGPUProgram does not support complex64 input. For complex64 dtypes, please separate the program into real and imaginary parts.`
+        );
+      }
+      this.uploadToGPU(input2.dataId);
+      return {
+        // Returning dtype from tensorMap because it reflects dtype
+        // of underlying buffer, rather than abstract dtype.
+        dtype: this.tensorMap.get(input2.dataId).dtype,
+        shape: input2.shape,
+        name: program.variableNames[i]
+      };
+    });
+    program.shaderKey = makeShaderKey2(program, inputsData, output);
+    const parallelCompilation = env().getBool("WEBGPU_ENGINE_COMPILE_ONLY");
+    if (!(program.shaderKey in this.pipelineCache)) {
+      this.pipelineCache[program.shaderKey] = compileProgram2(
+        this.device,
+        program,
+        inputsData,
+        output,
+        parallelCompilation
+      );
+    }
+    program.pipeline = this.pipelineCache[program.shaderKey];
+    if (!parallelCompilation) {
+      this.recordAndSubmit(program, output, inputs, programDefinedUniform);
+    }
+    return output;
+  }
+  recordAndSubmit(program, output, inputs, programDefinedUniform) {
+    if (program.pipeline instanceof Promise) {
+      throw new Error(
+        "Please call checkCompileCompletionAsync to ensure parallel compilation is done!"
+      );
+    }
     let programUniform = [];
     let bufferShapes = [];
     if (!program.isFromPixels) {
@@ -78611,34 +79155,6 @@ var _WebGPUBackend = class extends KernelBackend {
         });
       }
     }
-    const inputsData = inputs.map((input2, i) => {
-      if (input2.dtype === "complex64") {
-        throw new Error(
-          `GPGPUProgram does not support complex64 input. For complex64 dtypes, please separate the program into real and imaginary parts.`
-        );
-      }
-      this.uploadToGPU(input2.dataId);
-      return {
-        // Returning dtype from tensorMap because it reflects dtype
-        // of underlying buffer, rather than abstract dtype.
-        dtype: this.tensorMap.get(input2.dataId).dtype,
-        shape: input2.shape,
-        name: program.variableNames[i]
-      };
-    });
-    const key = makeShaderKey2(program, bufferShapes, inputsData, output);
-    let pipeline;
-    if (key in this.pipelineCache) {
-      pipeline = this.pipelineCache[key];
-    } else {
-      pipeline = compileProgram2(
-        this.device,
-        program,
-        inputsData,
-        output
-      );
-      this.pipelineCache[key] = pipeline;
-    }
     if (programDefinedUniform) {
       programUniform = [...programUniform, ...programDefinedUniform];
     }
@@ -78647,35 +79163,31 @@ var _WebGPUBackend = class extends KernelBackend {
       ...inputs.map((t) => this.tensorToBinding(t)),
       this.makeUniforms(programUniform)
     ];
+    inputs.forEach((input2) => {
+      this.commandQueueOwnedIds.add(input2.dataId);
+    });
+    this.commandQueueOwnedIds.add(output.dataId);
     const bindGroup = this.device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
+      layout: program.pipeline.getBindGroupLayout(0),
       entries: bindings.map((b, i) => ({ binding: i, resource: b }))
     });
     this.ensureCommandEncoderReady();
     const pass = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        pass.writeTimestamp(this.querySet, 0);
-      }
+    if (shouldTimeProgram && this.supportTimeQuery) {
+      pass.writeTimestamp(this.querySet, 0);
     }
-    pass.setPipeline(pipeline);
+    pass.setPipeline(program.pipeline);
     pass.setBindGroup(0, bindGroup);
     pass.dispatchWorkgroups(
       program.dispatch[0],
       program.dispatch[1],
       program.dispatch[2]
     );
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        pass.writeTimestamp(this.querySet, 1);
-      }
+    if (shouldTimeProgram && this.supportTimeQuery) {
+      pass.writeTimestamp(this.querySet, 1);
     }
     this.dispatchNumberInEncoder++;
-    inputs.forEach((input2) => {
-      this.commandQueueOwnedIds.add(input2.dataId);
-    });
-    this.commandQueueOwnedIds.add(output.dataId);
     if (env().get("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE") <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
@@ -78685,7 +79197,6 @@ var _WebGPUBackend = class extends KernelBackend {
         query: this.getQueryTime(this.querySet)
       });
     }
-    return output;
   }
   async getTimeFromQuerySet(querySet) {
     const queryBuffer = this.bufferManager.acquireBuffer(
@@ -78705,21 +79216,13 @@ var _WebGPUBackend = class extends KernelBackend {
     const arrayBuf = new BigUint64Array(dst.getMappedRange());
     const timeElapsedNanos = Number(arrayBuf[1] - arrayBuf[0]);
     dst.unmap();
-    this.bufferManager.releaseBuffer(
-      dst,
-      16,
-      GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
-    );
-    this.bufferManager.releaseBuffer(
-      queryBuffer,
-      16,
-      GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE
-    );
+    this.bufferManager.releaseBuffer(dst);
+    this.bufferManager.releaseBuffer(queryBuffer);
     return timeElapsedNanos / 1e6;
   }
   shouldExecuteOnCPU(inputs, sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD2) {
     return env().getBool("WEBGPU_CPU_FORWARD") && inputs.every(
-      (input2) => this.tensorMap.get(input2.dataId).resourceInfo == null && util_exports.sizeFromShape(input2.shape) < sizeThreshold
+      (input2) => this.tensorMap.get(input2.dataId).resource == null && util_exports.sizeFromShape(input2.shape) < sizeThreshold
     );
   }
   numDataIds() {
@@ -78742,7 +79245,6 @@ if (isWebGPUSupported()) {
   registerBackend(
     "webgpu",
     async () => {
-      env().set("CHECK_COMPUTATION_FOR_ERRORS", false);
       const gpuDescriptor = {
         powerPreference: env().get("WEBGPU_USE_LOW_POWER_GPU") ? "low-power" : "high-performance"
       };
@@ -78756,7 +79258,10 @@ if (isWebGPUSupported()) {
       deviceDescriptor.requiredLimits = {
         "maxComputeWorkgroupStorageSize": adapterLimits.maxComputeWorkgroupStorageSize,
         "maxComputeWorkgroupsPerDimension": adapterLimits.maxComputeWorkgroupsPerDimension,
-        "maxStorageBufferBindingSize": adapterLimits.maxStorageBufferBindingSize
+        "maxStorageBufferBindingSize": adapterLimits.maxStorageBufferBindingSize,
+        "maxBufferSize": adapterLimits.maxBufferSize,
+        "maxComputeWorkgroupSizeX": adapterLimits.maxComputeWorkgroupSizeX,
+        "maxComputeInvocationsPerWorkgroup": adapterLimits.maxComputeInvocationsPerWorkgroup
       };
       const device = await adapter.requestDevice(deviceDescriptor);
       const adapterInfo = await adapter.requestAdapterInfo();
@@ -79336,19 +79841,19 @@ var calculateResultSnippet = (transposeA, innerElementSize, rowPerThread) => {
         let ACached2 = mm_Asub[k * ${innerElementSize} + 2][localRow];
         ${innerElementSize === 3 ? "" : `let ACached3 = mm_Asub[k * ${innerElementSize} + 3][localRow];`}
         for (var i = 0; i < ${rowPerThread}; i++) {
-          acc[i] = BCached0 * ACached0[i] + acc[i];
-          acc[i] = BCached1 * ACached1[i] + acc[i];
-          acc[i] = BCached2 * ACached2[i] + acc[i];
-          ${innerElementSize === 3 ? "" : "acc[i] = BCached3 * ACached3[i] + acc[i];"}
+          acc[i] = fma(BCached0, vec4<f32>(ACached0[i]), acc[i]);
+          acc[i] = fma(BCached1, vec4<f32>(ACached1[i]), acc[i]);
+          acc[i] = fma(BCached2, vec4<f32>(ACached2[i]), acc[i]);
+          ${innerElementSize === 3 ? "" : "acc[i] = fma(BCached3, vec4<f32>(ACached3[i]), acc[i]);"}
         }`;
   } else {
     return `
         for (var i = 0; i < ${rowPerThread}; i++) {
           let ACached = mm_Asub[tileRow + i][k];
-          acc[i] = BCached0 * ACached.x + acc[i];
-          acc[i] = BCached1 * ACached.y + acc[i];
-          acc[i] = BCached2 * ACached.z + acc[i];
-          ${innerElementSize === 3 ? "" : "acc[i] = BCached3 * ACached.w + acc[i];"}
+          acc[i] = fma(BCached0, vec4<f32>(ACached.x), acc[i]);
+          acc[i] = fma(BCached1, vec4<f32>(ACached.y), acc[i]);
+          acc[i] = fma(BCached2, vec4<f32>(ACached.z), acc[i]);
+          ${innerElementSize === 3 ? "" : "acc[i] = fma(BCached3, vec4<f32>(ACached.w), acc[i]);"}
         }`;
   }
 };
@@ -79490,8 +79995,8 @@ function makeMatMulPackedSource(workPerThread, workgroupSize, transposeA = false
           for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
             let ACached = ${transposeA ? `mm_Asub[k][localRow + innerRow * ${workgroupSize[1]}];` : `mm_Asub[localRow + innerRow * ${workgroupSize[1]}][k];`}
             for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
-              acc[innerRow][innerCol] = acc[innerRow][innerCol] +
-                  ACached * BCached[innerCol];
+              acc[innerRow][innerCol] =
+                  fma(ACached, BCached[innerCol], acc[innerRow][innerCol]);
             }
           }
         }
@@ -79549,7 +80054,8 @@ function makeMatMulPackedSource(workPerThread, workgroupSize, transposeA = false
       for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
         ${readDataFromSubASnippet(transposeA)}
         for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
-          acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
+          acc[innerRow][innerCol] =
+              fma(ACached, BCached[innerCol], acc[innerRow][innerCol]);
         }
       }
     }
@@ -80981,16 +81487,23 @@ var ReduceProgram2 = class {
   shaderKey;
   dispatchLayout;
   dispatch;
-  workgroupSize = [64, 1, 1];
+  workgroupSize;
   variableNames = ["x"];
   uniforms = "reduceSize : i32,";
   reduceType;
   inputShape;
   size = true;
-  constructor(reduceInfo, reduceType) {
+  constructor(reduceInfo, reduceType, maxComputeWorkgroupSizeX) {
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape] = backend_util_exports.computeOutAndReduceShapes(this.inputShape, [1]);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
+    if (reduceInfo.inSize >= 32768 && maxComputeWorkgroupSizeX >= 512) {
+      this.workgroupSize = [512, 1, 1];
+    } else if (reduceInfo.inSize >= 4096) {
+      this.workgroupSize = [256, 1, 1];
+    } else {
+      this.workgroupSize = [64, 1, 1];
+    }
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
     this.reduceType = reduceType;
@@ -81123,7 +81636,11 @@ function reduce2(x, axis, keepDims, reduceType, backend2) {
     const uniformData = [
       { type: "int32", data: [inSize] }
     ];
-    const program = new ReduceProgram2(reduceInfo, reduceType);
+    const program = new ReduceProgram2(
+      reduceInfo,
+      reduceType,
+      backend2.device.limits.maxComputeWorkgroupSizeX
+    );
     const reduced = backend2.runWebGPUProgram(program, [input2], dtype, uniformData);
     toDispose.push(reduced);
     res = reshape5({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend: backend2 });
@@ -82090,9 +82607,9 @@ function slice4(args) {
   const [$begin, $size] = slice_util_exports.parseSliceParams(x, begin, size);
   slice_util_exports.assertParamsValid(x, $begin, $size);
   if (backend2.shouldExecuteOnCPU([x]) || x.dtype === "string") {
-    const xBufferInfo = backend2.tensorMap.get(x.dataId);
+    const xTensorData = backend2.tensorMap.get(x.dataId);
     const outValues = sliceImplCPU2(
-      xBufferInfo.values,
+      xTensorData.values,
       $begin,
       $size,
       x.shape,
@@ -82525,6 +83042,72 @@ var clipByValueConfig3 = {
   kernelName: ClipByValue,
   backendName: "webgpu",
   kernelFunc: clipByValue4
+};
+
+// src/tfjs-backend-webgpu/src/complex_abs_webgpu.ts
+var ComplexAbsProgram2 = class {
+  outputShape = [];
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  variableNames = ["real", "imag"];
+  workgroupSize = [64, 1, 1];
+  size = true;
+  constructor(shape) {
+    this.outputShape = shape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize
+    );
+    this.shaderKey = "complexAbs";
+  }
+  getUserCode() {
+    const userCode = `
+    ${getMainHeaderString("index")} {
+      if (index < uniforms.size) {
+        let re = abs(getRealByOutputIndex(index));
+        let im = abs(getImagByOutputIndex(index));
+        let mx = max(re, im);
+
+        // The length function in wgsl may be not underflow-safe on some GPUs.
+        // So the safe solution is to ensure underflow-safety in all cases.
+        setOutputAtIndex(index, select(mx * length(vec2<f32>(1, min(re, im)/mx)), 0.0, mx == 0.0));
+      }
+    }
+  `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/ComplexAbs.ts
+function makeComplexComponentTensorInfo2(complexTensor, complexPart) {
+  return {
+    dataId: complexPart.dataId,
+    dtype: complexPart.dtype,
+    shape: complexTensor.shape
+  };
+}
+function complexAbs3(args) {
+  const { inputs, backend: backend2 } = args;
+  const { x } = inputs;
+  const xData = backend2.tensorMap.get(x.dataId);
+  const program = new ComplexAbsProgram2(x.shape);
+  const programInputs = [
+    makeComplexComponentTensorInfo2(x, xData.complexTensorInfos.real),
+    makeComplexComponentTensorInfo2(x, xData.complexTensorInfos.imag)
+  ];
+  return backend2.runWebGPUProgram(
+    program,
+    programInputs,
+    programInputs[0].dtype
+  );
+}
+var complexAbsConfig3 = {
+  kernelName: ComplexAbs,
+  backendName: "webgpu",
+  kernelFunc: complexAbs3
 };
 
 // src/tfjs-backend-webgpu/src/concat_webgpu.ts
@@ -86095,7 +86678,6 @@ var fromPixelsConfig2 = {
 };
 var fromPixels2DContext3;
 var willReadFrequently2 = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
-var videoToTextureMap = /* @__PURE__ */ new Map();
 function fromPixels3(args) {
   const { inputs, backend: backend2, attrs } = args;
   let { pixels } = inputs;
@@ -86115,23 +86697,11 @@ function fromPixels3(args) {
   const importVideo = false;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
-    let textureInfo;
+    let resource;
     if (importVideo) {
-      const videoElement = pixels;
-      if (!videoToTextureMap.has(videoElement) || videoToTextureMap.get(videoElement).expired) {
-        const externalTextureDescriptor = { source: videoElement };
-        videoToTextureMap.set(
-          videoElement,
-          backend2.device.importExternalTexture(externalTextureDescriptor)
-        );
-      }
-      textureInfo = {
-        width,
-        height,
-        format: null,
-        usage: null,
-        texture: videoToTextureMap.get(videoElement)
-      };
+      resource = backend2.device.importExternalTexture(
+        { source: pixels }
+      );
     } else {
       if (isVideoOrImage) {
         const newWillReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
@@ -86166,7 +86736,7 @@ function fromPixels3(args) {
         { texture },
         [outputShape[1], outputShape[0]]
       );
-      textureInfo = { width, height, format, usage, texture };
+      resource = texture;
     }
     const size = util_exports.sizeFromShape(outputShape);
     const strides = util_exports.computeStrides(outputShape);
@@ -86178,7 +86748,7 @@ function fromPixels3(args) {
     ];
     const input2 = backend2.makeTensorInfo([height, width], "int32");
     const info = backend2.tensorMap.get(input2.dataId);
-    info.resourceInfo = textureInfo;
+    info.resource = resource;
     const result = backend2.runWebGPUProgram(program, [input2], "int32", uniformData);
     backend2.disposeData(input2.dataId);
     return result;
@@ -86606,13 +87176,13 @@ function gatherV23(args) {
     shapeInfo.sliceSize
   ];
   if (backend2.shouldExecuteOnCPU([x, indices])) {
-    const indicesBufferInfo = backend2.tensorMap.get(flattenIndex.dataId);
-    const indicesValues = indicesBufferInfo.values;
-    const indicesBuf = buffer(flattenIndex.shape, flattenIndex.dtype, indicesValues);
-    const xBufferInfo = backend2.tensorMap.get(flattenX.dataId);
-    const xValues = xBufferInfo.values;
-    const xBuf = buffer(flattenX.shape, flattenX.dtype, xValues);
-    const outBuf = gatherV2ImplCPU2(xBuf, indicesBuf, flattenOutputShape);
+    const indicesTensorData = backend2.tensorMap.get(flattenIndex.dataId);
+    const indicesValues = indicesTensorData.values;
+    const indicesBuffer = buffer(flattenIndex.shape, flattenIndex.dtype, indicesValues);
+    const flattenXTensorData = backend2.tensorMap.get(flattenX.dataId);
+    const xValues = flattenXTensorData.values;
+    const xBuffer = buffer(flattenX.shape, flattenX.dtype, xValues);
+    const outBuf = gatherV2ImplCPU2(xBuffer, indicesBuffer, flattenOutputShape);
     toDispose.forEach((t) => backend2.disposeData(t.dataId));
     return backend2.makeTensorInfo(
       shapeInfo.outputShape,
@@ -87670,44 +88240,86 @@ var MultinomialProgram2 = class {
 
 // src/tfjs-backend-webgpu/src/softmax_webgpu.ts
 var SoftmaxProgram = class {
-  variableNames = ["a", "b"];
+  variableNames = ["logits"];
   outputShape;
   shaderKey;
   dispatchLayout;
   dispatch;
-  workgroupSize = [64, 1, 1];
-  size = true;
+  workgroupSize;
   constructor(outputShape) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(
-      this.dispatchLayout,
-      this.outputShape,
-      this.workgroupSize
-    );
+    this.dispatch = [this.outputShape[0], 1, 1];
+    if (this.outputShape[1] >= 4096) {
+      this.workgroupSize = [256, 1, 1];
+    } else {
+      this.workgroupSize = [64, 1, 1];
+    }
     this.shaderKey = "softmax";
   }
   getUserCode() {
     const userCode = `
-      ${getMainHeaderString("index")} {
-        if (index < uniforms.size) {
-          let a = getAByOutputIndex(index);
-          let b = getBByOutputIndex(index);
-          let value = a - b;
-          setOutputAtIndex(index, exp(value));
-        }
+    var<workgroup> buf : array<f32, ${this.workgroupSize[0]}>;
+    var<workgroup> rowMaxShared : f32;
+    var<workgroup> rowSumShared : f32;
+    const blockSize = ${this.workgroupSize[0]};
+    ${getMainHeaderString("index")} {
+      let row = index / blockSize;
+      let tid = i32(localId.x);
+      let cols = uniforms.outShape[1];
+
+      var threadMax = -3.402823e+38f;
+      for (var col = tid; col < cols; col += blockSize) {
+        let value = getLogits(row, col);
+        threadMax = max(threadMax, value);
       }
+      if (tid < cols) {
+        buf[tid] = threadMax;
+      }
+      workgroupBarrier();
+
+      var reduceSize = min(cols, blockSize);
+      for (var currSize = reduceSize >> 1;  currSize > 0; currSize = reduceSize >> 1) {
+        reduceSize = currSize + (reduceSize & 1);
+        if (tid < currSize) {
+          buf[tid] = max(buf[tid], buf[tid + reduceSize]);
+        }
+        workgroupBarrier();
+      }
+
+      if (tid == 0) {
+        rowMaxShared = buf[0];
+      }
+      workgroupBarrier();
+
+      var threadSum = 0.0;
+      for (var col = tid; col < cols; col += blockSize) {
+        let subExp = exp(getLogits(row, col) - rowMaxShared);
+        threadSum += subExp;
+      }
+      buf[tid] = threadSum;
+      workgroupBarrier();
+
+      for (var currSize = blockSize >> 1;  currSize > 0; currSize = currSize >> 1) {
+        if (tid < currSize) {
+          buf[tid] = buf[tid] + buf[tid + currSize];
+        }
+        workgroupBarrier();
+      }
+
+      if (tid == 0) {
+        rowSumShared = buf[0];
+      }
+      workgroupBarrier();
+
+      for (var col = tid; col < cols; col += blockSize) {
+        let value = exp(getLogits(row, col) - rowMaxShared) / rowSumShared;
+        setOutputAtCoords(row, col, value);
+      }
+  }
     `;
     return userCode;
   }
-};
-
-// src/tfjs-backend-webgpu/src/kernels/RealDiv.ts
-var realDiv2 = binaryKernelFunc3({ opType: 4 /* DIV */ });
-var realDivConfig3 = {
-  kernelName: RealDiv,
-  backendName: "webgpu",
-  kernelFunc: realDiv2
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Softmax.ts
@@ -87715,29 +88327,22 @@ function softmax5(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { logits } = inputs;
   const { dim } = attrs;
-  const axes = util_exports.parseAxisParam([dim], logits.shape);
-  const maxLogit = max5({
+  const logitsReshaped = reshape5({
     inputs: { x: logits },
     backend: backend2,
-    attrs: { reductionIndices: axes, keepDims: false }
+    attrs: {
+      shape: [
+        util_exports.sizeFromShape(logits.shape) / logits.shape[dim],
+        logits.shape[dim]
+      ]
+    }
   });
-  const expandedShape = backend_util_exports.expandShapeToKeepDim(maxLogit.shape, axes);
-  const maxLogitsReshaped = reshape5({ inputs: { x: maxLogit }, backend: backend2, attrs: { shape: expandedShape } });
-  const program = new SoftmaxProgram(logits.shape);
-  const b = backend2.runWebGPUProgram(
-    program,
-    [logits, maxLogitsReshaped],
-    logits.dtype
-  );
-  const sumExp = sum5({ inputs: { x: b }, backend: backend2, attrs: { axis: axes, keepDims: false } });
-  const sumExpReshaped = reshape5({ inputs: { x: sumExp }, backend: backend2, attrs: { shape: expandedShape } });
-  const res = realDiv2({ inputs: { a: b, b: sumExpReshaped }, backend: backend2 });
-  backend2.disposeData(maxLogit.dataId);
-  backend2.disposeData(maxLogitsReshaped.dataId);
-  backend2.disposeData(b.dataId);
-  backend2.disposeData(sumExp.dataId);
-  backend2.disposeData(sumExpReshaped.dataId);
-  return res;
+  const program = new SoftmaxProgram(logitsReshaped.shape);
+  const res = backend2.runWebGPUProgram(program, [logitsReshaped], logits.dtype);
+  const resReshaped = reshape5({ inputs: { x: res }, backend: backend2, attrs: { shape: logits.shape } });
+  backend2.disposeData(logitsReshaped.dataId);
+  backend2.disposeData(res.dataId);
+  return resReshaped;
 }
 var softmaxConfig3 = {
   kernelName: Softmax,
@@ -88146,6 +88751,14 @@ var rangeConfig3 = {
   kernelName: Range,
   backendName: "webgpu",
   kernelFunc: range5
+};
+
+// src/tfjs-backend-webgpu/src/kernels/RealDiv.ts
+var realDiv2 = binaryKernelFunc3({ opType: 4 /* DIV */ });
+var realDivConfig3 = {
+  kernelName: RealDiv,
+  backendName: "webgpu",
+  kernelFunc: realDiv2
 };
 
 // src/tfjs-backend-webgpu/src/kernels/Reciprocal.ts
@@ -89682,6 +90295,66 @@ var tanhConfig3 = {
   kernelFunc: tanh5
 };
 
+// src/tfjs-backend-webgpu/src/kernels/TensorScatterUpdate.ts
+function tensorScatterUpdate4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { tensor: tensor2, indices, updates } = inputs;
+  const {} = attrs;
+  const { sliceRank, numUpdates, sliceSize, strides, outputSize } = backend_util_exports.calculateShapes(updates, indices, tensor2.shape);
+  const flattenShape = [outputSize / sliceSize, sliceSize];
+  if (outputSize === 0) {
+    return backend2.makeTensorInfo(tensor2.shape, indices.dtype);
+  }
+  const toDispose = [];
+  const flattenIndices = reshape5(
+    { inputs: { x: indices }, backend: backend2, attrs: { shape: [numUpdates, sliceRank] } }
+  );
+  toDispose.push(flattenIndices);
+  const flattenX = reshape5(
+    { inputs: { x: updates }, backend: backend2, attrs: { shape: [numUpdates, sliceSize] } }
+  );
+  toDispose.push(flattenX);
+  const flattenTensor = reshape5({ inputs: { x: tensor2 }, backend: backend2, attrs: { shape: flattenShape } });
+  toDispose.push(flattenTensor);
+  const output = tile5({
+    inputs: { x: flattenTensor },
+    backend: backend2,
+    attrs: { reps: Array(flattenShape.length).fill(1) }
+  });
+  const program = new ScatterProgram2(
+    [numUpdates, sliceSize],
+    sliceRank,
+    flattenIndices.shape.length,
+    flattenX.shape.length,
+    strides,
+    flattenShape,
+    tensor2.dtype,
+    false
+  );
+  const size = util_exports.sizeFromShape([numUpdates, sliceSize]);
+  const uniformData = [
+    { type: "int32", data: [sliceRank] },
+    { type: "int32", data: strides },
+    { type: "int32", data: [size] }
+  ];
+  const res = backend2.runWebGPUProgram(
+    program,
+    [flattenX, flattenIndices],
+    flattenTensor.dtype,
+    uniformData,
+    output
+  );
+  toDispose.push(res);
+  const reshaped = reshape5({ inputs: { x: res }, backend: backend2, attrs: { shape: tensor2.shape } });
+  toDispose.forEach((t) => backend2.disposeData(t.dataId));
+  return reshaped;
+}
+var tensorScatterUpdateConfig3 = {
+  kernelName: TensorScatterUpdate,
+  backendName: "webgpu",
+  kernelFunc: tensorScatterUpdate4
+};
+
 // src/tfjs-backend-webgpu/src/top_k_webgpu.ts
 var SwapProgram2 = class {
   outputShape;
@@ -90222,6 +90895,109 @@ var unpackConfig3 = {
   kernelFunc: unpack3
 };
 
+// src/tfjs-backend-webgpu/src/unsorted_segment_sum_webgpu.ts
+var UnsortedSegmentSumProgram = class {
+  outputShape = [];
+  shaderKey;
+  dispatchLayout;
+  dispatch;
+  variableNames = ["x", "segmentIds"];
+  uniforms = "numSegments : i32, xSize: i32,";
+  workgroupSize = [64, 1, 1];
+  atomic = true;
+  type;
+  constructor(inShape, outShape, outputDtype) {
+    this.outputShape = outShape;
+    this.dispatchLayout = flatDispatchLayout(inShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, inShape, this.workgroupSize);
+    if (outputDtype !== "float32" && outputDtype !== "int32") {
+      throw new Error(`UnsortedSegmentSum only supports float32 and int32
+              types, does not support ${outputDtype} type.`);
+    }
+    this.type = outputDtype;
+    this.shaderKey = "unsortedSegmentSum";
+  }
+  getUserCode() {
+    const userCode = `
+    ${getMainHeaderString("index")} {
+      if (index < uniforms.xSize) {
+        let coords = getXCoordsFromIndex(index);
+        let b = coords[0];
+        let inCol = coords[1];
+
+        let segmentId = i32(getSegmentIds(inCol));
+        if (segmentId >= 0) {
+          let flatIndex = b * uniforms.numSegments + segmentId % uniforms.numSegments;
+          let value = getX(b, inCol);
+
+          ${atomicAddSnippet(
+      "&result[flatIndex]",
+      "value",
+      this.type
+    )}
+        }
+      }
+    }
+  `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/UnsortedSegmentSum.ts
+function unsortedSegmentSum4(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x, segmentIds } = inputs;
+  const { numSegments } = attrs;
+  const xRank = x.shape.length;
+  const toDispose = [];
+  let axis = 0;
+  const permutation = backend_util_exports.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation != null) {
+    permutedX = transpose4({ inputs: { x }, backend: backend2, attrs: { perm: permutation } });
+    toDispose.push(permutedX);
+    axis = backend_util_exports.getInnerMostAxes(1, xRank)[0];
+  }
+  const outShape = backend_util_exports.segment_util.computeOutShape(
+    permutedX.shape,
+    axis,
+    numSegments
+  );
+  const inSize = util_exports.sizeFromShape([permutedX.shape[axis]]);
+  const a2D = reshape5({ inputs: { x: permutedX }, backend: backend2, attrs: { shape: [-1, inSize] } });
+  toDispose.push(a2D);
+  const dtype = x.dtype;
+  const shape = [a2D.shape[0], numSegments];
+  const output = fill4({ backend: backend2, attrs: { shape, value: 0, dtype } });
+  const program = new UnsortedSegmentSumProgram(a2D.shape, shape, dtype);
+  const uniformData = [
+    { type: "int32", data: [numSegments] },
+    { type: "int32", data: [util_exports.sizeFromShape(a2D.shape)] }
+  ];
+  const segResult = backend2.runWebGPUProgram(
+    program,
+    [a2D, segmentIds],
+    dtype,
+    uniformData,
+    output
+  );
+  const reshaped = reshape5({ inputs: { x: segResult }, backend: backend2, attrs: { shape: outShape } });
+  toDispose.push(segResult);
+  let result = reshaped;
+  if (permutation != null) {
+    toDispose.push(reshaped);
+    const perm = backend_util_exports.getUndoAxesPermutation(permutation);
+    result = transpose4({ inputs: { x: result }, backend: backend2, attrs: { perm } });
+  }
+  toDispose.forEach((t) => backend2.disposeData(t.dataId));
+  return result;
+}
+var unsortedSegmentSumConfig3 = {
+  kernelName: UnsortedSegmentSum,
+  backendName: "webgpu",
+  kernelFunc: unsortedSegmentSum4
+};
+
 // src/tfjs-backend-webgpu/src/register_all_kernels.ts
 var kernelConfigs3 = [
   _fusedMatMulConfig3,
@@ -90251,6 +91027,7 @@ var kernelConfigs3 = [
   ceilConfig3,
   clipByValueConfig3,
   complexConfig3,
+  complexAbsConfig3,
   concatConfig3,
   conv2DConfig3,
   conv2DBackpropFilterConfig3,
@@ -90374,11 +91151,13 @@ var kernelConfigs3 = [
   sumConfig3,
   tanConfig3,
   tanhConfig3,
+  tensorScatterUpdateConfig3,
   tileConfig3,
   topKConfig3,
   transformConfig3,
   transposeConfig3,
   unpackConfig3,
+  unsortedSegmentSumConfig3,
   zerosLikeConfig3
 ];
 for (const kernelConfig of kernelConfigs3) {
@@ -96291,7 +97070,7 @@ function setup69(backend2) {
     // tensorId
   ]);
 }
-function tensorScatterUpdate4(args) {
+function tensorScatterUpdate5(args) {
   const { backend: backend2, inputs, attrs } = args;
   const { tensor: tensor2, indices, updates } = inputs;
   const {} = attrs;
@@ -96322,11 +97101,11 @@ function tensorScatterUpdate4(args) {
   );
   return out;
 }
-var tensorScatterUpdateConfig3 = {
+var tensorScatterUpdateConfig4 = {
   kernelName: TensorScatterUpdate,
   backendName: "wasm",
   setupFunc: setup69,
-  kernelFunc: tensorScatterUpdate4
+  kernelFunc: tensorScatterUpdate5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Tile.ts
@@ -96757,7 +97536,7 @@ var kernelConfigs4 = [
   sumConfig4,
   tanConfig4,
   tanhConfig4,
-  tensorScatterUpdateConfig3,
+  tensorScatterUpdateConfig4,
   tileConfig4,
   topKConfig4,
   transformConfig4,
@@ -96872,7 +97651,7 @@ function(WasmBackendModuleThreadedSimd) {
 
 function GROWABLE_HEAP_I8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP8}function GROWABLE_HEAP_U8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU8}function GROWABLE_HEAP_I16(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP16}function GROWABLE_HEAP_I32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP32}function GROWABLE_HEAP_U32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU32}function GROWABLE_HEAP_F32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF32}function GROWABLE_HEAP_F64(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF64}var Module=typeof WasmBackendModuleThreadedSimd!="undefined"?WasmBackendModuleThreadedSimd:{};var readyPromiseResolve,readyPromiseReject;Module["ready"]=new Promise(function(resolve,reject){readyPromiseResolve=resolve;readyPromiseReject=reject});var beforeListeners;if(typeof process!=="undefined"&&process.listeners){beforeListeners={uncaughtException:process.listeners("uncaughtException"),unhandledRejection:process.listeners("unhandledRejection")}}var moduleOverrides=Object.assign({},Module);var arguments_=[];var thisProgram="./this.program";var quit_=(status,toThrow)=>{throw toThrow};var ENVIRONMENT_IS_WEB=typeof window=="object";var ENVIRONMENT_IS_WORKER=typeof importScripts=="function";var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";var ENVIRONMENT_IS_PTHREAD=Module["ENVIRONMENT_IS_PTHREAD"]||false;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary,setWindowTitle;function logExceptionOnExit(e){if(e instanceof ExitStatus)return;let toLog=e;err("exiting due to exception: "+toLog)}if(ENVIRONMENT_IS_NODE){var fs=require("fs");var nodePath=require("path");if(ENVIRONMENT_IS_WORKER){scriptDirectory=nodePath.dirname(scriptDirectory)+"/"}else{scriptDirectory=__dirname+"/"}read_=(filename,binary)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);return fs.readFileSync(filename,binary?undefined:"utf8")};readBinary=filename=>{var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret)}return ret};readAsync=(filename,onload,onerror)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);fs.readFile(filename,function(err,data){if(err)onerror(err);else onload(data.buffer)})};if(process["argv"].length>1){thisProgram=process["argv"][1].replace(/\\/g,"/")}arguments_=process["argv"].slice(2);process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",function(reason){throw reason});quit_=(status,toThrow)=>{if(keepRuntimeAlive()){process["exitCode"]=status;throw toThrow}logExceptionOnExit(toThrow);process["exit"](status)};Module["inspect"]=function(){return"[Emscripten Module object]"};let nodeWorkerThreads;try{nodeWorkerThreads=require("worker_threads")}catch(e){console.error('The "worker_threads" module is not supported in this node.js build - perhaps a newer version is needed?');throw e}global.Worker=nodeWorkerThreads.Worker}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href}else if(typeof document!="undefined"&&document.currentScript){scriptDirectory=document.currentScript.src}if(_scriptDir){scriptDirectory=_scriptDir}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/")+1)}else{scriptDirectory=""}if(!ENVIRONMENT_IS_NODE){read_=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)}}readAsync=(url,onload,onerror)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror()};xhr.onerror=onerror;xhr.send(null)}}setWindowTitle=title=>document.title=title}else{}if(ENVIRONMENT_IS_NODE){if(typeof performance=="undefined"){global.performance=require("perf_hooks").performance}}var defaultPrint=console.log.bind(console);var defaultPrintErr=console.warn.bind(console);if(ENVIRONMENT_IS_NODE){defaultPrint=str=>fs.writeSync(1,str+"
 ");defaultPrintErr=str=>fs.writeSync(2,str+"
-")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++]=192|u>>6;heap[outIdx++]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++]=224|u>>12;heap[outIdx++]=128|u>>6&63;heap[outIdx++]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++]=240|u>>18;heap[outIdx++]=128|u>>12&63;heap[outIdx++]=128|u>>6&63;heap[outIdx++]=128|u&63}}heap[outIdx]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":2147483648/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref()}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread};if(worker.loaded){worker.runPthread()}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref()}__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref()}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread()}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"])}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler)}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker)},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 2147483648}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest,src,src+num)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>2];var len=GROWABLE_HEAP_U32()[iov+4>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j])}num+=len}GROWABLE_HEAP_U32()[pnum>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer)}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Acos=Module["_Acos"]=function(){return(_Acos=Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};var _Acosh=Module["_Acosh"]=function(){return(_Acosh=Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _ArgMin=Module["_ArgMin"]=function(){return(_ArgMin=Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};var _Asin=Module["_Asin"]=function(){return(_Asin=Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};var _Asinh=Module["_Asinh"]=function(){return(_Asinh=Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};var _Atan=Module["_Atan"]=function(){return(_Atan=Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};var _Atan2=Module["_Atan2"]=function(){return(_Atan2=Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};var _Atanh=Module["_Atanh"]=function(){return(_Atanh=Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _AvgPool3D=Module["_AvgPool3D"]=function(){return(_AvgPool3D=Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};var _AvgPool3DGrad=Module["_AvgPool3DGrad"]=function(){return(_AvgPool3DGrad=Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Bincount=Module["_Bincount"]=function(){return(_Bincount=Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Conv3D=Module["_Conv3D"]=function(){return(_Conv3D=Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};var _Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=function(){return(_Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};var _Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=function(){return(_Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DenseBincount=Module["_DenseBincount"]=function(){return(_DenseBincount=Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Diag=Module["_Diag"]=function(){return(_Diag=Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};var _Dilation2D=Module["_Dilation2D"]=function(){return(_Dilation2D=Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};var _Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=function(){return(_Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};var _Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=function(){return(_Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _EluGrad=Module["_EluGrad"]=function(){return(_EluGrad=Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _Expm1=Module["_Expm1"]=function(){return(_Expm1=Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsFinite=Module["_IsFinite"]=function(){return(_IsFinite=Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};var _IsInf=Module["_IsInf"]=function(){return(_IsInf=Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LRN=Module["_LRN"]=function(){return(_LRN=Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};var _LRNGrad=Module["_LRNGrad"]=function(){return(_LRNGrad=Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _LinSpace=Module["_LinSpace"]=function(){return(_LinSpace=Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _Log1p=Module["_Log1p"]=function(){return(_Log1p=Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _MaxPool3D=Module["_MaxPool3D"]=function(){return(_MaxPool3D=Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};var _MaxPool3DGrad=Module["_MaxPool3DGrad"]=function(){return(_MaxPool3DGrad=Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Multinomial=Module["_Multinomial"]=function(){return(_Multinomial=Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=function(){return(_ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=function(){return(_ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SearchSorted=Module["_SearchSorted"]=function(){return(_SearchSorted=Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Selu=Module["_Selu"]=function(){return(_Selu=Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sign=Module["_Sign"]=function(){return(_Sign=Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _Softplus=Module["_Softplus"]=function(){return(_Softplus=Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _SparseToDense=Module["_SparseToDense"]=function(){return(_SparseToDense=Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _TensorScatterUpdate=Module["_TensorScatterUpdate"]=function(){return(_TensorScatterUpdate=Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
+")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){idx>>>=0;var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){ptr>>>=0;return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){outIdx>>>=0;if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++>>>0]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++>>>0]=192|u>>6;heap[outIdx++>>>0]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++>>>0]=224|u>>12;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++>>>0]=240|u>>18;heap[outIdx++>>>0]=128|u>>12&63;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}}heap[outIdx>>>0]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":4294967296/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref()}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread};if(worker.loaded){worker.runPthread()}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref()}__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref()}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread()}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"])}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler)}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker)},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 4294901760}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest>>>0,src>>>0,src+num>>>0)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i>>>0]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i>>>0]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>>2];var len=GROWABLE_HEAP_U32()[iov+4>>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j>>>0])}num+=len}GROWABLE_HEAP_U32()[pnum>>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer>>>0)}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Acos=Module["_Acos"]=function(){return(_Acos=Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};var _Acosh=Module["_Acosh"]=function(){return(_Acosh=Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _ArgMin=Module["_ArgMin"]=function(){return(_ArgMin=Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};var _Asin=Module["_Asin"]=function(){return(_Asin=Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};var _Asinh=Module["_Asinh"]=function(){return(_Asinh=Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};var _Atan=Module["_Atan"]=function(){return(_Atan=Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};var _Atan2=Module["_Atan2"]=function(){return(_Atan2=Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};var _Atanh=Module["_Atanh"]=function(){return(_Atanh=Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _AvgPool3D=Module["_AvgPool3D"]=function(){return(_AvgPool3D=Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};var _AvgPool3DGrad=Module["_AvgPool3DGrad"]=function(){return(_AvgPool3DGrad=Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Bincount=Module["_Bincount"]=function(){return(_Bincount=Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Conv3D=Module["_Conv3D"]=function(){return(_Conv3D=Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};var _Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=function(){return(_Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};var _Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=function(){return(_Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DenseBincount=Module["_DenseBincount"]=function(){return(_DenseBincount=Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Diag=Module["_Diag"]=function(){return(_Diag=Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};var _Dilation2D=Module["_Dilation2D"]=function(){return(_Dilation2D=Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};var _Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=function(){return(_Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};var _Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=function(){return(_Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _EluGrad=Module["_EluGrad"]=function(){return(_EluGrad=Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _Expm1=Module["_Expm1"]=function(){return(_Expm1=Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsFinite=Module["_IsFinite"]=function(){return(_IsFinite=Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};var _IsInf=Module["_IsInf"]=function(){return(_IsInf=Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LRN=Module["_LRN"]=function(){return(_LRN=Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};var _LRNGrad=Module["_LRNGrad"]=function(){return(_LRNGrad=Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _LinSpace=Module["_LinSpace"]=function(){return(_LinSpace=Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _Log1p=Module["_Log1p"]=function(){return(_Log1p=Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _MaxPool3D=Module["_MaxPool3D"]=function(){return(_MaxPool3D=Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};var _MaxPool3DGrad=Module["_MaxPool3DGrad"]=function(){return(_MaxPool3DGrad=Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Multinomial=Module["_Multinomial"]=function(){return(_Multinomial=Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=function(){return(_ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=function(){return(_ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SearchSorted=Module["_SearchSorted"]=function(){return(_SearchSorted=Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Selu=Module["_Selu"]=function(){return(_Selu=Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sign=Module["_Sign"]=function(){return(_Sign=Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _Softplus=Module["_Softplus"]=function(){return(_Softplus=Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _SparseToDense=Module["_SparseToDense"]=function(){return(_SparseToDense=Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _TensorScatterUpdate=Module["_TensorScatterUpdate"]=function(){return(_TensorScatterUpdate=Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
 
 
   return WasmBackendModuleThreadedSimd.ready
@@ -96927,7 +97706,7 @@ var BackendWasm = class extends KernelBackend {
     }
     const size = util_exports.sizeFromShape(shape);
     const numBytes = size * util_exports.bytesPerElement(dtype);
-    const memoryOffset = this.wasm._malloc(numBytes);
+    const memoryOffset = this.wasm._malloc(numBytes) >>> 0;
     this.dataIdMap.set(dataId, { id, memoryOffset, shape, dtype, refCount });
     this.wasm.tfjs.registerTensor(id, size, memoryOffset);
     if (values != null) {
@@ -97233,7 +98012,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "4.3.0-20230321";
+var externalVersion = "4.5.0-20230508";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,
@@ -97271,6 +98050,7 @@ export {
   BatchMatMul,
   BatchToSpaceND,
   Bincount,
+  BitwiseAnd,
   BroadcastArgs,
   BroadcastTo,
   Callback,
@@ -97303,6 +98083,7 @@ export {
   Dilation2D,
   Dilation2DBackpropFilter,
   Dilation2DBackpropInput,
+  Draw,
   ENV,
   EarlyStopping,
   Einsum,
@@ -97484,6 +98265,7 @@ export {
   batchNorm4d,
   batchToSpaceND,
   bincount,
+  bitwiseAnd,
   booleanMaskAsync,
   broadcastArgs,
   broadcastTo,
@@ -97536,6 +98318,7 @@ export {
   enableProdMode,
   enclosingPowerOfTwo,
   engine,
+  ensureShape,
   env,
   equal,
   erf,
@@ -97649,6 +98432,7 @@ export {
   randomNormal,
   randomStandardNormal,
   randomUniform,
+  randomUniformInt,
   range,
   ready,
   real,
