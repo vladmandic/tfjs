@@ -63,14 +63,14 @@
     "seedrandom": "^3.0.5",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5",
-    "@tensorflow/tfjs-backend-cpu": "link:src/tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-wasm": "link:src/tfjs-backend-wasm",
-    "@tensorflow/tfjs-backend-webgl": "link:src/tfjs-backend-webgl",
-    "@tensorflow/tfjs-backend-webgpu": "link:src/tfjs-backend-webgpu",
-    "@tensorflow/tfjs-converter": "link:src/tfjs-converter",
-    "@tensorflow/tfjs-core": "link:src/tfjs-core",
-    "@tensorflow/tfjs-data": "link:src/tfjs-data",
-    "@tensorflow/tfjs-layers": "link:src/tfjs-layers"
+    "@tensorflow/tfjs-backend-cpu": "file:src/tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-wasm": "file:src/tfjs-backend-wasm",
+    "@tensorflow/tfjs-backend-webgl": "file:src/tfjs-backend-webgl",
+    "@tensorflow/tfjs-backend-webgpu": "file:src/tfjs-backend-webgpu",
+    "@tensorflow/tfjs-converter": "file:src/tfjs-converter",
+    "@tensorflow/tfjs-core": "file:src/tfjs-core",
+    "@tensorflow/tfjs-data": "file:src/tfjs-data",
+    "@tensorflow/tfjs-layers": "file:src/tfjs-layers"
   },
   "dependencies": {
   }
