@@ -4,7 +4,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod2) => function __require() {
   return mod2 || (0, cb[__getOwnPropNames(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
 };
@@ -28,10 +27,6 @@ var __toESM = (mod2, isNodeMode, target) => (target = mod2 != null ? __create(__
   isNodeMode || !mod2 || !mod2.__esModule ? __defProp(target, "default", { value: mod2, enumerable: true }) : target,
   mod2
 ));
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 
 // src/node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
 var require_long = __commonJS({
@@ -1212,7 +1207,7 @@ var require_xorshift7 = __commonJS({
       }
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1324,7 +1319,7 @@ var require_xor4096 = __commonJS({
       ;
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1568,7 +1563,7 @@ var require_seedrandom = __commonJS({
           return tostring(out);
         } catch (e) {
           var browser = global2.navigator, plugins = browser && browser.plugins;
-          return [+new Date(), global2, plugins, global2.screen, tostring(pool2)];
+          return [+/* @__PURE__ */ new Date(), global2, plugins, global2.screen, tostring(pool2)];
         }
       }
       function tostring(a) {
@@ -2804,11 +2799,17 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _AvgPool3DGrad = Module["_AvgPool3DGrad"] = function() {
           return (_AvgPool3DGrad = Module["_AvgPool3DGrad"] = Module["asm"]["AvgPool3DGrad"]).apply(null, arguments);
         };
+        var _AvgPoolGrad = Module["_AvgPoolGrad"] = function() {
+          return (_AvgPoolGrad = Module["_AvgPoolGrad"] = Module["asm"]["AvgPoolGrad"]).apply(null, arguments);
+        };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
           return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
         };
         var _Bincount = Module["_Bincount"] = function() {
           return (_Bincount = Module["_Bincount"] = Module["asm"]["Bincount"]).apply(null, arguments);
+        };
+        var _BitwiseAnd = Module["_BitwiseAnd"] = function() {
+          return (_BitwiseAnd = Module["_BitwiseAnd"] = Module["asm"]["BitwiseAnd"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
           return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
@@ -2875,6 +2876,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _Equal = Module["_Equal"] = function() {
           return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
+        };
+        var _Erf = Module["_Erf"] = function() {
+          return (_Erf = Module["_Erf"] = Module["asm"]["Erf"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
           return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
@@ -2969,6 +2973,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _MaxPool3DGrad = Module["_MaxPool3DGrad"] = function() {
           return (_MaxPool3DGrad = Module["_MaxPool3DGrad"] = Module["asm"]["MaxPool3DGrad"]).apply(null, arguments);
         };
+        var _MaxPoolGrad = Module["_MaxPoolGrad"] = function() {
+          return (_MaxPoolGrad = Module["_MaxPoolGrad"] = Module["asm"]["MaxPoolGrad"]).apply(null, arguments);
+        };
+        var _MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = function() {
+          return (_MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = Module["asm"]["MaxPoolWithArgmax"]).apply(null, arguments);
+        };
         var _Maximum = Module["_Maximum"] = function() {
           return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
@@ -2983,6 +2993,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
           return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
+        };
+        var _Mod = Module["_Mod"] = function() {
+          return (_Mod = Module["_Mod"] = Module["asm"]["Mod"]).apply(null, arguments);
         };
         var _Multinomial = Module["_Multinomial"] = function() {
           return (_Multinomial = Module["_Multinomial"] = Module["asm"]["Multinomial"]).apply(null, arguments);
@@ -3076,6 +3089,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _Sin = Module["_Sin"] = function() {
           return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
+        };
+        var _Sinh = Module["_Sinh"] = function() {
+          return (_Sinh = Module["_Sinh"] = Module["asm"]["Sinh"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
@@ -3971,11 +3987,17 @@ var require_tfjs_backend_wasm = __commonJS({
         var _AvgPool3DGrad = Module["_AvgPool3DGrad"] = function() {
           return (_AvgPool3DGrad = Module["_AvgPool3DGrad"] = Module["asm"]["AvgPool3DGrad"]).apply(null, arguments);
         };
+        var _AvgPoolGrad = Module["_AvgPoolGrad"] = function() {
+          return (_AvgPoolGrad = Module["_AvgPoolGrad"] = Module["asm"]["AvgPoolGrad"]).apply(null, arguments);
+        };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
           return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
         };
         var _Bincount = Module["_Bincount"] = function() {
           return (_Bincount = Module["_Bincount"] = Module["asm"]["Bincount"]).apply(null, arguments);
+        };
+        var _BitwiseAnd = Module["_BitwiseAnd"] = function() {
+          return (_BitwiseAnd = Module["_BitwiseAnd"] = Module["asm"]["BitwiseAnd"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
           return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
@@ -4042,6 +4064,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _Equal = Module["_Equal"] = function() {
           return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
+        };
+        var _Erf = Module["_Erf"] = function() {
+          return (_Erf = Module["_Erf"] = Module["asm"]["Erf"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
           return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
@@ -4136,6 +4161,12 @@ var require_tfjs_backend_wasm = __commonJS({
         var _MaxPool3DGrad = Module["_MaxPool3DGrad"] = function() {
           return (_MaxPool3DGrad = Module["_MaxPool3DGrad"] = Module["asm"]["MaxPool3DGrad"]).apply(null, arguments);
         };
+        var _MaxPoolGrad = Module["_MaxPoolGrad"] = function() {
+          return (_MaxPoolGrad = Module["_MaxPoolGrad"] = Module["asm"]["MaxPoolGrad"]).apply(null, arguments);
+        };
+        var _MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = function() {
+          return (_MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = Module["asm"]["MaxPoolWithArgmax"]).apply(null, arguments);
+        };
         var _Maximum = Module["_Maximum"] = function() {
           return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
@@ -4150,6 +4181,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
           return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
+        };
+        var _Mod = Module["_Mod"] = function() {
+          return (_Mod = Module["_Mod"] = Module["asm"]["Mod"]).apply(null, arguments);
         };
         var _Multinomial = Module["_Multinomial"] = function() {
           return (_Multinomial = Module["_Multinomial"] = Module["asm"]["Multinomial"]).apply(null, arguments);
@@ -4243,6 +4277,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _Sin = Module["_Sin"] = function() {
           return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
+        };
+        var _Sinh = Module["_Sinh"] = function() {
+          return (_Sinh = Module["_Sinh"] = Module["asm"]["Sinh"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
@@ -4430,9 +4467,9 @@ var DataStorage = class {
   constructor(backend, dataMover) {
     this.backend = backend;
     this.dataMover = dataMover;
+    this.data = /* @__PURE__ */ new WeakMap();
+    this.dataIdsCount = 0;
   }
-  data = /* @__PURE__ */ new WeakMap();
-  dataIdsCount = 0;
   get(dataId) {
     if (!this.data.has(dataId)) {
       this.dataMover.moveData(this.backend, dataId);
@@ -4996,15 +5033,13 @@ var Environment = class {
   // tslint:disable-next-line: no-any
   constructor(global2) {
     this.global = global2;
+    this.flags = {};
+    this.flagRegistry = {};
+    this.urlFlags = {};
+    // Jasmine spies on this in 'environment_test.ts'
+    this.getQueryParams = getQueryParams;
     this.populateURLFlags();
   }
-  flags = {};
-  flagRegistry = {};
-  urlFlags = {};
-  platformName;
-  platform;
-  // Jasmine spies on this in 'environment_test.ts'
-  getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
       if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
@@ -5188,6 +5223,7 @@ var Atan = "Atan";
 var Atanh = "Atanh";
 var Atan2 = "Atan2";
 var AvgPool = "AvgPool";
+var AvgPoolGrad = "AvgPoolGrad";
 var AvgPool3D = "AvgPool3D";
 var AvgPool3DGrad = "AvgPool3DGrad";
 var BatchMatMul = "BatchMatMul";
@@ -5261,6 +5297,7 @@ var LRNGrad = "LRNGrad";
 var Max = "Max";
 var Maximum = "Maximum";
 var MaxPool = "MaxPool";
+var MaxPoolGrad = "MaxPoolGrad";
 var MaxPool3D = "MaxPool3D";
 var MaxPool3DGrad = "MaxPool3DGrad";
 var MaxPoolWithArgmax = "MaxPoolWithArgmax";
@@ -6112,10 +6149,6 @@ var TensorBuffer = class {
     this.values = values || getArrayFromDType(dtype, this.size);
     this.strides = computeStrides(shape);
   }
-  size;
-  shape;
-  strides;
-  values;
   /**
    * Sets a value in the buffer at a given location.
    *
@@ -6211,32 +6244,10 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
-  /** Unique id of this tensor. */
-  id;
-  /**
-   * Id of the bucket holding the data for this tensor. Multiple arrays can
-   * point to the same bucket (e.g. when calling array.reshape()).
-   */
-  dataId;
-  /** The shape of the tensor. */
-  shape;
-  /** Number of elements in the tensor. */
-  size;
-  /** The data type for the array. */
-  dtype;
-  /** The rank type for the array (see `Rank` enum). */
-  rankType;
-  /** Whether this tensor has been globally kept. */
-  kept = false;
-  /** The id of the scope this tensor is being tracked in. */
-  scopeId;
-  /**
-   * Number of elements to skip in each dimension when indexing. See
-   * https://docs.scipy.org/doc/numpy/reference/generated/\
-   * numpy.ndarray.strides.html
-   */
-  strides;
   constructor(shape, dtype, dataId, id) {
+    /** Whether this tensor has been globally kept. */
+    this.kept = false;
+    this.isDisposedInternal = false;
     this.shape = shape.slice();
     this.dtype = dtype || "float32";
     this.size = sizeFromShape(shape);
@@ -6388,7 +6399,6 @@ var Tensor = class {
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
-  isDisposedInternal = false;
   get isDisposed() {
     return this.isDisposedInternal;
   }
@@ -6456,7 +6466,6 @@ var Variable = class extends Tensor {
     this.trainable = trainable;
     this.name = name;
   }
-  name;
   /**
    * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
    * the same shape and dtype as the old `tf.Tensor`.
@@ -6595,42 +6604,41 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
-  // Public since optimizers will use it.
-  registeredVariables = {};
-  nextTapeNodeId = 0;
-  numBytes = 0;
-  numTensors = 0;
-  numStringTensors = 0;
-  numDataBuffers = 0;
-  activeTape;
-  // Number of nested tf.grad() statements when computing higher-order
-  // gradients. E.g. `1` for first-order gradients and `2` for second-order
-  // gradients. Used to track if the tape should be removed after a backprop.
-  gradientDepth = 0;
-  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
-  // off the tape.
-  kernelDepth = 0;
-  // Keep Tensors that parallel the tapes.
-  activeScope;
-  scopeStack = [];
-  /**
-   * Keeps track of the number of data moves during a kernel execution. We
-   * maintain a stack since kernels can call other kernels, recursively.
-   */
-  numDataMovesStack = [];
-  nextScopeId = 0;
-  tensorInfo = /* @__PURE__ */ new WeakMap();
-  profiling = false;
-  activeProfile = {
-    newBytes: 0,
-    newTensors: 0,
-    peakBytes: 0,
-    kernels: [],
-    result: null,
-    get kernelNames() {
-      return Array.from(new Set(this.kernels.map((k) => k.name)));
-    }
-  };
+  constructor() {
+    // Public since optimizers will use it.
+    this.registeredVariables = {};
+    this.nextTapeNodeId = 0;
+    this.numBytes = 0;
+    this.numTensors = 0;
+    this.numStringTensors = 0;
+    this.numDataBuffers = 0;
+    // Number of nested tf.grad() statements when computing higher-order
+    // gradients. E.g. `1` for first-order gradients and `2` for second-order
+    // gradients. Used to track if the tape should be removed after a backprop.
+    this.gradientDepth = 0;
+    // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+    // off the tape.
+    this.kernelDepth = 0;
+    this.scopeStack = [];
+    /**
+     * Keeps track of the number of data moves during a kernel execution. We
+     * maintain a stack since kernels can call other kernels, recursively.
+     */
+    this.numDataMovesStack = [];
+    this.nextScopeId = 0;
+    this.tensorInfo = /* @__PURE__ */ new WeakMap();
+    this.profiling = false;
+    this.activeProfile = {
+      newBytes: 0,
+      newTensors: 0,
+      peakBytes: 0,
+      kernels: [],
+      result: null,
+      get kernelNames() {
+        return Array.from(new Set(this.kernels.map((k) => k.name)));
+      }
+    };
+  }
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
@@ -6640,16 +6648,11 @@ var EngineState = class {
 var _Engine = class {
   constructor(ENV4) {
     this.ENV = ENV4;
+    this.registry = {};
+    this.registryFactory = {};
+    this.pendingBackendInitId = 0;
     this.state = new EngineState();
   }
-  state;
-  backendName;
-  registry = {};
-  registryFactory = {};
-  profiler;
-  backendInstance;
-  pendingBackendInit;
-  pendingBackendInitId = 0;
   async ready() {
     if (this.pendingBackendInit != null) {
       return this.pendingBackendInit.then(() => {
@@ -7517,8 +7520,8 @@ var _Engine = class {
   }
 };
 var Engine = _Engine;
-__publicField(Engine, "nextTensorId", 0);
-__publicField(Engine, "nextVariableId", 0);
+Engine.nextTensorId = 0;
+Engine.nextVariableId = 0;
 function ones(shape) {
   const values = makeOnesTypedArray(sizeFromShape(shape), "float32");
   return ENGINE.makeTensor(values, shape, "float32");
@@ -7781,21 +7784,9 @@ function tensor(values, shape, dtype) {
 
 // src/tfjs-core/src/io/composite_array_buffer.ts
 var CompositeArrayBuffer = class {
-  shards = [];
-  previousShardIndex = 0;
-  bufferUniformSize;
-  byteLength;
-  /**
-   * Concatenate a number of ArrayBuffers into one.
-   *
-   * @param buffers An array of ArrayBuffers to concatenate, or a single
-   *     ArrayBuffer.
-   * @returns Result of concatenating `buffers` in order.
-   */
-  static join(buffers) {
-    return new CompositeArrayBuffer(buffers).slice();
-  }
   constructor(buffers) {
+    this.shards = [];
+    this.previousShardIndex = 0;
     if (buffers == null) {
       return;
     }
@@ -7826,6 +7817,16 @@ var CompositeArrayBuffer = class {
       this.byteLength = 0;
     }
     this.byteLength = this.shards[this.shards.length - 1].end;
+  }
+  /**
+   * Concatenate a number of ArrayBuffers into one.
+   *
+   * @param buffers An array of ArrayBuffers to concatenate, or a single
+   *     ArrayBuffer.
+   * @returns Result of concatenating `buffers` in order.
+   */
+  static join(buffers) {
+    return new CompositeArrayBuffer(buffers).slice();
   }
   slice(start = 0, end = this.byteLength) {
     if (this.shards.length === 0) {
@@ -8017,7 +8018,7 @@ function getModelArtifactsInfoForJSON(modelArtifacts) {
     throw new Error("Expected JSON model topology, received ArrayBuffer.");
   }
   return {
-    dateSaved: new Date(),
+    dateSaved: /* @__PURE__ */ new Date(),
     modelTopologyType: "JSON",
     modelTopologyBytes: modelArtifacts.modelTopology == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),
     weightSpecsBytes: modelArtifacts.weightSpecs == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
@@ -8033,18 +8034,16 @@ function getWeightSpecs(weightsManifest) {
 }
 
 // src/tfjs-core/src/io/router_registry.ts
-var _IORouterRegistry = class {
-  saveRouters;
-  loadRouters;
+var IORouterRegistry = class {
   constructor() {
     this.saveRouters = [];
     this.loadRouters = [];
   }
   static getInstance() {
-    if (_IORouterRegistry.instance == null) {
-      _IORouterRegistry.instance = new _IORouterRegistry();
+    if (IORouterRegistry.instance == null) {
+      IORouterRegistry.instance = new IORouterRegistry();
     }
-    return _IORouterRegistry.instance;
+    return IORouterRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -8053,7 +8052,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `save` method defined or `null`.
    */
   static registerSaveRouter(saveRouter) {
-    _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
+    IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
   /**
    * Register a load-handler router.
@@ -8062,7 +8061,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `load` method defined or `null`.
    */
   static registerLoadRouter(loadRouter) {
-    _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
+    IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
   /**
    * Look up IOHandler for saving, given a URL-like string.
@@ -8073,7 +8072,7 @@ var _IORouterRegistry = class {
    * @throws Error, if more than one match is found.
    */
   static getSaveHandlers(url) {
-    return _IORouterRegistry.getHandlers(url, "save");
+    return IORouterRegistry.getHandlers(url, "save");
   }
   /**
    * Look up IOHandler for loading, given a URL-like string.
@@ -8084,11 +8083,11 @@ var _IORouterRegistry = class {
    *   handler routers.
    */
   static getLoadHandlers(url, loadOptions) {
-    return _IORouterRegistry.getHandlers(url, "load", loadOptions);
+    return IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
   static getHandlers(url, handlerType, loadOptions) {
     const validHandlers = [];
-    const routers = handlerType === "load" ? _IORouterRegistry.getInstance().loadRouters : _IORouterRegistry.getInstance().saveRouters;
+    const routers = handlerType === "load" ? IORouterRegistry.getInstance().loadRouters : IORouterRegistry.getInstance().saveRouters;
     routers.forEach((router) => {
       const handler = router(url, loadOptions);
       if (handler !== null) {
@@ -8098,9 +8097,6 @@ var _IORouterRegistry = class {
     return validHandlers;
   }
 };
-var IORouterRegistry = _IORouterRegistry;
-// Singleton instance.
-__publicField(IORouterRegistry, "instance");
 
 // src/tfjs-core/src/io/indexed_db.ts
 var DATABASE_NAME = "tensorflowjs";
@@ -8128,8 +8124,6 @@ function setUpDatabase(openRequest) {
   db.createObjectStore(INFO_STORE_NAME, { keyPath: "modelPath" });
 }
 var BrowserIndexedDB = class {
-  indexedDB;
-  modelPath;
   constructor(modelPath) {
     this.indexedDB = getIndexedDBFactory();
     if (modelPath == null || !modelPath) {
@@ -8190,6 +8184,9 @@ var BrowserIndexedDB = class {
           };
           modelTx.oncomplete = () => db.close();
         } else {
+          modelArtifacts.weightData = CompositeArrayBuffer.join(
+            modelArtifacts.weightData
+          );
           const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
           const infoTx = db.transaction(INFO_STORE_NAME, "readwrite");
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
@@ -8244,7 +8241,7 @@ var BrowserIndexedDB = class {
     });
   }
 };
-__publicField(BrowserIndexedDB, "URL_SCHEME", "indexeddb://");
+BrowserIndexedDB.URL_SCHEME = "indexeddb://";
 var indexedDBRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -8265,7 +8262,6 @@ function maybeStripScheme(key) {
   return key.startsWith(BrowserIndexedDB.URL_SCHEME) ? key.slice(BrowserIndexedDB.URL_SCHEME.length) : key;
 }
 var BrowserIndexedDBManager = class {
-  indexedDB;
   constructor() {
     this.indexedDB = getIndexedDBFactory();
   }
@@ -8380,9 +8376,6 @@ function maybeStripScheme2(key) {
   return key.startsWith(BrowserLocalStorage.URL_SCHEME) ? key.slice(BrowserLocalStorage.URL_SCHEME.length) : key;
 }
 var BrowserLocalStorage = class {
-  LS;
-  modelPath;
-  keys;
   constructor(modelPath) {
     if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
       throw new Error(
@@ -8512,7 +8505,7 @@ var BrowserLocalStorage = class {
     return out;
   }
 };
-__publicField(BrowserLocalStorage, "URL_SCHEME", "localstorage://");
+BrowserLocalStorage.URL_SCHEME = "localstorage://";
 var localStorageRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -8532,7 +8525,6 @@ function browserLocalStorage(modelPath) {
   return new BrowserLocalStorage(modelPath);
 }
 var BrowserLocalStorageManager = class {
-  LS;
   constructor() {
     assert(
       env().getBool("IS_BROWSER"),
@@ -8571,16 +8563,15 @@ var BrowserLocalStorageManager = class {
 
 // src/tfjs-core/src/io/model_management.ts
 var URL_SCHEME_SUFFIX = "://";
-var _ModelStoreManagerRegistry = class {
-  managers;
+var ModelStoreManagerRegistry = class {
   constructor() {
     this.managers = {};
   }
   static getInstance() {
-    if (_ModelStoreManagerRegistry.instance == null) {
-      _ModelStoreManagerRegistry.instance = new _ModelStoreManagerRegistry();
+    if (ModelStoreManagerRegistry.instance == null) {
+      ModelStoreManagerRegistry.instance = new ModelStoreManagerRegistry();
     }
-    return _ModelStoreManagerRegistry.instance;
+    return ModelStoreManagerRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -8594,7 +8585,7 @@ var _ModelStoreManagerRegistry = class {
       scheme = scheme.slice(0, scheme.indexOf(URL_SCHEME_SUFFIX));
     }
     assert(scheme.length > 0, () => "scheme must not be an empty string.");
-    const registry = _ModelStoreManagerRegistry.getInstance();
+    const registry = ModelStoreManagerRegistry.getInstance();
     assert(
       registry.managers[scheme] == null,
       () => `A model store manager is already registered for scheme '${scheme}'.`
@@ -8602,30 +8593,26 @@ var _ModelStoreManagerRegistry = class {
     registry.managers[scheme] = manager;
   }
   static getManager(scheme) {
-    const manager = _ModelStoreManagerRegistry.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
     return manager;
   }
   static getSchemes() {
-    return Object.keys(_ModelStoreManagerRegistry.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 };
-var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
-// Singleton instance.
-__publicField(ModelStoreManagerRegistry, "instance");
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
-  // According to the spec, the built-in encoder can do only UTF-8 encoding.
-  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
-  textEncoder;
-  // For setTimeoutCustom
-  messageName = "setTimeoutCustom";
-  functionRefs = [];
-  handledMessageCount = 0;
-  hasEventListener = false;
+  constructor() {
+    // For setTimeoutCustom
+    this.messageName = "setTimeoutCustom";
+    this.functionRefs = [];
+    this.handledMessageCount = 0;
+    this.hasEventListener = false;
+  }
   fetch(path, init2) {
     return fetch(path, init2);
   }
@@ -8707,9 +8694,6 @@ var getNodeFetch = {
 };
 var systemFetch;
 var PlatformNode = class {
-  textEncoder;
-  // tslint:disable-next-line:no-any
-  util;
   constructor() {
     this.util = require_util();
     this.textEncoder = new this.util.TextEncoder();
@@ -11918,14 +11902,6 @@ var rand = op({ rand_ });
 // src/tfjs-core/src/ops/rand_util.ts
 var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
-  mean;
-  stdDev;
-  nextVal;
-  dtype;
-  truncated;
-  upper;
-  lower;
-  random;
   constructor(mean3, stdDeviation, dtype, truncated, seed) {
     this.mean = mean3;
     this.stdDev = stdDeviation;
@@ -11980,13 +11956,6 @@ var MPRandGauss = class {
   }
 };
 var RandGamma = class {
-  alpha;
-  beta;
-  d;
-  c;
-  dtype;
-  randu;
-  randn;
   constructor(alpha, beta, dtype, seed) {
     this.alpha = alpha;
     this.beta = 1 / beta;
@@ -12033,11 +12002,9 @@ var RandGamma = class {
   }
 };
 var UniformRandom = class {
-  min;
-  range;
-  random;
-  dtype;
   constructor(min3 = 0, max3 = 1, dtype, seed) {
+    /** Handles proper rounding for non floating point numbers. */
+    this.canReturnFloat = () => this.dtype == null || this.dtype === "float32";
     this.min = min3;
     this.range = max3 - min3;
     this.dtype = dtype;
@@ -12054,8 +12021,6 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
-  /** Handles proper rounding for non floating point numbers. */
-  canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
       return value;
@@ -14791,6 +14756,8 @@ function staticRegexReplace_(input, pattern, rewrite, replaceGlobal = true) {
 var staticRegexReplace = op({ staticRegexReplace_ });
 
 // src/tfjs-core/src/serialization.ts
+var GLOBAL_CUSTOM_OBJECT = /* @__PURE__ */ new Map();
+var GLOBAL_CUSTOM_NAMES = /* @__PURE__ */ new Map();
 var Serializable = class {
   /**
    * Return the class name for this class to use in serialization contexts.
@@ -14819,8 +14786,7 @@ var Serializable = class {
     return new cls(config);
   }
 };
-var _SerializationMap = class {
-  classNameMap;
+var SerializationMap = class {
   constructor() {
     this.classNameMap = {};
   }
@@ -14828,21 +14794,19 @@ var _SerializationMap = class {
    * Returns the singleton instance of the map.
    */
   static getMap() {
-    if (_SerializationMap.instance == null) {
-      _SerializationMap.instance = new _SerializationMap();
+    if (SerializationMap.instance == null) {
+      SerializationMap.instance = new SerializationMap();
     }
-    return _SerializationMap.instance;
+    return SerializationMap.instance;
   }
   /**
    * Registers the class as serializable.
    */
   static register(cls) {
-    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+    SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
   }
 };
-var SerializationMap = _SerializationMap;
-__publicField(SerializationMap, "instance");
-function registerClass(cls) {
+function registerClass(cls, pkg, name) {
   assert(
     cls.className != null,
     () => `Class being registered does not have the static className property defined.`
@@ -14855,12 +14819,22 @@ function registerClass(cls) {
     cls.className.length > 0,
     () => `Class being registered has an empty-string as its className, which is disallowed.`
   );
+  if (typeof pkg === "undefined") {
+    pkg = "Custom";
+  }
+  if (typeof name === "undefined") {
+    name = cls.className;
+  }
+  const className = name;
+  const registerName = pkg + ">" + className;
   SerializationMap.register(cls);
+  GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
+  GLOBAL_CUSTOM_NAMES.set(cls, registerName);
+  return cls;
 }
 
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
-  iterations_;
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by
@@ -14971,6 +14945,8 @@ var AdadeltaOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.rho = rho;
     this.epsilon = epsilon;
+    this.accumulatedGrads = [];
+    this.accumulatedUpdates = [];
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
@@ -14979,8 +14955,6 @@ var AdadeltaOptimizer = class extends Optimizer {
   static get className() {
     return "Adadelta";
   }
-  accumulatedGrads = [];
-  accumulatedUpdates = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -15074,12 +15048,12 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
+    this.accumulatedGrads = [];
   }
   /** @nocollapse */
   static get className() {
     return "Adagrad";
   }
-  accumulatedGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -15153,6 +15127,8 @@ var AdamOptimizer = class extends Optimizer {
     this.beta1 = beta1;
     this.beta2 = beta2;
     this.epsilon = epsilon;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedSecondMoment = [];
     tidy(() => {
       this.accBeta1 = scalar(beta1).variable();
       this.accBeta2 = scalar(beta2).variable();
@@ -15165,10 +15141,6 @@ var AdamOptimizer = class extends Optimizer {
   static get className() {
     return "Adam";
   }
-  accBeta1;
-  accBeta2;
-  accumulatedFirstMoment = [];
-  accumulatedSecondMoment = [];
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -15284,6 +15256,8 @@ var AdamaxOptimizer = class extends Optimizer {
     this.beta2 = beta2;
     this.epsilon = epsilon;
     this.decay = decay;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedWeightedInfNorm = [];
     tidy(() => {
       this.iteration = scalar(0).variable();
       this.accBeta1 = scalar(beta1).variable();
@@ -15296,10 +15270,6 @@ var AdamaxOptimizer = class extends Optimizer {
   static get className() {
     return "Adamax";
   }
-  accBeta1;
-  iteration;
-  accumulatedFirstMoment = [];
-  accumulatedWeightedInfNorm = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -15394,7 +15364,6 @@ var SGDOptimizer = class extends Optimizer {
   static get className() {
     return "SGD";
   }
-  c;
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     varNames.forEach((name, i) => {
@@ -15448,6 +15417,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.learningRate = learningRate;
     this.momentum = momentum;
     this.useNesterov = useNesterov;
+    this.accumulations = [];
     this.m = scalar(this.momentum);
   }
   /** @nocollapse */
@@ -15455,8 +15425,6 @@ var MomentumOptimizer = class extends SGDOptimizer {
   static get className() {
     return "Momentum";
   }
-  m;
-  accumulations = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -15541,6 +15509,9 @@ var RMSPropOptimizer = class extends Optimizer {
     this.decay = decay;
     this.momentum = momentum;
     this.epsilon = epsilon;
+    this.accumulatedMeanSquares = [];
+    this.accumulatedMoments = [];
+    this.accumulatedMeanGrads = [];
     this.centered = centered;
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
@@ -15553,10 +15524,6 @@ var RMSPropOptimizer = class extends Optimizer {
   static get className() {
     return "RMSProp";
   }
-  centered;
-  accumulatedMeanSquares = [];
-  accumulatedMoments = [];
-  accumulatedMeanGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -15719,10 +15686,6 @@ function defer(f) {
   return new Promise((resolve) => setTimeout(resolve)).then(f);
 }
 var _BrowserDownloads = class {
-  modelJsonFileName;
-  weightDataFileName;
-  modelJsonAnchor;
-  weightDataAnchor;
   constructor(fileNamePrefix) {
     if (!env().getBool("IS_BROWSER")) {
       throw new Error(
@@ -15779,7 +15742,7 @@ var _BrowserDownloads = class {
   }
 };
 var BrowserDownloads = _BrowserDownloads;
-__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
+BrowserDownloads.URL_SCHEME = "downloads://";
 var browserDownloadsRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -15867,14 +15830,8 @@ async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
 var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
 var JSON_TYPE = "application/json";
 var HTTPRequest = class {
-  path;
-  requestInit;
-  fetch;
-  weightUrlConverter;
-  DEFAULT_METHOD = "POST";
-  weightPathPrefix;
-  onProgress;
   constructor(path, loadOptions) {
+    this.DEFAULT_METHOD = "POST";
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -16015,7 +15972,7 @@ var HTTPRequest = class {
     return [weightSpecs, buffers];
   }
 };
-__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
+HTTPRequest.URL_SCHEME_REGEX = /^https?:\/\//;
 function parseUrl(url) {
   const lastSlash = url.lastIndexOf("/");
   const lastSearchParam = url.lastIndexOf("?");
@@ -17609,7 +17566,7 @@ var acosConfig = createUnaryKernelConfig(Acos);
 var acoshConfig = createUnaryKernelConfig(Acosh);
 
 // src/tfjs-backend-wasm/src/kernels/binary_kernel.ts
-function createBinaryKernelConfig(kernelName, supportsFullBroadcast19, dtype) {
+function createBinaryKernelConfig(kernelName, supportsFullBroadcast20, dtype) {
   let wasmFunc8;
   function setupFunc3(backend) {
     wasmFunc8 = backend.wasm.cwrap(kernelName, null, [
@@ -18298,6 +18255,93 @@ var avgPool3DGradConfig = {
   kernelFunc: avgPool3DGrad
 };
 
+// src/tfjs-backend-wasm/src/kernels/AvgPoolGrad.ts
+var wasmAvgPoolGrad;
+function setup8(backend) {
+  wasmAvgPoolGrad = backend.wasm.cwrap("AvgPoolGrad", null, [
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padTop
+    "number",
+    // padLeft
+    "number",
+    // filterHeight
+    "number"
+    // filterWidth
+  ]);
+}
+function avgPoolGrad(args) {
+  const { inputs, backend, attrs } = args;
+  const { dy, input } = inputs;
+  const { filterSize, strides, pad: pad3 } = attrs;
+  const convInfo = backend_util_exports.computePool2DInfo(
+    input.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3
+  );
+  const dx = backend.makeOutput(input.shape, input.dtype);
+  wasmAvgPoolGrad(
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    convInfo.batchSize,
+    // Since Pool ops (AvgPool and MaxPool) support 2D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left,
+    convInfo.filterHeight,
+    convInfo.filterWidth
+  );
+  return dx;
+}
+var avgPoolGradConfig = {
+  kernelName: AvgPoolGrad,
+  backendName: "wasm",
+  setupFunc: setup8,
+  kernelFunc: avgPoolGrad
+};
+
 // src/tfjs-backend-wasm/src/kernels/Reshape.ts
 function reshape2(args) {
   const { inputs, attrs } = args;
@@ -18320,7 +18364,7 @@ var reshapeConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/BatchMatMul.ts
 var wasmBatchMatMul;
-function setup8(backend) {
+function setup9(backend) {
   wasmBatchMatMul = backend.wasm.cwrap(BatchMatMul, null, [
     "number",
     // a_id
@@ -18402,7 +18446,7 @@ function batchMatMul(args) {
 var batchMatMulConfig = {
   kernelName: BatchMatMul,
   backendName: "wasm",
-  setupFunc: setup8,
+  setupFunc: setup9,
   kernelFunc: batchMatMul
 };
 
@@ -18890,12 +18934,6 @@ var staticRegexReplace2 = unaryKernelFuncFromImpl(StaticRegexReplace, staticRege
 
 // src/tfjs-backend-cpu/src/kernels/StringNGrams_impl.ts
 var StringNGramsOp = class {
-  separator;
-  nGramWidths;
-  padWidth;
-  leftPad;
-  rightPad;
-  preserveShort;
   constructor(separator, nGramWidths, leftPad, rightPad2, padWidth, preserveShortSequences) {
     this.separator = util_exports.encodeString(separator);
     this.nGramWidths = nGramWidths;
@@ -19337,7 +19375,7 @@ var batchToSpaceNDConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/Bincount.ts
 var wasmBincount;
-function setup9(backend) {
+function setup10(backend) {
   wasmBincount = backend.wasm.cwrap(Bincount, null, [
     "number",
     // xId
@@ -19376,9 +19414,13 @@ function bincount2(args) {
 var bincountConfig = {
   kernelName: Bincount,
   backendName: "wasm",
-  setupFunc: setup9,
+  setupFunc: setup10,
   kernelFunc: bincount2
 };
+
+// src/tfjs-backend-wasm/src/kernels/BitwiseAnd.ts
+var supportsFullBroadcast2 = true;
+var bitwiseAndConfig = createBinaryKernelConfig(BitwiseAnd, supportsFullBroadcast2);
 
 // src/tfjs-backend-wasm/src/kernels/BroadcastArgs.ts
 function broadcastArgs2(args) {
@@ -19425,7 +19467,7 @@ var ceilConfig = createUnaryKernelConfig(Ceil);
 
 // src/tfjs-backend-wasm/src/kernels/ClipByValue.ts
 var wasmClip;
-function setup10(backend) {
+function setup11(backend) {
   wasmClip = backend.wasm.cwrap(ClipByValue, null, [
     "number",
     // x_id
@@ -19450,7 +19492,7 @@ function clip(args) {
 var clipByValueConfig = {
   kernelName: ClipByValue,
   backendName: "wasm",
-  setupFunc: setup10,
+  setupFunc: setup11,
   kernelFunc: clip
 };
 
@@ -19526,7 +19568,7 @@ var concatConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/Conv2D.ts
 var wasmConv2d;
-function setup11(backend) {
+function setup12(backend) {
   wasmConv2d = backend.wasm.cwrap(Conv2D, null, [
     "number",
     // xId
@@ -19631,13 +19673,13 @@ function conv2d3(args) {
 var conv2DConfig = {
   kernelName: Conv2D,
   backendName: "wasm",
-  setupFunc: setup11,
+  setupFunc: setup12,
   kernelFunc: conv2d3
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv2DBackpropInput.ts
 var wasmConv2DBackpropInput;
-function setup12(backend) {
+function setup13(backend) {
   wasmConv2DBackpropInput = backend.wasm.cwrap(Conv2DBackpropInput, null, [
     "number",
     // dyId
@@ -19776,13 +19818,13 @@ function conv2DBackpropInput2(args) {
 var conv2DBackpropInputConfig = {
   kernelName: Conv2DBackpropInput,
   backendName: "wasm",
-  setupFunc: setup12,
+  setupFunc: setup13,
   kernelFunc: conv2DBackpropInput2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv3D.ts
 var wasmConv3D;
-function setup13(backend) {
+function setup14(backend) {
   wasmConv3D = backend.wasm.cwrap(Conv3D, null, [
     "number",
     // xId
@@ -19885,13 +19927,13 @@ function conv3D(args) {
 var conv3DConfig = {
   kernelName: Conv3D,
   backendName: "wasm",
-  setupFunc: setup13,
+  setupFunc: setup14,
   kernelFunc: conv3D
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv3DBackpropFilterV2.ts
 var wasmConv3DBackpropFilterV2;
-function setup14(backend) {
+function setup15(backend) {
   wasmConv3DBackpropFilterV2 = backend.wasm.cwrap(Conv3DBackpropFilterV2, null, [
     "number",
     // xId
@@ -19993,13 +20035,13 @@ function conv3DBackpropFilterV2(args) {
 var conv3DBackpropFilterV2Config = {
   kernelName: Conv3DBackpropFilterV2,
   backendName: "wasm",
-  setupFunc: setup14,
+  setupFunc: setup15,
   kernelFunc: conv3DBackpropFilterV2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv3DBackpropInputV2.ts
 var wasmConv3DBackpropInputV2;
-function setup15(backend) {
+function setup16(backend) {
   wasmConv3DBackpropInputV2 = backend.wasm.cwrap(Conv3DBackpropInputV2, null, [
     "number",
     // filterId
@@ -20103,7 +20145,7 @@ function conv3DBackpropInputV2(args) {
 var conv3DBackpropInputV2Config = {
   kernelName: Conv3DBackpropInputV2,
   backendName: "wasm",
-  setupFunc: setup15,
+  setupFunc: setup16,
   kernelFunc: conv3DBackpropInputV2
 };
 
@@ -20120,7 +20162,7 @@ var InterpolationMethod = /* @__PURE__ */ ((InterpolationMethod2) => {
   return InterpolationMethod2;
 })(InterpolationMethod || {});
 var wasmCropAndResize;
-function setup16(backend) {
+function setup17(backend) {
   wasmCropAndResize = backend.wasm.cwrap(CropAndResize, null, [
     "number",
     // imagesId
@@ -20183,13 +20225,13 @@ function cropAndResize2(args) {
 var cropAndResizeConfig = {
   kernelName: CropAndResize,
   backendName: "wasm",
-  setupFunc: setup16,
+  setupFunc: setup17,
   kernelFunc: cropAndResize2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cumprod.ts
 var wasmCumprod;
-function setup17(backend) {
+function setup18(backend) {
   wasmCumprod = backend.wasm.cwrap(Cumprod, null, [
     "number",
     // x_id
@@ -20247,13 +20289,13 @@ function cumprod2(args) {
 var cumprodConfig = {
   kernelName: Cumprod,
   backendName: "wasm",
-  setupFunc: setup17,
+  setupFunc: setup18,
   kernelFunc: cumprod2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cumsum.ts
 var wasmCumsum;
-function setup18(backend) {
+function setup19(backend) {
   wasmCumsum = backend.wasm.cwrap(Cumsum, null, [
     "number",
     // x_id
@@ -20311,13 +20353,13 @@ function cumsum2(args) {
 var cumsumConfig = {
   kernelName: Cumsum,
   backendName: "wasm",
-  setupFunc: setup18,
+  setupFunc: setup19,
   kernelFunc: cumsum2
 };
 
 // src/tfjs-backend-wasm/src/kernels/DenseBincount.ts
 var wasmDenseBincount;
-function setup19(backend) {
+function setup20(backend) {
   wasmDenseBincount = backend.wasm.cwrap("DenseBincount", null, [
     "number",
     // xId
@@ -20365,13 +20407,13 @@ function denseBincount2(args) {
 var denseBincountConfig = {
   kernelName: DenseBincount,
   backendName: "wasm",
-  setupFunc: setup19,
+  setupFunc: setup20,
   kernelFunc: denseBincount2
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthToSpace.ts
 var wasmDepthToSpace;
-function setup20(backend) {
+function setup21(backend) {
   wasmDepthToSpace = backend.wasm.cwrap(DepthToSpace, null, [
     "number",
     // xId
@@ -20429,13 +20471,13 @@ function depthToSpace2(args) {
 var depthToSpaceConfig = {
   kernelName: DepthToSpace,
   backendName: "wasm",
-  setupFunc: setup20,
+  setupFunc: setup21,
   kernelFunc: depthToSpace2
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthwiseConv2dNative.ts
 var wasmDepthwiseConv2d;
-function setup21(backend) {
+function setup22(backend) {
   wasmDepthwiseConv2d = backend.wasm.cwrap(DepthwiseConv2dNative, null, [
     "number",
     // xId
@@ -20540,13 +20582,13 @@ function depthwiseConv2d3(args) {
 var depthwiseConv2dNativeConfig = {
   kernelName: DepthwiseConv2dNative,
   backendName: "wasm",
-  setupFunc: setup21,
+  setupFunc: setup22,
   kernelFunc: depthwiseConv2d3
 };
 
 // src/tfjs-backend-wasm/src/kernels/Diag.ts
 var wasmDiag;
-function setup22(backend) {
+function setup23(backend) {
   wasmDiag = backend.wasm.cwrap("Diag", null, [
     "number",
     // xId
@@ -20574,13 +20616,13 @@ function diag2(args) {
 var diagConfig = {
   kernelName: Diag,
   backendName: "wasm",
-  setupFunc: setup22,
+  setupFunc: setup23,
   kernelFunc: diag2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Dilation2D.ts
 var wasmDilation2D;
-function setup23(backend) {
+function setup24(backend) {
   wasmDilation2D = backend.wasm.cwrap(Dilation2D, null, [
     "number",
     // xId
@@ -20665,13 +20707,13 @@ function dilation2D(args) {
 var dilation2DConfig = {
   kernelName: Dilation2D,
   backendName: "wasm",
-  setupFunc: setup23,
+  setupFunc: setup24,
   kernelFunc: dilation2D
 };
 
 // src/tfjs-backend-wasm/src/kernels/Dilation2DBackpropFilter.ts
 var wasmDilation2DBackpropFilter;
-function setup24(backend) {
+function setup25(backend) {
   wasmDilation2DBackpropFilter = backend.wasm.cwrap(Dilation2DBackpropFilter, null, [
     "number",
     // xId
@@ -20759,13 +20801,13 @@ function dilation2DBackpropFilter(args) {
 var dilation2DBackpropFilterConfig = {
   kernelName: Dilation2DBackpropFilter,
   backendName: "wasm",
-  setupFunc: setup24,
+  setupFunc: setup25,
   kernelFunc: dilation2DBackpropFilter
 };
 
 // src/tfjs-backend-wasm/src/kernels/Dilation2DBackpropInput.ts
 var wasmDilation2DBackpropInput;
-function setup25(backend) {
+function setup26(backend) {
   wasmDilation2DBackpropInput = backend.wasm.cwrap(Dilation2DBackpropInput, null, [
     "number",
     // xId
@@ -20853,7 +20895,7 @@ function dilation2DBackpropInput(args) {
 var dilation2DBackpropInputConfig = {
   kernelName: Dilation2DBackpropInput,
   backendName: "wasm",
-  setupFunc: setup25,
+  setupFunc: setup26,
   kernelFunc: dilation2DBackpropInput
 };
 
@@ -20862,7 +20904,7 @@ var eluConfig = createUnaryKernelConfig(Elu);
 
 // src/tfjs-backend-wasm/src/kernels/EluGrad.ts
 var wasmEluGrad;
-function setup26(backend) {
+function setup27(backend) {
   wasmEluGrad = backend.wasm.cwrap(EluGrad, null, [
     "number",
     // yId
@@ -20885,13 +20927,16 @@ function eluGrad(args) {
 var eluGradConfig = {
   kernelName: EluGrad,
   backendName: "wasm",
-  setupFunc: setup26,
+  setupFunc: setup27,
   kernelFunc: eluGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/Equal.ts
-var supportsFullBroadcast2 = false;
-var equalConfig = createBinaryKernelConfig(Equal, supportsFullBroadcast2, "bool");
+var supportsFullBroadcast3 = false;
+var equalConfig = createBinaryKernelConfig(Equal, supportsFullBroadcast3, "bool");
+
+// src/tfjs-backend-wasm/src/kernels/Erf.ts
+var erfConfig = createUnaryKernelConfig(Erf);
 
 // src/tfjs-backend-wasm/src/kernels/Exp.ts
 var expConfig = createUnaryKernelConfig(Exp, "float32");
@@ -20939,7 +20984,7 @@ var fillConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/FlipLeftRight.ts
 var wasmFlipLeftRight;
-function setup27(backend) {
+function setup28(backend) {
   wasmFlipLeftRight = backend.wasm.cwrap(FlipLeftRight, null, [
     "number",
     // xId
@@ -20976,19 +21021,19 @@ var flipLeftRightConfig = {
   kernelName: FlipLeftRight,
   backendName: "wasm",
   kernelFunc: flipLeftRight2,
-  setupFunc: setup27
+  setupFunc: setup28
 };
 
 // src/tfjs-backend-wasm/src/kernels/Floor.ts
 var floorConfig = createUnaryKernelConfig(Floor);
 
 // src/tfjs-backend-wasm/src/kernels/FloorDiv.ts
-var supportsFullBroadcast3 = false;
-var floorDivConfig = createBinaryKernelConfig(FloorDiv, supportsFullBroadcast3);
+var supportsFullBroadcast4 = false;
+var floorDivConfig = createBinaryKernelConfig(FloorDiv, supportsFullBroadcast4);
 
 // src/tfjs-backend-wasm/src/kernels/FusedBatchNorm.ts
 var wasmBatchNorm;
-function setup28(backend) {
+function setup29(backend) {
   wasmBatchNorm = backend.wasm.cwrap(
     FusedBatchNorm,
     null,
@@ -21023,13 +21068,13 @@ function fusedBatchNorm(args) {
 var fusedBatchNormConfig = {
   kernelName: FusedBatchNorm,
   backendName: "wasm",
-  setupFunc: setup28,
+  setupFunc: setup29,
   kernelFunc: fusedBatchNorm
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedConv2D.ts
 var wasmFusedConv2d;
-function setup29(backend) {
+function setup30(backend) {
   wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null, [
     "number",
     // xId
@@ -21176,13 +21221,13 @@ function fusedConv2d(args) {
 var fusedConv2DConfig = {
   kernelName: FusedConv2D,
   backendName: "wasm",
-  setupFunc: setup29,
+  setupFunc: setup30,
   kernelFunc: fusedConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedDepthwiseConv2D.ts
 var wasmFusedDepthwiseConv2d;
-function setup30(backend) {
+function setup31(backend) {
   wasmFusedDepthwiseConv2d = backend.wasm.cwrap(FusedDepthwiseConv2D, null, [
     "number",
     // xId
@@ -21331,13 +21376,13 @@ function fusedDepthwiseConv2d(args) {
 var fusedDepthwiseConv2DConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: "wasm",
-  setupFunc: setup30,
+  setupFunc: setup31,
   kernelFunc: fusedDepthwiseConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherNd.ts
 var wasmGatherNd;
-function setup31(backend) {
+function setup32(backend) {
   wasmGatherNd = backend.wasm.cwrap(GatherNd, null, [
     "number",
     // xId
@@ -21388,13 +21433,13 @@ function gatherNd(args) {
 var gatherNdConfig = {
   kernelName: GatherNd,
   backendName: "wasm",
-  setupFunc: setup31,
+  setupFunc: setup32,
   kernelFunc: gatherNd
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherV2.ts
 var wasmGather;
-function setup32(backend) {
+function setup33(backend) {
   wasmGather = backend.wasm.cwrap("Gather", null, [
     "number",
     // xId
@@ -21492,17 +21537,17 @@ function gatherV2(args) {
 var gatherV2Config = {
   kernelName: GatherV2,
   backendName: "wasm",
-  setupFunc: setup32,
+  setupFunc: setup33,
   kernelFunc: gatherV2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Greater.ts
-var supportsFullBroadcast4 = false;
-var greaterConfig = createBinaryKernelConfig(Greater, supportsFullBroadcast4, "bool");
+var supportsFullBroadcast5 = false;
+var greaterConfig = createBinaryKernelConfig(Greater, supportsFullBroadcast5, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/GreaterEqual.ts
-var supportsFullBroadcast5 = false;
-var greaterEqualConfig = createBinaryKernelConfig(GreaterEqual, supportsFullBroadcast5, "bool");
+var supportsFullBroadcast6 = false;
+var greaterEqualConfig = createBinaryKernelConfig(GreaterEqual, supportsFullBroadcast6, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/IsFinite.ts
 var isFiniteConfig = createUnaryKernelConfig(IsFinite, "bool");
@@ -21545,16 +21590,16 @@ var leakyReluConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Less.ts
-var supportsFullBroadcast6 = false;
-var lessConfig = createBinaryKernelConfig(Less, supportsFullBroadcast6, "bool");
+var supportsFullBroadcast7 = false;
+var lessConfig = createBinaryKernelConfig(Less, supportsFullBroadcast7, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LessEqual.ts
-var supportsFullBroadcast7 = false;
-var lessEqualConfig = createBinaryKernelConfig(LessEqual, supportsFullBroadcast7, "bool");
+var supportsFullBroadcast8 = false;
+var lessEqualConfig = createBinaryKernelConfig(LessEqual, supportsFullBroadcast8, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LinSpace.ts
 var wasmLinSpace;
-function setup33(backend) {
+function setup34(backend) {
   wasmLinSpace = backend.wasm.cwrap(LinSpace, null, [
     "number",
     // outId
@@ -21577,7 +21622,7 @@ function linSpace(args) {
 var linSpaceConfig = {
   kernelName: LinSpace,
   backendName: "wasm",
-  setupFunc: setup33,
+  setupFunc: setup34,
   kernelFunc: linSpace
 };
 
@@ -21588,23 +21633,23 @@ var logConfig = createUnaryKernelConfig(Log);
 var log1pConfig = createUnaryKernelConfig(Log1p);
 
 // src/tfjs-backend-wasm/src/kernels/LogicalAnd.ts
-var supportsFullBroadcast8 = false;
-var logicalAndConfig = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast8, "bool");
+var supportsFullBroadcast9 = false;
+var logicalAndConfig = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast9, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LogicalNot.ts
 var logicalNotConfig = createUnaryKernelConfig(LogicalNot);
 
 // src/tfjs-backend-wasm/src/kernels/LogicalOr.ts
-var supportsFullBroadcast9 = false;
-var logicalOrConfig = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast9, "bool");
+var supportsFullBroadcast10 = false;
+var logicalOrConfig = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast10, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LogicalXor.ts
-var supportsFullBroadcast10 = false;
-var logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast10, "bool");
+var supportsFullBroadcast11 = false;
+var logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast11, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LRN.ts
 var wasmLRN;
-function setup34(backend) {
+function setup35(backend) {
   wasmLRN = backend.wasm.cwrap(LRN, null, [
     "number",
     // xId
@@ -21645,13 +21690,13 @@ function lrn(args) {
 var lrnConfig = {
   kernelName: LRN,
   backendName: "wasm",
-  setupFunc: setup34,
+  setupFunc: setup35,
   kernelFunc: lrn
 };
 
 // src/tfjs-backend-wasm/src/kernels/LRNGrad.ts
 var wasmLRNGrad;
-function setup35(backend) {
+function setup36(backend) {
   wasmLRNGrad = backend.wasm.cwrap(LRNGrad, null, [
     "number",
     // xId
@@ -21698,13 +21743,13 @@ function lrnGrad(args) {
 var lrnGradConfig = {
   kernelName: LRNGrad,
   backendName: "wasm",
-  setupFunc: setup35,
+  setupFunc: setup36,
   kernelFunc: lrnGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/Max.ts
 var wasmMax;
-function setup36(backend) {
+function setup37(backend) {
   wasmMax = backend.wasm.cwrap(Max, null, [
     "number",
     // x_id
@@ -21750,17 +21795,17 @@ function max2(args) {
 var maxConfig = {
   kernelName: Max,
   backendName: "wasm",
-  setupFunc: setup36,
+  setupFunc: setup37,
   kernelFunc: max2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Maximum.ts
-var supportsFullBroadcast11 = false;
-var maximumConfig = createBinaryKernelConfig(Maximum, supportsFullBroadcast11);
+var supportsFullBroadcast12 = false;
+var maximumConfig = createBinaryKernelConfig(Maximum, supportsFullBroadcast12);
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool.ts
 var wasmMaxPool;
-function setup37(backend) {
+function setup38(backend) {
   wasmMaxPool = backend.wasm.cwrap(MaxPool, null, [
     "number",
     // xId
@@ -21858,13 +21903,13 @@ function maxPool2(args) {
 var maxPoolConfig = {
   kernelName: MaxPool,
   backendName: "wasm",
-  setupFunc: setup37,
+  setupFunc: setup38,
   kernelFunc: maxPool2
 };
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool3D.ts
 var wasmMaxPool3D;
-function setup38(backend) {
+function setup39(backend) {
   wasmMaxPool3D = backend.wasm.cwrap("MaxPool3D", null, [
     "number",
     // xId
@@ -21959,13 +22004,13 @@ function maxPool3D(args) {
 var maxPool3DConfig = {
   kernelName: MaxPool3D,
   backendName: "wasm",
-  setupFunc: setup38,
+  setupFunc: setup39,
   kernelFunc: maxPool3D
 };
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool3DGrad.ts
 var wasmMaxPool3DGrad;
-function setup39(backend) {
+function setup40(backend) {
   wasmMaxPool3DGrad = backend.wasm.cwrap("MaxPool3DGrad", null, [
     "number",
     // xId
@@ -22062,13 +22107,194 @@ function maxPool3DGrad(args) {
 var maxPool3DGradConfig = {
   kernelName: MaxPool3DGrad,
   backendName: "wasm",
-  setupFunc: setup39,
+  setupFunc: setup40,
   kernelFunc: maxPool3DGrad
+};
+
+// src/tfjs-backend-wasm/src/kernels/MaxPoolGrad.ts
+var wasmMaxPoolGrad;
+function setup41(backend) {
+  wasmMaxPoolGrad = backend.wasm.cwrap("MaxPoolGrad", null, [
+    "number",
+    // xId
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function maxPoolGrad(args) {
+  const { inputs, backend, attrs } = args;
+  const { dy, input } = inputs;
+  const { filterSize, strides, pad: pad3, dimRoundingMode } = attrs;
+  const convInfo = backend_util_exports.computePool2DInfo(
+    input.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3,
+    dimRoundingMode
+  );
+  const dx = backend.makeOutput(input.shape, input.dtype);
+  wasmMaxPoolGrad(
+    backend.dataIdMap.get(input.dataId).id,
+    backend.dataIdMap.get(dy.dataId).id,
+    backend.dataIdMap.get(dx.dataId).id,
+    convInfo.batchSize,
+    // Since Pool ops (MaxPool and MaxPool) support 2D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return dx;
+}
+var maxPoolGradConfig = {
+  kernelName: MaxPoolGrad,
+  backendName: "wasm",
+  setupFunc: setup41,
+  kernelFunc: maxPoolGrad
+};
+
+// src/tfjs-backend-wasm/src/kernels/MaxPoolWithArgmax.ts
+var wasmMaxPoolWithArgmax;
+function setup42(backend) {
+  wasmMaxPoolWithArgmax = backend.wasm.cwrap("MaxPoolWithArgmax", null, [
+    "number",
+    // xId
+    "number",
+    // pooledId
+    "number",
+    // indexesId
+    "number",
+    // dtype
+    "boolean",
+    // includeBatchIndex
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function maxPoolWithArgmax2(args) {
+  const { inputs, backend, attrs } = args;
+  const { x } = inputs;
+  const { filterSize, strides, pad: pad3, includeBatchInIndex } = attrs;
+  util_exports.assert(
+    x.shape.length === 4,
+    () => `Error in maxPool: input must be rank 4 but got rank ${x.shape.length}.`
+  );
+  const dilations = [1, 1];
+  util_exports.assert(
+    backend_util_exports.eitherStridesOrDilationsAreOne(strides, dilations),
+    () => `Error in maxPool: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`
+  );
+  const convInfo = backend_util_exports.computePool2DInfo(
+    x.shape,
+    filterSize,
+    strides,
+    [1, 1],
+    pad3
+  );
+  const pooled = backend.makeOutput(convInfo.outShape, x.dtype);
+  const indexes = backend.makeOutput(convInfo.outShape, "int32");
+  wasmMaxPoolWithArgmax(
+    backend.dataIdMap.get(x.dataId).id,
+    backend.dataIdMap.get(pooled.dataId).id,
+    backend.dataIdMap.get(indexes.dataId).id,
+    CppDType[x.dtype],
+    includeBatchInIndex,
+    convInfo.batchSize,
+    convInfo.inChannels,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return [pooled, indexes];
+}
+var maxPoolWithArgmaxConfig = {
+  kernelName: MaxPoolWithArgmax,
+  backendName: "wasm",
+  setupFunc: setup42,
+  kernelFunc: maxPoolWithArgmax2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Mean.ts
 var wasmMean;
-function setup40(backend) {
+function setup43(backend) {
   wasmMean = backend.wasm.cwrap(Mean, null, ["number, number, number"]);
 }
 function mean2(args) {
@@ -22123,13 +22349,13 @@ function mean2(args) {
 var meanConfig = {
   kernelName: Mean,
   backendName: "wasm",
-  setupFunc: setup40,
+  setupFunc: setup43,
   kernelFunc: mean2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Min.ts
 var wasmMin;
-function setup41(backend) {
+function setup44(backend) {
   wasmMin = backend.wasm.cwrap(Min, null, [
     "number",
     // x_id
@@ -22177,13 +22403,13 @@ function min2(args) {
 var minConfig = {
   kernelName: Min,
   backendName: "wasm",
-  setupFunc: setup41,
+  setupFunc: setup44,
   kernelFunc: min2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Minimum.ts
-var supportsFullBroadcast12 = false;
-var minimumConfig = createBinaryKernelConfig(Minimum, supportsFullBroadcast12);
+var supportsFullBroadcast13 = false;
+var minimumConfig = createBinaryKernelConfig(Minimum, supportsFullBroadcast13);
 
 // src/tfjs-backend-wasm/src/kernels/MirrorPad.ts
 var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
@@ -22192,7 +22418,7 @@ var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
   return MirrorPaddingMode2;
 })(MirrorPaddingMode || {});
 var wasmMirrorPad;
-function setup42(backend) {
+function setup45(backend) {
   wasmMirrorPad = backend.wasm.cwrap(MirrorPad, null, [
     "number",
     // xId
@@ -22242,12 +22468,12 @@ var mirrorPadConfig = {
   kernelName: MirrorPad,
   backendName: "wasm",
   kernelFunc: mirrorPad2,
-  setupFunc: setup42
+  setupFunc: setup45
 };
 
 // src/tfjs-backend-wasm/src/kernels/Softmax.ts
 var wasmFunc3;
-function setup43(backend) {
+function setup46(backend) {
   wasmFunc3 = backend.wasm.cwrap(Softmax, null, [
     "number",
     // xId
@@ -22275,13 +22501,13 @@ function softmax2(args) {
 var softmaxConfig = {
   kernelName: Softmax,
   backendName: "wasm",
-  setupFunc: setup43,
+  setupFunc: setup46,
   kernelFunc: softmax2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Multinomial.ts
 var wasmMultinomial;
-function setup44(backend) {
+function setup47(backend) {
   wasmMultinomial = backend.wasm.cwrap(Multinomial, null, [
     "number",
     // probabilitiesId
@@ -22329,13 +22555,20 @@ function multinomial2(args) {
 var multinomialConfig = {
   kernelName: Multinomial,
   backendName: "wasm",
-  setupFunc: setup44,
+  setupFunc: setup47,
   kernelFunc: multinomial2
 };
 
+// src/tfjs-backend-wasm/src/kernels/Mod.ts
+var modConfig = createBinaryKernelConfig(
+  Mod,
+  /*supportsFullBroadcast=*/
+  true
+);
+
 // src/tfjs-backend-wasm/src/kernels/Multiply.ts
-var supportsFullBroadcast13 = true;
-var multiplyConfig = createBinaryKernelConfig(Multiply, supportsFullBroadcast13);
+var supportsFullBroadcast14 = true;
+var multiplyConfig = createBinaryKernelConfig(Multiply, supportsFullBroadcast14);
 
 // src/tfjs-backend-wasm/src/kernels/Neg.ts
 var negConfig = createUnaryKernelConfig(Neg);
@@ -22353,7 +22586,7 @@ function parseResultStruct(backend, resOffset) {
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV3.ts
 var wasmFunc4;
-function setup45(backend) {
+function setup48(backend) {
   wasmFunc4 = backend.wasm.cwrap(
     NonMaxSuppressionV3,
     "number",
@@ -22388,13 +22621,13 @@ function kernelFunc(args) {
 var nonMaxSuppressionV3Config = {
   kernelName: NonMaxSuppressionV3,
   backendName: "wasm",
-  setupFunc: setup45,
+  setupFunc: setup48,
   kernelFunc
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV4.ts
 var wasmFunc5;
-function setup46(backend) {
+function setup49(backend) {
   wasmFunc5 = backend.wasm.cwrap(
     NonMaxSuppressionV4,
     "number",
@@ -22438,13 +22671,13 @@ function nonMaxSuppressionV4(args) {
 var nonMaxSuppressionV4Config = {
   kernelName: NonMaxSuppressionV4,
   backendName: "wasm",
-  setupFunc: setup46,
+  setupFunc: setup49,
   kernelFunc: nonMaxSuppressionV4
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV5.ts
 var wasmFunc6;
-function setup47(backend) {
+function setup50(backend) {
   wasmFunc6 = backend.wasm.cwrap(
     NonMaxSuppressionV5,
     "number",
@@ -22488,17 +22721,17 @@ function kernelFunc2(args) {
 var nonMaxSuppressionV5Config = {
   kernelName: NonMaxSuppressionV5,
   backendName: "wasm",
-  setupFunc: setup47,
+  setupFunc: setup50,
   kernelFunc: kernelFunc2
 };
 
 // src/tfjs-backend-wasm/src/kernels/NotEqual.ts
-var supportsFullBroadcast14 = false;
-var notEqualConfig = createBinaryKernelConfig(NotEqual, supportsFullBroadcast14, "bool");
+var supportsFullBroadcast15 = false;
+var notEqualConfig = createBinaryKernelConfig(NotEqual, supportsFullBroadcast15, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/OneHot.ts
 var wasmOneHot;
-function setup48(backend) {
+function setup51(backend) {
   wasmOneHot = backend.wasm.cwrap(OneHot, null, [
     "number",
     // indices_id
@@ -22526,7 +22759,7 @@ function oneHot2(args) {
 var oneHotConfig = {
   kernelName: OneHot,
   backendName: "wasm",
-  setupFunc: setup48,
+  setupFunc: setup51,
   kernelFunc: oneHot2
 };
 
@@ -22584,7 +22817,7 @@ var packConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/PadV2.ts
 var wasmPadV2;
-function setup49(backend) {
+function setup52(backend) {
   wasmPadV2 = backend.wasm.cwrap(PadV2, null, [
     "number",
     // xId
@@ -22641,16 +22874,16 @@ var padV2Config = {
   kernelName: PadV2,
   backendName: "wasm",
   kernelFunc: pad2,
-  setupFunc: setup49
+  setupFunc: setup52
 };
 
 // src/tfjs-backend-wasm/src/kernels/Pow.ts
-var supportsFullBroadcast15 = false;
-var powConfig = createBinaryKernelConfig(Pow, supportsFullBroadcast15);
+var supportsFullBroadcast16 = false;
+var powConfig = createBinaryKernelConfig(Pow, supportsFullBroadcast16);
 
 // src/tfjs-backend-wasm/src/kernels/Prelu.ts
 var wasmPrelu;
-function setup50(backend) {
+function setup53(backend) {
   wasmPrelu = backend.wasm.cwrap(Prelu, null, [
     "number",
     // x_id
@@ -22683,13 +22916,13 @@ function prelu2(args) {
 var preluConfig = {
   kernelName: Prelu,
   backendName: "wasm",
-  setupFunc: setup50,
+  setupFunc: setup53,
   kernelFunc: prelu2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Prod.ts
 var wasmProd;
-function setup51(backend) {
+function setup54(backend) {
   wasmProd = backend.wasm.cwrap(Prod, null, [
     "number",
     "number",
@@ -22741,7 +22974,7 @@ function prod2(args) {
 var prodConfig = {
   kernelName: Prod,
   backendName: "wasm",
-  setupFunc: setup51,
+  setupFunc: setup54,
   kernelFunc: prod2
 };
 
@@ -22762,8 +22995,8 @@ var rangeConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/RealDiv.ts
-var supportsFullBroadcast16 = true;
-var realDivConfig = createBinaryKernelConfig(RealDiv, supportsFullBroadcast16);
+var supportsFullBroadcast17 = true;
+var realDivConfig = createBinaryKernelConfig(RealDiv, supportsFullBroadcast17);
 
 // src/tfjs-backend-wasm/src/kernels/Reciprocal.ts
 var reciprocalConfig = createUnaryKernelConfig(Reciprocal);
@@ -22776,7 +23009,7 @@ var relu6Config = createUnaryKernelConfig(Relu6);
 
 // src/tfjs-backend-wasm/src/kernels/ResizeBilinear.ts
 var wasmResizeBilinear;
-function setup52(backend) {
+function setup55(backend) {
   wasmResizeBilinear = backend.wasm.cwrap(ResizeBilinear, null, [
     "number",
     // xId
@@ -22839,13 +23072,13 @@ function resizeBilinear2(args) {
 var resizeBilinearConfig = {
   kernelName: ResizeBilinear,
   backendName: "wasm",
-  setupFunc: setup52,
+  setupFunc: setup55,
   kernelFunc: resizeBilinear2
 };
 
 // src/tfjs-backend-wasm/src/kernels/ResizeBilinearGrad.ts
 var wasmResizeBilinearGrad;
-function setup53(backend) {
+function setup56(backend) {
   wasmResizeBilinearGrad = backend.wasm.cwrap(
     ResizeBilinearGrad,
     null,
@@ -22896,13 +23129,13 @@ function resizeBilinearGrad(args) {
 var resizeBilinearGradConfig = {
   kernelName: ResizeBilinearGrad,
   backendName: "wasm",
-  setupFunc: setup53,
+  setupFunc: setup56,
   kernelFunc: resizeBilinearGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/ResizeNearestNeighbor.ts
 var wasmResizeNearestNeighbor;
-function setup54(backend) {
+function setup57(backend) {
   wasmResizeNearestNeighbor = backend.wasm.cwrap(
     ResizeNearestNeighbor,
     null,
@@ -22973,13 +23206,13 @@ function resizeNearestNeighbor2(args) {
 var resizeNearestNeighborConfig = {
   kernelName: ResizeNearestNeighbor,
   backendName: "wasm",
-  setupFunc: setup54,
+  setupFunc: setup57,
   kernelFunc: resizeNearestNeighbor2
 };
 
 // src/tfjs-backend-wasm/src/kernels/ResizeNearestNeighborGrad.ts
 var wasmResizeNearestNeighborGrad;
-function setup55(backend) {
+function setup58(backend) {
   wasmResizeNearestNeighborGrad = backend.wasm.cwrap(
     ResizeNearestNeighborGrad,
     null,
@@ -23030,13 +23263,13 @@ function resizeNearestNeighborGrad(args) {
 var resizeNearestNeighborGradConfig = {
   kernelName: ResizeNearestNeighborGrad,
   backendName: "wasm",
-  setupFunc: setup55,
+  setupFunc: setup58,
   kernelFunc: resizeNearestNeighborGrad
 };
 
 // src/tfjs-backend-wasm/src/kernels/Reverse.ts
 var wasmReverse;
-function setup56(backend) {
+function setup59(backend) {
   wasmReverse = backend.wasm.cwrap(Reverse, null, [
     "number",
     // x_id
@@ -23081,12 +23314,12 @@ var reverseConfig = {
   kernelName: Reverse,
   backendName: "wasm",
   kernelFunc: reverse2,
-  setupFunc: setup56
+  setupFunc: setup59
 };
 
 // src/tfjs-backend-wasm/src/kernels/RotateWithOffset.ts
 var wasmRotate;
-function setup57(backend) {
+function setup60(backend) {
   wasmRotate = backend.wasm.cwrap(RotateWithOffset, null, [
     "number",
     // xId
@@ -23144,7 +23377,7 @@ var rotateWithOffsetConfig = {
   kernelName: RotateWithOffset,
   backendName: "wasm",
   kernelFunc: rotateWithOffset2,
-  setupFunc: setup57
+  setupFunc: setup60
 };
 
 // src/tfjs-backend-wasm/src/kernels/Round.ts
@@ -23155,7 +23388,7 @@ var rsqrtConfig = createUnaryKernelConfig(Rsqrt);
 
 // src/tfjs-backend-wasm/src/kernels/ScatterNd.ts
 var wasmScatterNd;
-function setup58(backend) {
+function setup61(backend) {
   wasmScatterNd = backend.wasm.cwrap(ScatterNd, null, [
     "number",
     // indicesId
@@ -23208,13 +23441,13 @@ function scatterNd(args) {
 var scatterNdConfig = {
   kernelName: ScatterNd,
   backendName: "wasm",
-  setupFunc: setup58,
+  setupFunc: setup61,
   kernelFunc: scatterNd
 };
 
 // src/tfjs-backend-wasm/src/kernels/SearchSorted.ts
 var wasmSearchSorted;
-function setup59(backend) {
+function setup62(backend) {
   wasmSearchSorted = backend.wasm.cwrap(SearchSorted, null, [
     "number",
     // sortedSequenceId
@@ -23267,13 +23500,13 @@ function searchSorted2(args) {
 var searchSortedConfig = {
   kernelName: SearchSorted,
   backendName: "wasm",
-  setupFunc: setup59,
+  setupFunc: setup62,
   kernelFunc: searchSorted2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Select.ts
 var wasmSelect;
-function setup60(backend) {
+function setup63(backend) {
   wasmSelect = backend.wasm.cwrap("SelectV2", null, [
     "number",
     // conditionId
@@ -23305,7 +23538,7 @@ var selectConfig = {
   kernelName: Select,
   backendName: "wasm",
   kernelFunc: select,
-  setupFunc: setup60
+  setupFunc: setup63
 };
 
 // src/tfjs-backend-wasm/src/kernels/Selu.ts
@@ -23313,7 +23546,7 @@ var seluConfig = createUnaryKernelConfig(Selu);
 
 // src/tfjs-backend-wasm/src/kernels/Sigmoid.ts
 var wasmFunc7;
-function setup61(backend) {
+function setup64(backend) {
   wasmFunc7 = backend.wasm.cwrap(Sigmoid, null, ["number", "number"]);
 }
 function sigmoid3(args) {
@@ -23330,7 +23563,7 @@ function sigmoid3(args) {
 var sigmoidConfig = {
   kernelName: "Sigmoid",
   backendName: "wasm",
-  setupFunc: setup61,
+  setupFunc: setup64,
   kernelFunc: sigmoid3
 };
 
@@ -23339,6 +23572,9 @@ var signConfig = createUnaryKernelConfig(Sign);
 
 // src/tfjs-backend-wasm/src/kernels/Sin.ts
 var sinConfig = createUnaryKernelConfig(Sin);
+
+// src/tfjs-backend-wasm/src/kernels/Sinh.ts
+var sinhConfig = createUnaryKernelConfig(Sinh);
 
 // src/tfjs-backend-wasm/src/kernels/Softplus.ts
 var softplusConfig = createUnaryKernelConfig(Softplus);
@@ -23390,7 +23626,7 @@ var spaceToBatchNDConfig = {
 
 // src/tfjs-backend-wasm/src/kernels/SparseFillEmptyRows.ts
 var wasmSparseFillEmptyRows;
-function setup62(backend) {
+function setup65(backend) {
   wasmSparseFillEmptyRows = backend.wasm.cwrap("SparseFillEmptyRows", "number", [
     "number",
     // indicesId
@@ -23507,13 +23743,13 @@ function sparseFillEmptyRows2(args) {
 var sparseFillEmptyRowsConfig = {
   kernelName: SparseFillEmptyRows,
   backendName: "wasm",
-  setupFunc: setup62,
+  setupFunc: setup65,
   kernelFunc: sparseFillEmptyRows2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseReshape.ts
 var wasmSparseReshape;
-function setup63(backend) {
+function setup66(backend) {
   wasmSparseReshape = backend.wasm.cwrap(SparseReshape, null, [
     "number",
     // inputIndicesId
@@ -23617,13 +23853,13 @@ function sparseReshape2(args) {
 var sparseReshapeConfig = {
   kernelName: SparseReshape,
   backendName: "wasm",
-  setupFunc: setup63,
+  setupFunc: setup66,
   kernelFunc: sparseReshape2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseSegmentReduction.ts
 var wasmSparseSegmentReduction;
-function setup64(backend) {
+function setup67(backend) {
   wasmSparseSegmentReduction = backend.wasm.cwrap("SparseSegmentReduction", null, [
     "number",
     // dataId
@@ -23719,7 +23955,7 @@ function sparseSegmentMean2(args) {
 var sparseSegmentMeanConfig = {
   kernelName: SparseSegmentMean,
   backendName: "wasm",
-  setupFunc: setup64,
+  setupFunc: setup67,
   kernelFunc: sparseSegmentMean2
 };
 
@@ -23730,13 +23966,13 @@ function sparseSegmentSum2(args) {
 var sparseSegmentSumConfig = {
   kernelName: SparseSegmentSum,
   backendName: "wasm",
-  setupFunc: setup64,
+  setupFunc: setup67,
   kernelFunc: sparseSegmentSum2
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseToDense.ts
 var wasmSparseToDense;
-function setup65(backend) {
+function setup68(backend) {
   wasmSparseToDense = backend.wasm.cwrap(SparseToDense, null, [
     "number",
     // sparseIndicesId
@@ -23794,7 +24030,7 @@ function sparseToDense2(args) {
 var sparseToDenseConfig = {
   kernelName: SparseToDense,
   backendName: "wasm",
-  setupFunc: setup65,
+  setupFunc: setup68,
   kernelFunc: sparseToDense2
 };
 
@@ -23828,12 +24064,12 @@ var sqrtConfig = createUnaryKernelConfig(Sqrt);
 var squareConfig = createUnaryKernelConfig(Square);
 
 // src/tfjs-backend-wasm/src/kernels/SquaredDifference.ts
-var supportsFullBroadcast17 = true;
-var squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast17);
+var supportsFullBroadcast18 = true;
+var squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast18);
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
-function setup66(backend) {
+function setup69(backend) {
   wasmStep = backend.wasm.cwrap(Step, null, [
     "number",
     // x_id
@@ -23858,13 +24094,13 @@ function step2(args) {
 var stepConfig = {
   kernelName: Step,
   backendName: "wasm",
-  setupFunc: setup66,
+  setupFunc: setup69,
   kernelFunc: step2
 };
 
 // src/tfjs-backend-wasm/src/kernels/StridedSlice.ts
 var wasmStridedSlice;
-function setup67(backend) {
+function setup70(backend) {
   wasmStridedSlice = backend.wasm.cwrap(StridedSlice, null, [
     "number",
     // xId
@@ -23965,7 +24201,7 @@ function stridedSlice2(args) {
 var stridedSliceConfig = {
   kernelName: StridedSlice,
   backendName: "wasm",
-  setupFunc: setup67,
+  setupFunc: setup70,
   kernelFunc: stridedSlice2
 };
 
@@ -24052,12 +24288,12 @@ var stringToHashBucketFastConfig = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Sub.ts
-var supportsFullBroadcast18 = true;
-var subConfig = createBinaryKernelConfig(Sub, supportsFullBroadcast18);
+var supportsFullBroadcast19 = true;
+var subConfig = createBinaryKernelConfig(Sub, supportsFullBroadcast19);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
-function setup68(backend) {
+function setup71(backend) {
   wasmSum = backend.wasm.cwrap(Sum, null, [
     "number",
     // input_id
@@ -24113,7 +24349,7 @@ function sum3(args) {
 var sumConfig = {
   kernelName: Sum,
   backendName: "wasm",
-  setupFunc: setup68,
+  setupFunc: setup71,
   kernelFunc: sum3
 };
 
@@ -24125,7 +24361,7 @@ var tanhConfig = createUnaryKernelConfig(Tanh);
 
 // src/tfjs-backend-wasm/src/kernels/TensorScatterUpdate.ts
 var wasmTensorScatterUpdate;
-function setup69(backend) {
+function setup72(backend) {
   wasmTensorScatterUpdate = backend.wasm.cwrap(TensorScatterUpdate, null, [
     "number",
     // indicesId
@@ -24183,13 +24419,13 @@ function tensorScatterUpdate2(args) {
 var tensorScatterUpdateConfig = {
   kernelName: TensorScatterUpdate,
   backendName: "wasm",
-  setupFunc: setup69,
+  setupFunc: setup72,
   kernelFunc: tensorScatterUpdate2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Tile.ts
 var wasmTile;
-function setup70(backend) {
+function setup73(backend) {
   wasmTile = backend.wasm.cwrap(Tile, null, [
     "number",
     // x_id
@@ -24232,13 +24468,13 @@ function tile2(args) {
 var tileConfig = {
   kernelName: Tile,
   backendName: "wasm",
-  setupFunc: setup70,
+  setupFunc: setup73,
   kernelFunc: tile2
 };
 
 // src/tfjs-backend-wasm/src/kernels/TopK.ts
 var wasmTopK;
-function setup71(backend) {
+function setup74(backend) {
   wasmTopK = backend.wasm.cwrap(TopK, null, [
     "number",
     // xId
@@ -24284,13 +24520,13 @@ var topk2 = ({ inputs, backend, attrs }) => {
 var topKConfig = {
   kernelName: TopK,
   backendName: "wasm",
-  setupFunc: setup71,
+  setupFunc: setup74,
   kernelFunc: topk2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Transform.ts
 var wasmTransform;
-function setup72(backend) {
+function setup75(backend) {
   wasmTransform = backend.wasm.cwrap(Transform, null, [
     "number",
     // imageId
@@ -24391,7 +24627,7 @@ function transform2(args) {
 var transformConfig = {
   kernelName: Transform,
   backendName: "wasm",
-  setupFunc: setup72,
+  setupFunc: setup75,
   kernelFunc: transform2
 };
 
@@ -24489,11 +24725,13 @@ var kernelConfigs = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPoolGradConfig,
   avgPool3DConfig,
   avgPool3DGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  bitwiseAndConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
@@ -24519,6 +24757,7 @@ var kernelConfigs = [
   eluConfig,
   eluGradConfig,
   equalConfig,
+  erfConfig,
   expConfig,
   expandDimsConfig,
   expm1Config,
@@ -24554,11 +24793,14 @@ var kernelConfigs = [
   maxPoolConfig,
   maxPool3DConfig,
   maxPool3DGradConfig,
+  maxPoolGradConfig,
+  maxPoolWithArgmaxConfig,
   meanConfig,
   minConfig,
   minimumConfig,
   mirrorPadConfig,
   multinomialConfig,
+  modConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
@@ -24593,6 +24835,7 @@ var kernelConfigs = [
   sigmoidConfig,
   signConfig,
   sinConfig,
+  sinhConfig,
   sliceConfig,
   softmaxConfig,
   softplusConfig,
@@ -24730,7 +24973,7 @@ function(WasmBackendModuleThreadedSimd) {
 
 function GROWABLE_HEAP_I8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP8}function GROWABLE_HEAP_U8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU8}function GROWABLE_HEAP_I16(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP16}function GROWABLE_HEAP_I32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP32}function GROWABLE_HEAP_U32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU32}function GROWABLE_HEAP_F32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF32}function GROWABLE_HEAP_F64(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF64}var Module=typeof WasmBackendModuleThreadedSimd!="undefined"?WasmBackendModuleThreadedSimd:{};var readyPromiseResolve,readyPromiseReject;Module["ready"]=new Promise(function(resolve,reject){readyPromiseResolve=resolve;readyPromiseReject=reject});var beforeListeners;if(typeof process!=="undefined"&&process.listeners){beforeListeners={uncaughtException:process.listeners("uncaughtException"),unhandledRejection:process.listeners("unhandledRejection")}}var moduleOverrides=Object.assign({},Module);var arguments_=[];var thisProgram="./this.program";var quit_=(status,toThrow)=>{throw toThrow};var ENVIRONMENT_IS_WEB=typeof window=="object";var ENVIRONMENT_IS_WORKER=typeof importScripts=="function";var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";var ENVIRONMENT_IS_PTHREAD=Module["ENVIRONMENT_IS_PTHREAD"]||false;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary,setWindowTitle;function logExceptionOnExit(e){if(e instanceof ExitStatus)return;let toLog=e;err("exiting due to exception: "+toLog)}if(ENVIRONMENT_IS_NODE){var fs=require("fs");var nodePath=require("path");if(ENVIRONMENT_IS_WORKER){scriptDirectory=nodePath.dirname(scriptDirectory)+"/"}else{scriptDirectory=__dirname+"/"}read_=(filename,binary)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);return fs.readFileSync(filename,binary?undefined:"utf8")};readBinary=filename=>{var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret)}return ret};readAsync=(filename,onload,onerror)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);fs.readFile(filename,function(err,data){if(err)onerror(err);else onload(data.buffer)})};if(process["argv"].length>1){thisProgram=process["argv"][1].replace(/\\/g,"/")}arguments_=process["argv"].slice(2);process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",function(reason){throw reason});quit_=(status,toThrow)=>{if(keepRuntimeAlive()){process["exitCode"]=status;throw toThrow}logExceptionOnExit(toThrow);process["exit"](status)};Module["inspect"]=function(){return"[Emscripten Module object]"};let nodeWorkerThreads;try{nodeWorkerThreads=require("worker_threads")}catch(e){console.error('The "worker_threads" module is not supported in this node.js build - perhaps a newer version is needed?');throw e}global.Worker=nodeWorkerThreads.Worker}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href}else if(typeof document!="undefined"&&document.currentScript){scriptDirectory=document.currentScript.src}if(_scriptDir){scriptDirectory=_scriptDir}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/")+1)}else{scriptDirectory=""}if(!ENVIRONMENT_IS_NODE){read_=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)}}readAsync=(url,onload,onerror)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror()};xhr.onerror=onerror;xhr.send(null)}}setWindowTitle=title=>document.title=title}else{}if(ENVIRONMENT_IS_NODE){if(typeof performance=="undefined"){global.performance=require("perf_hooks").performance}}var defaultPrint=console.log.bind(console);var defaultPrintErr=console.warn.bind(console);if(ENVIRONMENT_IS_NODE){defaultPrint=str=>fs.writeSync(1,str+"
 ");defaultPrintErr=str=>fs.writeSync(2,str+"
-")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){idx>>>=0;var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){ptr>>>=0;return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){outIdx>>>=0;if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++>>>0]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++>>>0]=192|u>>6;heap[outIdx++>>>0]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++>>>0]=224|u>>12;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++>>>0]=240|u>>18;heap[outIdx++>>>0]=128|u>>12&63;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}}heap[outIdx>>>0]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":4294967296/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref()}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread};if(worker.loaded){worker.runPthread()}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref()}__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref()}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread()}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"])}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler)}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker)},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 4294901760}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest>>>0,src>>>0,src+num>>>0)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i>>>0]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i>>>0]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>>2];var len=GROWABLE_HEAP_U32()[iov+4>>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j>>>0])}num+=len}GROWABLE_HEAP_U32()[pnum>>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer>>>0)}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Acos=Module["_Acos"]=function(){return(_Acos=Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};var _Acosh=Module["_Acosh"]=function(){return(_Acosh=Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _ArgMin=Module["_ArgMin"]=function(){return(_ArgMin=Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};var _Asin=Module["_Asin"]=function(){return(_Asin=Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};var _Asinh=Module["_Asinh"]=function(){return(_Asinh=Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};var _Atan=Module["_Atan"]=function(){return(_Atan=Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};var _Atan2=Module["_Atan2"]=function(){return(_Atan2=Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};var _Atanh=Module["_Atanh"]=function(){return(_Atanh=Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _AvgPool3D=Module["_AvgPool3D"]=function(){return(_AvgPool3D=Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};var _AvgPool3DGrad=Module["_AvgPool3DGrad"]=function(){return(_AvgPool3DGrad=Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Bincount=Module["_Bincount"]=function(){return(_Bincount=Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Conv3D=Module["_Conv3D"]=function(){return(_Conv3D=Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};var _Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=function(){return(_Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};var _Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=function(){return(_Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DenseBincount=Module["_DenseBincount"]=function(){return(_DenseBincount=Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Diag=Module["_Diag"]=function(){return(_Diag=Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};var _Dilation2D=Module["_Dilation2D"]=function(){return(_Dilation2D=Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};var _Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=function(){return(_Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};var _Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=function(){return(_Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _EluGrad=Module["_EluGrad"]=function(){return(_EluGrad=Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _Expm1=Module["_Expm1"]=function(){return(_Expm1=Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsFinite=Module["_IsFinite"]=function(){return(_IsFinite=Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};var _IsInf=Module["_IsInf"]=function(){return(_IsInf=Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LRN=Module["_LRN"]=function(){return(_LRN=Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};var _LRNGrad=Module["_LRNGrad"]=function(){return(_LRNGrad=Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _LinSpace=Module["_LinSpace"]=function(){return(_LinSpace=Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _Log1p=Module["_Log1p"]=function(){return(_Log1p=Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _MaxPool3D=Module["_MaxPool3D"]=function(){return(_MaxPool3D=Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};var _MaxPool3DGrad=Module["_MaxPool3DGrad"]=function(){return(_MaxPool3DGrad=Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Multinomial=Module["_Multinomial"]=function(){return(_Multinomial=Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=function(){return(_ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=function(){return(_ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SearchSorted=Module["_SearchSorted"]=function(){return(_SearchSorted=Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Selu=Module["_Selu"]=function(){return(_Selu=Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sign=Module["_Sign"]=function(){return(_Sign=Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _Softplus=Module["_Softplus"]=function(){return(_Softplus=Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _SparseToDense=Module["_SparseToDense"]=function(){return(_SparseToDense=Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _TensorScatterUpdate=Module["_TensorScatterUpdate"]=function(){return(_TensorScatterUpdate=Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
+")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){idx>>>=0;var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){ptr>>>=0;return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){outIdx>>>=0;if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++>>>0]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++>>>0]=192|u>>6;heap[outIdx++>>>0]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++>>>0]=224|u>>12;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++>>>0]=240|u>>18;heap[outIdx++>>>0]=128|u>>12&63;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}}heap[outIdx>>>0]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":4294967296/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref()}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread};if(worker.loaded){worker.runPthread()}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref()}__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref()}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread()}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"])}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler)}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker)},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 4294901760}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest>>>0,src>>>0,src+num>>>0)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i>>>0]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i>>>0]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>>2];var len=GROWABLE_HEAP_U32()[iov+4>>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j>>>0])}num+=len}GROWABLE_HEAP_U32()[pnum>>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer>>>0)}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Acos=Module["_Acos"]=function(){return(_Acos=Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};var _Acosh=Module["_Acosh"]=function(){return(_Acosh=Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _ArgMin=Module["_ArgMin"]=function(){return(_ArgMin=Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};var _Asin=Module["_Asin"]=function(){return(_Asin=Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};var _Asinh=Module["_Asinh"]=function(){return(_Asinh=Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};var _Atan=Module["_Atan"]=function(){return(_Atan=Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};var _Atan2=Module["_Atan2"]=function(){return(_Atan2=Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};var _Atanh=Module["_Atanh"]=function(){return(_Atanh=Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _AvgPool3D=Module["_AvgPool3D"]=function(){return(_AvgPool3D=Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};var _AvgPool3DGrad=Module["_AvgPool3DGrad"]=function(){return(_AvgPool3DGrad=Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};var _AvgPoolGrad=Module["_AvgPoolGrad"]=function(){return(_AvgPoolGrad=Module["_AvgPoolGrad"]=Module["asm"]["AvgPoolGrad"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Bincount=Module["_Bincount"]=function(){return(_Bincount=Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};var _BitwiseAnd=Module["_BitwiseAnd"]=function(){return(_BitwiseAnd=Module["_BitwiseAnd"]=Module["asm"]["BitwiseAnd"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Conv3D=Module["_Conv3D"]=function(){return(_Conv3D=Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};var _Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=function(){return(_Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};var _Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=function(){return(_Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DenseBincount=Module["_DenseBincount"]=function(){return(_DenseBincount=Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Diag=Module["_Diag"]=function(){return(_Diag=Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};var _Dilation2D=Module["_Dilation2D"]=function(){return(_Dilation2D=Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};var _Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=function(){return(_Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};var _Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=function(){return(_Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _EluGrad=Module["_EluGrad"]=function(){return(_EluGrad=Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Erf=Module["_Erf"]=function(){return(_Erf=Module["_Erf"]=Module["asm"]["Erf"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _Expm1=Module["_Expm1"]=function(){return(_Expm1=Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsFinite=Module["_IsFinite"]=function(){return(_IsFinite=Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};var _IsInf=Module["_IsInf"]=function(){return(_IsInf=Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LRN=Module["_LRN"]=function(){return(_LRN=Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};var _LRNGrad=Module["_LRNGrad"]=function(){return(_LRNGrad=Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _LinSpace=Module["_LinSpace"]=function(){return(_LinSpace=Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _Log1p=Module["_Log1p"]=function(){return(_Log1p=Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _MaxPool3D=Module["_MaxPool3D"]=function(){return(_MaxPool3D=Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};var _MaxPool3DGrad=Module["_MaxPool3DGrad"]=function(){return(_MaxPool3DGrad=Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};var _MaxPoolGrad=Module["_MaxPoolGrad"]=function(){return(_MaxPoolGrad=Module["_MaxPoolGrad"]=Module["asm"]["MaxPoolGrad"]).apply(null,arguments)};var _MaxPoolWithArgmax=Module["_MaxPoolWithArgmax"]=function(){return(_MaxPoolWithArgmax=Module["_MaxPoolWithArgmax"]=Module["asm"]["MaxPoolWithArgmax"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Mod=Module["_Mod"]=function(){return(_Mod=Module["_Mod"]=Module["asm"]["Mod"]).apply(null,arguments)};var _Multinomial=Module["_Multinomial"]=function(){return(_Multinomial=Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=function(){return(_ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=function(){return(_ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SearchSorted=Module["_SearchSorted"]=function(){return(_SearchSorted=Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Selu=Module["_Selu"]=function(){return(_Selu=Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sign=Module["_Sign"]=function(){return(_Sign=Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Sinh=Module["_Sinh"]=function(){return(_Sinh=Module["_Sinh"]=Module["asm"]["Sinh"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _Softplus=Module["_Softplus"]=function(){return(_Softplus=Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _SparseToDense=Module["_SparseToDense"]=function(){return(_SparseToDense=Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _TensorScatterUpdate=Module["_TensorScatterUpdate"]=function(){return(_TensorScatterUpdate=Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
 
 
   return WasmBackendModuleThreadedSimd.ready
@@ -24752,13 +24995,12 @@ var BackendWasm = class extends KernelBackend {
   constructor(wasm) {
     super();
     this.wasm = wasm;
+    // 0 is reserved for null data ids.
+    this.dataIdNextNumber = 1;
     this.wasm.tfjs.initWithThreadsCount(threadsCount);
     actualThreadsCount = this.wasm.tfjs.getThreadsCount();
     this.dataIdMap = new DataStorage(this, engine());
   }
-  // 0 is reserved for null data ids.
-  dataIdNextNumber = 1;
-  dataIdMap;
   write(values, shape, dtype) {
     const dataId = { id: this.dataIdNextNumber++ };
     this.move(dataId, values, shape, dtype, 1);

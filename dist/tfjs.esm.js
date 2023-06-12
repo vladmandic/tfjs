@@ -4,7 +4,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod5) => function __require() {
   return mod5 || (0, cb[__getOwnPropNames(cb)[0]])((mod5 = { exports: {} }).exports, mod5), mod5.exports;
 };
@@ -28,10 +27,6 @@ var __toESM = (mod5, isNodeMode, target) => (target = mod5 != null ? __create(__
   isNodeMode || !mod5 || !mod5.__esModule ? __defProp(target, "default", { value: mod5, enumerable: true }) : target,
   mod5
 ));
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 
 // src/node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
 var require_long = __commonJS({
@@ -1212,7 +1207,7 @@ var require_xorshift7 = __commonJS({
       }
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1324,7 +1319,7 @@ var require_xor4096 = __commonJS({
       ;
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1568,7 +1563,7 @@ var require_seedrandom = __commonJS({
           return tostring(out);
         } catch (e) {
           var browser = global2.navigator, plugins = browser && browser.plugins;
-          return [+new Date(), global2, plugins, global2.screen, tostring(pool3)];
+          return [+/* @__PURE__ */ new Date(), global2, plugins, global2.screen, tostring(pool3)];
         }
       }
       function tostring(a) {
@@ -2810,11 +2805,17 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _AvgPool3DGrad = Module["_AvgPool3DGrad"] = function() {
           return (_AvgPool3DGrad = Module["_AvgPool3DGrad"] = Module["asm"]["AvgPool3DGrad"]).apply(null, arguments);
         };
+        var _AvgPoolGrad = Module["_AvgPoolGrad"] = function() {
+          return (_AvgPoolGrad = Module["_AvgPoolGrad"] = Module["asm"]["AvgPoolGrad"]).apply(null, arguments);
+        };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
           return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
         };
         var _Bincount = Module["_Bincount"] = function() {
           return (_Bincount = Module["_Bincount"] = Module["asm"]["Bincount"]).apply(null, arguments);
+        };
+        var _BitwiseAnd = Module["_BitwiseAnd"] = function() {
+          return (_BitwiseAnd = Module["_BitwiseAnd"] = Module["asm"]["BitwiseAnd"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
           return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
@@ -2881,6 +2882,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _Equal = Module["_Equal"] = function() {
           return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
+        };
+        var _Erf = Module["_Erf"] = function() {
+          return (_Erf = Module["_Erf"] = Module["asm"]["Erf"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
           return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
@@ -2975,6 +2979,12 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         var _MaxPool3DGrad = Module["_MaxPool3DGrad"] = function() {
           return (_MaxPool3DGrad = Module["_MaxPool3DGrad"] = Module["asm"]["MaxPool3DGrad"]).apply(null, arguments);
         };
+        var _MaxPoolGrad = Module["_MaxPoolGrad"] = function() {
+          return (_MaxPoolGrad = Module["_MaxPoolGrad"] = Module["asm"]["MaxPoolGrad"]).apply(null, arguments);
+        };
+        var _MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = function() {
+          return (_MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = Module["asm"]["MaxPoolWithArgmax"]).apply(null, arguments);
+        };
         var _Maximum = Module["_Maximum"] = function() {
           return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
@@ -2989,6 +2999,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
           return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
+        };
+        var _Mod = Module["_Mod"] = function() {
+          return (_Mod = Module["_Mod"] = Module["asm"]["Mod"]).apply(null, arguments);
         };
         var _Multinomial = Module["_Multinomial"] = function() {
           return (_Multinomial = Module["_Multinomial"] = Module["asm"]["Multinomial"]).apply(null, arguments);
@@ -3082,6 +3095,9 @@ var require_tfjs_backend_wasm_threaded_simd = __commonJS({
         };
         var _Sin = Module["_Sin"] = function() {
           return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
+        };
+        var _Sinh = Module["_Sinh"] = function() {
+          return (_Sinh = Module["_Sinh"] = Module["asm"]["Sinh"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
@@ -3977,11 +3993,17 @@ var require_tfjs_backend_wasm = __commonJS({
         var _AvgPool3DGrad = Module["_AvgPool3DGrad"] = function() {
           return (_AvgPool3DGrad = Module["_AvgPool3DGrad"] = Module["asm"]["AvgPool3DGrad"]).apply(null, arguments);
         };
+        var _AvgPoolGrad = Module["_AvgPoolGrad"] = function() {
+          return (_AvgPoolGrad = Module["_AvgPoolGrad"] = Module["asm"]["AvgPoolGrad"]).apply(null, arguments);
+        };
         var _BatchMatMul = Module["_BatchMatMul"] = function() {
           return (_BatchMatMul = Module["_BatchMatMul"] = Module["asm"]["BatchMatMul"]).apply(null, arguments);
         };
         var _Bincount = Module["_Bincount"] = function() {
           return (_Bincount = Module["_Bincount"] = Module["asm"]["Bincount"]).apply(null, arguments);
+        };
+        var _BitwiseAnd = Module["_BitwiseAnd"] = function() {
+          return (_BitwiseAnd = Module["_BitwiseAnd"] = Module["asm"]["BitwiseAnd"]).apply(null, arguments);
         };
         var _Ceil = Module["_Ceil"] = function() {
           return (_Ceil = Module["_Ceil"] = Module["asm"]["Ceil"]).apply(null, arguments);
@@ -4048,6 +4070,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _Equal = Module["_Equal"] = function() {
           return (_Equal = Module["_Equal"] = Module["asm"]["Equal"]).apply(null, arguments);
+        };
+        var _Erf = Module["_Erf"] = function() {
+          return (_Erf = Module["_Erf"] = Module["asm"]["Erf"]).apply(null, arguments);
         };
         var _Exp = Module["_Exp"] = function() {
           return (_Exp = Module["_Exp"] = Module["asm"]["Exp"]).apply(null, arguments);
@@ -4142,6 +4167,12 @@ var require_tfjs_backend_wasm = __commonJS({
         var _MaxPool3DGrad = Module["_MaxPool3DGrad"] = function() {
           return (_MaxPool3DGrad = Module["_MaxPool3DGrad"] = Module["asm"]["MaxPool3DGrad"]).apply(null, arguments);
         };
+        var _MaxPoolGrad = Module["_MaxPoolGrad"] = function() {
+          return (_MaxPoolGrad = Module["_MaxPoolGrad"] = Module["asm"]["MaxPoolGrad"]).apply(null, arguments);
+        };
+        var _MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = function() {
+          return (_MaxPoolWithArgmax = Module["_MaxPoolWithArgmax"] = Module["asm"]["MaxPoolWithArgmax"]).apply(null, arguments);
+        };
         var _Maximum = Module["_Maximum"] = function() {
           return (_Maximum = Module["_Maximum"] = Module["asm"]["Maximum"]).apply(null, arguments);
         };
@@ -4156,6 +4187,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _MirrorPad = Module["_MirrorPad"] = function() {
           return (_MirrorPad = Module["_MirrorPad"] = Module["asm"]["MirrorPad"]).apply(null, arguments);
+        };
+        var _Mod = Module["_Mod"] = function() {
+          return (_Mod = Module["_Mod"] = Module["asm"]["Mod"]).apply(null, arguments);
         };
         var _Multinomial = Module["_Multinomial"] = function() {
           return (_Multinomial = Module["_Multinomial"] = Module["asm"]["Multinomial"]).apply(null, arguments);
@@ -4249,6 +4283,9 @@ var require_tfjs_backend_wasm = __commonJS({
         };
         var _Sin = Module["_Sin"] = function() {
           return (_Sin = Module["_Sin"] = Module["asm"]["Sin"]).apply(null, arguments);
+        };
+        var _Sinh = Module["_Sinh"] = function() {
+          return (_Sinh = Module["_Sinh"] = Module["asm"]["Sinh"]).apply(null, arguments);
         };
         var _Softmax = Module["_Softmax"] = function() {
           return (_Softmax = Module["_Softmax"] = Module["asm"]["Softmax"]).apply(null, arguments);
@@ -4436,9 +4473,9 @@ var DataStorage = class {
   constructor(backend2, dataMover) {
     this.backend = backend2;
     this.dataMover = dataMover;
+    this.data = /* @__PURE__ */ new WeakMap();
+    this.dataIdsCount = 0;
   }
-  data = /* @__PURE__ */ new WeakMap();
-  dataIdsCount = 0;
   get(dataId) {
     if (!this.data.has(dataId)) {
       this.dataMover.moveData(this.backend, dataId);
@@ -5002,15 +5039,13 @@ var Environment = class {
   // tslint:disable-next-line: no-any
   constructor(global2) {
     this.global = global2;
+    this.flags = {};
+    this.flagRegistry = {};
+    this.urlFlags = {};
+    // Jasmine spies on this in 'environment_test.ts'
+    this.getQueryParams = getQueryParams;
     this.populateURLFlags();
   }
-  flags = {};
-  flagRegistry = {};
-  urlFlags = {};
-  platformName;
-  platform;
-  // Jasmine spies on this in 'environment_test.ts'
-  getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
       if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
@@ -6160,10 +6195,6 @@ var TensorBuffer = class {
     this.values = values || getArrayFromDType(dtype, this.size);
     this.strides = computeStrides(shape);
   }
-  size;
-  shape;
-  strides;
-  values;
   /**
    * Sets a value in the buffer at a given location.
    *
@@ -6259,32 +6290,10 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
-  /** Unique id of this tensor. */
-  id;
-  /**
-   * Id of the bucket holding the data for this tensor. Multiple arrays can
-   * point to the same bucket (e.g. when calling array.reshape()).
-   */
-  dataId;
-  /** The shape of the tensor. */
-  shape;
-  /** Number of elements in the tensor. */
-  size;
-  /** The data type for the array. */
-  dtype;
-  /** The rank type for the array (see `Rank` enum). */
-  rankType;
-  /** Whether this tensor has been globally kept. */
-  kept = false;
-  /** The id of the scope this tensor is being tracked in. */
-  scopeId;
-  /**
-   * Number of elements to skip in each dimension when indexing. See
-   * https://docs.scipy.org/doc/numpy/reference/generated/\
-   * numpy.ndarray.strides.html
-   */
-  strides;
   constructor(shape, dtype, dataId, id) {
+    /** Whether this tensor has been globally kept. */
+    this.kept = false;
+    this.isDisposedInternal = false;
     this.shape = shape.slice();
     this.dtype = dtype || "float32";
     this.size = sizeFromShape(shape);
@@ -6436,7 +6445,6 @@ var Tensor = class {
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
-  isDisposedInternal = false;
   get isDisposed() {
     return this.isDisposedInternal;
   }
@@ -6504,7 +6512,6 @@ var Variable = class extends Tensor {
     this.trainable = trainable;
     this.name = name;
   }
-  name;
   /**
    * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
    * the same shape and dtype as the old `tf.Tensor`.
@@ -6668,42 +6675,41 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
-  // Public since optimizers will use it.
-  registeredVariables = {};
-  nextTapeNodeId = 0;
-  numBytes = 0;
-  numTensors = 0;
-  numStringTensors = 0;
-  numDataBuffers = 0;
-  activeTape;
-  // Number of nested tf.grad() statements when computing higher-order
-  // gradients. E.g. `1` for first-order gradients and `2` for second-order
-  // gradients. Used to track if the tape should be removed after a backprop.
-  gradientDepth = 0;
-  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
-  // off the tape.
-  kernelDepth = 0;
-  // Keep Tensors that parallel the tapes.
-  activeScope;
-  scopeStack = [];
-  /**
-   * Keeps track of the number of data moves during a kernel execution. We
-   * maintain a stack since kernels can call other kernels, recursively.
-   */
-  numDataMovesStack = [];
-  nextScopeId = 0;
-  tensorInfo = /* @__PURE__ */ new WeakMap();
-  profiling = false;
-  activeProfile = {
-    newBytes: 0,
-    newTensors: 0,
-    peakBytes: 0,
-    kernels: [],
-    result: null,
-    get kernelNames() {
-      return Array.from(new Set(this.kernels.map((k) => k.name)));
-    }
-  };
+  constructor() {
+    // Public since optimizers will use it.
+    this.registeredVariables = {};
+    this.nextTapeNodeId = 0;
+    this.numBytes = 0;
+    this.numTensors = 0;
+    this.numStringTensors = 0;
+    this.numDataBuffers = 0;
+    // Number of nested tf.grad() statements when computing higher-order
+    // gradients. E.g. `1` for first-order gradients and `2` for second-order
+    // gradients. Used to track if the tape should be removed after a backprop.
+    this.gradientDepth = 0;
+    // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+    // off the tape.
+    this.kernelDepth = 0;
+    this.scopeStack = [];
+    /**
+     * Keeps track of the number of data moves during a kernel execution. We
+     * maintain a stack since kernels can call other kernels, recursively.
+     */
+    this.numDataMovesStack = [];
+    this.nextScopeId = 0;
+    this.tensorInfo = /* @__PURE__ */ new WeakMap();
+    this.profiling = false;
+    this.activeProfile = {
+      newBytes: 0,
+      newTensors: 0,
+      peakBytes: 0,
+      kernels: [],
+      result: null,
+      get kernelNames() {
+        return Array.from(new Set(this.kernels.map((k) => k.name)));
+      }
+    };
+  }
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
@@ -6713,16 +6719,11 @@ var EngineState = class {
 var _Engine = class {
   constructor(ENV8) {
     this.ENV = ENV8;
+    this.registry = {};
+    this.registryFactory = {};
+    this.pendingBackendInitId = 0;
     this.state = new EngineState();
   }
-  state;
-  backendName;
-  registry = {};
-  registryFactory = {};
-  profiler;
-  backendInstance;
-  pendingBackendInit;
-  pendingBackendInitId = 0;
   async ready() {
     if (this.pendingBackendInit != null) {
       return this.pendingBackendInit.then(() => {
@@ -7590,8 +7591,8 @@ var _Engine = class {
   }
 };
 var Engine = _Engine;
-__publicField(Engine, "nextTensorId", 0);
-__publicField(Engine, "nextVariableId", 0);
+Engine.nextTensorId = 0;
+Engine.nextVariableId = 0;
 function ones(shape) {
   const values = makeOnesTypedArray(sizeFromShape(shape), "float32");
   return ENGINE.makeTensor(values, shape, "float32");
@@ -7900,21 +7901,9 @@ var DTYPE_VALUE_SIZE_MAP = {
 
 // src/tfjs-core/src/io/composite_array_buffer.ts
 var CompositeArrayBuffer = class {
-  shards = [];
-  previousShardIndex = 0;
-  bufferUniformSize;
-  byteLength;
-  /**
-   * Concatenate a number of ArrayBuffers into one.
-   *
-   * @param buffers An array of ArrayBuffers to concatenate, or a single
-   *     ArrayBuffer.
-   * @returns Result of concatenating `buffers` in order.
-   */
-  static join(buffers) {
-    return new CompositeArrayBuffer(buffers).slice();
-  }
   constructor(buffers) {
+    this.shards = [];
+    this.previousShardIndex = 0;
     if (buffers == null) {
       return;
     }
@@ -7945,6 +7934,16 @@ var CompositeArrayBuffer = class {
       this.byteLength = 0;
     }
     this.byteLength = this.shards[this.shards.length - 1].end;
+  }
+  /**
+   * Concatenate a number of ArrayBuffers into one.
+   *
+   * @param buffers An array of ArrayBuffers to concatenate, or a single
+   *     ArrayBuffer.
+   * @returns Result of concatenating `buffers` in order.
+   */
+  static join(buffers) {
+    return new CompositeArrayBuffer(buffers).slice();
   }
   slice(start = 0, end = this.byteLength) {
     if (this.shards.length === 0) {
@@ -8326,7 +8325,7 @@ function getModelArtifactsInfoForJSON(modelArtifacts) {
     throw new Error("Expected JSON model topology, received ArrayBuffer.");
   }
   return {
-    dateSaved: new Date(),
+    dateSaved: /* @__PURE__ */ new Date(),
     modelTopologyType: "JSON",
     modelTopologyBytes: modelArtifacts.modelTopology == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),
     weightSpecsBytes: modelArtifacts.weightSpecs == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
@@ -8401,18 +8400,16 @@ function getFloat16Decoder() {
 }
 
 // src/tfjs-core/src/io/router_registry.ts
-var _IORouterRegistry = class {
-  saveRouters;
-  loadRouters;
+var IORouterRegistry = class {
   constructor() {
     this.saveRouters = [];
     this.loadRouters = [];
   }
   static getInstance() {
-    if (_IORouterRegistry.instance == null) {
-      _IORouterRegistry.instance = new _IORouterRegistry();
+    if (IORouterRegistry.instance == null) {
+      IORouterRegistry.instance = new IORouterRegistry();
     }
-    return _IORouterRegistry.instance;
+    return IORouterRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -8421,7 +8418,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `save` method defined or `null`.
    */
   static registerSaveRouter(saveRouter) {
-    _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
+    IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
   /**
    * Register a load-handler router.
@@ -8430,7 +8427,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `load` method defined or `null`.
    */
   static registerLoadRouter(loadRouter) {
-    _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
+    IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
   /**
    * Look up IOHandler for saving, given a URL-like string.
@@ -8441,7 +8438,7 @@ var _IORouterRegistry = class {
    * @throws Error, if more than one match is found.
    */
   static getSaveHandlers(url) {
-    return _IORouterRegistry.getHandlers(url, "save");
+    return IORouterRegistry.getHandlers(url, "save");
   }
   /**
    * Look up IOHandler for loading, given a URL-like string.
@@ -8452,11 +8449,11 @@ var _IORouterRegistry = class {
    *   handler routers.
    */
   static getLoadHandlers(url, loadOptions) {
-    return _IORouterRegistry.getHandlers(url, "load", loadOptions);
+    return IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
   static getHandlers(url, handlerType, loadOptions) {
     const validHandlers = [];
-    const routers = handlerType === "load" ? _IORouterRegistry.getInstance().loadRouters : _IORouterRegistry.getInstance().saveRouters;
+    const routers = handlerType === "load" ? IORouterRegistry.getInstance().loadRouters : IORouterRegistry.getInstance().saveRouters;
     routers.forEach((router) => {
       const handler = router(url, loadOptions);
       if (handler !== null) {
@@ -8466,9 +8463,6 @@ var _IORouterRegistry = class {
     return validHandlers;
   }
 };
-var IORouterRegistry = _IORouterRegistry;
-// Singleton instance.
-__publicField(IORouterRegistry, "instance");
 var registerSaveRouter = (loudRouter) => IORouterRegistry.registerSaveRouter(loudRouter);
 var registerLoadRouter = (loudRouter) => IORouterRegistry.registerLoadRouter(loudRouter);
 var getSaveHandlers = (url) => IORouterRegistry.getSaveHandlers(url);
@@ -8500,8 +8494,6 @@ function setUpDatabase(openRequest) {
   db.createObjectStore(INFO_STORE_NAME, { keyPath: "modelPath" });
 }
 var BrowserIndexedDB = class {
-  indexedDB;
-  modelPath;
   constructor(modelPath) {
     this.indexedDB = getIndexedDBFactory();
     if (modelPath == null || !modelPath) {
@@ -8562,6 +8554,9 @@ var BrowserIndexedDB = class {
           };
           modelTx.oncomplete = () => db.close();
         } else {
+          modelArtifacts.weightData = CompositeArrayBuffer.join(
+            modelArtifacts.weightData
+          );
           const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
           const infoTx = db.transaction(INFO_STORE_NAME, "readwrite");
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
@@ -8616,7 +8611,7 @@ var BrowserIndexedDB = class {
     });
   }
 };
-__publicField(BrowserIndexedDB, "URL_SCHEME", "indexeddb://");
+BrowserIndexedDB.URL_SCHEME = "indexeddb://";
 var indexedDBRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -8637,7 +8632,6 @@ function maybeStripScheme(key) {
   return key.startsWith(BrowserIndexedDB.URL_SCHEME) ? key.slice(BrowserIndexedDB.URL_SCHEME.length) : key;
 }
 var BrowserIndexedDBManager = class {
-  indexedDB;
   constructor() {
     this.indexedDB = getIndexedDBFactory();
   }
@@ -8752,9 +8746,6 @@ function maybeStripScheme2(key) {
   return key.startsWith(BrowserLocalStorage.URL_SCHEME) ? key.slice(BrowserLocalStorage.URL_SCHEME.length) : key;
 }
 var BrowserLocalStorage = class {
-  LS;
-  modelPath;
-  keys;
   constructor(modelPath) {
     if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
       throw new Error(
@@ -8884,7 +8875,7 @@ var BrowserLocalStorage = class {
     return out;
   }
 };
-__publicField(BrowserLocalStorage, "URL_SCHEME", "localstorage://");
+BrowserLocalStorage.URL_SCHEME = "localstorage://";
 var localStorageRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -8904,7 +8895,6 @@ function browserLocalStorage(modelPath) {
   return new BrowserLocalStorage(modelPath);
 }
 var BrowserLocalStorageManager = class {
-  LS;
   constructor() {
     assert(
       env().getBool("IS_BROWSER"),
@@ -8943,16 +8933,15 @@ var BrowserLocalStorageManager = class {
 
 // src/tfjs-core/src/io/model_management.ts
 var URL_SCHEME_SUFFIX = "://";
-var _ModelStoreManagerRegistry = class {
-  managers;
+var ModelStoreManagerRegistry = class {
   constructor() {
     this.managers = {};
   }
   static getInstance() {
-    if (_ModelStoreManagerRegistry.instance == null) {
-      _ModelStoreManagerRegistry.instance = new _ModelStoreManagerRegistry();
+    if (ModelStoreManagerRegistry.instance == null) {
+      ModelStoreManagerRegistry.instance = new ModelStoreManagerRegistry();
     }
-    return _ModelStoreManagerRegistry.instance;
+    return ModelStoreManagerRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -8966,7 +8955,7 @@ var _ModelStoreManagerRegistry = class {
       scheme = scheme.slice(0, scheme.indexOf(URL_SCHEME_SUFFIX));
     }
     assert(scheme.length > 0, () => "scheme must not be an empty string.");
-    const registry = _ModelStoreManagerRegistry.getInstance();
+    const registry = ModelStoreManagerRegistry.getInstance();
     assert(
       registry.managers[scheme] == null,
       () => `A model store manager is already registered for scheme '${scheme}'.`
@@ -8974,19 +8963,16 @@ var _ModelStoreManagerRegistry = class {
     registry.managers[scheme] = manager;
   }
   static getManager(scheme) {
-    const manager = _ModelStoreManagerRegistry.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
     return manager;
   }
   static getSchemes() {
-    return Object.keys(_ModelStoreManagerRegistry.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 };
-var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
-// Singleton instance.
-__publicField(ModelStoreManagerRegistry, "instance");
 function parseURL(url) {
   if (url.indexOf(URL_SCHEME_SUFFIX) === -1) {
     throw new Error(
@@ -9064,14 +9050,13 @@ async function moveModel(sourceURL, destURL) {
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
-  // According to the spec, the built-in encoder can do only UTF-8 encoding.
-  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
-  textEncoder;
-  // For setTimeoutCustom
-  messageName = "setTimeoutCustom";
-  functionRefs = [];
-  handledMessageCount = 0;
-  hasEventListener = false;
+  constructor() {
+    // For setTimeoutCustom
+    this.messageName = "setTimeoutCustom";
+    this.functionRefs = [];
+    this.handledMessageCount = 0;
+    this.hasEventListener = false;
+  }
   fetch(path, init2) {
     return fetch(path, init2);
   }
@@ -9153,9 +9138,6 @@ var getNodeFetch = {
 };
 var systemFetch;
 var PlatformNode = class {
-  textEncoder;
-  // tslint:disable-next-line:no-any
-  util;
   constructor() {
     this.util = require_util();
     this.textEncoder = new this.util.TextEncoder();
@@ -12750,14 +12732,6 @@ async function play(video) {
 
 // src/tfjs-core/src/ops/rand_util.ts
 var MPRandGauss = class {
-  mean;
-  stdDev;
-  nextVal;
-  dtype;
-  truncated;
-  upper;
-  lower;
-  random;
   constructor(mean5, stdDeviation, dtype, truncated, seed) {
     this.mean = mean5;
     this.stdDev = stdDeviation;
@@ -12812,13 +12786,6 @@ var MPRandGauss = class {
   }
 };
 var RandGamma = class {
-  alpha;
-  beta;
-  d;
-  c;
-  dtype;
-  randu;
-  randn;
   constructor(alpha, beta, dtype, seed) {
     this.alpha = alpha;
     this.beta = 1 / beta;
@@ -12865,11 +12832,9 @@ var RandGamma = class {
   }
 };
 var UniformRandom = class {
-  min;
-  range;
-  random;
-  dtype;
   constructor(min7 = 0, max7 = 1, dtype, seed) {
+    /** Handles proper rounding for non floating point numbers. */
+    this.canReturnFloat = () => this.dtype == null || this.dtype === "float32";
     this.min = min7;
     this.range = max7 - min7;
     this.dtype = dtype;
@@ -12886,8 +12851,6 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
-  /** Handles proper rounding for non floating point numbers. */
-  canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
       return value;
@@ -16195,8 +16158,11 @@ var serialization_exports = {};
 __export(serialization_exports, {
   Serializable: () => Serializable,
   SerializationMap: () => SerializationMap,
+  getRegisteredName: () => getRegisteredName,
   registerClass: () => registerClass
 });
+var GLOBAL_CUSTOM_OBJECT = /* @__PURE__ */ new Map();
+var GLOBAL_CUSTOM_NAMES = /* @__PURE__ */ new Map();
 var Serializable = class {
   /**
    * Return the class name for this class to use in serialization contexts.
@@ -16225,8 +16191,7 @@ var Serializable = class {
     return new cls(config);
   }
 };
-var _SerializationMap = class {
-  classNameMap;
+var SerializationMap = class {
   constructor() {
     this.classNameMap = {};
   }
@@ -16234,21 +16199,19 @@ var _SerializationMap = class {
    * Returns the singleton instance of the map.
    */
   static getMap() {
-    if (_SerializationMap.instance == null) {
-      _SerializationMap.instance = new _SerializationMap();
+    if (SerializationMap.instance == null) {
+      SerializationMap.instance = new SerializationMap();
     }
-    return _SerializationMap.instance;
+    return SerializationMap.instance;
   }
   /**
    * Registers the class as serializable.
    */
   static register(cls) {
-    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+    SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
   }
 };
-var SerializationMap = _SerializationMap;
-__publicField(SerializationMap, "instance");
-function registerClass(cls) {
+function registerClass(cls, pkg, name) {
   assert(
     cls.className != null,
     () => `Class being registered does not have the static className property defined.`
@@ -16261,12 +16224,29 @@ function registerClass(cls) {
     cls.className.length > 0,
     () => `Class being registered has an empty-string as its className, which is disallowed.`
   );
+  if (typeof pkg === "undefined") {
+    pkg = "Custom";
+  }
+  if (typeof name === "undefined") {
+    name = cls.className;
+  }
+  const className = name;
+  const registerName = pkg + ">" + className;
   SerializationMap.register(cls);
+  GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
+  GLOBAL_CUSTOM_NAMES.set(cls, registerName);
+  return cls;
+}
+function getRegisteredName(cls) {
+  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
+    return GLOBAL_CUSTOM_NAMES.get(cls);
+  } else {
+    return cls.className;
+  }
 }
 
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
-  iterations_;
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by
@@ -16377,6 +16357,8 @@ var AdadeltaOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.rho = rho;
     this.epsilon = epsilon3;
+    this.accumulatedGrads = [];
+    this.accumulatedUpdates = [];
     if (epsilon3 == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
@@ -16385,8 +16367,6 @@ var AdadeltaOptimizer = class extends Optimizer {
   static get className() {
     return "Adadelta";
   }
-  accumulatedGrads = [];
-  accumulatedUpdates = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -16480,12 +16460,12 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
+    this.accumulatedGrads = [];
   }
   /** @nocollapse */
   static get className() {
     return "Adagrad";
   }
-  accumulatedGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -16559,6 +16539,8 @@ var AdamOptimizer = class extends Optimizer {
     this.beta1 = beta1;
     this.beta2 = beta2;
     this.epsilon = epsilon3;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedSecondMoment = [];
     tidy(() => {
       this.accBeta1 = scalar(beta1).variable();
       this.accBeta2 = scalar(beta2).variable();
@@ -16571,10 +16553,6 @@ var AdamOptimizer = class extends Optimizer {
   static get className() {
     return "Adam";
   }
-  accBeta1;
-  accBeta2;
-  accumulatedFirstMoment = [];
-  accumulatedSecondMoment = [];
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -16690,6 +16668,8 @@ var AdamaxOptimizer = class extends Optimizer {
     this.beta2 = beta2;
     this.epsilon = epsilon3;
     this.decay = decay;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedWeightedInfNorm = [];
     tidy(() => {
       this.iteration = scalar(0).variable();
       this.accBeta1 = scalar(beta1).variable();
@@ -16702,10 +16682,6 @@ var AdamaxOptimizer = class extends Optimizer {
   static get className() {
     return "Adamax";
   }
-  accBeta1;
-  iteration;
-  accumulatedFirstMoment = [];
-  accumulatedWeightedInfNorm = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -16800,7 +16776,6 @@ var SGDOptimizer = class extends Optimizer {
   static get className() {
     return "SGD";
   }
-  c;
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     varNames.forEach((name, i) => {
@@ -16854,6 +16829,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.learningRate = learningRate;
     this.momentum = momentum;
     this.useNesterov = useNesterov;
+    this.accumulations = [];
     this.m = scalar(this.momentum);
   }
   /** @nocollapse */
@@ -16861,8 +16837,6 @@ var MomentumOptimizer = class extends SGDOptimizer {
   static get className() {
     return "Momentum";
   }
-  m;
-  accumulations = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -16947,6 +16921,9 @@ var RMSPropOptimizer = class extends Optimizer {
     this.decay = decay;
     this.momentum = momentum;
     this.epsilon = epsilon3;
+    this.accumulatedMeanSquares = [];
+    this.accumulatedMoments = [];
+    this.accumulatedMeanGrads = [];
     this.centered = centered;
     if (epsilon3 == null) {
       this.epsilon = ENGINE.backend.epsilon();
@@ -16959,10 +16936,6 @@ var RMSPropOptimizer = class extends Optimizer {
   static get className() {
     return "RMSProp";
   }
-  centered;
-  accumulatedMeanSquares = [];
-  accumulatedMoments = [];
-  accumulatedMeanGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -17156,10 +17129,6 @@ function defer(f) {
   return new Promise((resolve) => setTimeout(resolve)).then(f);
 }
 var _BrowserDownloads = class {
-  modelJsonFileName;
-  weightDataFileName;
-  modelJsonAnchor;
-  weightDataAnchor;
   constructor(fileNamePrefix) {
     if (!env().getBool("IS_BROWSER")) {
       throw new Error(
@@ -17216,10 +17185,8 @@ var _BrowserDownloads = class {
   }
 };
 var BrowserDownloads = _BrowserDownloads;
-__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
+BrowserDownloads.URL_SCHEME = "downloads://";
 var BrowserFiles = class {
-  jsonFile;
-  weightsFiles;
   constructor(files) {
     if (files == null || files.length < 1) {
       throw new Error(
@@ -17492,14 +17459,8 @@ Manifest JSON has weights with names: ${allManifestWeightNames.join(", ")}.`
 var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
 var JSON_TYPE = "application/json";
 var HTTPRequest = class {
-  path;
-  requestInit;
-  fetch;
-  weightUrlConverter;
-  DEFAULT_METHOD = "POST";
-  weightPathPrefix;
-  onProgress;
   constructor(path, loadOptions) {
+    this.DEFAULT_METHOD = "POST";
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -17640,7 +17601,7 @@ var HTTPRequest = class {
     return [weightSpecs, buffers];
   }
 };
-__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
+HTTPRequest.URL_SCHEME_REGEX = /^https?:\/\//;
 function parseUrl(url) {
   const lastSlash = url.lastIndexOf("/");
   const lastSearchParam = url.lastIndexOf("?");
@@ -17694,8 +17655,6 @@ var PassthroughSaver = class {
   }
 };
 var PassthroughAsync = class {
-  load;
-  save;
   constructor(handler) {
     if (handler.load) {
       this.load = () => Promise.resolve(handler.load());
@@ -17986,10 +17945,13 @@ async function toPixels(img, canvas) {
   }
   if (canvas != null) {
     if (!hasToPixelsWarned) {
-      console.warn(
-        "tf.browser.toPixels is not efficient to draw tensor on canvas. Please try tf.browser.draw instead."
-      );
-      hasToPixelsWarned = true;
+      const kernel = getKernel(Draw, ENGINE.backendName);
+      if (kernel != null) {
+        console.warn(
+          "tf.browser.toPixels is not efficient to draw tensor on canvas. Please try tf.browser.draw instead."
+        );
+        hasToPixelsWarned = true;
+      }
     }
     canvas.width = width;
     canvas.height = height;
@@ -19508,8 +19470,6 @@ var AssertionError = class extends Error {
 
 // src/tfjs-layers/src/utils/executor_utils.ts
 var LruCache = class {
-  cache;
-  maxEntries;
   constructor(maxEntries) {
     this.maxEntries = maxEntries || 100;
     this.cache = /* @__PURE__ */ new Map();
@@ -20380,7 +20340,7 @@ var Zeros = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Zeros, "className", "Zeros");
+Zeros.className = "Zeros";
 serialization_exports.registerClass(Zeros);
 var Ones = class extends Initializer {
   apply(shape, dtype) {
@@ -20388,10 +20348,9 @@ var Ones = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Ones, "className", "Ones");
+Ones.className = "Ones";
 serialization_exports.registerClass(Ones);
 var Constant = class extends Initializer {
-  value;
   constructor(args) {
     super();
     if (typeof args !== "object") {
@@ -20414,16 +20373,13 @@ var Constant = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Constant, "className", "Constant");
+Constant.className = "Constant";
 serialization_exports.registerClass(Constant);
 var RandomUniform = class extends Initializer {
-  DEFAULT_MINVAL = -0.05;
-  DEFAULT_MAXVAL = 0.05;
-  minval;
-  maxval;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_MINVAL = -0.05;
+    this.DEFAULT_MAXVAL = 0.05;
     this.minval = args.minval || this.DEFAULT_MINVAL;
     this.maxval = args.maxval || this.DEFAULT_MAXVAL;
     this.seed = args.seed;
@@ -20436,16 +20392,13 @@ var RandomUniform = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(RandomUniform, "className", "RandomUniform");
+RandomUniform.className = "RandomUniform";
 serialization_exports.registerClass(RandomUniform);
 var RandomNormal = class extends Initializer {
-  DEFAULT_MEAN = 0;
-  DEFAULT_STDDEV = 0.05;
-  mean;
-  stddev;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_MEAN = 0;
+    this.DEFAULT_STDDEV = 0.05;
     this.mean = args.mean || this.DEFAULT_MEAN;
     this.stddev = args.stddev || this.DEFAULT_STDDEV;
     this.seed = args.seed;
@@ -20464,16 +20417,13 @@ var RandomNormal = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(RandomNormal, "className", "RandomNormal");
+RandomNormal.className = "RandomNormal";
 serialization_exports.registerClass(RandomNormal);
 var TruncatedNormal = class extends Initializer {
-  DEFAULT_MEAN = 0;
-  DEFAULT_STDDEV = 0.05;
-  mean;
-  stddev;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_MEAN = 0;
+    this.DEFAULT_STDDEV = 0.05;
     this.mean = args.mean || this.DEFAULT_MEAN;
     this.stddev = args.stddev || this.DEFAULT_STDDEV;
     this.seed = args.seed;
@@ -20492,10 +20442,9 @@ var TruncatedNormal = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(TruncatedNormal, "className", "TruncatedNormal");
+TruncatedNormal.className = "TruncatedNormal";
 serialization_exports.registerClass(TruncatedNormal);
 var Identity2 = class extends Initializer {
-  gain;
   constructor(args) {
     super();
     this.gain = args.gain != null ? args.gain : 1;
@@ -20516,7 +20465,7 @@ var Identity2 = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Identity2, "className", "Identity");
+Identity2.className = "Identity";
 serialization_exports.registerClass(Identity2);
 function computeFans(shape, dataFormat = "channelsLast") {
   let fanIn;
@@ -20543,10 +20492,6 @@ function computeFans(shape, dataFormat = "channelsLast") {
   return [fanIn, fanOut];
 }
 var VarianceScaling = class extends Initializer {
-  scale;
-  mode;
-  distribution;
-  seed;
   /**
    * Constructor of VarianceScaling.
    * @throws ValueError for invalid value in scale.
@@ -20601,7 +20546,7 @@ var VarianceScaling = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(VarianceScaling, "className", "VarianceScaling");
+VarianceScaling.className = "VarianceScaling";
 serialization_exports.registerClass(VarianceScaling);
 var GlorotUniform = class extends VarianceScaling {
   /**
@@ -20624,7 +20569,7 @@ var GlorotUniform = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(GlorotUniform, "className", "GlorotUniform");
+GlorotUniform.className = "GlorotUniform";
 serialization_exports.registerClass(GlorotUniform);
 var GlorotNormal = class extends VarianceScaling {
   /**
@@ -20647,7 +20592,7 @@ var GlorotNormal = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(GlorotNormal, "className", "GlorotNormal");
+GlorotNormal.className = "GlorotNormal";
 serialization_exports.registerClass(GlorotNormal);
 var HeNormal = class extends VarianceScaling {
   constructor(args) {
@@ -20663,7 +20608,7 @@ var HeNormal = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(HeNormal, "className", "HeNormal");
+HeNormal.className = "HeNormal";
 serialization_exports.registerClass(HeNormal);
 var HeUniform = class extends VarianceScaling {
   constructor(args) {
@@ -20679,7 +20624,7 @@ var HeUniform = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(HeUniform, "className", "HeUniform");
+HeUniform.className = "HeUniform";
 serialization_exports.registerClass(HeUniform);
 var LeCunNormal = class extends VarianceScaling {
   constructor(args) {
@@ -20695,7 +20640,7 @@ var LeCunNormal = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(LeCunNormal, "className", "LeCunNormal");
+LeCunNormal.className = "LeCunNormal";
 serialization_exports.registerClass(LeCunNormal);
 var LeCunUniform = class extends VarianceScaling {
   constructor(args) {
@@ -20711,15 +20656,13 @@ var LeCunUniform = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(LeCunUniform, "className", "LeCunUniform");
+LeCunUniform.className = "LeCunUniform";
 serialization_exports.registerClass(LeCunUniform);
 var Orthogonal = class extends Initializer {
-  DEFAULT_GAIN = 1;
-  ELEMENTS_WARN_SLOW = 2e3;
-  gain;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_GAIN = 1;
+    this.ELEMENTS_WARN_SLOW = 2e3;
     this.gain = args.gain == null ? this.DEFAULT_GAIN : args.gain;
     this.seed = args.seed;
   }
@@ -20765,7 +20708,7 @@ var Orthogonal = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Orthogonal, "className", "Orthogonal");
+Orthogonal.className = "Orthogonal";
 serialization_exports.registerClass(Orthogonal);
 var INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP = {
   "constant": "Constant",
@@ -20877,18 +20820,6 @@ function countParamsInWeights(weights) {
 // src/tfjs-layers/src/variables.ts
 var DEFAULT_VARIABLE_NAME_PREFIX = "Variable";
 var LayerVariable = class {
-  dtype;
-  shape;
-  id;
-  // The fully scoped name of this Variable, including a unique suffix if needed
-  name;
-  // The originally requested fully scoped name of this Variable, not including
-  // any unique suffix.  This may be needed when restoring weights because this
-  // original name is used as a key.
-  originalName;
-  trainable_;
-  val;
-  constraint;
   /**
    * Construct Variable from a `tf.Tensor`.
    *
@@ -20982,18 +20913,6 @@ function batchSetValue(variablesAndValues) {
 
 // src/tfjs-layers/src/engine/topology.ts
 var InputSpec = class {
-  /** Expected datatype of the input. */
-  dtype;
-  /** Expected shape of the input (may include null for unchecked axes). */
-  shape;
-  /** Expected rank of the input. */
-  ndim;
-  /** Maximum rank of the input. */
-  maxNDim;
-  /** Minimum rank of the input. */
-  minNDim;
-  /** Dictionary mapping integer axes to a specific dimension value. */
-  axes;
   constructor(args) {
     this.dtype = args.dtype;
     this.shape = args.shape;
@@ -21035,26 +20954,6 @@ var SymbolicTensor = class {
     }
     this.rank = shape.length;
   }
-  /* A unique ID for the tensor to be able to differentiate tensors. */
-  id;
-  // The fully scoped name of this Variable, including a unique suffix if needed
-  name;
-  // The originally requested fully scoped name of this Variable, not including
-  // any unique suffix.  This may be needed when restoring weights because this
-  // original name is used as a key.
-  originalName;
-  /**
-   * Rank/dimensionality of the tensor.
-   */
-  rank;
-  /**
-   * Replacement for _keras_history.
-   */
-  nodeIndex;
-  /**
-   * Replacement for _keras_history.
-   */
-  tensorIndex;
 };
 var _nextNodeID = 0;
 var Node = class {
@@ -21078,43 +20977,6 @@ var Node = class {
     }
     args.outboundLayer.inboundNodes.push(this);
   }
-  /**
-   * The layer that takes `inputTensors` and turns them into `outputTensors`
-   * (the node gets created when the `call` method of the layer is called).
-   */
-  outboundLayer;
-  /**
-   * A list of layers, the same length as `inputTensors`, the layers from where
-   * `inputTensors` originate.
-   */
-  inboundLayers;
-  /**
-   * A list of integers, the same length as `inboundLayers`. `nodeIndices[i]` is
-   * the origin node of `inputTensors[i]` (necessary since each inbound layer
-   * might have several nodes, e.g. if the layer is being shared with a
-   * different data stream).
-   */
-  nodeIndices;
-  /**
-   * A list of integers, the same length as `inboundLayers`. `tensorIndices[i]`
-   * is the index of `inputTensors[i]` within the output of the inbound layer
-   * (necessary since each inbound layer might have multiple tensor outputs,
-   * with each one being independently manipulable).
-   */
-  tensorIndices;
-  /** List of input tensors. */
-  inputTensors;
-  /** List of output tensors. */
-  outputTensors;
-  /** List of input masks (a mask can be a tensor, or null). */
-  inputMasks;
-  /** List of output masks (a mask can be a tensor, or null). */
-  outputMasks;
-  /** List of input shape tuples. */
-  inputShapes;
-  /** List of output shape tuples. */
-  outputShapes;
-  id;
   getConfig() {
     const inboundNames = [];
     for (const layer of this.inboundLayers) {
@@ -21134,49 +20996,15 @@ var Node = class {
 };
 var _nextLayerID = 0;
 var Layer = class extends serialization_exports.Serializable {
-  /** Name for this layer. Must be unique within a model. */
-  name;
-  /**
-   * List of InputSpec class instances.
-   *
-   * Each entry describes one required input:
-   * - ndim
-   * - dtype
-   * A layer with `n` input tensors must have an `inputSpec` of length `n`.
-   */
-  inputSpec;
-  supportsMasking;
-  /** Whether the layer weights will be updated during training. */
-  trainable_;
-  batchInputShape;
-  dtype;
-  initialWeights;
-  inboundNodes;
-  outboundNodes;
-  activityRegularizer;
-  _trainableWeights;
-  _nonTrainableWeights;
-  _losses;
-  // TODO(cais): _updates is currently unused.
-  _updates;
-  _built;
-  _callHook = null;
-  _addedWeightNames = [];
-  id;
-  // Porting Notes: PyKeras does not have this property in this base Layer
-  //   class. Instead lets Layer subclass set it dynamically and checks the
-  //   value with `hasattr`. In tfjs-layers, we let this be a member of this
-  //   base class.
-  _stateful = false;
-  _refCount;
-  // A flag for whether fast (i.e., all-zero) weight initialization is to
-  // be used during `build()` call. This speeds up weight initialization
-  // by saving unnecessary calls to expensive initializers in cases where
-  // the initialized values will be overwritten by loaded weight values
-  // during model loading.
-  fastWeightInitDuringBuild;
   constructor(args = {}) {
     super();
+    this._callHook = null;
+    this._addedWeightNames = [];
+    // Porting Notes: PyKeras does not have this property in this base Layer
+    //   class. Instead lets Layer subclass set it dynamically and checks the
+    //   value with `hasattr`. In tfjs-layers, we let this be a member of this
+    //   base class.
+    this._stateful = false;
     this.id = _nextLayerID++;
     this.activityRegularizer = null;
     this.inputSpec = null;
@@ -22149,7 +21977,6 @@ function getSourceInputs(tensor2, layer, nodeIndex) {
 
 // src/tfjs-layers/src/engine/input_layer.ts
 var InputLayer = class extends Layer {
-  sparse;
   constructor(args) {
     super({
       dtype: args.dtype,
@@ -22230,7 +22057,7 @@ var InputLayer = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(InputLayer, "className", "InputLayer");
+InputLayer.className = "InputLayer";
 serialization_exports.registerClass(InputLayer);
 function Input(config) {
   if (config.batchShape == null && config.shape == null) {
@@ -22275,15 +22102,15 @@ function assertFeedCompatibility(key, val) {
   }
 }
 var FeedDict = class {
-  id2Value = {};
-  id2Mask = {};
-  name2Id = {};
   /**
    * Constructor, optionally does copy-construction.
    * @param feeds An Array of `Feed`s, or another `FeedDict`, in which case
    *   copy-construction will be performed.
    */
   constructor(feeds) {
+    this.id2Value = {};
+    this.id2Mask = {};
+    this.name2Id = {};
     if (feeds instanceof FeedDict) {
       for (const id in feeds.id2Value) {
         this.id2Value[id] = feeds.id2Value[id];
@@ -24686,12 +24513,10 @@ var Constraint = class extends serialization_exports.Serializable {
   }
 };
 var MaxNorm = class extends Constraint {
-  maxValue;
-  axis;
-  defaultMaxValue = 2;
-  defaultAxis = 0;
   constructor(args) {
     super();
+    this.defaultMaxValue = 2;
+    this.defaultAxis = 0;
     this.maxValue = args.maxValue != null ? args.maxValue : this.defaultMaxValue;
     this.axis = args.axis != null ? args.axis : this.defaultAxis;
   }
@@ -24707,13 +24532,12 @@ var MaxNorm = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(MaxNorm, "className", "MaxNorm");
+MaxNorm.className = "MaxNorm";
 serialization_exports.registerClass(MaxNorm);
 var UnitNorm = class extends Constraint {
-  axis;
-  defaultAxis = 0;
   constructor(args) {
     super();
+    this.defaultAxis = 0;
     this.axis = args.axis != null ? args.axis : this.defaultAxis;
   }
   apply(w) {
@@ -24726,7 +24550,7 @@ var UnitNorm = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(UnitNorm, "className", "UnitNorm");
+UnitNorm.className = "UnitNorm";
 serialization_exports.registerClass(UnitNorm);
 var NonNeg = class extends Constraint {
   apply(w) {
@@ -24734,19 +24558,15 @@ var NonNeg = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(NonNeg, "className", "NonNeg");
+NonNeg.className = "NonNeg";
 serialization_exports.registerClass(NonNeg);
 var MinMaxNorm = class extends Constraint {
-  minValue;
-  maxValue;
-  rate;
-  axis;
-  defaultMinValue = 0;
-  defaultMaxValue = 1;
-  defaultRate = 1;
-  defaultAxis = 0;
   constructor(args) {
     super();
+    this.defaultMinValue = 0;
+    this.defaultMaxValue = 1;
+    this.defaultRate = 1;
+    this.defaultAxis = 0;
     this.minValue = args.minValue != null ? args.minValue : this.defaultMinValue;
     this.maxValue = args.maxValue != null ? args.maxValue : this.defaultMaxValue;
     this.rate = args.rate != null ? args.rate : this.defaultRate;
@@ -24775,7 +24595,7 @@ var MinMaxNorm = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(MinMaxNorm, "className", "MinMaxNorm");
+MinMaxNorm.className = "MinMaxNorm";
 serialization_exports.registerClass(MinMaxNorm);
 var CONSTRAINT_IDENTIFIER_REGISTRY_SYMBOL_MAP = {
   "maxNorm": "MaxNorm",
@@ -25013,12 +24833,10 @@ function disposeTensorsInLogs(logs) {
 // src/tfjs-layers/src/base_callbacks.ts
 var DEFAULT_YIELD_EVERY_MS = 125;
 var BaseCallback = class {
-  // TODO(michaelterry): This type is a best guess.
-  validationData = null;
-  /**
-   * Training parameters (eg. verbosity, batch size, number of epochs...).
-   */
-  params;
+  constructor() {
+    // TODO(michaelterry): This type is a best guess.
+    this.validationData = null;
+  }
   setParams(params) {
     this.params = params;
   }
@@ -25045,8 +24863,6 @@ var BaseCallback = class {
   }
 };
 var CallbackList = class {
-  callbacks;
-  queueLength;
   // TODO(cais): When the need arises, uncomment the following lines and
   // implement the queue for time values.
   // private deltaTBatch: number;
@@ -25156,8 +24972,6 @@ var CallbackList = class {
   }
 };
 var BaseLogger = class extends BaseCallback {
-  seen;
-  totals;
   constructor() {
     super();
   }
@@ -25214,8 +25028,6 @@ var BaseLogger = class extends BaseCallback {
   }
 };
 var History = class extends BaseCallback {
-  epoch;
-  history;
   async onTrainBegin(logs) {
     this.epoch = [];
     this.history = {};
@@ -25259,19 +25071,9 @@ var History = class extends BaseCallback {
   }
 };
 var CustomCallback = class extends BaseCallback {
-  trainBegin;
-  trainEnd;
-  epochBegin;
-  epochEnd;
-  batchBegin;
-  batchEnd;
-  yield;
-  yieldEvery;
-  currentEpoch = 0;
-  nowFunc;
-  nextFrameFunc;
   constructor(args, yieldEvery) {
     super();
+    this.currentEpoch = 0;
     this.nowFunc = args.nowFunc;
     this.nextFrameFunc = args.nextFrameFunc || nextFrame;
     this.yieldEvery = yieldEvery || "auto";
@@ -25439,7 +25241,7 @@ var _CallbackConstructorRegistry = class {
   }
 };
 var CallbackConstructorRegistry = _CallbackConstructorRegistry;
-__publicField(CallbackConstructorRegistry, "constructors", {});
+CallbackConstructorRegistry.constructors = {};
 function configureCallbacks(callbacks2, verbose, epochs, initialEpoch, numTrainSamples, stepsPerEpoch, batchSize, doValidation, callbackMetrics) {
   const history = new History();
   const actualCallbacks = [
@@ -26100,34 +25902,9 @@ var version2 = "0.0.0";
 
 // src/tfjs-layers/src/engine/container.ts
 var Container = class extends Layer {
-  inputs;
-  outputs;
-  inputLayers;
-  inputLayersNodeIndices;
-  inputLayersTensorIndices;
-  outputLayers;
-  outputLayersNodeIndices;
-  outputLayersTensorIndices;
-  layers;
-  layersByDepth;
-  nodesByDepth;
-  internalContainerRefs;
-  containerNodes = /* @__PURE__ */ new Set();
-  // TODO(michaelterry): Add cache support
-  // private outputMaskCache: any;
-  // private outputTensorCache: any;
-  // private outputShapeCache: any;
-  inputNames;
-  outputNames;
-  feedInputShapes;
-  internalInputShapes;
-  internalOutputShapes;
-  // TODO(cais): Maybe 'feed' should not in the names of these variables,
-  //   due to the fact that our backend is not symbolic.
-  feedInputNames;
-  feedOutputNames;
   constructor(args) {
     super({});
+    this.containerNodes = /* @__PURE__ */ new Set();
     this.name = args.name;
     if (this.name == null) {
       const prefix = this.getClassName().toLowerCase();
@@ -26766,45 +26543,32 @@ var Container = class extends Layer {
     }
     return nodeConversionMap;
   }
-  /**
-   * Retrieves a layer based on either its name (unique) or index.
-   *
-   * Indices are based on order of horizontal graph traversal (bottom-up).
-   *
-   * If both `name` and `index` are specified, `index` takes precedence.
-   *
-   * @param name Name of layer.
-   * @param index Index of layer.
-   * @returns A Layer instance.
-   * @throws ValueError: In case of invalid layer name or index.
-   *
-   * @doc {
-   *    heading: 'Layers',
-   *    subheading: 'Classes',
-   *    namespace: 'layers',
-   *    subclasses: ['LayersModel']
-   * }
-   */
-  getLayer(name, index) {
+  getLayer(nameOrIndex, index) {
     if (index != null) {
-      if (this.layers.length <= index) {
-        throw new ValueError(
-          `Was asked to retrieve layer at index ${index}, but model only has ${this.layers.length} layer(s).`
-        );
-      } else {
-        return this.layers[index];
-      }
+      return this.findLayer(index);
     } else {
-      if (name == null) {
+      if (nameOrIndex == null) {
         throw new ValueError("Provide either a layer name or layer index");
+      }
+      if (typeof nameOrIndex === "number") {
+        return this.findLayer(nameOrIndex);
       }
     }
     for (const layer of this.layers) {
-      if (layer.name === name) {
+      if (layer.name === nameOrIndex) {
         return layer;
       }
     }
-    throw new ValueError(`No such layer: ${name}`);
+    throw new ValueError(`No such layer: ${nameOrIndex}`);
+  }
+  findLayer(index) {
+    if (this.layers.length <= index) {
+      throw new ValueError(
+        `Was asked to retrieve layer at index ${index}, but model only has ${this.layers.length} layer(s).`
+      );
+    } else {
+      return this.layers[index];
+    }
   }
   /**
    * Retrieves the Container's current loss values.
@@ -27780,37 +27544,6 @@ function collectMetrics(metrics, outputNames) {
 }
 var LAYERS_MODEL_FORMAT_NAME = "layers-model";
 var LayersModel = class extends Container {
-  optimizer_;
-  // Whether the model instance owns the optimizer: `true` if and only if
-  // `optimizer` is created from a string parameter during `compile()` call.
-  isOptimizerOwned;
-  loss;
-  lossFunctions;
-  // TODO(cais): These private variables should probably not have the string
-  //   'feed' in their names, because we are not dealing with a symbolic
-  //   backend.
-  feedOutputShapes;
-  feedLossFns;
-  collectedTrainableWeights;
-  testFunction;
-  history;
-  // A public property that can be set by Callbacks to order early stopping
-  // during `fit()` calls.
-  stopTraining_;
-  isTraining;
-  metrics;
-  metricsNames;
-  // Porting Note: `metrics_tensors` in PyKeras is a symbolic tensor. But given
-  //   the imperative nature of tfjs-core, `metricsTensors` is a
-  //   TypeScript function here.
-  //   Also note that due to the imperative nature of tfjs-core, `metricsTensor`
-  //   here needs an output index to keep track of which output of the
-  //   LayersModel a metric belongs to. This is unlike `metrics_tensors` in
-  //   PyKeras, which is a `list` of symbolic tensors, each of which has
-  //   implicit "knowledge" of the outputs it depends on.
-  metricsTensors;
-  // User defind metadata (if any).
-  userDefinedMetadata;
   constructor(args) {
     super(args);
     this.isTraining = false;
@@ -29241,11 +28974,11 @@ var LayersModel = class extends Container {
 // The class name is 'Model' rather than 'LayersModel' for backwards
 // compatibility since this class name shows up in the serialization format.
 /** @nocollapse */
-__publicField(LayersModel, "className", "Model");
+LayersModel.className = "Model";
 serialization_exports.registerClass(LayersModel);
 var Functional = class extends LayersModel {
 };
-__publicField(Functional, "className", "Functional");
+Functional.className = "Functional";
 serialization_exports.registerClass(Functional);
 
 // src/tfjs-layers/src/models.ts
@@ -29353,7 +29086,6 @@ function decodeModelAndOptimizerWeights(weightData, specs) {
   return { modelWeights, optimizerWeights };
 }
 var _Sequential = class extends LayersModel {
-  model;
   constructor(args) {
     super({ inputs: [], outputs: [] });
     args = args || {};
@@ -29975,7 +29707,7 @@ var _Sequential = class extends LayersModel {
 };
 var Sequential = _Sequential;
 /** @nocollapse */
-__publicField(Sequential, "className", "Sequential");
+Sequential.className = "Sequential";
 serialization_exports.registerClass(Sequential);
 
 // src/tfjs-layers/src/exports.ts
@@ -30014,7 +29746,7 @@ var Elu2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Elu2, "className", "elu");
+Elu2.className = "elu";
 serialization_exports.registerClass(Elu2);
 var Selu2 = class extends Activation2 {
   apply(x) {
@@ -30022,7 +29754,7 @@ var Selu2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Selu2, "className", "selu");
+Selu2.className = "selu";
 serialization_exports.registerClass(Selu2);
 var Relu2 = class extends Activation2 {
   apply(x) {
@@ -30030,7 +29762,7 @@ var Relu2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Relu2, "className", "relu");
+Relu2.className = "relu";
 serialization_exports.registerClass(Relu2);
 var Relu62 = class extends Activation2 {
   apply(x) {
@@ -30038,7 +29770,7 @@ var Relu62 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Relu62, "className", "relu6");
+Relu62.className = "relu6";
 serialization_exports.registerClass(Relu62);
 var Linear = class extends Activation2 {
   apply(x) {
@@ -30046,7 +29778,7 @@ var Linear = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Linear, "className", "linear");
+Linear.className = "linear";
 serialization_exports.registerClass(Linear);
 var Sigmoid2 = class extends Activation2 {
   apply(x) {
@@ -30054,7 +29786,7 @@ var Sigmoid2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Sigmoid2, "className", "sigmoid");
+Sigmoid2.className = "sigmoid";
 serialization_exports.registerClass(Sigmoid2);
 var HardSigmoid = class extends Activation2 {
   apply(x) {
@@ -30062,7 +29794,7 @@ var HardSigmoid = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(HardSigmoid, "className", "hardSigmoid");
+HardSigmoid.className = "hardSigmoid";
 serialization_exports.registerClass(HardSigmoid);
 var Softplus2 = class extends Activation2 {
   apply(x) {
@@ -30070,7 +29802,7 @@ var Softplus2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Softplus2, "className", "softplus");
+Softplus2.className = "softplus";
 serialization_exports.registerClass(Softplus2);
 var Softsign = class extends Activation2 {
   apply(x) {
@@ -30078,7 +29810,7 @@ var Softsign = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Softsign, "className", "softsign");
+Softsign.className = "softsign";
 serialization_exports.registerClass(Softsign);
 var Tanh2 = class extends Activation2 {
   apply(x) {
@@ -30086,7 +29818,7 @@ var Tanh2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Tanh2, "className", "tanh");
+Tanh2.className = "tanh";
 serialization_exports.registerClass(Tanh2);
 var Softmax2 = class extends Activation2 {
   /**
@@ -30106,7 +29838,7 @@ var Softmax2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Softmax2, "className", "softmax");
+Softmax2.className = "softmax";
 serialization_exports.registerClass(Softmax2);
 var LogSoftmax2 = class extends Activation2 {
   /**
@@ -30127,7 +29859,7 @@ var LogSoftmax2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(LogSoftmax2, "className", "logSoftmax");
+LogSoftmax2.className = "logSoftmax";
 serialization_exports.registerClass(LogSoftmax2);
 var Swish = class extends Activation2 {
   /**
@@ -30142,7 +29874,7 @@ var Swish = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Swish, "className", "swish");
+Swish.className = "swish";
 serialization_exports.registerClass(Swish);
 var Mish = class extends Activation2 {
   /**
@@ -30156,7 +29888,7 @@ var Mish = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Mish, "className", "mish");
+Mish.className = "mish";
 serialization_exports.registerClass(Mish);
 function serializeActivation(activation2) {
   return activation2.getClassName();
@@ -30199,10 +29931,6 @@ function assertObjectArgs(args) {
 var Regularizer = class extends serialization_exports.Serializable {
 };
 var L1L2 = class extends Regularizer {
-  l1;
-  l2;
-  hasL1;
-  hasL2;
   constructor(args) {
     super();
     assertObjectArgs(args);
@@ -30236,7 +29964,7 @@ var L1L2 = class extends Regularizer {
   }
 };
 /** @nocollapse */
-__publicField(L1L2, "className", "L1L2");
+L1L2.className = "L1L2";
 serialization_exports.registerClass(L1L2);
 function l1(args) {
   assertObjectArgs(args);
@@ -30277,7 +30005,6 @@ function getRegularizer(identifier) {
 
 // src/tfjs-layers/src/layers/advanced_activations.ts
 var ReLU = class extends Layer {
-  maxValue;
   constructor(args) {
     super(args == null ? {} : args);
     this.supportsMasking = true;
@@ -30304,13 +30031,12 @@ var ReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ReLU, "className", "ReLU");
+ReLU.className = "ReLU";
 serialization_exports.registerClass(ReLU);
 var LeakyReLU = class extends Layer {
-  alpha;
-  DEFAULT_ALPHA = 0.3;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_ALPHA = 0.3;
     if (args == null) {
       args = {};
     }
@@ -30331,17 +30057,12 @@ var LeakyReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(LeakyReLU, "className", "LeakyReLU");
+LeakyReLU.className = "LeakyReLU";
 serialization_exports.registerClass(LeakyReLU);
 var PReLU = class extends Layer {
-  alphaInitializer;
-  alphaRegularizer;
-  alphaConstraint;
-  sharedAxes;
-  alpha;
-  DEFAULT_ALPHA_INITIALIZER = "zeros";
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_ALPHA_INITIALIZER = "zeros";
     if (args == null) {
       args = {};
     }
@@ -30407,13 +30128,12 @@ var PReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(PReLU, "className", "PReLU");
+PReLU.className = "PReLU";
 serialization_exports.registerClass(PReLU);
 var ELU = class extends Layer {
-  alpha;
-  DEFAULT_ALPHA = 1;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_ALPHA = 1;
     if (args == null) {
       args = {};
     }
@@ -30439,13 +30159,12 @@ var ELU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ELU, "className", "ELU");
+ELU.className = "ELU";
 serialization_exports.registerClass(ELU);
 var ThresholdedReLU = class extends Layer {
-  theta;
-  DEFAULT_THETA = 1;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_THETA = 1;
     if (args == null) {
       args = {};
     }
@@ -30466,14 +30185,12 @@ var ThresholdedReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ThresholdedReLU, "className", "ThresholdedReLU");
+ThresholdedReLU.className = "ThresholdedReLU";
 serialization_exports.registerClass(ThresholdedReLU);
 var Softmax3 = class extends Layer {
-  axis;
-  softmax;
-  DEFAULT_AXIS = 1;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_AXIS = 1;
     if (args == null) {
       args = {};
     }
@@ -30495,7 +30212,7 @@ var Softmax3 = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Softmax3, "className", "Softmax");
+Softmax3.className = "Softmax";
 serialization_exports.registerClass(Softmax3);
 
 // src/tfjs-layers/src/utils/conv_utils.ts
@@ -30688,27 +30405,11 @@ function conv3dWithBias(x, kernel, bias, strides = [1, 1, 1], padding = "valid",
   });
 }
 var BaseConv = class extends Layer {
-  rank;
-  kernelSize;
-  strides;
-  padding;
-  dataFormat;
-  activation;
-  useBias;
-  dilationRate;
-  // Bias-related members are here because all convolution subclasses use the
-  // same configuration parmeters to control bias.  Kernel-related members
-  // are in subclass `Conv` because some subclasses use different parameters to
-  // control kernel properties, for instance, `DepthwiseConv2D` uses
-  // `depthwiseInitializer` instead of `kernelInitializer`.
-  biasInitializer;
-  biasConstraint;
-  biasRegularizer;
-  bias = null;
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
   constructor(rank, args) {
     super(args);
+    this.bias = null;
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     BaseConv.verifyArgs(args);
     this.rank = rank;
     assertPositiveInteger(this.rank, "rank");
@@ -30796,18 +30497,9 @@ var BaseConv = class extends Layer {
   }
 };
 var Conv = class extends BaseConv {
-  filters;
-  kernel = null;
-  // Bias-related properties are stored in the superclass `BaseConv` because all
-  // convolution subclasses use the same configuration parameters to control
-  // bias. Kernel-related properties are defined here rather than in the
-  // superclass because some convolution subclasses use different names and
-  // configuration parameters for their internal kernel state.
-  kernelInitializer;
-  kernelConstraint;
-  kernelRegularizer;
   constructor(rank, args) {
     super(rank, args);
+    this.kernel = null;
     Conv.verifyArgs(args);
     this.filters = args.filters;
     assertPositiveInteger(this.filters, "filters");
@@ -30980,7 +30672,7 @@ var _Conv2D = class extends Conv {
 };
 var Conv2D2 = _Conv2D;
 /** @nocollapse */
-__publicField(Conv2D2, "className", "Conv2D");
+Conv2D2.className = "Conv2D";
 serialization_exports.registerClass(Conv2D2);
 var _Conv3D = class extends Conv {
   constructor(args) {
@@ -31004,7 +30696,7 @@ var _Conv3D = class extends Conv {
 };
 var Conv3D2 = _Conv3D;
 /** @nocollapse */
-__publicField(Conv3D2, "className", "Conv3D");
+Conv3D2.className = "Conv3D";
 serialization_exports.registerClass(Conv3D2);
 var Conv2DTranspose = class extends Conv2D2 {
   constructor(args) {
@@ -31135,7 +30827,7 @@ var Conv2DTranspose = class extends Conv2D2 {
   }
 };
 /** @nocollapse */
-__publicField(Conv2DTranspose, "className", "Conv2DTranspose");
+Conv2DTranspose.className = "Conv2DTranspose";
 serialization_exports.registerClass(Conv2DTranspose);
 var Conv3DTranspose = class extends Conv3D2 {
   constructor(args) {
@@ -31279,22 +30971,15 @@ var Conv3DTranspose = class extends Conv3D2 {
   }
 };
 /** @nocollapse */
-__publicField(Conv3DTranspose, "className", "Conv3DTranspose");
+Conv3DTranspose.className = "Conv3DTranspose";
 serialization_exports.registerClass(Conv3DTranspose);
 var SeparableConv = class extends Conv {
-  depthMultiplier;
-  depthwiseInitializer;
-  depthwiseRegularizer;
-  depthwiseConstraint;
-  pointwiseInitializer;
-  pointwiseRegularizer;
-  pointwiseConstraint;
-  DEFAULT_DEPTHWISE_INITIALIZER = "glorotUniform";
-  DEFAULT_POINTWISE_INITIALIZER = "glorotUniform";
-  depthwiseKernel = null;
-  pointwiseKernel = null;
   constructor(rank, config) {
     super(rank, config);
+    this.DEFAULT_DEPTHWISE_INITIALIZER = "glorotUniform";
+    this.DEFAULT_POINTWISE_INITIALIZER = "glorotUniform";
+    this.depthwiseKernel = null;
+    this.pointwiseKernel = null;
     if (config.filters == null) {
       throw new ValueError(
         "The `filters` configuration field is required by SeparableConv, but is unspecified."
@@ -31427,14 +31112,14 @@ var SeparableConv = class extends Conv {
   }
 };
 /** @nocollapse */
-__publicField(SeparableConv, "className", "SeparableConv");
+SeparableConv.className = "SeparableConv";
 var SeparableConv2D = class extends SeparableConv {
   constructor(args) {
     super(2, args);
   }
 };
 /** @nocollapse */
-__publicField(SeparableConv2D, "className", "SeparableConv2D");
+SeparableConv2D.className = "SeparableConv2D";
 serialization_exports.registerClass(SeparableConv2D);
 var _Conv1D = class extends Conv {
   constructor(args) {
@@ -31463,11 +31148,9 @@ var _Conv1D = class extends Conv {
 };
 var Conv1D = _Conv1D;
 /** @nocollapse */
-__publicField(Conv1D, "className", "Conv1D");
+Conv1D.className = "Conv1D";
 serialization_exports.registerClass(Conv1D);
 var Cropping2D = class extends Layer {
-  cropping;
-  dataFormat;
   constructor(args) {
     super(args);
     if (typeof args.cropping === "number") {
@@ -31540,15 +31223,12 @@ var Cropping2D = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Cropping2D, "className", "Cropping2D");
+Cropping2D.className = "Cropping2D";
 serialization_exports.registerClass(Cropping2D);
 var UpSampling2D = class extends Layer {
-  DEFAULT_SIZE = [2, 2];
-  size;
-  dataFormat;
-  interpolation;
   constructor(args) {
     super(args);
+    this.DEFAULT_SIZE = [2, 2];
     this.inputSpec = [{ ndim: 4 }];
     this.size = args.size == null ? this.DEFAULT_SIZE : args.size;
     this.dataFormat = args.dataFormat == null ? "channelsLast" : args.dataFormat;
@@ -31596,7 +31276,7 @@ var UpSampling2D = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(UpSampling2D, "className", "UpSampling2D");
+UpSampling2D.className = "UpSampling2D";
 serialization_exports.registerClass(UpSampling2D);
 
 // src/tfjs-layers/src/layers/convolutional_depthwise.ts
@@ -31632,13 +31312,9 @@ function depthwiseConv2d3(x, depthwiseKernel, strides = [1, 1], padding = "valid
   });
 }
 var DepthwiseConv2D = class extends BaseConv {
-  depthMultiplier;
-  depthwiseInitializer;
-  depthwiseConstraint;
-  depthwiseRegularizer;
-  depthwiseKernel = null;
   constructor(args) {
     super(2, args);
+    this.depthwiseKernel = null;
     this.depthMultiplier = args.depthMultiplier == null ? 1 : args.depthMultiplier;
     this.depthwiseInitializer = getInitializer(
       args.depthwiseInitializer || this.DEFAULT_KERNEL_INITIALIZER
@@ -31743,7 +31419,7 @@ var DepthwiseConv2D = class extends BaseConv {
   }
 };
 /** @nocollapse */
-__publicField(DepthwiseConv2D, "className", "DepthwiseConv2D");
+DepthwiseConv2D.className = "DepthwiseConv2D";
 serialization_exports.registerClass(DepthwiseConv2D);
 
 // src/tfjs-layers/src/layers/recurrent.ts
@@ -31852,20 +31528,6 @@ function rnn(stepFunction, inputs, initialStates, goBackwards = false, mask, con
   });
 }
 var _RNN = class extends Layer {
-  cell;
-  returnSequences;
-  returnState;
-  goBackwards;
-  unroll;
-  stateSpec;
-  states_;
-  // NOTE(cais): For stateful RNNs, the old states cannot be disposed right
-  // away when new states are set, because the old states may need to be used
-  // later for backpropagation through time (BPTT) and other purposes. So we
-  // keep them here for final disposal when the state is reset completely
-  // (i.e., through no-arg call to `resetStates()`).
-  keptStates;
-  numConstants;
   constructor(args) {
     super(args);
     let cell;
@@ -32247,38 +31909,17 @@ var _RNN = class extends Layer {
 };
 var RNN = _RNN;
 /** @nocollapse */
-__publicField(RNN, "className", "RNN");
+RNN.className = "RNN";
 serialization_exports.registerClass(RNN);
 var RNNCell = class extends Layer {
-  dropoutMask;
-  recurrentDropoutMask;
 };
 var SimpleRNNCell = class extends RNNCell {
-  units;
-  activation;
-  useBias;
-  kernelInitializer;
-  recurrentInitializer;
-  biasInitializer;
-  kernelConstraint;
-  recurrentConstraint;
-  biasConstraint;
-  kernelRegularizer;
-  recurrentRegularizer;
-  biasRegularizer;
-  dropout;
-  recurrentDropout;
-  dropoutFunc;
-  stateSize;
-  kernel;
-  recurrentKernel;
-  bias;
-  DEFAULT_ACTIVATION = "tanh";
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
   constructor(args) {
     super(args);
+    this.DEFAULT_ACTIVATION = "tanh";
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     this.units = args.units;
     assertPositiveInteger(this.units, `units`);
     this.activation = getActivation(
@@ -32424,7 +32065,7 @@ var SimpleRNNCell = class extends RNNCell {
   }
 };
 /** @nocollapse */
-__publicField(SimpleRNNCell, "className", "SimpleRNNCell");
+SimpleRNNCell.className = "SimpleRNNCell";
 serialization_exports.registerClass(SimpleRNNCell);
 var SimpleRNN = class extends RNN {
   constructor(args) {
@@ -32453,37 +32094,16 @@ var SimpleRNN = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(SimpleRNN, "className", "SimpleRNN");
+SimpleRNN.className = "SimpleRNN";
 serialization_exports.registerClass(SimpleRNN);
 var GRUCell = class extends RNNCell {
-  units;
-  activation;
-  recurrentActivation;
-  useBias;
-  kernelInitializer;
-  recurrentInitializer;
-  biasInitializer;
-  kernelRegularizer;
-  recurrentRegularizer;
-  biasRegularizer;
-  kernelConstraint;
-  recurrentConstraint;
-  biasConstraint;
-  dropout;
-  recurrentDropout;
-  dropoutFunc;
-  stateSize;
-  implementation;
-  DEFAULT_ACTIVATION = "tanh";
-  DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
-  kernel;
-  recurrentKernel;
-  bias;
   constructor(args) {
     super(args);
+    this.DEFAULT_ACTIVATION = "tanh";
+    this.DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     if (args.resetAfter) {
       throw new ValueError(
         `GRUCell does not support reset_after parameter set to true.`
@@ -32649,7 +32269,7 @@ var GRUCell = class extends RNNCell {
   }
 };
 /** @nocollapse */
-__publicField(GRUCell, "className", "GRUCell");
+GRUCell.className = "GRUCell";
 serialization_exports.registerClass(GRUCell);
 var GRU = class extends RNN {
   constructor(args) {
@@ -32686,38 +32306,16 @@ var GRU = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(GRU, "className", "GRU");
+GRU.className = "GRU";
 serialization_exports.registerClass(GRU);
 var LSTMCell = class extends RNNCell {
-  units;
-  activation;
-  recurrentActivation;
-  useBias;
-  kernelInitializer;
-  recurrentInitializer;
-  biasInitializer;
-  unitForgetBias;
-  kernelConstraint;
-  recurrentConstraint;
-  biasConstraint;
-  kernelRegularizer;
-  recurrentRegularizer;
-  biasRegularizer;
-  dropout;
-  recurrentDropout;
-  dropoutFunc;
-  stateSize;
-  implementation;
-  DEFAULT_ACTIVATION = "tanh";
-  DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
-  kernel;
-  recurrentKernel;
-  bias;
   constructor(args) {
     super(args);
+    this.DEFAULT_ACTIVATION = "tanh";
+    this.DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     this.units = args.units;
     assertPositiveInteger(this.units, "units");
     this.activation = getActivation(
@@ -32757,6 +32355,7 @@ var LSTMCell = class extends RNNCell {
     this.recurrentDropoutMask = null;
   }
   build(inputShape) {
+    var _a;
     inputShape = getExactlyOneShape(inputShape);
     const inputDim = inputShape[inputShape.length - 1];
     this.kernel = this.addWeight(
@@ -32782,9 +32381,7 @@ var LSTMCell = class extends RNNCell {
       if (this.unitForgetBias) {
         const capturedBiasInit = this.biasInitializer;
         const capturedUnits = this.units;
-        biasInitializer = new class CustomInit extends Initializer {
-          /** @nocollapse */
-          static className = "CustomInit";
+        biasInitializer = new (_a = class extends Initializer {
           apply(shape, dtype) {
             const bI = capturedBiasInit.apply([capturedUnits]);
             const bF = new Ones().apply([capturedUnits]);
@@ -32794,7 +32391,8 @@ var LSTMCell = class extends RNNCell {
               bCAndH
             );
           }
-        }();
+        }, /** @nocollapse */
+        _a.className = "CustomInit", _a)();
       } else {
         biasInitializer = this.biasInitializer;
       }
@@ -32894,7 +32492,7 @@ var LSTMCell = class extends RNNCell {
   }
 };
 /** @nocollapse */
-__publicField(LSTMCell, "className", "LSTMCell");
+LSTMCell.className = "LSTMCell";
 serialization_exports.registerClass(LSTMCell);
 var LSTM = class extends RNN {
   constructor(args) {
@@ -32931,10 +32529,9 @@ var LSTM = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(LSTM, "className", "LSTM");
+LSTM.className = "LSTM";
 serialization_exports.registerClass(LSTM);
 var StackedRNNCells = class extends RNNCell {
-  cells;
   constructor(args) {
     super(args);
     this.cells = args.cells;
@@ -33078,7 +32675,7 @@ var StackedRNNCells = class extends RNNCell {
   // TODO(cais): Maybe implemnt `losses` and `getLossesFor`.
 };
 /** @nocollapse */
-__publicField(StackedRNNCells, "className", "StackedRNNCells");
+StackedRNNCells.className = "StackedRNNCells";
 serialization_exports.registerClass(StackedRNNCells);
 function generateDropoutMask(args) {
   const { ones: ones4, rate, training = false, count: count2 = 1, dropoutFunc } = args;
@@ -33237,14 +32834,8 @@ var ConvRNN2D = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(ConvRNN2D, "className", "ConvRNN2D");
+ConvRNN2D.className = "ConvRNN2D";
 var ConvLSTM2DCell = class extends LSTMCell {
-  filters;
-  kernelSize;
-  strides;
-  padding;
-  dataFormat;
-  dilationRate;
   constructor(args) {
     const {
       filters,
@@ -33271,6 +32862,7 @@ var ConvLSTM2DCell = class extends LSTMCell {
     );
   }
   build(inputShape) {
+    var _a;
     inputShape = getExactlyOneShape(inputShape);
     const channelAxis = this.dataFormat === "channelsFirst" ? 1 : inputShape.length - 1;
     if (inputShape[channelAxis] == null) {
@@ -33305,16 +32897,15 @@ var ConvLSTM2DCell = class extends LSTMCell {
       if (this.unitForgetBias) {
         const init2 = this.biasInitializer;
         const filters = this.filters;
-        biasInitializer = new class CustomInit extends Initializer {
-          /** @nocollapse */
-          static className = "CustomInit";
+        biasInitializer = new (_a = class extends Initializer {
           apply(shape, dtype) {
             const biasI = init2.apply([filters]);
             const biasF = ones2([filters]);
             const biasCAndO = init2.apply([filters * 2]);
             return concatenate([biasI, biasF, biasCAndO]);
           }
-        }();
+        }, /** @nocollapse */
+        _a.className = "CustomInit", _a)();
       } else {
         biasInitializer = this.biasInitializer;
       }
@@ -33443,7 +33034,7 @@ var ConvLSTM2DCell = class extends LSTMCell {
   }
 };
 /** @nocollapse */
-__publicField(ConvLSTM2DCell, "className", "ConvLSTM2DCell");
+ConvLSTM2DCell.className = "ConvLSTM2DCell";
 serialization_exports.registerClass(ConvLSTM2DCell);
 var ConvLSTM2D = class extends ConvRNN2D {
   constructor(args) {
@@ -33456,14 +33047,11 @@ var ConvLSTM2D = class extends ConvRNN2D {
   }
 };
 /** @nocollapse */
-__publicField(ConvLSTM2D, "className", "ConvLSTM2D");
+ConvLSTM2D.className = "ConvLSTM2D";
 serialization_exports.registerClass(ConvLSTM2D);
 
 // src/tfjs-layers/src/layers/core.ts
 var Dropout = class extends Layer {
-  rate;
-  noiseShape;
-  seed;
   constructor(args) {
     super(args);
     this.rate = Math.max(Math.min(args.rate, 1), 0);
@@ -33516,7 +33104,7 @@ var Dropout = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Dropout, "className", "Dropout");
+Dropout.className = "Dropout";
 serialization_exports.registerClass(Dropout);
 var SpatialDropout1D = class extends Dropout {
   constructor(args) {
@@ -33529,25 +33117,18 @@ var SpatialDropout1D = class extends Dropout {
   }
 };
 /** @nocollapse */
-__publicField(SpatialDropout1D, "className", "SpatialDropout1D");
+SpatialDropout1D.className = "SpatialDropout1D";
 serialization_exports.registerClass(SpatialDropout1D);
 var Dense = class extends Layer {
-  units;
-  // Default activation: Linear (none).
-  activation = null;
-  useBias = true;
-  kernelInitializer;
-  biasInitializer;
-  kernel = null;
-  bias = null;
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
-  kernelConstraint;
-  biasConstraint;
-  kernelRegularizer;
-  biasRegularizer;
   constructor(args) {
     super(args);
+    // Default activation: Linear (none).
+    this.activation = null;
+    this.useBias = true;
+    this.kernel = null;
+    this.bias = null;
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     if (args.batchInputShape == null && args.inputShape == null && args.inputDim != null) {
       let batchSize = null;
       if (args.batchSize != null) {
@@ -33651,10 +33232,9 @@ var Dense = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Dense, "className", "Dense");
+Dense.className = "Dense";
 serialization_exports.registerClass(Dense);
 var Flatten = class extends Layer {
-  dataFormat;
   constructor(args) {
     args = args || {};
     super(args);
@@ -33698,10 +33278,9 @@ var Flatten = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Flatten, "className", "Flatten");
+Flatten.className = "Flatten";
 serialization_exports.registerClass(Flatten);
 var Activation5 = class extends Layer {
-  activation;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -33722,10 +33301,9 @@ var Activation5 = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Activation5, "className", "Activation");
+Activation5.className = "Activation";
 serialization_exports.registerClass(Activation5);
 var RepeatVector = class extends Layer {
-  n;
   constructor(args) {
     super(args);
     this.n = args.n;
@@ -33750,10 +33328,9 @@ var RepeatVector = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(RepeatVector, "className", "RepeatVector");
+RepeatVector.className = "RepeatVector";
 serialization_exports.registerClass(RepeatVector);
 var Reshape2 = class extends Layer {
-  targetShape;
   constructor(args) {
     super(args);
     this.targetShape = args.targetShape;
@@ -33845,11 +33422,9 @@ var Reshape2 = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Reshape2, "className", "Reshape");
+Reshape2.className = "Reshape";
 serialization_exports.registerClass(Reshape2);
 var Permute = class extends Layer {
-  dims;
-  dimsIncludingBatch;
   constructor(args) {
     super(args);
     if (args.dims == null) {
@@ -33893,10 +33468,9 @@ var Permute = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Permute, "className", "Permute");
+Permute.className = "Permute";
 serialization_exports.registerClass(Permute);
 var Masking = class extends Layer {
-  maskValue;
   constructor(args) {
     super(args == null ? {} : args);
     this.supportsMasking = true;
@@ -33933,22 +33507,15 @@ var Masking = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Masking, "className", "Masking");
+Masking.className = "Masking";
 serialization_exports.registerClass(Masking);
 
 // src/tfjs-layers/src/layers/embeddings.ts
 var Embedding = class extends Layer {
-  inputDim;
-  outputDim;
-  embeddingsInitializer;
-  maskZero;
-  inputLength;
-  embeddings = null;
-  DEFAULT_EMBEDDINGS_INITIALIZER = "randomUniform";
-  embeddingsRegularizer;
-  embeddingsConstraint;
   constructor(args) {
     super(args);
+    this.embeddings = null;
+    this.DEFAULT_EMBEDDINGS_INITIALIZER = "randomUniform";
     if (args.batchInputShape == null && args.inputShape == null) {
       let batchSize = null;
       if (args.batchSize != null) {
@@ -34058,12 +33625,11 @@ var Embedding = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Embedding, "className", "Embedding");
+Embedding.className = "Embedding";
 serialization_exports.registerClass(Embedding);
 
 // src/tfjs-layers/src/layers/merge.ts
 var Merge = class extends Layer {
-  reshapeRequired;
   constructor(args) {
     super(args || {});
     this.supportsMasking = true;
@@ -34281,7 +33847,7 @@ var Add2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Add2, "className", "Add");
+Add2.className = "Add";
 serialization_exports.registerClass(Add2);
 var Multiply2 = class extends Merge {
   constructor(args) {
@@ -34298,7 +33864,7 @@ var Multiply2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Multiply2, "className", "Multiply");
+Multiply2.className = "Multiply";
 serialization_exports.registerClass(Multiply2);
 var Average = class extends Merge {
   constructor(args) {
@@ -34315,7 +33881,7 @@ var Average = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Average, "className", "Average");
+Average.className = "Average";
 serialization_exports.registerClass(Average);
 var Maximum2 = class extends Merge {
   constructor(args) {
@@ -34332,7 +33898,7 @@ var Maximum2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Maximum2, "className", "Maximum");
+Maximum2.className = "Maximum";
 serialization_exports.registerClass(Maximum2);
 var Minimum2 = class extends Merge {
   constructor(args) {
@@ -34349,13 +33915,12 @@ var Minimum2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Minimum2, "className", "Minimum");
+Minimum2.className = "Minimum";
 serialization_exports.registerClass(Minimum2);
 var Concatenate = class extends Merge {
-  DEFAULT_AXIS = -1;
-  axis;
   constructor(args) {
     super(args);
+    this.DEFAULT_AXIS = -1;
     if (args == null) {
       args = {};
     }
@@ -34474,7 +34039,7 @@ var Concatenate = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Concatenate, "className", "Concatenate");
+Concatenate.className = "Concatenate";
 serialization_exports.registerClass(Concatenate);
 function interpretAxis(axis, dim) {
   while (axis < 0) {
@@ -34561,8 +34126,6 @@ function batchDot(x, y, axes) {
   });
 }
 var Dot = class extends Merge {
-  axes;
-  normalize;
   constructor(args) {
     super(args);
     this.axes = args.axes;
@@ -34665,12 +34228,11 @@ var Dot = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Dot, "className", "Dot");
+Dot.className = "Dot";
 serialization_exports.registerClass(Dot);
 
 // src/tfjs-layers/src/layers/noise.ts
 var GaussianNoise = class extends Layer {
-  stddev;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -34696,10 +34258,9 @@ var GaussianNoise = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(GaussianNoise, "className", "GaussianNoise");
+GaussianNoise.className = "GaussianNoise";
 serialization_exports.registerClass(GaussianNoise);
 var GaussianDropout = class extends Layer {
-  rate;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -34730,11 +34291,9 @@ var GaussianDropout = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(GaussianDropout, "className", "GaussianDropout");
+GaussianDropout.className = "GaussianDropout";
 serialization_exports.registerClass(GaussianDropout);
 var AlphaDropout = class extends Layer {
-  rate;
-  noiseShape;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -34780,7 +34339,7 @@ var AlphaDropout = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(AlphaDropout, "className", "AlphaDropout");
+AlphaDropout.className = "AlphaDropout";
 serialization_exports.registerClass(AlphaDropout);
 
 // src/tfjs-layers/src/layers/normalization.ts
@@ -34880,23 +34439,6 @@ function normalizeBatchInTraining(x, gamma, beta, reductionAxes, epsilon3 = 1e-3
   }
 }
 var BatchNormalization = class extends Layer {
-  axis;
-  momentum;
-  epsilon;
-  center;
-  scale;
-  betaInitializer;
-  gammaInitializer;
-  movingMeanInitializer;
-  movingVarianceInitializer;
-  betaConstraint;
-  gammaConstraint;
-  betaRegularizer;
-  gammaRegularizer;
-  gamma;
-  beta;
-  movingMean;
-  movingVariance;
   constructor(args) {
     if (args == null) {
       args = {};
@@ -35058,19 +34600,9 @@ var BatchNormalization = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(BatchNormalization, "className", "BatchNormalization");
+BatchNormalization.className = "BatchNormalization";
 serialization_exports.registerClass(BatchNormalization);
 var LayerNormalization = class extends Layer {
-  axis;
-  epsilon;
-  center;
-  scale;
-  betaInitializer;
-  gammaInitializer;
-  betaRegularizer;
-  gammaRegularizer;
-  gamma;
-  beta;
   constructor(args) {
     if (args == null) {
       args = {};
@@ -35218,7 +34750,7 @@ var LayerNormalization = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(LayerNormalization, "className", "LayerNormalization");
+LayerNormalization.className = "LayerNormalization";
 serialization_exports.registerClass(LayerNormalization);
 
 // src/tfjs-layers/src/layers/padding.ts
@@ -35255,8 +34787,6 @@ function spatial2dPadding(x, padding, dataFormat) {
   });
 }
 var ZeroPadding2D = class extends Layer {
-  dataFormat;
-  padding;
   constructor(args) {
     if (args == null) {
       args = {};
@@ -35348,7 +34878,7 @@ var ZeroPadding2D = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ZeroPadding2D, "className", "ZeroPadding2D");
+ZeroPadding2D.className = "ZeroPadding2D";
 serialization_exports.registerClass(ZeroPadding2D);
 
 // src/tfjs-layers/src/layers/pooling.ts
@@ -35421,9 +34951,6 @@ function pool3d(x, poolSize, strides, padding, dataFormat, poolMode) {
   });
 }
 var Pooling1D = class extends Layer {
-  poolSize;
-  strides;
-  padding;
   /**
    *
    * @param args Parameters for the Pooling layer.
@@ -35509,7 +35036,7 @@ var MaxPooling1D = class extends Pooling1D {
   }
 };
 /** @nocollapse */
-__publicField(MaxPooling1D, "className", "MaxPooling1D");
+MaxPooling1D.className = "MaxPooling1D";
 serialization_exports.registerClass(MaxPooling1D);
 var AveragePooling1D = class extends Pooling1D {
   constructor(args) {
@@ -35522,13 +35049,9 @@ var AveragePooling1D = class extends Pooling1D {
   }
 };
 /** @nocollapse */
-__publicField(AveragePooling1D, "className", "AveragePooling1D");
+AveragePooling1D.className = "AveragePooling1D";
 serialization_exports.registerClass(AveragePooling1D);
 var Pooling2D = class extends Layer {
-  poolSize;
-  strides;
-  padding;
-  dataFormat;
   constructor(args) {
     if (args.poolSize == null) {
       args.poolSize = [2, 2];
@@ -35602,7 +35125,7 @@ var MaxPooling2D = class extends Pooling2D {
   }
 };
 /** @nocollapse */
-__publicField(MaxPooling2D, "className", "MaxPooling2D");
+MaxPooling2D.className = "MaxPooling2D";
 serialization_exports.registerClass(MaxPooling2D);
 var AveragePooling2D = class extends Pooling2D {
   constructor(args) {
@@ -35615,13 +35138,9 @@ var AveragePooling2D = class extends Pooling2D {
   }
 };
 /** @nocollapse */
-__publicField(AveragePooling2D, "className", "AveragePooling2D");
+AveragePooling2D.className = "AveragePooling2D";
 serialization_exports.registerClass(AveragePooling2D);
 var Pooling3D = class extends Layer {
-  poolSize;
-  strides;
-  padding;
-  dataFormat;
   constructor(args) {
     if (args.poolSize == null) {
       args.poolSize = [2, 2, 2];
@@ -35709,7 +35228,7 @@ var MaxPooling3D = class extends Pooling3D {
   }
 };
 /** @nocollapse */
-__publicField(MaxPooling3D, "className", "MaxPooling3D");
+MaxPooling3D.className = "MaxPooling3D";
 serialization_exports.registerClass(MaxPooling3D);
 var AveragePooling3D = class extends Pooling3D {
   constructor(args) {
@@ -35729,7 +35248,7 @@ var AveragePooling3D = class extends Pooling3D {
   }
 };
 /** @nocollapse */
-__publicField(AveragePooling3D, "className", "AveragePooling3D");
+AveragePooling3D.className = "AveragePooling3D";
 serialization_exports.registerClass(AveragePooling3D);
 var GlobalPooling1D = class extends Layer {
   constructor(args) {
@@ -35755,7 +35274,7 @@ var GlobalAveragePooling1D = class extends GlobalPooling1D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalAveragePooling1D, "className", "GlobalAveragePooling1D");
+GlobalAveragePooling1D.className = "GlobalAveragePooling1D";
 serialization_exports.registerClass(GlobalAveragePooling1D);
 var GlobalMaxPooling1D = class extends GlobalPooling1D {
   constructor(args) {
@@ -35769,10 +35288,9 @@ var GlobalMaxPooling1D = class extends GlobalPooling1D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalMaxPooling1D, "className", "GlobalMaxPooling1D");
+GlobalMaxPooling1D.className = "GlobalMaxPooling1D";
 serialization_exports.registerClass(GlobalMaxPooling1D);
 var GlobalPooling2D = class extends Layer {
-  dataFormat;
   constructor(args) {
     super(args);
     this.dataFormat = args.dataFormat == null ? "channelsLast" : args.dataFormat;
@@ -35810,7 +35328,7 @@ var GlobalAveragePooling2D = class extends GlobalPooling2D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalAveragePooling2D, "className", "GlobalAveragePooling2D");
+GlobalAveragePooling2D.className = "GlobalAveragePooling2D";
 serialization_exports.registerClass(GlobalAveragePooling2D);
 var GlobalMaxPooling2D = class extends GlobalPooling2D {
   call(inputs, kwargs) {
@@ -35825,12 +35343,11 @@ var GlobalMaxPooling2D = class extends GlobalPooling2D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalMaxPooling2D, "className", "GlobalMaxPooling2D");
+GlobalMaxPooling2D.className = "GlobalMaxPooling2D";
 serialization_exports.registerClass(GlobalMaxPooling2D);
 
 // src/tfjs-layers/src/layers/wrappers.ts
 var Wrapper = class extends Layer {
-  layer;
   constructor(args) {
     super(args);
     this.layer = args.layer;
@@ -35952,7 +35469,7 @@ var TimeDistributed = class extends Wrapper {
   // TODO(cais): Implement detailed computeMask() logic.
 };
 /** @nocollapse */
-__publicField(TimeDistributed, "className", "TimeDistributed");
+TimeDistributed.className = "TimeDistributed";
 serialization_exports.registerClass(TimeDistributed);
 function checkBidirectionalMergeMode(value) {
   checkStringTypeUnionValue(
@@ -35963,13 +35480,6 @@ function checkBidirectionalMergeMode(value) {
 }
 var DEFAULT_BIDIRECTIONAL_MERGE_MODE = "concat";
 var Bidirectional = class extends Wrapper {
-  mergeMode;
-  forwardLayer;
-  backwardLayer;
-  returnSequences;
-  returnState;
-  numConstants;
-  _trainable;
   constructor(args) {
     super(args);
     const layerConfig = args.layer.getConfig();
@@ -36251,13 +35761,11 @@ var Bidirectional = class extends Wrapper {
   }
 };
 /** @nocollapse */
-__publicField(Bidirectional, "className", "Bidirectional");
+Bidirectional.className = "Bidirectional";
 serialization_exports.registerClass(Bidirectional);
 
 // src/tfjs-layers/src/layers/preprocessing/image_preprocessing.ts
 var Rescaling = class extends Layer {
-  scale;
-  offset;
   constructor(args) {
     super(args);
     this.scale = args.scale;
@@ -36287,14 +35795,12 @@ var Rescaling = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Rescaling, "className", "Rescaling");
+Rescaling.className = "Rescaling";
 serialization_exports.registerClass(Rescaling);
 
 // src/tfjs-layers/src/layers/preprocessing/center_crop.ts
 var { resizeBilinear: resizeBilinear2, cropAndResize: cropAndResize2 } = image;
 var CenterCrop = class extends Layer {
-  height;
-  width;
   constructor(args) {
     super(args);
     this.height = args.height;
@@ -36388,7 +35894,7 @@ var CenterCrop = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(CenterCrop, "className", "CenterCrop");
+CenterCrop.className = "CenterCrop";
 serialization_exports.registerClass(CenterCrop);
 
 // src/tfjs-layers/src/layers/preprocessing/preprocessing_utils.ts
@@ -36434,8 +35940,6 @@ function encodeCategoricalInputs(inputs, outputMode, depth, weights) {
 
 // src/tfjs-layers/src/layers/preprocessing/category_encoding.ts
 var CategoryEncoding = class extends Layer {
-  numTokens;
-  outputMode;
   constructor(args) {
     super(args);
     this.numTokens = args.numTokens;
@@ -36499,19 +36003,13 @@ var CategoryEncoding = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(CategoryEncoding, "className", "CategoryEncoding");
+CategoryEncoding.className = "CategoryEncoding";
 serialization_exports.registerClass(CategoryEncoding);
 
 // src/tfjs-layers/src/layers/preprocessing/image_resizing.ts
 var INTERPOLATION_KEYS = ["bilinear", "nearest"];
 var INTERPOLATION_METHODS = new Set(INTERPOLATION_KEYS);
 var Resizing = class extends Layer {
-  height;
-  width;
-  // method of interpolation to be used; default = "bilinear";
-  interpolation;
-  // toggle whether the aspect ratio should be preserved; default = false;
-  cropToAspectRatio;
   constructor(args) {
     super(args);
     this.height = args.height;
@@ -36561,12 +36059,11 @@ var Resizing = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Resizing, "className", "Resizing");
+Resizing.className = "Resizing";
 serialization_exports.registerClass(Resizing);
 
 // src/tfjs-layers/src/backend/random_seed.ts
 var RandomSeed = class {
-  seed;
   constructor(seed) {
     this.seed = seed;
   }
@@ -36577,11 +36074,10 @@ var RandomSeed = class {
     return this.seed++;
   }
 };
-__publicField(RandomSeed, "className", "RandomSeed");
+RandomSeed.className = "RandomSeed";
 
 // src/tfjs-layers/src/engine/base_random_layer.ts
 var BaseRandomLayer = class extends Layer {
-  randomGenerator;
   constructor(args) {
     super(args);
     this.randomGenerator = new RandomSeed(args.seed);
@@ -36597,19 +36093,12 @@ var BaseRandomLayer = class extends Layer {
 };
 // A layer handle the random number creation and savemodel behavior.
 /** @nocollapse */
-__publicField(BaseRandomLayer, "className", "BaseRandomLayer");
+BaseRandomLayer.className = "BaseRandomLayer";
 
 // src/tfjs-layers/src/layers/preprocessing/random_width.ts
 var INTERPOLATION_KEYS2 = ["bilinear", "nearest"];
 var INTERPOLATION_METHODS2 = new Set(INTERPOLATION_KEYS2);
 var RandomWidth = class extends BaseRandomLayer {
-  factor;
-  interpolation;
-  // defualt = 'bilinear
-  widthLower;
-  widthUpper;
-  imgHeight;
-  widthFactor;
   constructor(args) {
     super(args);
     const { factor, interpolation = "bilinear" } = args;
@@ -36688,7 +36177,7 @@ var RandomWidth = class extends BaseRandomLayer {
   }
 };
 /** @nocollapse */
-__publicField(RandomWidth, "className", "RandomWidth");
+RandomWidth.className = "RandomWidth";
 serialization_exports.registerClass(RandomWidth);
 
 // src/tfjs-layers/src/exports_layers.ts
@@ -37003,8 +36492,11 @@ function l22(config) {
 
 // src/tfjs-layers/src/callbacks.ts
 var Callback = class extends BaseCallback {
-  /** Instance of `keras.models.Model`. Reference of the model being trained. */
-  model = null;
+  constructor() {
+    super(...arguments);
+    /** Instance of `keras.models.Model`. Reference of the model being trained. */
+    this.model = null;
+  }
   setModel(model2) {
     if (!(model2 instanceof LayersModel)) {
       throw new Error("model must be a LayersModel, not some other Container");
@@ -37019,16 +36511,6 @@ function greater2(currVal, prevVal) {
   return currVal > prevVal;
 }
 var EarlyStopping = class extends Callback {
-  monitor;
-  minDelta;
-  patience;
-  baseline;
-  verbose;
-  mode;
-  monitorFunc;
-  wait;
-  stoppedEpoch;
-  best;
   constructor(args) {
     super();
     if (args == null) {
@@ -43547,7 +43029,6 @@ var json19 = [
 
 // src/tfjs-converter/src/operations/operation_mapper.ts
 var OperationMapper = class {
-  opMappers;
   // Singleton instance for the mapper
   static get Instance() {
     return this._instance || (this._instance = new this());
@@ -43967,7 +43448,6 @@ var OperationMapper = class {
     return { name, dtype: arg.type };
   }
 };
-__publicField(OperationMapper, "_instance");
 function decodeBase64(text) {
   const global2 = env().global;
   if (typeof global2.atob !== "undefined") {
@@ -44101,6 +43581,8 @@ var NodeValueImpl = class {
     this.node = node;
     this.tensorMap = tensorMap;
     this.context = context;
+    this.inputs = [];
+    this.attrs = {};
     this.inputs = node.inputNames.map((name) => this.getInput(name));
     if (node.rawAttrs != null) {
       this.attrs = Object.keys(node.rawAttrs).reduce((attrs, key) => {
@@ -44109,8 +43591,6 @@ var NodeValueImpl = class {
       }, {});
     }
   }
-  inputs = [];
-  attrs = {};
   /**
    * Return the value of the attribute or input param.
    * @param name String: name of attribute or input param.
@@ -44753,12 +44233,11 @@ var TensorArray = class {
     this.identicalElementShapes = identicalElementShapes;
     this.dynamicSize = dynamicSize;
     this.clearAfterRead = clearAfterRead;
+    this.tensors = [];
+    this.closed_ = false;
     this.idTensor = scalar(0);
     keep(this.idTensor);
   }
-  tensors = [];
-  closed_ = false;
-  idTensor;
   get id() {
     return this.idTensor.id;
   }
@@ -45012,8 +44491,6 @@ var TensorList = class {
     this.maxNumElements = maxNumElements;
     keep(this.idTensor);
   }
-  idTensor;
-  maxNumElements;
   get id() {
     return this.idTensor.id;
   }
@@ -46151,9 +45628,6 @@ var HashTable = class {
     this.tensorMap = /* @__PURE__ */ new Map();
     keep(this.handle);
   }
-  handle;
-  // tslint:disable-next-line: no-any
-  tensorMap;
   get id() {
     return this.handle.id;
   }
@@ -47183,12 +46657,11 @@ var ExecutionContext = class {
     this.tensorListMap = tensorListMap;
     this.functionMap = functionMap;
     this.parseNodeNameCache = parseNodeNameCache;
+    this.rootContext = { id: 0, frameName: "", iterationId: 0 };
+    this.contexts = [this.rootContext];
+    this.lastId = 0;
     this.generateCurrentContextIds();
   }
-  rootContext = { id: 0, frameName: "", iterationId: 0 };
-  contexts = [this.rootContext];
-  lastId = 0;
-  _currentContextIds;
   newFrame(id, frameName) {
     return { id, frameName, iterationId: 0 };
   }
@@ -47533,6 +47006,14 @@ var GraphExecutor = class {
   constructor(graph, parent) {
     this.graph = graph;
     this.parent = parent;
+    this.compiledMap = /* @__PURE__ */ new Map();
+    this.parseNodeNameCache = /* @__PURE__ */ new Map();
+    this._weightMap = {};
+    // Internal init nodes to start initialization.
+    this.SEPARATOR = ",";
+    this._functions = {};
+    this._functionExecutorMap = {};
+    this.keepIntermediateTensors = false;
     this._outputs = graph.outputs;
     this._inputs = graph.inputs;
     this._initNodes = graph.initNodes;
@@ -47544,21 +47025,6 @@ var GraphExecutor = class {
       });
     }
   }
-  compiledMap = /* @__PURE__ */ new Map();
-  parseNodeNameCache = /* @__PURE__ */ new Map();
-  _weightMap = {};
-  _weightIds;
-  _signature;
-  _inputs;
-  _outputs;
-  _initNodes;
-  // Internal init nodes to start initialization.
-  SEPARATOR = ",";
-  _functions = {};
-  _functionExecutorMap = {};
-  _resourceManager;
-  clonedTensorsMap;
-  keepIntermediateTensors = false;
   get weightIds() {
     return this.parent ? this.parent.weightIds : this._weightIds;
   }
@@ -48241,23 +47707,13 @@ var GraphModel = class {
   constructor(modelUrl, loadOptions = {}, tfio = io_exports) {
     this.modelUrl = modelUrl;
     this.loadOptions = loadOptions;
+    this.version = "n/a";
     this.io = tfio;
     if (loadOptions == null) {
       this.loadOptions = {};
     }
     this.resourceManager = new ResourceManager();
   }
-  executor;
-  version = "n/a";
-  handler;
-  artifacts;
-  initializer;
-  resourceIdToCapturedInput;
-  resourceManager;
-  signature;
-  initializerSignature;
-  structuredOutputKeys;
-  io;
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion() {
     return this.version;
@@ -48913,6 +48369,12 @@ var RingBuffer = class {
    */
   constructor(capacity) {
     this.capacity = capacity;
+    // Note we store the indices in the range 0 <= index < 2*capacity.
+    // This allows us to distinguish the full from the empty case.
+    // See https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/
+    this.begin = 0;
+    // inclusive
+    this.end = 0;
     if (capacity == null) {
       throw new RangeError("Can't create a ring buffer of unknown capacity.");
     }
@@ -48922,15 +48384,6 @@ var RingBuffer = class {
     this.data = new Array(capacity);
     this.doubledCapacity = 2 * capacity;
   }
-  // Note we store the indices in the range 0 <= index < 2*capacity.
-  // This allows us to distinguish the full from the empty case.
-  // See https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/
-  begin = 0;
-  // inclusive
-  end = 0;
-  // exclusive
-  doubledCapacity;
-  data;
   /**
    * Map any index into the range 0 <= index < 2*capacity.
    */
@@ -49091,7 +48544,7 @@ var _GrowingRingBuffer = class extends RingBuffer {
   }
 };
 var GrowingRingBuffer = _GrowingRingBuffer;
-__publicField(GrowingRingBuffer, "INITIAL_CAPACITY", 32);
+GrowingRingBuffer.INITIAL_CAPACITY = 32;
 
 // src/tfjs-data/src/iterators/lazy_iterator.ts
 function iteratorFromItems(items) {
@@ -49103,7 +48556,7 @@ function iteratorFromFunction(func2) {
 function iteratorFromConcatenated(baseIterators, baseErrorHandler) {
   return new ChainedIterator(baseIterators, baseErrorHandler);
 }
-function iteratorFromZipped(iterators, mismatchMode = ZipMismatchMode.FAIL) {
+function iteratorFromZipped(iterators, mismatchMode = 0 /* FAIL */) {
   return new ZipIterator(iterators, mismatchMode);
 }
 var LazyIterator = class {
@@ -49396,8 +48849,8 @@ var ArrayIterator = class extends LazyIterator {
   constructor(items) {
     super();
     this.items = items;
+    this.trav = 0;
   }
-  trav = 0;
   summary() {
     return `Array of ${this.items.length} items`;
   }
@@ -49433,9 +48886,6 @@ var SerialIterator = class extends LazyIterator {
     this.upstream = upstream;
     this.lastRead = Promise.resolve({ value: null, done: false });
   }
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead;
   summary() {
     return `${this.upstream.summary()} -> Serial`;
   }
@@ -49452,13 +48902,10 @@ var SkipIterator = class extends LazyIterator {
     super();
     this.upstream = upstream;
     this.maxCount = maxCount;
+    // Local state that should not be clobbered by out-of-order execution.
+    this.count = 0;
     this.lastRead = Promise.resolve({ value: null, done: false });
   }
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead;
-  // Local state that should not be clobbered by out-of-order execution.
-  count = 0;
   summary() {
     return `${this.upstream.summary()} -> Skip`;
   }
@@ -49482,8 +48929,8 @@ var TakeIterator = class extends LazyIterator {
     super();
     this.upstream = upstream;
     this.maxCount = maxCount;
+    this.count = 0;
   }
-  count = 0;
   summary() {
     return `${this.upstream.summary()} -> Take`;
   }
@@ -49502,9 +48949,6 @@ var RowMajorBatchIterator = class extends LazyIterator {
     this.enableSmallLastBatch = enableSmallLastBatch;
     this.lastRead = Promise.resolve({ value: null, done: false });
   }
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead;
   summary() {
     return `${this.upstream.summary()} -> RowMajorBatch`;
   }
@@ -49534,9 +48978,6 @@ var FilterIterator = class extends LazyIterator {
     this.predicate = predicate;
     this.lastRead = Promise.resolve({ value: null, done: false });
   }
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead;
   summary() {
     return `${this.upstream.summary()} -> Filter`;
   }
@@ -49584,15 +49025,12 @@ var ErrorHandlingLazyIterator = class extends LazyIterator {
     super();
     this.upstream = upstream;
     this.handler = handler;
+    this.count = 0;
     this.lastRead = Promise.resolve({ value: null, done: false });
   }
-  count = 0;
   summary() {
     return `${this.upstream.summary()} -> handleErrors`;
   }
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead;
   async next() {
     this.lastRead = this.lastRead.then(() => this.serialNext());
     return this.lastRead;
@@ -49635,11 +49073,6 @@ var AsyncMapIterator = class extends LazyIterator {
   }
 };
 var OneToManyIterator = class extends LazyIterator {
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead;
-  // Local state that should not be clobbered by out-of-order execution.
-  outputQueue;
   constructor() {
     super();
     this.outputQueue = new GrowingRingBuffer();
@@ -49688,14 +49121,13 @@ var ChainedIterator = class extends LazyIterator {
   constructor(iterators, baseErrorHandler) {
     super();
     this.baseErrorHandler = baseErrorHandler;
+    // Strict Promise execution order:
+    // a next() call may not even begin until the previous one completes.
+    this.lastRead = null;
+    // Local state that should not be clobbered by out-of-order execution.
+    this.iterator = null;
     this.moreIterators = iterators;
   }
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead = null;
-  // Local state that should not be clobbered by out-of-order execution.
-  iterator = null;
-  moreIterators;
   summary() {
     const upstreamSummaries = "TODO: fill in upstream of chained summaries";
     return `${upstreamSummaries} -> Chained`;
@@ -49724,20 +49156,14 @@ var ChainedIterator = class extends LazyIterator {
     return itemResult;
   }
 };
-var ZipMismatchMode = /* @__PURE__ */ ((ZipMismatchMode2) => {
-  ZipMismatchMode2[ZipMismatchMode2["FAIL"] = 0] = "FAIL";
-  ZipMismatchMode2[ZipMismatchMode2["SHORTEST"] = 1] = "SHORTEST";
-  ZipMismatchMode2[ZipMismatchMode2["LONGEST"] = 2] = "LONGEST";
-  return ZipMismatchMode2;
-})(ZipMismatchMode || {});
 var ZipIterator = class extends LazyIterator {
   constructor(iterators, mismatchMode = 0 /* FAIL */) {
     super();
     this.iterators = iterators;
     this.mismatchMode = mismatchMode;
+    this.count = 0;
+    this.currentPromise = null;
   }
-  count = 0;
-  currentPromise = null;
   summary() {
     const upstreamSummaries = "TODO: fill in upstream of zip summaries";
     return `{${upstreamSummaries}} -> Zip`;
@@ -49794,7 +49220,6 @@ var PrefetchIterator = class extends LazyIterator {
     this.bufferSize = bufferSize;
     this.buffer = new RingBuffer(bufferSize);
   }
-  buffer;
   summary() {
     return `${this.upstream.summary()} -> Prefetch`;
   }
@@ -49818,15 +49243,11 @@ var ShuffleIterator = class extends PrefetchIterator {
     super(upstream, windowSize);
     this.upstream = upstream;
     this.windowSize = windowSize;
+    // Local state that should not be clobbered by out-of-order execution.
+    this.upstreamExhausted = false;
     this.random = seedrandom2.alea(seed || util_exports.now().toString());
     this.lastRead = Promise.resolve({ value: null, done: false });
   }
-  random;
-  // Strict Promise execution order:
-  // a next() call may not even begin until the previous one completes.
-  lastRead;
-  // Local state that should not be clobbered by out-of-order execution.
-  upstreamExhausted = false;
   async next() {
     this.lastRead = this.lastRead.then(() => this.serialNext());
     return this.lastRead;
@@ -49857,7 +49278,9 @@ var ShuffleIterator = class extends PrefetchIterator {
 
 // src/tfjs-data/src/dataset.ts
 var Dataset = class {
-  size = null;
+  constructor() {
+    this.size = null;
+  }
   // TODO(soergel): Make Datasets report whether repeated iterator() calls
   // produce the same result (e.g., reading from a file) or different results
   // (e.g., from the webcam).  Currently we don't make this distinction but it
@@ -50270,10 +49693,13 @@ var Dataset = class {
   }
 };
 // TODO(soergel): deep sharded shuffle, where supported
-__publicField(Dataset, "MAX_BUFFER_SIZE", 1e4);
+Dataset.MAX_BUFFER_SIZE = 1e4;
 function datasetFromIteratorFn(iteratorFn, size = null) {
   return new class extends Dataset {
-    size = size;
+    constructor() {
+      super(...arguments);
+      this.size = size;
+    }
     /*
      * Provide a new stream of elements.  Note this will also start new streams
      * from any underlying `Dataset`s.
@@ -50407,6 +49833,13 @@ var CSVDataset = class extends Dataset {
   constructor(input2, csvConfig) {
     super();
     this.input = input2;
+    this.hasHeader = true;
+    this.fullColumnNames = null;
+    this.columnNamesValidated = false;
+    this.columnConfigs = null;
+    this.configuredColumnsOnly = false;
+    this.delimiter = ",";
+    this.delimWhitespace = false;
     this.base = new TextLineDataset(input2);
     if (!csvConfig) {
       csvConfig = {};
@@ -50426,14 +49859,6 @@ var CSVDataset = class extends Dataset {
       this.delimiter = csvConfig.delimiter ? csvConfig.delimiter : ",";
     }
   }
-  base;
-  hasHeader = true;
-  fullColumnNames = null;
-  columnNamesValidated = false;
-  columnConfigs = null;
-  configuredColumnsOnly = false;
-  delimiter = ",";
-  delimWhitespace = false;
   /**
    * Returns column names of the csv dataset. If `configuredColumnsOnly` is
    * true, return column names in `columnConfigs`. If `configuredColumnsOnly` is
@@ -50674,6 +50099,7 @@ var MicrophoneIterator = class extends LazyIterator {
   constructor(microphoneConfig) {
     super();
     this.microphoneConfig = microphoneConfig;
+    this.isClosed = false;
     this.fftSize = microphoneConfig.fftSize || 1024;
     const fftSizeLog2 = Math.log2(this.fftSize);
     if (this.fftSize < 0 || fftSizeLog2 < 4 || fftSizeLog2 > 14 || !Number.isInteger(fftSizeLog2)) {
@@ -50694,20 +50120,6 @@ var MicrophoneIterator = class extends LazyIterator {
       );
     }
   }
-  isClosed = false;
-  stream;
-  fftSize;
-  columnTruncateLength;
-  freqData;
-  timeData;
-  numFrames;
-  analyser;
-  audioContext;
-  sampleRateHz;
-  audioTrackConstraints;
-  smoothingTimeConstant;
-  includeSpectrogram;
-  includeWaveform;
   summary() {
     return `microphone`;
   }
@@ -50851,6 +50263,8 @@ var WebcamIterator = class extends LazyIterator {
     super();
     this.webcamVideoElement = webcamVideoElement;
     this.webcamConfig = webcamConfig;
+    this.isClosed = true;
+    this.resize = false;
     if (this.needToResize()) {
       this.resize = true;
       this.cropSize = [this.webcamConfig.resizeHeight, this.webcamConfig.resizeWidth];
@@ -50871,12 +50285,6 @@ var WebcamIterator = class extends LazyIterator {
       }
     }
   }
-  isClosed = true;
-  stream;
-  resize = false;
-  cropSize;
-  cropBox;
-  cropBoxInd;
   summary() {
     return `webcam`;
   }
@@ -51045,7 +50453,6 @@ var SplitIterator = class extends StringIterator {
     this.upstream = upstream;
     this.impl = new SplitIteratorImpl(upstream, separator);
   }
-  impl;
   summary() {
     return this.impl.summary();
   }
@@ -51058,9 +50465,9 @@ var SplitIteratorImpl = class extends OneToManyIterator {
     super();
     this.upstream = upstream;
     this.separator = separator;
+    // A partial string at the end of an upstream chunk
+    this.carryover = "";
   }
-  // A partial string at the end of an upstream chunk
-  carryover = "";
   summary() {
     return `${this.upstream.summary()} -> Split('${this.separator}')`;
   }
@@ -51105,7 +50512,6 @@ var Utf8Iterator = class extends StringIterator {
     this.upstream = upstream;
     this.impl = new Utf8IteratorImpl(upstream);
   }
-  impl;
   summary() {
     return this.impl.summary();
   }
@@ -51124,10 +50530,6 @@ var Utf8IteratorImpl = class extends OneToManyIterator {
       this.decoder = new StringDecoder("utf8");
     }
   }
-  // `decoder` as `any` here to dynamically assign value based on the
-  // environment.
-  // tslint:disable-next-line:no-any
-  decoder;
   summary() {
     return `${this.upstream.summary()} -> Utf8`;
   }
@@ -51163,8 +50565,6 @@ var FileChunkIterator = class extends ByteChunkIterator {
     this.offset = options.offset || 0;
     this.chunkSize = options.chunkSize || 1024 * 1024;
   }
-  offset;
-  chunkSize;
   summary() {
     return `FileChunks ${this.file}`;
   }
@@ -51334,15 +50734,14 @@ function assertNotComplex(tensor2, opName) {
 // src/tfjs-backend-cpu/src/backend_cpu.ts
 var whereImpl2 = kernel_impls_exports.whereImpl;
 var _MathBackendCPU = class extends KernelBackend {
-  blockSize = 48;
-  data;
-  firstUse = true;
-  nextDataId() {
-    return _MathBackendCPU.nextDataId++;
-  }
   constructor() {
     super();
+    this.blockSize = 48;
+    this.firstUse = true;
     this.data = new DataStorage(this, engine());
+  }
+  nextDataId() {
+    return _MathBackendCPU.nextDataId++;
   }
   write(values, shape, dtype) {
     if (this.firstUse) {
@@ -51486,7 +50885,7 @@ var _MathBackendCPU = class extends KernelBackend {
   }
 };
 var MathBackendCPU = _MathBackendCPU;
-__publicField(MathBackendCPU, "nextDataId", 0);
+MathBackendCPU.nextDataId = 0;
 
 // src/tfjs-backend-cpu/src/shared.ts
 var shared_exports = {};
@@ -52537,8 +51936,6 @@ var RaggedTensorToTensorOp = class {
     this.rowPartitionTypes = backend_util_exports.getRowPartitionTypesHelper(rowPartitionTypeStrings);
     this.raggedRank = backend_util_exports.getRaggedRank(this.rowPartitionTypes);
   }
-  rowPartitionTypes;
-  raggedRank;
   getRowPartitionTypeByDimension(dimension) {
     if (this.rowPartitionTypes[0] === RowPartitionType2.FIRST_DIM_SIZE) {
       return this.rowPartitionTypes[dimension + 1];
@@ -53377,12 +52774,6 @@ function stridedSliceImpl(outShape, xBuf, strides, begin) {
 
 // src/tfjs-backend-cpu/src/kernels/StringNGrams_impl.ts
 var StringNGramsOp = class {
-  separator;
-  nGramWidths;
-  padWidth;
-  leftPad;
-  rightPad;
-  preserveShort;
   constructor(separator, nGramWidths, leftPad, rightPad2, padWidth, preserveShortSequences) {
     this.separator = util_exports.encodeString(separator);
     this.nGramWidths = nGramWidths;
@@ -62998,15 +62389,12 @@ function useShapeUniforms(rank) {
 
 // src/tfjs-backend-webgl/src/decode_matrix_gpu.ts
 var DecodeMatrixProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  packedInputs = false;
-  packedOutput = true;
-  outPackingScheme = 0 /* DENSE */;
-  enableShapeUniforms;
-  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = false;
+    this.packedOutput = true;
+    this.outPackingScheme = 0 /* DENSE */;
+    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -63042,15 +62430,12 @@ var DecodeMatrixProgram = class {
 
 // src/tfjs-backend-webgl/src/decode_matrix_packed_gpu.ts
 var DecodeMatrixPackedProgram = class {
-  variableNames = ["A"];
-  userCode;
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  outPackingScheme = 0 /* DENSE */;
-  enableShapeUniforms;
-  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.outPackingScheme = 0 /* DENSE */;
+    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -63086,11 +62471,9 @@ var DecodeMatrixPackedProgram = class {
 
 // src/tfjs-backend-webgl/src/encode_float_gpu.ts
 var EncodeFloatProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  outTexUsage = 3 /* DOWNLOAD */;
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -63106,13 +62489,11 @@ var EncodeFloatProgram = class {
 
 // src/tfjs-backend-webgl/src/encode_float_packed_gpu.ts
 var EncodeFloatPackedProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  packedInputs = true;
-  packedOutput = false;
-  outTexUsage = 3 /* DOWNLOAD */;
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = false;
+    this.outTexUsage = 3 /* DOWNLOAD */;
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
@@ -63135,12 +62516,9 @@ var CHANNEL_CHAR_TO_INDEX_MAP = {
   "A": 3
 };
 var EncodeMatrixProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  enableShapeUniforms;
-  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape, inputIsUnsignedByte = false, usedChannels = "RGBA") {
+    this.variableNames = ["A"];
+    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -63182,14 +62560,11 @@ var EncodeMatrixProgram = class {
 
 // src/tfjs-backend-webgl/src/encode_matrix_packed_gpu.ts
 var EncodeMatrixPackedProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  packedInputs = false;
-  packedOutput = true;
-  enableShapeUniforms;
-  customUniforms = [{ name: "texShape", type: "ivec2" }];
   constructor(outputShape, inputIsUnsignedByte = false) {
+    this.variableNames = ["A"];
+    this.packedInputs = false;
+    this.packedOutput = true;
+    this.customUniforms = [{ name: "texShape", type: "ivec2" }];
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -63638,27 +63013,11 @@ function downloadMatrixFromPackedOutputTexture(gl, physicalRows, physicalCols) {
 
 // src/tfjs-backend-webgl/src/gpgpu_context.ts
 var GPGPUContext = class {
-  gl;
-  textureFloatExtension;
-  textureHalfFloatExtension;
-  colorBufferFloatExtension;
-  colorBufferHalfFloatExtension;
-  disjointQueryTimerExtension;
-  parallelCompilationExtension;
-  vertexBuffer;
-  indexBuffer;
-  framebuffer;
-  outputTexture = null;
-  program = null;
-  disposed = false;
-  disjoint;
-  vertexShader;
-  textureConfig;
-  createVertexArray;
-  bindVertexArray;
-  deleteVertexArray;
-  getVertexArray;
   constructor(gl) {
+    this.outputTexture = null;
+    this.program = null;
+    this.disposed = false;
+    this.itemsToPoll = [];
     const glVersion = env().getNumber("WEBGL_VERSION");
     if (gl != null) {
       this.gl = gl;
@@ -64161,7 +63520,6 @@ var GPGPUContext = class {
       this.addItemToPoll(() => fenceContext.isFencePassed(), () => resolve());
     });
   }
-  itemsToPoll = [];
   pollItems() {
     const index = linearSearchLastTrue(this.itemsToPoll.map((x) => x.isDoneFn));
     for (let i = 0; i <= index; ++i) {
@@ -64338,14 +63696,10 @@ function getSourceCoords(rank, dims) {
 
 // src/tfjs-backend-webgl/src/pack_gpu.ts
 var PackProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  userCode;
-  packedInputs = false;
-  packedOutput = true;
-  enableShapeUniforms;
-  rank;
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = false;
+    this.packedOutput = true;
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -64359,7 +63713,7 @@ var PackProgram = class {
       const channels = getChannels("rc", this.rank);
       const dtype = getCoordsDataType(this.rank);
       const outOfBoundsCondition = this.getOutOfBoundsCondition(channels);
-      const setup73 = this.getSetup(channels);
+      const setup76 = this.getSetup(channels);
       const output = this.getOutput(channels);
       this.userCode = `
         void main() {
@@ -64368,7 +63722,7 @@ var PackProgram = class {
           if(${outOfBoundsCondition}) {
             setOutput(vec4(0));
           } else {
-            ${setup73}
+            ${setup76}
 
             setOutput(vec4(${output}));
           }
@@ -64434,14 +63788,11 @@ var PackProgram = class {
 
 // src/tfjs-backend-webgl/src/reshape_packed_gpu.ts
 var ReshapePackedProgram = class {
-  variableNames = ["A"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  enableShapeUniforms;
-  customUniforms = [{ name: "inputShape", type: "ivec3" }];
   constructor(outputShape, inputShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [{ name: "inputShape", type: "ivec3" }];
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     let mainLoop = ``;
@@ -64503,15 +63854,15 @@ function getReshapedInputCoords(shape, enableShapeUniforms) {
 var TextureManager = class {
   constructor(gpgpu) {
     this.gpgpu = gpgpu;
+    this.numUsedTextures = 0;
+    this.numFreeTextures = 0;
+    this._numBytesAllocated = 0;
+    // Number of bytes that have been allocated and available for reuse.
+    this._numBytesFree = 0;
+    this.freeTextures = {};
+    this.usedTextures = {};
+    this.logEnabled = false;
   }
-  numUsedTextures = 0;
-  numFreeTextures = 0;
-  _numBytesAllocated = 0;
-  // Number of bytes that have been allocated and available for reuse.
-  _numBytesFree = 0;
-  freeTextures = {};
-  usedTextures = {};
-  logEnabled = false;
   acquireTexture(shapeRC, usage, isPacked) {
     const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
     const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
@@ -64714,11 +64065,8 @@ function getKeyFromTextureShape(shapeRowsCol, physicalTexType, isPacked) {
 
 // src/tfjs-backend-webgl/src/unaryop_gpu.ts
 var UnaryOpProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  enableShapeUniforms;
   constructor(aShape, opSnippet) {
+    this.variableNames = ["A"];
     this.outputShape = aShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
@@ -64784,13 +64132,10 @@ var RELU62 = `
 `;
 var SIGMOID2 = `return 1.0 / (1.0 + exp(-1.0 * x));`;
 var UnaryOpPackedProgram = class {
-  variableNames = ["A"];
-  userCode;
-  enableShapeUniforms;
-  outputShape;
-  packedInputs = true;
-  packedOutput = true;
   constructor(aShape, opSnippet) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.outputShape = aShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
@@ -64810,13 +64155,10 @@ var UnaryOpPackedProgram = class {
 
 // src/tfjs-backend-webgl/src/unpack_gpu.ts
 var UnpackProgram = class {
-  variableNames = ["A"];
-  packedInputs = true;
-  packedOutput = false;
-  outputShape;
-  userCode;
-  enableShapeUniforms;
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = false;
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = outputShape.length;
@@ -64857,38 +64199,26 @@ function numMBBeforeWarning() {
   return env().global.screen.height * env().global.screen.width * window.devicePixelRatio * BEFORE_PAGING_CONSTANT / 1024 / 1024;
 }
 var _MathBackendWebGL = class extends KernelBackend {
-  texData;
-  gpgpu;
-  nextDataId() {
-    return _MathBackendWebGL.nextDataId++;
-  }
-  // Maps data ids that have a pending read operation, to list of subscribers.
-  pendingRead = /* @__PURE__ */ new WeakMap();
-  // List of data ids that are scheduled for disposal, but are waiting on a
-  // pending read operation.
-  pendingDisposal = /* @__PURE__ */ new WeakSet();
-  // Used to count the number of 'shallow' sliced tensors that point to the
-  // same data id.
-  dataRefCount = /* @__PURE__ */ new WeakMap();
-  numBytesInGPU = 0;
-  canvas;
-  programTimersStack;
-  activeTimers;
-  // Accumulated time spent (including blocking) in uploading data to webgl.
-  uploadWaitMs = 0;
-  // Accumulated time spent (including blocking in downloading data from webgl.
-  downloadWaitMs = 0;
-  // record the last manual GL Flush time.
-  lastGlFlushTime = 0;
-  // Number of bits of precision of this backend.
-  floatPrecisionValue;
-  textureManager;
-  binaryCache;
-  gpgpuCreatedLocally;
-  numMBBeforeWarning;
-  warnedAboutMemory = false;
   constructor(gpuResource) {
     super();
+    // Maps data ids that have a pending read operation, to list of subscribers.
+    this.pendingRead = /* @__PURE__ */ new WeakMap();
+    // List of data ids that are scheduled for disposal, but are waiting on a
+    // pending read operation.
+    this.pendingDisposal = /* @__PURE__ */ new WeakSet();
+    // Used to count the number of 'shallow' sliced tensors that point to the
+    // same data id.
+    this.dataRefCount = /* @__PURE__ */ new WeakMap();
+    this.numBytesInGPU = 0;
+    // Accumulated time spent (including blocking) in uploading data to webgl.
+    this.uploadWaitMs = 0;
+    // Accumulated time spent (including blocking in downloading data from webgl.
+    this.downloadWaitMs = 0;
+    // record the last manual GL Flush time.
+    this.lastGlFlushTime = 0;
+    this.warnedAboutMemory = false;
+    this.pendingDeletes = 0;
+    this.disposed = false;
     if (!env().getBool("HAS_WEBGL")) {
       throw new Error("WebGL is not supported on this device");
     }
@@ -64913,6 +64243,9 @@ var _MathBackendWebGL = class extends KernelBackend {
     this.textureManager = new TextureManager(this.gpgpu);
     this.numMBBeforeWarning = numMBBeforeWarning();
     this.texData = new DataStorage(this, engine());
+  }
+  nextDataId() {
+    return _MathBackendWebGL.nextDataId++;
   }
   numDataIds() {
     return this.texData.numDataIds() - this.pendingDeletes;
@@ -65273,7 +64606,6 @@ var _MathBackendWebGL = class extends KernelBackend {
     const timerQuery = query;
     return timerQuery.endMs - timerQuery.startMs;
   }
-  pendingDeletes = 0;
   /**
    * Decrease the RefCount on the dataId and dispose the memory if the dataId
    * has 0 refCount. If there are pending read on the data, the disposal would
@@ -65595,7 +64927,6 @@ var _MathBackendWebGL = class extends KernelBackend {
   getTextureManager() {
     return this.textureManager;
   }
-  disposed = false;
   dispose() {
     if (this.disposed) {
       return;
@@ -65835,7 +65166,7 @@ var _MathBackendWebGL = class extends KernelBackend {
   }
 };
 var MathBackendWebGL = _MathBackendWebGL;
-__publicField(MathBackendWebGL, "nextDataId", 0);
+MathBackendWebGL.nextDataId = 0;
 function float32ToTypedArray(a, dtype) {
   if (dtype === "float32" || dtype === "complex64") {
     return a;
@@ -65875,11 +65206,8 @@ var CHECK_NAN_SNIPPET2 = `
   if (isnan(b)) return b;
 `;
 var BinaryOpProgram = class {
-  variableNames = ["A", "B"];
-  outputShape;
-  userCode;
-  enableShapeUniforms;
   constructor(op2, aShape, bShape) {
+    this.variableNames = ["A", "B"];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
@@ -65904,14 +65232,11 @@ var CHECK_NAN_SNIPPET_PACKED = `
   result.a = isNaN.a ? NAN : result.a;
 `;
 var BinaryOpPackedProgram = class {
-  variableNames = ["A", "B"];
-  outputShape;
-  userCode;
-  supportsBroadcasting = true;
-  packedInputs = true;
-  packedOutput = true;
-  enableShapeUniforms;
   constructor(op2, aShape, bShape, checkOutOfBounds = false) {
+    this.variableNames = ["A", "B"];
+    this.supportsBroadcasting = true;
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     const rank = this.outputShape.length;
     this.enableShapeUniforms = useShapeUniforms(rank);
@@ -66198,13 +65523,10 @@ function mapActivationToShaderProgram(activation2, packed = false) {
 
 // src/tfjs-backend-webgl/src/mulmat_packed_gpu.ts
 var MatMulPackedProgram = class {
-  variableNames = ["matrixA", "matrixB"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  enableShapeUniforms;
   constructor(aShape, bShape, outputShape, transposeA = false, transposeB = false, addBias = false, activation2 = null, hasPreluActivation = false, hasLeakyreluActivation = false) {
+    this.variableNames = ["matrixA", "matrixB"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const sharedDim = transposeA ? aShape[1] : aShape[2];
@@ -66290,10 +65612,8 @@ var COMPLEX_MULTIPLY = {
   IMAG: "return areal * bimag + aimag * breal;"
 };
 var BinaryOpComplexProgram = class {
-  variableNames = ["AReal", "AImag", "BReal", "BImag"];
-  userCode;
-  outputShape;
   constructor(op2, aShape, bShape) {
+    this.variableNames = ["AReal", "AImag", "BReal", "BImag"];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.userCode = `
       float binaryOpComplex(
@@ -66445,10 +65765,8 @@ var reshapeConfig2 = {
 
 // src/tfjs-backend-webgl/src/mean_gpu.ts
 var MeanProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
   constructor(reduceInfo, divisor) {
+    this.variableNames = ["x"];
     const { windowSize, batchSize, inSize, outSize } = reduceInfo;
     this.outputShape = [batchSize, outSize];
     const windowSizeNearestVec4 = Math.floor(windowSize / 4) * 4;
@@ -66521,10 +65839,8 @@ var MeanProgram = class {
 
 // src/tfjs-backend-webgl/src/reduce_gpu.ts
 var ReduceProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
   constructor(reduceInfo, reduceType) {
+    this.variableNames = ["x"];
     const { windowSize, batchSize, inSize, outSize } = reduceInfo;
     this.outputShape = [batchSize, outSize];
     let initializationValue = "0.0";
@@ -66704,11 +66020,8 @@ function reduce(x, dtype, reductionType, backend2) {
 
 // src/tfjs-backend-webgl/src/transpose_gpu.ts
 var TransposeProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  userCode;
-  rank;
   constructor(aShape, newDim) {
+    this.variableNames = ["A"];
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];
@@ -66740,13 +66053,10 @@ function getSwitchedCoords(newDim) {
 
 // src/tfjs-backend-webgl/src/transpose_packed_gpu.ts
 var TransposePackedProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  userCode;
-  rank;
-  packedInputs = true;
-  packedOutput = true;
   constructor(aShape, newDim) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];
@@ -67080,10 +66390,8 @@ var addConfig2 = {
 
 // src/tfjs-backend-webgl/src/addn_gpu.ts
 var AddNProgram = class {
-  variableNames;
-  outputShape = [];
-  userCode;
   constructor(outputShape, shapes) {
+    this.outputShape = [];
     this.outputShape = outputShape;
     this.variableNames = shapes.map((_, i) => `T${i}`);
     const snippets = [];
@@ -67106,12 +66414,10 @@ var AddNProgram = class {
 
 // src/tfjs-backend-webgl/src/addn_packed_gpu.ts
 var AddNPackedProgram = class {
-  variableNames;
-  outputShape = [];
-  userCode;
-  packedInputs = true;
-  packedOutput = true;
   constructor(outputShape, shapes) {
+    this.outputShape = [];
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.outputShape = outputShape;
     this.variableNames = shapes.map((_, i) => `T${i}`);
     const snippets = [];
@@ -67237,10 +66543,8 @@ var anyConfig2 = {
 
 // src/tfjs-backend-webgl/src/argminmax_gpu.ts
 var ArgMinMaxProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  userCode;
   constructor(reduceInfo, op2, firstPass) {
+    this.variableNames = ["A"];
     const { windowSize, batchSize, outSize } = reduceInfo;
     if (!firstPass) {
       this.variableNames.push("bestIndicesA");
@@ -67274,12 +66578,10 @@ var ArgMinMaxProgram = class {
 
 // src/tfjs-backend-webgl/src/argminmax_packed_gpu.ts
 var ArgMinMaxPackedProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  userCode;
-  packedInputs = true;
-  packedOutput = true;
   constructor(shape, windowSize, op2, firstPass) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     util_exports.assert(
       shape.length > 2,
       () => `Packed arg${op2.charAt(0).toUpperCase() + op2.slice(1)} supports only inputs with rank above 2.`
@@ -67579,10 +66881,8 @@ var atanhConfig2 = {
 
 // src/tfjs-backend-webgl/src/pool_gpu.ts
 var Pool2DProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
   constructor(convInfo, poolType, computePositions, flattenPositions = false, includeBatchInIndex = false) {
+    this.variableNames = ["x"];
     if (poolType === "avg" && computePositions) {
       throw new Error("Cannot compute positions for average pool.");
     }
@@ -67761,10 +67061,8 @@ var Pool2DProgram = class {
   }
 };
 var Pool3DProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
   constructor(convInfo, poolType, computePositions, flattenPositions = false, includeBatchInIndex = false) {
+    this.variableNames = ["x"];
     if (poolType === "avg" && computePositions) {
       throw new Error("Cannot compute positions for average pool.");
     }
@@ -68024,10 +67322,8 @@ var avgPool3DConfig2 = {
 
 // src/tfjs-backend-webgl/src/avg_pool_backprop_gpu.ts
 var AvgPool2DBackpropProgram = class {
-  variableNames = ["dy"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["dy"];
     this.outputShape = convInfo.inShape;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
@@ -68086,10 +67382,8 @@ var AvgPool2DBackpropProgram = class {
   }
 };
 var AvgPool3DBackpropProgram = class {
-  variableNames = ["dy"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["dy"];
     this.outputShape = convInfo.inShape;
     const filterDepth = convInfo.filterDepth;
     const filterHeight = convInfo.filterHeight;
@@ -68229,10 +67523,8 @@ var batchMatMulConfig2 = {
 
 // src/tfjs-backend-webgl/src/batchnorm_gpu.ts
 var BatchNormProgram = class {
-  variableNames;
-  outputShape = [];
-  userCode;
   constructor(xShape, meanShape, varianceShape, offsetShape, scaleShape, varianceEpsilon) {
+    this.outputShape = [];
     this.variableNames = ["x", "mean", "variance"];
     backend_util_exports.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util_exports.assertAndGetBroadcastShape(xShape, varianceShape);
@@ -68265,12 +67557,9 @@ var BatchNormProgram = class {
 
 // src/tfjs-backend-webgl/src/batchnorm_packed_gpu.ts
 var BatchNormPackedProgram = class {
-  variableNames;
-  outputShape;
-  userCode;
-  packedInputs = true;
-  packedOutput = true;
   constructor(xShape, meanShape, varianceShape, offsetShape, scaleShape, varianceEpsilon) {
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.variableNames = ["x", "mean", "variance"];
     backend_util_exports.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util_exports.assertAndGetBroadcastShape(xShape, varianceShape);
@@ -68360,12 +67649,8 @@ var batchNormConfig2 = {
 
 // src/tfjs-backend-webgl/src/slice_gpu.ts
 var SliceProgram = class {
-  variableNames = ["source"];
-  outputShape;
-  userCode;
-  rank;
-  customUniforms;
   constructor(destSize) {
+    this.variableNames = ["source"];
     this.outputShape = destSize;
     this.rank = destSize.length;
     const dtype = getCoordsDataType(this.rank);
@@ -68401,14 +67686,10 @@ function getCoords(rank) {
 
 // src/tfjs-backend-webgl/src/slice_packed_gpu.ts
 var SlicePackedProgram = class {
-  variableNames = ["source"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  rank;
-  customUniforms;
   constructor(destSize) {
+    this.variableNames = ["source"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.outputShape = destSize;
     this.rank = destSize.length;
     this.customUniforms = [{ name: "start", arrayIndex: this.rank, type: "int" }];
@@ -68727,14 +68008,12 @@ var ceilConfig2 = {
 
 // src/tfjs-backend-webgl/src/clip_gpu.ts
 var ClipProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  customUniforms = [
-    { name: "minVal", type: "float" },
-    { name: "maxVal", type: "float" }
-  ];
   constructor(aShape) {
+    this.variableNames = ["A"];
+    this.customUniforms = [
+      { name: "minVal", type: "float" },
+      { name: "maxVal", type: "float" }
+    ];
     this.outputShape = aShape;
     this.userCode = `
 
@@ -68753,16 +68032,14 @@ var ClipProgram = class {
 
 // src/tfjs-backend-webgl/src/clip_packed_gpu.ts
 var ClipPackedProgram = class {
-  variableNames = ["A"];
-  packedInputs = true;
-  packedOutput = true;
-  userCode;
-  outputShape;
-  customUniforms = [
-    { name: "minVal", type: "float" },
-    { name: "maxVal", type: "float" }
-  ];
   constructor(aShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [
+      { name: "minVal", type: "float" },
+      { name: "maxVal", type: "float" }
+    ];
     this.outputShape = aShape;
     this.userCode = `
       void main() {
@@ -68801,10 +68078,8 @@ var clipByValueConfig2 = {
 
 // src/tfjs-backend-webgl/src/complex_abs_gpu.ts
 var ComplexAbsProgram = class {
-  variableNames = ["real", "imag"];
-  userCode;
-  outputShape;
   constructor(shape) {
+    this.variableNames = ["real", "imag"];
     this.outputShape = shape;
     this.userCode = `
       void main() {
@@ -68854,11 +68129,9 @@ var complexAbsConfig2 = {
 
 // src/tfjs-backend-webgl/src/concat_gpu.ts
 var ConcatProgram = class {
-  variableNames;
-  outputShape = [];
-  userCode;
   // Concats 2d tensors along axis=1. See comments in MathBackendWebGL.concat().
   constructor(shapes) {
+    this.outputShape = [];
     this.outputShape = backend_util_exports.computeOutShape(
       shapes,
       1
@@ -68894,12 +68167,10 @@ var ConcatProgram = class {
 
 // src/tfjs-backend-webgl/src/concat_packed_gpu.ts
 var ConcatPackedProgram = class {
-  variableNames;
-  packedInputs = true;
-  packedOutput = true;
-  outputShape = [];
-  userCode;
   constructor(shapes, axis) {
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.outputShape = [];
     this.outputShape = backend_util_exports.computeOutShape(shapes, axis);
     const shape = this.outputShape;
     const rank = shape.length;
@@ -69096,10 +68367,8 @@ var concatConfig2 = {
 
 // src/tfjs-backend-webgl/src/conv_gpu.ts
 var Conv2DProgram = class {
-  variableNames = ["x", "W"];
-  outputShape;
-  userCode;
   constructor(convInfo, addBias = false, activation2 = null, hasPreluActivationWeights = false, hasLeakyreluAlpha = false) {
+    this.variableNames = ["x", "W"];
     this.outputShape = convInfo.outShape;
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
@@ -69274,10 +68543,8 @@ var Conv2DProgram = class {
   }
 };
 var Conv3DProgram = class {
-  variableNames = ["x", "W"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["x", "W"];
     this.outputShape = convInfo.outShape;
     const padFront = convInfo.padInfo.front;
     const padTop = convInfo.padInfo.top;
@@ -69387,19 +68654,16 @@ var Conv3DProgram = class {
 
 // src/tfjs-backend-webgl/src/conv_packed_gpu.ts
 var Conv2DPackedProgram = class {
-  variableNames = ["x", "W"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  enableShapeUniforms;
-  customUniforms = [
-    { name: "pads", type: "ivec2" },
-    { name: "strides", type: "ivec2" },
-    { name: "dilations", type: "ivec2" },
-    { name: "inDims", type: "ivec2" }
-  ];
   constructor(convInfo, addBias = false, activation2 = null, hasPreluActivation = false, hasLeakyReluAlpha = false) {
+    this.variableNames = ["x", "W"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [
+      { name: "pads", type: "ivec2" },
+      { name: "strides", type: "ivec2" },
+      { name: "dilations", type: "ivec2" },
+      { name: "inDims", type: "ivec2" }
+    ];
     this.outputShape = convInfo.outShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const padLeft = convInfo.padInfo.left;
@@ -69698,22 +68962,19 @@ var Conv2DPackedProgram = class {
 
 // src/tfjs-backend-webgl/src/im2col_packed_gpu.ts
 var Im2ColPackedProgram = class {
-  variableNames = ["A"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  enableShapeUniforms;
-  customUniforms = [
-    { name: "inputShape", type: "ivec4" },
-    { name: "pad", type: "ivec2" },
-    { name: "stride", type: "ivec2" },
-    { name: "dilation", type: "ivec2" },
-    { name: "inChannels", type: "int" },
-    { name: "itemsPerBlockRow", type: "int" },
-    { name: "outWidth", type: "int" }
-  ];
   constructor(outputShape, convInfo) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [
+      { name: "inputShape", type: "ivec4" },
+      { name: "pad", type: "ivec2" },
+      { name: "stride", type: "ivec2" },
+      { name: "dilation", type: "ivec2" },
+      { name: "inChannels", type: "int" },
+      { name: "itemsPerBlockRow", type: "int" },
+      { name: "outWidth", type: "int" }
+    ];
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const { dataFormat } = convInfo;
@@ -70072,10 +69333,8 @@ var conv2DConfig2 = {
 
 // src/tfjs-backend-webgl/src/conv_backprop_gpu.ts
 var Conv2DDerFilterProgram = class {
-  variableNames = ["x", "dy"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["x", "dy"];
     this.outputShape = convInfo.filterShape;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -70123,10 +69382,8 @@ var Conv2DDerFilterProgram = class {
   }
 };
 var Conv2DDerInputProgram = class {
-  variableNames = ["dy", "W"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["dy", "W"];
     this.outputShape = convInfo.inShape;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
@@ -70195,10 +69452,8 @@ var Conv2DDerInputProgram = class {
   }
 };
 var Conv3DDerFilterProgram = class {
-  variableNames = ["x", "dy"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["x", "dy"];
     this.outputShape = convInfo.filterShape;
     const strideDepth = convInfo.strideDepth;
     const strideHeight = convInfo.strideHeight;
@@ -70252,10 +69507,8 @@ var Conv3DDerFilterProgram = class {
   }
 };
 var Conv3DDerInputProgram = class {
-  variableNames = ["dy", "W"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["dy", "W"];
     this.outputShape = convInfo.inShape;
     const filterDepth = convInfo.filterDepth;
     const filterHeight = convInfo.filterHeight;
@@ -70354,16 +69607,13 @@ var conv2DBackpropFilterConfig2 = {
 
 // src/tfjs-backend-webgl/src/conv_backprop_packed_gpu.ts
 var Conv2DDerInputPackedProgram = class {
-  variableNames = ["dy", "W"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  enableShapeUniforms;
-  customUniforms = [
-    { name: "strides", type: "vec2" }
-  ];
   constructor(convInfo) {
+    this.variableNames = ["dy", "W"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [
+      { name: "strides", type: "vec2" }
+    ];
     this.outputShape = convInfo.inShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const filterHeight = convInfo.filterHeight;
@@ -70580,10 +69830,9 @@ var coshConfig2 = {
 
 // src/tfjs-backend-webgl/src/crop_and_resize_gpu.ts
 var CropAndResizeProgram = class {
-  variableNames = ["Image", "Boxes", "BoxInd"];
-  outputShape = [];
-  userCode;
   constructor(imageShape, boxShape, cropSize, method, extrapolationValue) {
+    this.variableNames = ["Image", "Boxes", "BoxInd"];
+    this.outputShape = [];
     const [batch, imageHeight, imageWidth, depth] = imageShape;
     const [numBoxes] = boxShape;
     const [cropHeight, cropWidth] = cropSize;
@@ -70698,6 +69947,8 @@ var CumProgram = class {
   constructor(op2, outputShape, exclusive, reverse6) {
     this.op = op2;
     this.outputShape = outputShape;
+    this.variableNames = ["x"];
+    this.customUniforms = [{ name: "index", type: "float" }];
     const rank = this.outputShape.length;
     const initVal = this.op === "*" /* Prod */ ? "1.0" : "0.0";
     const val = exclusive ? initVal : `getX(${getCoords2(rank, "coords", this.op)})`;
@@ -70726,9 +69977,6 @@ var CumProgram = class {
       }
     `;
   }
-  variableNames = ["x"];
-  userCode;
-  customUniforms = [{ name: "index", type: "float" }];
 };
 function getCoords2(rank, name, op2) {
   if (rank === 1) {
@@ -70852,12 +70100,9 @@ var denseBincountConfig2 = {
 
 // src/tfjs-backend-webgl/src/depth_to_space_gpu.ts
 var DepthToSpaceProgram = class {
-  variableNames = ["x"];
-  outputShape = [];
-  userCode;
-  blockSize;
-  dataFormat;
   constructor(outputShape, blockSize, dataFormat) {
+    this.variableNames = ["x"];
+    this.outputShape = [];
     this.outputShape = outputShape;
     this.blockSize = blockSize;
     this.dataFormat = dataFormat;
@@ -70943,17 +70188,14 @@ var depthToSpaceConfig2 = {
 
 // src/tfjs-backend-webgl/src/conv_gpu_depthwise.ts
 var DepthwiseConv2DProgram = class {
-  variableNames = ["x", "W"];
-  outputShape;
-  userCode;
-  enableShapeUniforms;
-  customUniforms = [
-    { name: "pads", type: "ivec2" },
-    { name: "strides", type: "ivec2" },
-    { name: "dilations", type: "ivec2" },
-    { name: "inDims", type: "ivec2" }
-  ];
   constructor(convInfo, addBias = false, activation2 = null, hasPreluActivation = false, hasLeakyReluAlpha = false) {
+    this.variableNames = ["x", "W"];
+    this.customUniforms = [
+      { name: "pads", type: "ivec2" },
+      { name: "strides", type: "ivec2" },
+      { name: "dilations", type: "ivec2" },
+      { name: "inDims", type: "ivec2" }
+    ];
     this.outputShape = convInfo.outShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const filterHeight = convInfo.filterHeight;
@@ -71039,19 +70281,16 @@ var DepthwiseConv2DProgram = class {
 
 // src/tfjs-backend-webgl/src/conv_packed_gpu_depthwise.ts
 var DepthwiseConvPacked2DProgram = class {
-  variableNames = ["x", "W"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  enableShapeUniforms;
-  customUniforms = [
-    { name: "pads", type: "ivec2" },
-    { name: "strides", type: "ivec2" },
-    { name: "dilations", type: "ivec2" },
-    { name: "inDims", type: "ivec2" }
-  ];
   constructor(convInfo, addBias = false, activation2 = null, hasPreluActivation = false, hasLeakyReluAlpha = false) {
+    this.variableNames = ["x", "W"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [
+      { name: "pads", type: "ivec2" },
+      { name: "strides", type: "ivec2" },
+      { name: "dilations", type: "ivec2" },
+      { name: "inDims", type: "ivec2" }
+    ];
     this.outputShape = convInfo.outShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const channelMul = convInfo.outChannels / convInfo.inChannels;
@@ -71386,10 +70625,8 @@ var depthwiseConv2dNativeConfig2 = {
 
 // src/tfjs-backend-webgl/src/conv_backprop_gpu_depthwise.ts
 var DepthwiseConv2DDerFilterProgram = class {
-  variableNames = ["x", "dy"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["x", "dy"];
     this.outputShape = convInfo.filterShape;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -71435,10 +70672,8 @@ var DepthwiseConv2DDerFilterProgram = class {
   }
 };
 var DepthwiseConv2DDerInputProgram = class {
-  variableNames = ["dy", "W"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["dy", "W"];
     this.outputShape = convInfo.inShape;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
@@ -71546,10 +70781,8 @@ var depthwiseConv2dNativeBackpropInputConfig2 = {
 
 // src/tfjs-backend-webgl/src/diag_gpu.ts
 var DiagProgram = class {
-  variableNames = ["X"];
-  outputShape;
-  userCode;
   constructor(size) {
+    this.variableNames = ["X"];
     this.outputShape = [size, size];
     this.userCode = `
       void main() {
@@ -71583,10 +70816,8 @@ var diagConfig2 = {
 
 // src/tfjs-backend-webgl/src/dilation_gpu.ts
 var Dilation2DProgram = class {
-  variableNames = ["x", "W"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["x", "W"];
     this.outputShape = convInfo.outShape;
     const {
       inHeight,
@@ -71875,10 +71106,8 @@ var expm1Config2 = {
 
 // src/tfjs-backend-webgl/src/fft_gpu.ts
 var FFTProgram = class {
-  variableNames = ["real", "imag"];
-  outputShape;
-  userCode;
   constructor(component, inputShape, inverse) {
+    this.variableNames = ["real", "imag"];
     const innerDim = inputShape[1];
     this.outputShape = inputShape;
     const exponentMultiplierSnippet = inverse ? `2.0 * ${Math.PI}` : `-2.0 * ${Math.PI}`;
@@ -71979,11 +71208,9 @@ var fftConfig2 = {
 
 // src/tfjs-backend-webgl/src/fill_gpu.ts
 var FillProgram = class {
-  variableNames;
-  outputShape = [];
-  userCode;
-  customUniforms = [{ name: "value", type: "float" }];
   constructor(shape, value) {
+    this.outputShape = [];
+    this.customUniforms = [{ name: "value", type: "float" }];
     this.variableNames = ["x"];
     this.outputShape = shape;
     this.userCode = `
@@ -72019,10 +71246,9 @@ var fillConfig2 = {
 
 // src/tfjs-backend-webgl/src/flip_left_right_gpu.ts
 var FlipLeftRightProgram = class {
-  variableNames = ["Image"];
-  outputShape = [];
-  userCode;
   constructor(imageShape) {
+    this.variableNames = ["Image"];
+    this.outputShape = [];
     const imageWidth = imageShape[2];
     this.outputShape = imageShape;
     this.userCode = `
@@ -72112,10 +71338,8 @@ var floorDivConfig2 = {
 
 // src/tfjs-backend-webgl/src/kernels/FromPixels_utils/from_pixels_gpu.ts
 var FromPixelsProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
   constructor(outputShape) {
+    this.variableNames = ["A"];
     const glsl = getGlslDifferences();
     const [height, width] = outputShape;
     this.outputShape = outputShape;
@@ -72147,12 +71371,10 @@ var FromPixelsProgram = class {
 
 // src/tfjs-backend-webgl/src/kernels/FromPixels_utils/from_pixels_packed_gpu.ts
 var FromPixelsPackedProgram = class {
-  variableNames = ["A"];
-  userCode;
-  outputShape;
-  packedInputs = false;
-  packedOutput = true;
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.packedInputs = false;
+    this.packedOutput = true;
     const glsl = getGlslDifferences();
     const [height, width] = outputShape;
     this.outputShape = outputShape;
@@ -72456,6 +71678,7 @@ var GatherNDProgram = class {
     this.sliceDim = sliceDim;
     this.strides = strides;
     this.paramsShape = paramsShape;
+    this.variableNames = ["x", "indices"];
     this.outputShape = shape;
     const dtype = getCoordsDataType(shape.length);
     let mainLoop = `
@@ -72479,9 +71702,6 @@ var GatherNDProgram = class {
         }
       `;
   }
-  variableNames = ["x", "indices"];
-  outputShape;
-  userCode;
 };
 
 // src/tfjs-backend-webgl/src/kernels/GatherNd.ts
@@ -72541,11 +71761,8 @@ var gatherNdConfig2 = {
 
 // src/tfjs-backend-webgl/src/gather_gpu.ts
 var GatherProgram = class {
-  variableNames = ["A", "indices"];
-  outputShape;
-  userCode;
-  rank;
   constructor(aShape, outputShape) {
+    this.variableNames = ["A", "indices"];
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     const dtype = getCoordsDataType(this.rank);
@@ -72855,10 +72072,9 @@ var logicalOrConfig2 = {
 
 // src/tfjs-backend-webgl/src/lrn_gpu.ts
 var LRNProgram = class {
-  variableNames = ["x"];
-  outputShape = [];
-  userCode;
   constructor(xShape, radius, bias, alpha, beta) {
+    this.variableNames = ["x"];
+    this.outputShape = [];
     const rad = radius;
     const maxD = xShape[3] - 1;
     this.outputShape = xShape;
@@ -72896,12 +72112,11 @@ var LRNProgram = class {
 
 // src/tfjs-backend-webgl/src/lrn_packed_gpu.ts
 var LRNPackedProgram = class {
-  variableNames = ["x"];
-  outputShape = [];
-  userCode;
-  packedInputs = true;
-  packedOutput = true;
   constructor(xShape, radius, bias, alpha, beta) {
+    this.variableNames = ["x"];
+    this.outputShape = [];
+    this.packedInputs = true;
+    this.packedOutput = true;
     const rad = radius;
     const maxD = xShape[3] - 1;
     this.outputShape = xShape;
@@ -72996,15 +72211,9 @@ var LRNConfig2 = {
 
 // src/tfjs-backend-webgl/src/lrn_grad_gpu.ts
 var LRNGradProgram = class {
-  variableNames = ["inputImage", "outputImage", "dy"];
-  outputShape = [];
-  userCode;
-  depthRadius;
-  bias;
-  alpha;
-  beta;
-  depth;
   constructor(inputShape, depthRadius, bias, alpha, beta) {
+    this.variableNames = ["inputImage", "outputImage", "dy"];
+    this.outputShape = [];
     this.outputShape = inputShape;
     this.depth = inputShape[3];
     this.depthRadius = depthRadius;
@@ -73234,10 +72443,8 @@ var maxPool3DConfig2 = {
 
 // src/tfjs-backend-webgl/src/max_pool_backprop_gpu.ts
 var MaxPool2DBackpropProgram = class {
-  variableNames = ["dy", "maxPos"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["dy", "maxPos"];
     this.outputShape = convInfo.inShape;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -73297,10 +72504,8 @@ var MaxPool2DBackpropProgram = class {
   }
 };
 var MaxPool3DBackpropProgram = class {
-  variableNames = ["dy", "maxPos"];
-  outputShape;
-  userCode;
   constructor(convInfo) {
+    this.variableNames = ["dy", "maxPos"];
     this.outputShape = convInfo.inShape;
     const strideDepth = convInfo.strideDepth;
     const strideHeight = convInfo.strideHeight;
@@ -73616,10 +72821,8 @@ var minimumConfig2 = {
 
 // src/tfjs-backend-webgl/src/mirror_pad_gpu.ts
 var MirrorPadProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
   constructor(xShape, paddings, mode) {
+    this.variableNames = ["x"];
     this.outputShape = paddings.map(
       (p2, i) => p2[0] + xShape[i] + p2[1]
       /* afterPad */
@@ -73669,12 +72872,10 @@ var MirrorPadProgram = class {
 
 // src/tfjs-backend-webgl/src/mirror_pad_packed_gpu.ts
 var MirrorPadPackedProgram = class {
-  variableNames = ["x"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
   constructor(xShape, paddings, mode) {
+    this.variableNames = ["x"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.outputShape = paddings.map(
       (p2, i) => p2[0] + xShape[i] + p2[1]
       /* afterPad */
@@ -73791,11 +72992,9 @@ var modConfig2 = {
 
 // src/tfjs-backend-webgl/src/multinomial_gpu.ts
 var MultinomialProgram = class {
-  variableNames = ["probs"];
-  outputShape;
-  userCode;
-  customUniforms = [{ name: "seed", type: "float" }];
   constructor(batchSize, numOutcomes, numSamples) {
+    this.variableNames = ["probs"];
+    this.customUniforms = [{ name: "seed", type: "float" }];
     this.outputShape = [batchSize, numSamples];
     this.userCode = `
       void main() {
@@ -74070,12 +73269,8 @@ var nonMaxSuppressionV5Config2 = {
 
 // src/tfjs-backend-webgl/src/onehot_gpu.ts
 var OneHotProgram = class {
-  variableNames = ["indices"];
-  outputShape;
-  userCode;
-  // Caching uniform location for speed.
-  seedLoc;
   constructor(numIndices, depth, onValue, offValue) {
+    this.variableNames = ["indices"];
     this.outputShape = [numIndices, depth];
     this.userCode = `
       void main() {
@@ -74210,11 +73405,9 @@ var packConfig2 = {
 
 // src/tfjs-backend-webgl/src/pad_gpu.ts
 var PadProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
-  customUniforms = [{ name: "value", type: "float" }];
   constructor(xShape, paddings, constantValue) {
+    this.variableNames = ["x"];
+    this.customUniforms = [{ name: "value", type: "float" }];
     this.outputShape = paddings.map(
       (p2, i) => p2[0] + xShape[i] + p2[1]
       /* afterPad */
@@ -74259,13 +73452,11 @@ var PadProgram = class {
 
 // src/tfjs-backend-webgl/src/pad_packed_gpu.ts
 var PadPackedProgram = class {
-  variableNames = ["x"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape;
-  userCode;
-  customUniforms = [{ name: "value", type: "float" }];
   constructor(xShape, paddings, constantValue) {
+    this.variableNames = ["x"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.customUniforms = [{ name: "value", type: "float" }];
     this.outputShape = paddings.map(
       (p2, i) => p2[0] + xShape[i] + p2[1]
       /* afterPad */
@@ -74595,10 +73786,9 @@ var relu6Config2 = {
 
 // src/tfjs-backend-webgl/src/resize_bilinear_gpu.ts
 var ResizeBilinearProgram = class {
-  variableNames = ["A"];
-  outputShape = [];
-  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+    this.variableNames = ["A"];
+    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -74654,12 +73844,11 @@ var ResizeBilinearProgram = class {
 
 // src/tfjs-backend-webgl/src/resize_bilinear_packed_gpu.ts
 var ResizeBilinearPackedProgram = class {
-  variableNames = ["A"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape = [];
-  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -74786,10 +73975,9 @@ var resizeBilinearConfig2 = {
 
 // src/tfjs-backend-webgl/src/resize_bilinear_backprop_gpu.ts
 var ResizeBilinearBackpropProgram = class {
-  variableNames = ["dy"];
-  outputShape = [];
-  userCode;
   constructor(dyShape, inputShape, alignCorners) {
+    this.variableNames = ["dy"];
+    this.outputShape = [];
     this.outputShape = inputShape;
     const [, xHeight, xWidth] = inputShape;
     const [, yHeight, yWidth] = dyShape;
@@ -74912,10 +74100,9 @@ var resizeBilinearGradConfig3 = {
 
 // src/tfjs-backend-webgl/src/resize_nearest_neighbor_gpu.ts
 var ResizeNearestNeighborProgram = class {
-  variableNames = ["A"];
-  outputShape = [];
-  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+    this.variableNames = ["A"];
+    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -74961,12 +74148,11 @@ var ResizeNearestNeighborProgram = class {
 
 // src/tfjs-backend-webgl/src/resize_nearest_neighbor_packed_gpu.ts
 var ResizeNearestNeighborPackedProgram = class {
-  variableNames = ["A"];
-  packedInputs = true;
-  packedOutput = true;
-  outputShape = [];
-  userCode;
   constructor(inputShape, newHeight, newWidth, alignCorners, halfPixelCenters) {
+    this.variableNames = ["A"];
+    this.packedInputs = true;
+    this.packedOutput = true;
+    this.outputShape = [];
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
     const effectiveInSize = [
@@ -75058,10 +74244,9 @@ var resizeNearestNeighborConfig2 = {
 
 // src/tfjs-backend-webgl/src/resize_nearest_neighbor_backprop_gpu.ts
 var ResizeNearestNeigborBackpropProgram = class {
-  variableNames = ["dy"];
-  outputShape = [];
-  userCode;
   constructor(dyShape, inputShape, alignCorners) {
+    this.variableNames = ["dy"];
+    this.outputShape = [];
     this.outputShape = inputShape;
     const [, xHeight, xWidth] = inputShape;
     const [, yHeight, yWidth] = dyShape;
@@ -75173,10 +74358,8 @@ var resizeNearestNeighborGradConfig3 = {
 
 // src/tfjs-backend-webgl/src/reverse_gpu.ts
 var ReverseProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
   constructor(xShape, axis) {
+    this.variableNames = ["x"];
     const rank = xShape.length;
     if (rank > 4) {
       throw new Error(
@@ -75212,12 +74395,10 @@ var ReverseProgram = class {
 
 // src/tfjs-backend-webgl/src/reverse_packed_gpu.ts
 var ReversePackedProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
-  packedInputs = true;
-  packedOutput = true;
   constructor(xShape, axis) {
+    this.variableNames = ["x"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     const rank = xShape.length;
     if (rank > 4) {
       throw new Error(
@@ -75315,11 +74496,10 @@ var reverseConfig2 = {
 
 // src/tfjs-backend-webgl/src/rotate_gpu.ts
 var RotateProgram = class {
-  variableNames = ["Image"];
-  outputShape = [];
-  userCode;
-  customUniforms = [{ name: "params", type: "vec4" }];
   constructor(imageShape, fillValue) {
+    this.variableNames = ["Image"];
+    this.outputShape = [];
+    this.customUniforms = [{ name: "params", type: "vec4" }];
     const imageHeight = imageShape[1];
     const imageWidth = imageShape[2];
     this.outputShape = imageShape;
@@ -75408,10 +74588,8 @@ var rsqrtConfig2 = {
 
 // src/tfjs-backend-webgl/src/scatter_gpu.ts
 var ScatterProgram = class {
-  variableNames = ["updates", "indices", "defaultValue"];
-  outputShape;
-  userCode;
   constructor(updateSize, sliceDim, indicesRank, updatesRank, strides, shape, summingDupeIndex = true, defaultIsTensor = false) {
+    this.variableNames = ["updates", "indices", "defaultValue"];
     this.outputShape = shape;
     const stridesType = getCoordsDataType(strides.length);
     const dtype = getCoordsDataType(shape.length);
@@ -75461,12 +74639,10 @@ var ScatterProgram = class {
 
 // src/tfjs-backend-webgl/src/scatter_packed_gpu.ts
 var ScatterPackedProgram = class {
-  variableNames = ["updates", "indices", "defaultValue"];
-  outputShape;
-  packedInputs = true;
-  packedOutput = true;
-  userCode;
   constructor(updateSize, sliceDim, indicesRank, updatesRank, strides, shape, summingDupeIndex = true, defaultIsTensor = false) {
+    this.variableNames = ["updates", "indices", "defaultValue"];
+    this.packedInputs = true;
+    this.packedOutput = true;
     this.outputShape = shape;
     const stridesType = getCoordsDataType(strides.length);
     const dtype = getCoordsDataType(shape.length);
@@ -75593,11 +74769,9 @@ var scatterNdConfig2 = {
 
 // src/tfjs-backend-webgl/src/search_sorted_gpu.ts
 var SearchSortedProgram = class {
-  variableNames = ["sortedSequence", "values"];
-  outputShape;
-  userCode;
-  customUniforms = [{ name: "numInputs", type: "int" }];
   constructor(batchSize, numInputs, numValues, side) {
+    this.variableNames = ["sortedSequence", "values"];
+    this.customUniforms = [{ name: "numInputs", type: "int" }];
     this.outputShape = [batchSize, numValues];
     const webGL2LoopHead = "while (left < right) {";
     const webGL1LoopHead = `for (int i = 0; i < ${Math.ceil(Math.log2(numInputs + 1))}; ++i) { if (left >= right) break;`;
@@ -75659,10 +74833,8 @@ var searchSortedConfig2 = {
 
 // src/tfjs-backend-webgl/src/select_gpu.ts
 var SelectProgram = class {
-  variableNames = ["c", "a", "b"];
-  outputShape;
-  userCode;
   constructor(cRank, shape, rank) {
+    this.variableNames = ["c", "a", "b"];
     this.outputShape = shape;
     let cCoords;
     let abCoords;
@@ -76199,10 +75371,8 @@ var stepConfig2 = {
 
 // src/tfjs-backend-webgl/src/strided_slice_gpu.ts
 var StridedSliceProgram = class {
-  variableNames = ["x"];
-  outputShape;
-  userCode;
   constructor(begin, strides, size) {
+    this.variableNames = ["x"];
     this.outputShape = size;
     const rank = size.length;
     const inputDtype = getCoordsDataType(size.length);
@@ -76453,11 +75623,8 @@ var tensorScatterUpdateConfig2 = {
 
 // src/tfjs-backend-webgl/src/tile_gpu.ts
 var TileProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  userCode;
-  rank;
   constructor(aShape, reps) {
+    this.variableNames = ["A"];
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[i] * reps[i];
@@ -76514,25 +75681,23 @@ var tileConfig2 = {
 
 // src/tfjs-backend-webgl/src/top_k_gpu.ts
 var SwapProgram = class {
-  variableNames = ["x", "indices"];
-  outputShape;
-  userCode;
-  // |n| Size of the original input of TopK.
-  // |firstPass|indicates if this is the first time swap is being used which
-  // means no indices input containing the top K is present yet.
-  // |inc| Swaps pairs of indices (0, inc), (1, inc + 1), (2, inc + 2) ...
-  customUniforms = [
-    { name: "n", type: "int" },
-    { name: "firstPass", type: "int" },
-    { name: "negativeInf", type: "float" },
-    { name: "dir", type: "int" },
-    { name: "inc", type: "int" }
-  ];
   /**
    * @param shape desired output shape (can be larger than input shape, output
    *                                    will be padded with -Infinity)
    */
   constructor(shape) {
+    this.variableNames = ["x", "indices"];
+    // |n| Size of the original input of TopK.
+    // |firstPass|indicates if this is the first time swap is being used which
+    // means no indices input containing the top K is present yet.
+    // |inc| Swaps pairs of indices (0, inc), (1, inc + 1), (2, inc + 2) ...
+    this.customUniforms = [
+      { name: "n", type: "int" },
+      { name: "firstPass", type: "int" },
+      { name: "negativeInf", type: "float" },
+      { name: "dir", type: "int" },
+      { name: "inc", type: "int" }
+    ];
     this.outputShape = shape;
     this.userCode = `
        void main() {
@@ -76578,22 +75743,20 @@ var SwapProgram = class {
   }
 };
 var MergeProgram = class {
-  variableNames = ["x", "indices"];
-  outputShape;
-  userCode;
-  // |n| Size of the original input of TopK
-  // |firstPass| indicates if this is the first time swap is being used which
-  // means no indices input containing the top K is present yet.
-  // |k| Top k elements desired
-  customUniforms = [
-    { name: "n", type: "int" },
-    { name: "firstPass", type: "int" },
-    { name: "k", type: "int" }
-  ];
   /**
    * @param shape desired output shape (must be half of the input size)
    */
   constructor(shape) {
+    this.variableNames = ["x", "indices"];
+    // |n| Size of the original input of TopK
+    // |firstPass| indicates if this is the first time swap is being used which
+    // means no indices input containing the top K is present yet.
+    // |k| Top k elements desired
+    this.customUniforms = [
+      { name: "n", type: "int" },
+      { name: "firstPass", type: "int" },
+      { name: "k", type: "int" }
+    ];
     this.outputShape = shape;
     this.userCode = `
     void main() {
@@ -76754,10 +75917,8 @@ var topKConfig2 = {
 
 // src/tfjs-backend-webgl/src/transform_gpu.ts
 var TransformProgram = class {
-  variableNames = ["Image", "Transforms"];
-  outputShape;
-  userCode;
   constructor(imageHeight, imageWidth, interpolation, fillMode, fillValue, outShape) {
+    this.variableNames = ["Image", "Transforms"];
     this.outputShape = outShape;
     const interpolationModeId = interpolation === "nearest" ? 1 : 2;
     let fillModeId;
@@ -76987,10 +76148,8 @@ var unpackConfig2 = {
 
 // src/tfjs-backend-webgl/src/segment_gpu.ts
 var SegmentOpProgram = class {
-  variableNames = ["x", "segmentIds"];
-  outputShape;
-  userCode;
   constructor(segOpInfo, segOpType) {
+    this.variableNames = ["x", "segmentIds"];
     const windowSize = segOpInfo.windowSize;
     const batchSize = segOpInfo.batchSize;
     const inSize = segOpInfo.inSize;
@@ -77390,9 +76549,6 @@ ENV6.registerFlag("WEBGPU_ENGINE_COMPILE_ONLY", () => false);
 
 // src/tfjs-backend-webgpu/src/adapter_info.ts
 var AdapterInfo = class {
-  vendor;
-  architecture;
-  intelGPUGeneration;
   constructor(adapterInfo) {
     if (adapterInfo) {
       this.vendor = adapterInfo.vendor;
@@ -77419,13 +76575,13 @@ var AdapterInfo = class {
 var BufferManager = class {
   constructor(device) {
     this.device = device;
+    this.numUsedBuffers = 0;
+    this.numFreeBuffers = 0;
+    this.freeBuffers = /* @__PURE__ */ new Map();
+    this.usedBuffers = /* @__PURE__ */ new Map();
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
-  numUsedBuffers = 0;
-  numFreeBuffers = 0;
-  freeBuffers = /* @__PURE__ */ new Map();
-  usedBuffers = /* @__PURE__ */ new Map();
-  numBytesUsed = 0;
-  numBytesAllocated = 0;
   acquireBuffer(size, usage, mappedAtCreation = false, reuse = true) {
     let buffer2;
     const key = getBufferKey(size, usage);
@@ -77509,13 +76665,13 @@ function getBufferKey(size, usage) {
 var TextureManager2 = class {
   constructor(device) {
     this.device = device;
+    this.numUsedTextures = 0;
+    this.numFreeTextures = 0;
+    this.freeTextures = /* @__PURE__ */ new Map();
+    this.usedTextures = /* @__PURE__ */ new Map();
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
-  numUsedTextures = 0;
-  numFreeTextures = 0;
-  freeTextures = /* @__PURE__ */ new Map();
-  usedTextures = /* @__PURE__ */ new Map();
-  numBytesUsed = 0;
-  numBytesAllocated = 0;
   acquireTexture(width, height, format, usage) {
     const bytesPerElement2 = getBytesPerElement(format);
     const byteSize = width * height * bytesPerElement2;
@@ -78430,56 +77586,35 @@ var reshapeDispatch = (device, program) => {
   }
 };
 var _WebGPUBackend = class extends KernelBackend {
-  bufferManager;
-  adapterInfo;
-  device;
-  queue;
-  tensorMap;
-  textureManager;
-  thresholdToIncreaseWorkgroups;
-  activeTimers;
-  currentCommandEncoder;
-  currentComputePass;
-  commandQueueOwnedIds = /* @__PURE__ */ new WeakSet();
-  dispatchNumberInEncoder = 0;
-  disposed = false;
-  downloadWaitMs = 0;
-  dummyCanvas;
-  dummyContext;
-  tensorDataPendingDisposal = [];
-  pipelineCache;
-  programTimersStack;
-  querySet;
-  stagingPendingDisposal = [];
-  supportTimeQuery;
-  uniformPendingDisposal = [];
-  uploadWaitMs = 0;
-  hasReadSyncWarned = false;
-  nextDataId() {
-    return _WebGPUBackend.nextDataId++;
-  }
   constructor(device, adapterInfo) {
     super();
+    this.commandQueueOwnedIds = /* @__PURE__ */ new WeakSet();
+    this.dispatchCountInPass = 0;
+    this.disposed = false;
+    this.downloadWaitMs = 0;
+    this.tensorDataPendingDisposal = [];
+    this.queryResolveBuffer = null;
+    this.querySet = null;
+    this.querySetCount = 2;
+    this.stagingPendingDisposal = [];
+    this.uniformPendingDisposal = [];
+    this.uploadWaitMs = 0;
+    this.hasReadSyncWarned = false;
+    this.hasTimestampQueryWarned = false;
     if (!isWebGPUSupported()) {
       throw new Error("WebGPU is not supported on this device");
     }
     this.pipelineCache = {};
     this.device = device;
     this.queue = device.queue;
-    this.currentCommandEncoder = null;
-    this.currentComputePass = null;
-    this.supportTimeQuery = device.features.has("timestamp-query-inside-passes");
+    this.commandEncoder = null;
+    this.computePassEncoder = null;
     this.adapterInfo = new AdapterInfo(adapterInfo);
+    this.supportTimestampQuery = this.device.features.has("timestamp-query");
     this.thresholdToIncreaseWorkgroups = this.adapterInfo.intelGPUGeneration >= 12 ? 16 : 8;
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager2(this.device);
     this.tensorMap = new DataStorage(this, engine());
-    if (this.supportTimeQuery) {
-      this.querySet = this.device.createQuerySet({
-        type: "timestamp",
-        count: 2
-      });
-    }
     if (env().getBool("WEBGPU_USE_PROFILE_TOOL")) {
       this.dummyCanvas = document.createElement("canvas");
       this.dummyCanvas.width = 1;
@@ -78492,36 +77627,39 @@ var _WebGPUBackend = class extends KernelBackend {
       document.body.appendChild(this.dummyCanvas);
     }
   }
+  nextDataId() {
+    return _WebGPUBackend.nextDataId++;
+  }
   floatPrecision() {
     return 32;
   }
   /**
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
-   * is released or memory is not managed in this backend, false if memory is
-   * not cleared.
+   * is released or delayed in this backend, false if there are still
+   * references.
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
   disposeData(dataId, force = false) {
-    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
-      return false;
-    }
     if (!this.tensorMap.has(dataId)) {
       return true;
     }
     const tensorData = this.tensorMap.get(dataId);
-    this.decRef(dataId);
-    if (!force && tensorData.refCount > 0) {
+    if (force) {
+      tensorData.refCount = 0;
+    } else {
+      tensorData.refCount--;
+    }
+    if (tensorData.refCount > 0) {
       return false;
+    }
+    if (tensorData.complexTensorInfos != null) {
+      this.disposeData(tensorData.complexTensorInfos.real.dataId);
+      this.disposeData(tensorData.complexTensorInfos.imag.dataId);
     }
     if (this.commandQueueOwnedIds.has(dataId)) {
       this.tensorDataPendingDisposal.push(dataId);
-      return false;
-    }
-    const { complexTensorInfos } = this.tensorMap.get(dataId);
-    if (complexTensorInfos != null) {
-      this.disposeData(complexTensorInfos.real.dataId, force);
-      this.disposeData(complexTensorInfos.imag.dataId, force);
+      return true;
     }
     this.releaseResource(dataId);
     this.tensorMap.delete(dataId);
@@ -78589,10 +77727,9 @@ var _WebGPUBackend = class extends KernelBackend {
     this.tensorMap.set(dataId, { dtype, shape, values, refCount });
   }
   submitQueue() {
-    this.ensureComputePassEnded();
-    this.queue.submit([this.currentCommandEncoder.finish()]);
-    this.currentCommandEncoder = null;
-    this.dispatchNumberInEncoder = 0;
+    this.queue.submit([this.commandEncoder.finish()]);
+    this.commandEncoder = null;
+    this.dispatchCountInPass = 0;
     this.commandQueueOwnedIds = /* @__PURE__ */ new WeakSet();
     this.tensorDataPendingDisposal.forEach((d) => {
       this.releaseResource(d);
@@ -78609,21 +77746,15 @@ var _WebGPUBackend = class extends KernelBackend {
     this.stagingPendingDisposal = [];
   }
   ensureCommandEncoderReady() {
-    if (!this.currentCommandEncoder) {
-      this.currentCommandEncoder = this.device.createCommandEncoder();
+    if (!this.commandEncoder) {
+      this.commandEncoder = this.device.createCommandEncoder();
     }
   }
-  ensureComputePassEnded() {
-    if (this.currentComputePass) {
-      this.currentComputePass.end();
-      this.currentComputePass = null;
+  endComputePassEncoder() {
+    if (this.computePassEncoder) {
+      this.computePassEncoder.end();
+      this.computePassEncoder = null;
     }
-  }
-  getComputePass() {
-    if (!this.currentComputePass) {
-      this.currentComputePass = this.currentCommandEncoder.beginComputePass();
-    }
-    return this.currentComputePass;
   }
   // Check if parallel compilation is done.
   async checkCompileCompletionAsync() {
@@ -78650,14 +77781,8 @@ var _WebGPUBackend = class extends KernelBackend {
       GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
     );
     this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
-    this.currentCommandEncoder.copyBufferToBuffer(
-      buffer2,
-      0,
-      stagingBuffer,
-      0,
-      size
-    );
+    this.endComputePassEncoder();
+    this.commandEncoder.copyBufferToBuffer(buffer2, 0, stagingBuffer, 0, size);
     this.submitQueue();
     await stagingBuffer.mapAsync(GPUMapMode.READ);
     const values = stagingBuffer.getMappedRange().slice(0);
@@ -78676,17 +77801,10 @@ var _WebGPUBackend = class extends KernelBackend {
   }
   convertAndCacheOnCPU(dataId, data) {
     const tensorData = this.tensorMap.get(dataId);
-    this.releaseResource(dataId);
     tensorData.values = data;
     return tensorData.values;
   }
   readSync(dataId) {
-    if (!this.hasReadSyncWarned) {
-      this.hasReadSyncWarned = true;
-      console.warn(
-        `The performance of synchronously reading data from GPU to CPU is poor on the webgpu backend, please use asynchronous APIs instead.`
-      );
-    }
     const tensorData = this.tensorMap.get(dataId);
     const { values, complexTensorInfos } = tensorData;
     if (values != null || tensorData.dtype === "string") {
@@ -78702,6 +77820,12 @@ var _WebGPUBackend = class extends KernelBackend {
       this.convertAndCacheOnCPU(dataId, complexVals);
       return complexVals;
     }
+    if (!this.hasReadSyncWarned) {
+      this.hasReadSyncWarned = true;
+      console.warn(
+        `The performance of synchronously reading data from GPU to CPU is poor on the webgpu backend, please use asynchronous APIs instead.`
+      );
+    }
     const alphaModes = ["opaque", "premultiplied"];
     const buffer2 = tensorData.resource;
     const bufferSize = buffer2.size;
@@ -78714,7 +77838,7 @@ var _WebGPUBackend = class extends KernelBackend {
     const canvasWidth = 256, canvasHeight = 256;
     const stagingDeviceStorage = alphaModes.map((_) => new OffscreenCanvas(canvasWidth, canvasHeight));
     const stagingHostStorage = new OffscreenCanvas(canvasWidth, canvasHeight);
-    this.ensureComputePassEnded();
+    this.endComputePassEncoder();
     stagingDeviceStorage.map((storage, index) => {
       const context = storage.getContext("webgpu");
       context.configure({
@@ -78728,7 +77852,7 @@ var _WebGPUBackend = class extends KernelBackend {
       const bytesPerRow = canvasWidth * 4;
       const readDataGPUToCPU = (width2, height2, offset2) => {
         this.ensureCommandEncoderReady();
-        this.currentCommandEncoder.copyBufferToTexture(
+        this.commandEncoder.copyBufferToTexture(
           {
             buffer: buffer2,
             bytesPerRow,
@@ -78818,14 +77942,8 @@ var _WebGPUBackend = class extends KernelBackend {
     const usage = srcBuffer.usage;
     const dstBuffer = this.bufferManager.acquireBuffer(size, usage);
     this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
-    this.currentCommandEncoder.copyBufferToBuffer(
-      srcBuffer,
-      0,
-      dstBuffer,
-      0,
-      size
-    );
+    this.endComputePassEncoder();
+    this.commandEncoder.copyBufferToBuffer(srcBuffer, 0, dstBuffer, 0, size);
     this.submitQueue();
     return dstBuffer;
   }
@@ -78882,8 +78000,8 @@ var _WebGPUBackend = class extends KernelBackend {
     const usage = srcBuffer.usage;
     const buffer2 = this.bufferManager.acquireBuffer(size, usage);
     this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
-    this.currentCommandEncoder.copyBufferToBuffer(
+    this.endComputePassEncoder();
+    this.commandEncoder.copyBufferToBuffer(
       resource,
       0,
       buffer2,
@@ -78910,10 +78028,11 @@ var _WebGPUBackend = class extends KernelBackend {
     return buffer(t.shape, t.dtype, data);
   }
   async time(f) {
-    if (!this.supportTimeQuery) {
+    if (!this.supportTimestampQuery && !this.hasTimestampQueryWarned) {
       console.warn(
-        `This device doesn't support timestamp-query-inside-passes extension. Start Chrome browser with flag --disable-dawn-features=disallow_unsafe_apis then try again. Otherwise, zero will be shown for the kernel time when profiling mode is enabled. Using performance.now is not workable for webgpu since it doesn't support synchronous data read from GPU.`
+        `This device doesn't support timestamp-query extension. Start Chrome browser with flag --disable-dawn-features=disallow_unsafe_apis to try it again. Otherwise, zero will be shown for the kernel time when profiling mode is enabled.`
       );
+      this.hasTimestampQueryWarned = true;
     }
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers = [];
@@ -78966,13 +78085,6 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     return resource;
   }
-  async getQueryTime(query) {
-    if (this.supportTimeQuery) {
-      return this.getTimeFromQuerySet(query);
-    } else {
-      return 0;
-    }
-  }
   uploadToGPU(dataId) {
     const tensorData = this.tensorMap.get(dataId);
     if (tensorData.resource != null) {
@@ -78998,8 +78110,8 @@ var _WebGPUBackend = class extends KernelBackend {
         }
         stagingBuffer.unmap();
         this.ensureCommandEncoderReady();
-        this.ensureComputePassEnded();
-        this.currentCommandEncoder.copyBufferToBuffer(
+        this.endComputePassEncoder();
+        this.commandEncoder.copyBufferToBuffer(
           stagingBuffer,
           0,
           buffer2,
@@ -79171,54 +78283,87 @@ var _WebGPUBackend = class extends KernelBackend {
       layout: program.pipeline.getBindGroupLayout(0),
       entries: bindings.map((b, i) => ({ binding: i, resource: b }))
     });
-    this.ensureCommandEncoderReady();
-    const pass = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
-    if (shouldTimeProgram && this.supportTimeQuery) {
-      pass.writeTimestamp(this.querySet, 0);
+    this.ensureCommandEncoderReady();
+    const computePassDescriptor = {};
+    if (shouldTimeProgram && this.supportTimestampQuery) {
+      this.endComputePassEncoder();
+      if (this.querySet == null) {
+        this.querySet = this.device.createQuerySet({
+          type: "timestamp",
+          count: this.querySetCount
+        });
+      }
+      computePassDescriptor.timestampWrites = [
+        {
+          querySet: this.querySet,
+          queryIndex: 0,
+          location: "beginning"
+        },
+        {
+          querySet: this.querySet,
+          queryIndex: 1,
+          location: "end"
+        }
+      ];
+      this.computePassEncoder = this.commandEncoder.beginComputePass(computePassDescriptor);
+    } else if (!this.computePassEncoder) {
+      this.computePassEncoder = this.commandEncoder.beginComputePass(computePassDescriptor);
     }
-    pass.setPipeline(program.pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(
+    this.computePassEncoder.setPipeline(program.pipeline);
+    this.computePassEncoder.setBindGroup(0, bindGroup);
+    this.computePassEncoder.dispatchWorkgroups(
       program.dispatch[0],
       program.dispatch[1],
       program.dispatch[2]
     );
-    if (shouldTimeProgram && this.supportTimeQuery) {
-      pass.writeTimestamp(this.querySet, 1);
-    }
-    this.dispatchNumberInEncoder++;
-    if (env().get("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE") <= this.dispatchNumberInEncoder) {
-      this.submitQueue();
-    }
-    if (shouldTimeProgram) {
-      this.activeTimers.push({
-        name: program.constructor.name,
-        query: this.getQueryTime(this.querySet)
-      });
+    this.dispatchCountInPass++;
+    if (shouldTimeProgram || env().get("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE") <= this.dispatchCountInPass) {
+      this.endComputePassEncoder();
+      if (shouldTimeProgram) {
+        this.activeTimers.push(
+          { name: program.constructor.name, query: this.getQueryTime() }
+        );
+      } else {
+        this.submitQueue();
+      }
     }
   }
-  async getTimeFromQuerySet(querySet) {
-    const queryBuffer = this.bufferManager.acquireBuffer(
-      16,
-      GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE
+  async getQueryTime() {
+    if (!this.supportTimestampQuery) {
+      return 0;
+    }
+    if (this.queryResolveBuffer == null) {
+      this.queryResolveBuffer = this.bufferManager.acquireBuffer(
+        this.querySetCount * 8,
+        GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST | GPUBufferUsage.QUERY_RESOLVE
+      );
+    }
+    this.commandEncoder.resolveQuerySet(
+      this.querySet,
+      0,
+      this.querySetCount,
+      this.queryResolveBuffer,
+      0
     );
-    const dst = this.bufferManager.acquireBuffer(
-      16,
+    const queryStagingBuffer = this.bufferManager.acquireBuffer(
+      this.querySetCount * 8,
       GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
     );
-    this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
-    this.currentCommandEncoder.resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
-    this.currentCommandEncoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
+    this.commandEncoder.copyBufferToBuffer(
+      this.queryResolveBuffer,
+      0,
+      queryStagingBuffer,
+      0,
+      this.querySetCount * 8
+    );
     this.submitQueue();
-    await dst.mapAsync(GPUMapMode.READ);
-    const arrayBuf = new BigUint64Array(dst.getMappedRange());
-    const timeElapsedNanos = Number(arrayBuf[1] - arrayBuf[0]);
-    dst.unmap();
-    this.bufferManager.releaseBuffer(dst);
-    this.bufferManager.releaseBuffer(queryBuffer);
-    return timeElapsedNanos / 1e6;
+    await queryStagingBuffer.mapAsync(GPUMapMode.READ);
+    const arrayBuffer = new BigUint64Array(queryStagingBuffer.getMappedRange());
+    const time2 = Number(arrayBuffer[1] - arrayBuffer[0]) / 1e6;
+    queryStagingBuffer.unmap();
+    this.bufferManager.releaseBuffer(queryStagingBuffer);
+    return time2;
   }
   shouldExecuteOnCPU(inputs, sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD2) {
     return env().getBool("WEBGPU_CPU_FORWARD") && inputs.every(
@@ -79232,13 +78377,16 @@ var _WebGPUBackend = class extends KernelBackend {
     if (this.disposed) {
       return;
     }
+    if (this.querySet != null) {
+      this.querySet.destroy();
+    }
     this.bufferManager.dispose();
     this.textureManager.dispose();
     this.disposed = true;
   }
 };
 var WebGPUBackend = _WebGPUBackend;
-__publicField(WebGPUBackend, "nextDataId", 0);
+WebGPUBackend.nextDataId = 0;
 
 // src/tfjs-backend-webgpu/src/base.ts
 if (isWebGPUSupported()) {
@@ -79250,9 +78398,8 @@ if (isWebGPUSupported()) {
       };
       const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
       const deviceDescriptor = {};
-      if (adapter.features.has("timestamp-query-inside-passes")) {
-        deviceDescriptor.requiredFeatures = // tslint:disable-next-line:no-any
-        ["timestamp-query-inside-passes"];
+      if (adapter.features.has("timestamp-query")) {
+        deviceDescriptor.requiredFeatures = ["timestamp-query"];
       }
       const adapterLimits = adapter.limits;
       deviceDescriptor.requiredLimits = {
@@ -79273,20 +78420,12 @@ if (isWebGPUSupported()) {
 }
 
 // src/tfjs-backend-webgpu/src/binary_op_util.ts
-var CHECK_NAN_SNIPPET3 = `
-  resultTemp = select(resultTemp, valueForNaN, isNaN | isnan(a) | isnan(b));`;
-var CHECK_NAN_SNIPPET_VEC4 = `
-  resultTemp = select(
-      resultTemp, vec4<f32>(valueForNaN),
-      vec4<bool>(isNaN) | isnanVec4(a) | isnanVec4(b));
-  `;
-var ADD2 = "return a + b;";
-var ATAN22 = "var resultTemp = atan2(a, b);";
-var COMPLEX_MULTIPLY_REAL = "return areal * breal - aimag * bimag;";
-var COMPLEX_MULTIPLY_IMAG = "return areal * bimag + aimag * breal;";
-var DIV2 = "return a / b;";
-var ELU_DER2 = "return select(a * (b + 1.0), a, b >= 0.);";
-var ELU_DER_VEC4 = "return select(a * (b + vec4<f32>(1.0)), a, b >= vec4<f32>(0.));";
+var ADD2 = "let resultTemp = a + b;";
+var ATAN22 = "let resultTemp = atan2(a, b);";
+var COMPLEX_MULTIPLY_REAL = "let resultTemp = areal * breal - aimag * bimag;";
+var COMPLEX_MULTIPLY_IMAG = "let resultTemp = areal * bimag + aimag * breal;";
+var DIV2 = "let resultTemp = a / b;";
+var ELU_DER2 = "let resultTemp = select(a * (b + 1.0), a, b >= b - b);";
 var EQUAL2 = "return f32(a == b);";
 var EQUAL_VEC4 = "return vec4<f32>(a == b);";
 var GREATER2 = "return f32(a > b);";
@@ -79331,8 +78470,8 @@ var LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
 var LOGICAL_OR2 = "return f32(a >= 1.0 || b >= 1.0);";
 var LOGICAL_OR_VEC4 = `return min(vec4<f32>(a >= vec4<f32>(1.0)) +
   vec4<f32>(b >= vec4<f32>(1.0)), vec4<f32>(1.0));`;
-var MAX = "var resultTemp = max(a, b);";
-var MIN = "var resultTemp = min(a, b);";
+var MAX = "let resultTemp = max(a, b);";
+var MIN = "let resultTemp = min(a, b);";
 var MOD2 = `
   let isNaN = b == 0.;
   var resultTemp = a % b;
@@ -79355,7 +78494,7 @@ var MOD_VEC4 = `
     resultTemp[3] = (resultTemp[3] + b[3]) % b[3];
   }
 `;
-var MUL2 = "return a * b;";
+var MUL2 = "let resultTemp = a * b;";
 var NOT_EQUAL2 = `
   var resultTemp = f32(a != b);
   let valueForNaN = 1.0;
@@ -79399,11 +78538,11 @@ var PRELU_VEC4 = `
   let aLessThanZero = vec4<f32>(a < vec4<f32>(0.0));
   return (aLessThanZero * (b * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
 `;
-var SQUARED_DIFFERENCE2 = "return (a - b) * (a - b);";
-var SUB2 = "return a - b;";
+var SQUARED_DIFFERENCE2 = "let resultTemp = (a - b) * (a - b);";
+var SUB2 = "let resultTemp = a - b;";
 function getBinaryOpString(type, useVec4) {
+  let doOpSnippet;
   do {
-    let doOpSnippet;
     switch (type) {
       case 1 /* ATAN2 */:
         doOpSnippet = ATAN22;
@@ -79426,27 +78565,51 @@ function getBinaryOpString(type, useVec4) {
       default:
         continue;
     }
+    let isNaN6;
+    let dTypeN;
+    let boolN;
+    if (useVec4) {
+      isNaN6 = "isnanVec4";
+      dTypeN = "vec4<f32>";
+      boolN = "vec4<bool>";
+    } else {
+      isNaN6 = "isnan";
+      dTypeN = "f32";
+      boolN = "bool";
+    }
     return `
+      let aIsNaN = ${isNaN6}(a);
+      let aPostLegalization = select(a, ${dTypeN}(42), aIsNaN);
+      let bIsNaN = ${isNaN6}(b);
+      let bPostLegalization = select(b, ${dTypeN}(42), bIsNaN);
       let isNaN = false;
       let valueForNaN = uniforms.NAN;
       {
+        let a = aPostLegalization;
+        let b = bPostLegalization;
         ${doOpSnippet}
-        ${useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET3}
-        return resultTemp;
+        return select(
+            resultTemp, ${dTypeN}(valueForNaN),
+            ${boolN}(isNaN) | aIsNaN | bIsNaN);
       }
     `;
   } while (false);
   switch (type) {
     case 0 /* ADD */:
-      return ADD2;
+      doOpSnippet = ADD2;
+      break;
     case 2 /* COMPLEX_MULTIPLY_IMAG */:
-      return COMPLEX_MULTIPLY_IMAG;
+      doOpSnippet = COMPLEX_MULTIPLY_IMAG;
+      break;
     case 3 /* COMPLEX_MULTIPLY_REAL */:
-      return COMPLEX_MULTIPLY_REAL;
+      doOpSnippet = COMPLEX_MULTIPLY_REAL;
+      break;
     case 4 /* DIV */:
-      return DIV2;
+      doOpSnippet = DIV2;
+      break;
     case 5 /* ELU_DER */:
-      return useVec4 ? ELU_DER_VEC4 : ELU_DER2;
+      doOpSnippet = ELU_DER2;
+      break;
     case 6 /* EQUAL */:
       return useVec4 ? EQUAL_VEC4 : EQUAL2;
     case 7 /* GREATER */:
@@ -79464,16 +78627,22 @@ function getBinaryOpString(type, useVec4) {
     case 13 /* LOGICAL_OR */:
       return useVec4 ? LOGICAL_OR_VEC4 : LOGICAL_OR2;
     case 17 /* MUL */:
-      return MUL2;
+      doOpSnippet = MUL2;
+      break;
     case 20 /* PRELU */:
       return useVec4 ? PRELU_VEC4 : PRELU2;
     case 21 /* SQUARED_DIFFERENCE */:
-      return SQUARED_DIFFERENCE2;
+      doOpSnippet = SQUARED_DIFFERENCE2;
+      break;
     case 22 /* SUB */:
-      return SUB2;
+      doOpSnippet = SUB2;
+      break;
     default:
-      throw new Error(`BinaryType ${type} is not implemented!`);
   }
+  return `
+    ${doOpSnippet}
+    return resultTemp;
+  `;
 }
 
 // src/tfjs-backend-webgpu/src/unary_op_util.ts
@@ -79776,9 +78945,8 @@ function matMulReadFnSource(transposeA, transposeB, fitAOuter = false, fitBOuter
     `;
   const sampleB = transposeB ? `value = getB(batch, col, row);` : `value = getB(batch, row, col);`;
   return `
-  fn mm_readA(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readA(batch: i32, row: i32, col: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
-    let col = colIn * ${component};
     ${fitAOuter && fitInner ? sampleA : `
     ${transposeA ? `if(row < uniforms.dimAOuter && col < uniforms.dimInner)` : `if(row < uniforms.aShape[1] && col < uniforms.aShape[2])`}
     {
@@ -79788,8 +78956,7 @@ function matMulReadFnSource(transposeA, transposeB, fitAOuter = false, fitBOuter
     return value;
   }
 
-  fn mm_readB(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
-    let col = colIn * ${component};
+  fn mm_readB(batch: i32, row: i32, col: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
@@ -79806,8 +78973,7 @@ function matMulReadWriteFnSource(hasBias, activation2, transposeA, transposeB, f
     fitInner,
     component
   )}
-  fn mm_write(batch: i32, row: i32, colIn: i32, valueIn: ${typeSnippet(component)}) {
-    let col = colIn * ${component};
+  fn mm_write(batch: i32, row: i32, col: i32, valueIn: ${typeSnippet(component)}) {
     ${fitAOuter && fitBOuter ? "" : "if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)"}
     {
       var value = valueIn;
@@ -79823,38 +78989,41 @@ var writeDataToSubAVec4Snippet = (transpose6, innerElementSize) => {
     return `
         mm_Asub[inputRow][inputCol] = mm_readA(batchA,
           kStart + inputRow,
-          globalRowStart / ${innerElementSize} + inputCol);
+          globalRowStart + inputCol * ${innerElementSize});
         `;
   } else {
     return `
         mm_Asub[inputRow][inputCol] = mm_readA(batchA,
           globalRow + innerRow,
-          kStart / ${innerElementSize} + inputCol);
+          kStart + inputCol * ${innerElementSize});
         `;
   }
 };
-var calculateResultSnippet = (transposeA, innerElementSize, rowPerThread) => {
+var calculateResultSnippet = (transposeA, innerElementSize, rowPerThread, tileInner) => {
   if (transposeA) {
     return `
-        let ACached0 = mm_Asub[k * ${innerElementSize}][localRow];
-        let ACached1 = mm_Asub[k * ${innerElementSize} + 1][localRow];
-        let ACached2 = mm_Asub[k * ${innerElementSize} + 2][localRow];
-        ${innerElementSize === 3 ? "" : `let ACached3 = mm_Asub[k * ${innerElementSize} + 3][localRow];`}
+      for (var k = 0; k < ${tileInner}; k++) {
+        let BCached0 = mm_Bsub[k][tileCol];
+        let ACached0 = mm_Asub[k][localRow];
         for (var i = 0; i < ${rowPerThread}; i++) {
           acc[i] = fma(BCached0, vec4<f32>(ACached0[i]), acc[i]);
-          acc[i] = fma(BCached1, vec4<f32>(ACached1[i]), acc[i]);
-          acc[i] = fma(BCached2, vec4<f32>(ACached2[i]), acc[i]);
-          ${innerElementSize === 3 ? "" : "acc[i] = fma(BCached3, vec4<f32>(ACached3[i]), acc[i]);"}
-        }`;
+        }
+      }`;
   } else {
+    let bCachedStr = "";
+    let accStr = "";
+    for (let i = 0; i < innerElementSize; i++) {
+      bCachedStr += `let BCached${i} = mm_Bsub[k * ${innerElementSize} + ${i}][tileCol];`;
+      accStr += `acc[i] = fma(BCached${i}, vec4<f32>(ACached[${i}]), acc[i]);`;
+    }
     return `
+      for (var k = 0; k < ${tileInner / innerElementSize}; k++) {
+        ${bCachedStr}
         for (var i = 0; i < ${rowPerThread}; i++) {
           let ACached = mm_Asub[tileRow + i][k];
-          acc[i] = fma(BCached0, vec4<f32>(ACached.x), acc[i]);
-          acc[i] = fma(BCached1, vec4<f32>(ACached.y), acc[i]);
-          acc[i] = fma(BCached2, vec4<f32>(ACached.z), acc[i]);
-          ${innerElementSize === 3 ? "" : "acc[i] = fma(BCached3, vec4<f32>(ACached.w), acc[i]);"}
-        }`;
+          ${accStr}
+        }
+      }`;
   }
 };
 function makeMatMulPackedVec4Source(workPerThread, workgroupSize, transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32, broadcastBatch = false) {
@@ -79865,6 +79034,7 @@ function makeMatMulPackedVec4Source(workPerThread, workgroupSize, transposeA = f
   const innerElementSize = tileAWidth / workgroupSize[0];
   const rowPerThreadB = tileInner / workgroupSize[1];
   const rowPerThread = workPerThread[1];
+  const colPerThread = workPerThread[0];
   util_exports.assert(
     (transposeA && innerElementSize === 4 && workPerThread[1] === 4 || !transposeA && (innerElementSize === 3 || innerElementSize === 4)) && tileAWidth % workgroupSize[0] === 0 && tileInner % workgroupSize[1] === 0 && workPerThread[0] === 4,
     () => `If transposeA ${transposeA} is true, innerElementSize ${innerElementSize} and workPerThread[1] ${workPerThread[1]} must be 4.
@@ -79881,7 +79051,7 @@ function makeMatMulPackedVec4Source(workPerThread, workgroupSize, transposeA = f
     let tileCol = i32(localId.x);
 
     let globalRow = i32(globalId.y) * ${rowPerThread};
-    let globalCol = i32(globalId.x);
+    let globalCol = i32(globalId.x) * ${colPerThread};
     let batch = ${splitK ? "0" : "i32(globalId.z)"};
     let batchA = ${splitK || !broadcastBatch ? "batch" : "batch % uniforms.aShape[0]"};
     let batchB = ${splitK || !broadcastBatch ? "batch" : "batch % uniforms.bShape[0]"};
@@ -79912,15 +79082,12 @@ function makeMatMulPackedVec4Source(workPerThread, workgroupSize, transposeA = f
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < ${tileInner / innerElementSize}; k++) {
-            let BCached0 = mm_Bsub[k * ${innerElementSize}][tileCol];
-            let BCached1 = mm_Bsub[k * ${innerElementSize} + 1][tileCol];
-            let BCached2 = mm_Bsub[k * ${innerElementSize} + 2][tileCol];
-            ${innerElementSize === 3 ? "" : `let BCached3 = mm_Bsub[k * ${innerElementSize} + 3][tileCol];`}
-
-            ${calculateResultSnippet(transposeA, innerElementSize, rowPerThread)}
-        }
-
+        ${calculateResultSnippet(
+    transposeA,
+    innerElementSize,
+    rowPerThread,
+    tileInner
+  )}
         workgroupBarrier();
     }
 
@@ -80154,28 +79321,9 @@ function makeVectorMatrixProductSource(workgroupSize, transposeA = false) {
   `;
 }
 var MatMulPackedProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["A", "B"];
-  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workgroupSize;
-  elementsPerThread;
-  transposeA;
-  transposeB;
-  addBias;
-  activation;
-  hasPreluActivationWeights;
-  fitAOuter;
-  fitBOuter;
-  fitInner;
-  tileInner;
-  isVectorA;
-  isVec4;
-  outputComponent;
-  sequentialAccessByThreads;
   constructor(aShape, outputShape, transposeA = false, transposeB = false, bias = null, activation2 = null, preluActivationWeights = null, sequentialAccessByThreads = false) {
+    this.variableNames = ["A", "B"];
+    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.outputShape = outputShape;
     this.dispatchLayout = { x: [2], y: [1], z: [0] };
     const dimInner = transposeA ? aShape[1] : aShape[2];
@@ -80312,19 +79460,10 @@ function makeMatMulReduceSource(workgroupSizeX) {
   `;
 }
 var MatMulReduceProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["A", "B"];
-  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workgroupSize = [256, 1, 1];
-  transposeA;
-  transposeB;
-  addBias;
-  activation;
-  hasPreluActivationWeights;
   constructor(outputShape, transposeA = false, transposeB = false, bias = null, activation2 = null, preluActivationWeights = null) {
+    this.variableNames = ["A", "B"];
+    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
+    this.workgroupSize = [256, 1, 1];
     this.outputShape = outputShape;
     this.dispatchLayout = { x: [], y: [1, 2], z: [0] };
     this.dispatch = computeDispatch(
@@ -80422,19 +79561,10 @@ function makeMatMulSmallOutputSizeSource(workgroupSize) {
   `;
 }
 var MatMulSmallOutputSizeProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["A", "B"];
-  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workgroupSize = [16, 8, 1];
-  transposeA;
-  transposeB;
-  addBias;
-  activation;
-  hasPreluActivationWeights;
   constructor(aShape, bShape, outputShape, transposeA = false, transposeB = false, bias = null, activation2 = null, preluActivationWeights = null) {
+    this.variableNames = ["A", "B"];
+    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
+    this.workgroupSize = [16, 8, 1];
     this.outputShape = outputShape;
     this.dispatchLayout = { x: [2], y: [1], z: [0] };
     this.dispatch = [
@@ -80474,20 +79604,12 @@ var MatMulSmallOutputSizeProgram = class {
 
 // src/tfjs-backend-webgpu/src/matmul_splitK_webgpu.ts
 var MatMulSplitKProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["A", "B"];
-  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workgroupSize = [8, 8, 1];
-  elementsPerThread;
-  transposeA;
-  transposeB;
-  atomic = true;
-  outputComponent;
-  splitedDimInner = 128;
   constructor(outputShape, dimInner, transposeA = false, transposeB = false) {
+    this.variableNames = ["A", "B"];
+    this.uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
+    this.workgroupSize = [8, 8, 1];
+    this.atomic = true;
+    this.splitedDimInner = 128;
     util_exports.assert(
       outputShape[0] === 1,
       () => "MatMulSplitKProgram only supports batch = 1."
@@ -80531,8 +79653,7 @@ var MatMulSplitKProgram = class {
       false,
       component
     )}
-      fn mm_write(batch: i32, row : i32, colIn : i32, value : ${typeSnippet(component)}) {
-        let col = colIn * ${component};
+      fn mm_write(batch: i32, row : i32, col : i32, value : ${typeSnippet(component)}) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
           let coords = vec3<i32>(batch, row, col);
           let flatIndex = getOutputIndexFromCoords(coords);
@@ -80567,18 +79688,11 @@ var MatMulSplitKProgram = class {
   }
 };
 var BiasActivationProgram = class {
-  outputShape;
-  shaderKey;
-  uniforms = "";
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  workgroupSize = [64, 1, 1];
-  size = true;
-  addBias;
-  activation;
-  hasPreluActivationWeights;
   constructor(outputShape, bias = null, activation2 = null, preluActivationWeights = null) {
+    this.uniforms = "";
+    this.variableNames = ["x"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -80614,15 +79728,12 @@ var BiasActivationProgram = class {
 
 // src/tfjs-backend-webgpu/src/fill_webgpu.ts
 var FillProgram2 = class {
-  variableNames = [];
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  uniforms = "value : f32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(shape) {
+    this.variableNames = [];
+    this.outputShape = [];
+    this.uniforms = "value : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -80882,15 +79993,10 @@ var _fusedMatMulConfig3 = {
 
 // src/tfjs-backend-webgpu/src/binary_op_complex_webgpu.ts
 var BinaryOpComplexProgram2 = class {
-  variableNames = ["AReal", "AImag", "BReal", "BImag"];
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [128, 1, 1];
-  op;
-  size = true;
   constructor(op2, aShape, bShape) {
+    this.variableNames = ["AReal", "AImag", "BReal", "BImag"];
+    this.workgroupSize = [128, 1, 1];
+    this.size = true;
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -80925,21 +80031,9 @@ var BinaryOpComplexProgram2 = class {
 
 // src/tfjs-backend-webgpu/src/binary_op_webgpu.ts
 var BinaryOpProgram2 = class {
-  dispatch;
-  dispatchLayout;
-  outputComponent;
-  op;
-  outputShape;
-  shaderKey;
-  size = true;
-  variableNames = ["A", "B"];
-  workgroupSize;
-  variableComponents;
-  lastDimensionSize;
-  useSharedMemoryWithA;
-  useSharedMemoryWithB;
-  type;
   constructor(op2, aShape, bShape) {
+    this.size = true;
+    this.variableNames = ["A", "B"];
     this.outputShape = backend_util_exports.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.op = op2;
@@ -81056,16 +80150,9 @@ var complexConfig3 = {
 
 // src/tfjs-backend-webgpu/src/unary_op_webgpu.ts
 var UnaryOpProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["A"];
-  workgroupSize;
-  op;
-  uniforms;
-  size = true;
   constructor(outputShape, op2, uniforms = "") {
+    this.variableNames = ["A"];
+    this.size = true;
     const workgroupSizeX = 128;
     this.workgroupSize = [workgroupSizeX, 1, 1];
     this.outputShape = outputShape;
@@ -81278,15 +80365,10 @@ var addConfig3 = {
 
 // src/tfjs-backend-webgpu/src/addn_packed_webgpu.ts
 var AddNPackedProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames;
-  workPerThread = 1;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(shapes) {
+    this.workPerThread = 1;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shapes[0];
     this.variableNames = shapes.map((_, i) => `T${i}`);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -81342,14 +80424,10 @@ var addNConfig3 = {
 
 // src/tfjs-backend-webgpu/src/transpose_shared_webgpu.ts
 var TransposeSharedProgram = class {
-  variableNames = ["A"];
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  // Note that the maximum number of workgroup invocations by webgpu is 256.
-  workgroupSize = [16, 16, 1];
   constructor(aShape, newDim) {
+    this.variableNames = ["A"];
+    // Note that the maximum number of workgroup invocations by webgpu is 256.
+    this.workgroupSize = [16, 16, 1];
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];
@@ -81396,16 +80474,11 @@ var TransposeSharedProgram = class {
 
 // src/tfjs-backend-webgpu/src/transpose_webgpu.ts
 var TransposeProgram2 = class {
-  variableNames = ["A"];
-  shaderKey;
-  outputShape;
-  dispatchLayout;
-  dispatch;
-  workPerThread = 1;
-  workgroupSize = [64, 1, 1];
-  newDim;
-  size = true;
   constructor(aShape, newDim) {
+    this.variableNames = ["A"];
+    this.workPerThread = 1;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];
@@ -81429,7 +80502,7 @@ var TransposeProgram2 = class {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
-            let resRC = getCoordsFromIndex(flatIndex);
+            let coords = getCoordsFromIndex(flatIndex);
             setOutputAtIndex(flatIndex, A[getIndexFromCoords${this.outputShape.length}D(
               ${dtype}(${switched}), uniforms.aShape)]);
           }
@@ -81446,7 +80519,7 @@ function getSwitchedCoords2(newDim) {
   }
   const switchedCoords = new Array(rank);
   for (let i = 0; i < newDim.length; i++) {
-    switchedCoords[newDim[i]] = `resRC.${getCoordsXYZ(i)}`;
+    switchedCoords[newDim[i]] = `coords.${getCoordsXYZ(i)}`;
   }
   return switchedCoords.join();
 }
@@ -81483,17 +80556,10 @@ var transposeConfig3 = {
 
 // src/tfjs-backend-webgpu/src/reduce_webgpu.ts
 var ReduceProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize;
-  variableNames = ["x"];
-  uniforms = "reduceSize : i32,";
-  reduceType;
-  inputShape;
-  size = true;
   constructor(reduceInfo, reduceType, maxComputeWorkgroupSizeX) {
+    this.variableNames = ["x"];
+    this.uniforms = "reduceSize : i32,";
+    this.size = true;
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape] = backend_util_exports.computeOutAndReduceShapes(this.inputShape, [1]);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
@@ -81677,25 +80743,17 @@ var anyConfig3 = {
 
 // src/tfjs-backend-webgpu/src/argminmax_webgpu.ts
 var ArgMinMaxProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  variableNames = ["x"];
-  uniforms = "infinityValue : f32,";
-  inputShape;
-  reductionFactor;
-  op;
-  size = true;
-  type;
   constructor(inputShape, axis, reduceType) {
+    this.workgroupSize = [64, 1, 1];
+    this.variableNames = ["x"];
+    this.uniforms = "infinityValue : f32,";
+    this.size = true;
     const axes = [axis];
     this.op = reduceType === "min" ? "<" : ">";
     const [outputShape, reduceShape] = backend_util_exports.computeOutAndReduceShapes(inputShape, axes);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    if (util_exports.sizeFromShape(reduceShape) < 32 || util_exports.sizeFromShape(outputShape) > 1e3) {
+    if (util_exports.sizeFromShape(reduceShape) < 32) {
       this.type = "plain";
       this.dispatch = computeDispatch(
         this.dispatchLayout,
@@ -81904,15 +80962,11 @@ var atanhConfig3 = {
 
 // src/tfjs-backend-webgpu/src/pool_filtersizeone_webgpu.ts
 var PoolWithFilterSizeEqualsOneProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = `strides : vec2<i32>,`;
-  workgroupSize = [256, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["x"];
+    this.uniforms = `strides : vec2<i32>,`;
+    this.workgroupSize = [256, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -81945,21 +80999,13 @@ var PoolWithFilterSizeEqualsOneProgram = class {
 
 // src/tfjs-backend-webgpu/src/pool_webgpu.ts
 var Pool2DProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, convDims : vec2<i32>, filterDims : vec2<i32>,`;
-  // TODO(jiajia.qin@intel.com): Dynamically choose different workgroupSize for
-  // different output shapes.
-  workgroupSize = [128, 1, 1];
-  poolType;
-  size = true;
-  computePositions;
-  flattenPositions;
-  includeBatchIndex;
   constructor(convInfo, poolType, computePositions = false, flattenPositions = false, includeBatchIndex = false) {
+    this.variableNames = ["x"];
+    this.uniforms = `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, convDims : vec2<i32>, filterDims : vec2<i32>,`;
+    // TODO(jiajia.qin@intel.com): Dynamically choose different workgroupSize for
+    // different output shapes.
+    this.workgroupSize = [128, 1, 1];
+    this.size = true;
     if (poolType === "avg" && computePositions) {
       throw new Error("Cannot compute positions for average pool.");
     }
@@ -82036,19 +81082,11 @@ var Pool2DProgram2 = class {
   }
 };
 var Pool3DProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = `strides : vec3<i32>, pads : vec3<i32>, convDims : vec3<i32>, filterDims : vec3<i32>,`;
-  workgroupSize = [128, 1, 1];
-  poolType;
-  size = true;
-  computePositions;
-  flattenPositions;
-  includeBatchIndex;
   constructor(convInfo, poolType, computePositions = false, flattenPositions = false, includeBatchIndex = false) {
+    this.variableNames = ["x"];
+    this.uniforms = `strides : vec3<i32>, pads : vec3<i32>, convDims : vec3<i32>, filterDims : vec3<i32>,`;
+    this.workgroupSize = [128, 1, 1];
+    this.size = true;
     if (poolType === "avg" && computePositions) {
       throw new Error("Cannot compute positions for average pool.");
     }
@@ -82294,16 +81332,12 @@ var avgPool3DConfig3 = {
 
 // src/tfjs-backend-webgpu/src/avg_pool_backprop_webgpu.ts
 var AvgPool2DBackpropProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["dy"];
-  uniforms = `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, filterDims : vec2<i32>,
-       outHeight : i32, outWidth : i32, avgMultiplier : f32,`;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["dy"];
+    this.uniforms = `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, filterDims : vec2<i32>,
+       outHeight : i32, outWidth : i32, avgMultiplier : f32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -82357,16 +81391,12 @@ var AvgPool2DBackpropProgram2 = class {
   }
 };
 var AvgPool3DBackpropProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["dy"];
-  uniforms = `strides : vec3<i32>, pads : vec3<i32>, filterDims : vec3<i32>,
-       outDepth : i32, outHeight : i32, outWidth : i32, avgMultiplier : f32,`;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["dy"];
+    this.uniforms = `strides : vec3<i32>, pads : vec3<i32>, filterDims : vec3<i32>,
+       outDepth : i32, outHeight : i32, outWidth : i32, avgMultiplier : f32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -82537,18 +81567,11 @@ var batchMatMulConfig3 = {
 
 // src/tfjs-backend-webgpu/src/slice_webgpu.ts
 var SliceProgram2 = class {
-  variableNames = ["source"];
-  uniforms;
-  outputShape;
-  shaderKey;
-  rank;
-  dispatchLayout;
-  dispatch;
-  workPerThread = 1;
-  workgroupSize = [64, 1, 1];
-  start;
-  size = true;
   constructor(start, destSize) {
+    this.variableNames = ["source"];
+    this.workPerThread = 1;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = destSize;
     this.rank = destSize.length;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -82684,18 +81707,14 @@ var binaryWriteSnippet = `
   }
 `;
 var BincountProgram = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = "binCountSize : i32,";
-  workgroupSize = [64, 1, 1];
-  atomic = true;
-  hasWeights = true;
-  binaryOutput = false;
-  rank;
   constructor(shape, hasWeights, binaryOutput = false) {
+    this.outputShape = [];
+    this.variableNames = ["x"];
+    this.uniforms = "binCountSize : i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.atomic = true;
+    this.hasWeights = true;
+    this.binaryOutput = false;
     this.outputShape = shape;
     this.rank = shape.length;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -82769,15 +81788,12 @@ var bincountConfig3 = {
 
 // src/tfjs-backend-webgpu/src/broadcast_args_webgpu.ts
 var BroadcastArgsProgram = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["s0", "s1"];
-  uniforms = "s0Size : i32, s1Size : i32, ";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(shape) {
+    this.outputShape = [];
+    this.variableNames = ["s0", "s1"];
+    this.uniforms = "s0Size : i32, s1Size : i32, ";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [shape];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -82945,17 +81961,13 @@ var ceilConfig3 = {
 
 // src/tfjs-backend-webgpu/src/clip_vec4_webgpu.ts
 var ClipVec4Program = class {
-  outputShape;
-  shaderKey;
-  variableNames = ["A"];
-  uniforms = "minVal : f32, maxVal : f32,";
-  dispatchLayout;
-  dispatch;
-  workPerThread = 4;
-  workgroupSize = [64, 1, 1];
-  outputComponent = 4;
-  size = true;
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.uniforms = "minVal : f32, maxVal : f32,";
+    this.workPerThread = 4;
+    this.workgroupSize = [64, 1, 1];
+    this.outputComponent = 4;
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -82984,17 +81996,11 @@ var ClipVec4Program = class {
 
 // src/tfjs-backend-webgpu/src/clip_webgpu.ts
 var ClipProgram2 = class {
-  outputShape;
-  shaderKey;
-  variableNames = ["A"];
-  uniforms = "minVal : f32, maxVal : f32,";
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  minVal;
-  maxVal;
-  size = true;
   constructor(outputShape) {
+    this.variableNames = ["A"];
+    this.uniforms = "minVal : f32, maxVal : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -83046,14 +82052,11 @@ var clipByValueConfig3 = {
 
 // src/tfjs-backend-webgpu/src/complex_abs_webgpu.ts
 var ComplexAbsProgram2 = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["real", "imag"];
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(shape) {
+    this.outputShape = [];
+    this.variableNames = ["real", "imag"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -83112,17 +82115,11 @@ var complexAbsConfig3 = {
 
 // src/tfjs-backend-webgpu/src/concat_webgpu.ts
 var ConcatProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames;
-  uniforms = "";
-  workPerThread = 1;
-  workgroupSize = [64, 1, 1];
-  size = true;
-  offsetLength;
   constructor(shapes) {
+    this.uniforms = "";
+    this.workPerThread = 1;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = backend_util_exports.computeOutShape(
       shapes,
       1
@@ -83324,9 +82321,9 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
   const getWSnippet = (innerElementSize2) => {
     switch (innerElementSize2) {
       case 1:
-        return "return W[row * uniforms.wShape[3] + colIn];";
+        return "return W[row * uniforms.wShape[3] + col];";
       case 4:
-        return "return W[row * uniforms.wShape[3] / 4 + colIn];";
+        return "return W[(row * uniforms.wShape[3] + col) / 4];";
       default:
         throw new Error(
           `innerElementSize ${innerElementSize2} is not supported.`
@@ -83376,16 +82373,12 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
       }
       return resData;`;
   const sampleX = isChannelsLast ? fitAOuter && fitInner ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` : `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
         ${readXSnippet}
       }
       return ${typeSnippet(innerElementSizeX)}(0.0);` : fitInner && fitBOuter ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` : `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
         ${readXSnippet}
       }
@@ -83401,16 +82394,15 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
     innerElementSize === 4,
     4
   )}
-      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
+      fn mm_readA(batch: i32, row : i32, col : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
+      fn mm_readB(batch: i32, row : i32, col : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
-        let col = colIn * ${innerElementSize};
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : ${resType}) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
         var value = valueIn;
@@ -83423,30 +82415,9 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
   return userCode;
 }
 var Conv2DMMProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "W"];
-  variableComponents;
-  uniforms = `filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, dilations : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workgroupSize;
-  elementsPerThread;
-  addBias;
-  activation;
-  hasPreluActivationWeights;
-  isChannelsLast;
-  fitAOuter;
-  fitBOuter;
-  fitInner;
-  tileAOuter;
-  tileBOuter;
-  tileInner;
-  innerElementSize;
-  isVec4;
-  outputComponent;
-  sequentialAccessByThreads;
   constructor(convInfo, dimAOuter, dimBOuter, dimInner, addBias = false, activation2 = null, hasPreluActivationWeights = false, sequentialAccessByThreads = false) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = `filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, dilations : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === "channelsLast";
     this.isVec4 = ((convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) && this.isChannelsLast || convInfo.outWidth % 4 === 0 && !this.isChannelsLast) && convInfo.outChannels % 4 === 0;
@@ -83545,18 +82516,10 @@ var Conv2DMMProgram = class {
 
 // src/tfjs-backend-webgpu/src/conv2d_naive_webgpu.ts
 var Conv2DNaiveProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "W"];
-  uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>,";
-  workgroupSize = [4, 4, 8];
-  addBias;
-  activation;
-  hasPreluActivationWeights;
-  isChannelsLast;
   constructor(convInfo, addBias = false, activation2 = null, hasPreluActivationWeights = false) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>,";
+    this.workgroupSize = [4, 4, 8];
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === "channelsLast";
     this.dispatchLayout = this.isChannelsLast ? { x: [2], y: [1], z: [0, 3] } : { x: [3], y: [2], z: [0, 1] };
@@ -83635,17 +82598,12 @@ var Conv2DNaiveProgram = class {
 
 // src/tfjs-backend-webgpu/src/im2col_webgpu.ts
 var Im2ColProgram = class {
-  variableNames = ["x"];
-  uniforms = `pads : vec2<i32>, strides : vec2<i32>, dilations : vec2<i32>, outWidth : i32, itemsPerBlockRow : i32,
-       inChannels : i32,`;
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  isChannelsLast;
-  size = true;
   constructor(outputShape, isChannelsLast) {
+    this.variableNames = ["x"];
+    this.uniforms = `pads : vec2<i32>, strides : vec2<i32>, dilations : vec2<i32>, outWidth : i32, itemsPerBlockRow : i32,
+       inChannels : i32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -84028,19 +82986,13 @@ var conv2DConfig3 = {
 
 // src/tfjs-backend-webgpu/src/conv_backprop_webgpu.ts
 var Conv2DDerInputProgram2 = class {
-  variableNames = ["dy", "W"];
-  uniforms = "filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, outBackprop : vec4<i32>,";
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  isChannelsLast;
-  size = false;
-  isVec4 = false;
-  workPerThread = 1;
-  outputComponent;
   constructor(convInfo) {
+    this.variableNames = ["dy", "W"];
+    this.uniforms = "filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, outBackprop : vec4<i32>,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = false;
+    this.isVec4 = false;
+    this.workPerThread = 1;
     this.outputShape = convInfo.inShape;
     this.isChannelsLast = convInfo.dataFormat === "channelsLast";
     this.isVec4 = this.isChannelsLast && convInfo.outChannels % 4 === 0 && convInfo.inChannels % 4 === 0;
@@ -84220,16 +83172,11 @@ var Conv2DDerInputProgram2 = class {
   }
 };
 var Conv2DDerFilterProgram2 = class {
-  variableNames = ["x", "dy"];
-  uniforms = "pads : vec2<i32>, strides : vec2<i32>, batchSize : i32, outHeight : i32, outWidth : i32, inHeight : i32, inWidth : i32,";
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  isChannelsLast;
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["x", "dy"];
+    this.uniforms = "pads : vec2<i32>, strides : vec2<i32>, batchSize : i32, outHeight : i32, outWidth : i32, inHeight : i32, inWidth : i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.filterShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -84286,16 +83233,12 @@ var Conv2DDerFilterProgram2 = class {
   }
 };
 var Conv3DDerFilterProgram2 = class {
-  variableNames = ["x", "dy"];
-  uniforms = `pads : vec3<i32>, strides : vec3<i32>, batchSize : i32, outDepth : i32,
-       outHeight : i32, outWidth : i32, inDepth : i32, inHeight : i32, inWidth : i32,`;
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["x", "dy"];
+    this.uniforms = `pads : vec3<i32>, strides : vec3<i32>, batchSize : i32, outDepth : i32,
+       outHeight : i32, outWidth : i32, inDepth : i32, inHeight : i32, inWidth : i32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.filterShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -84350,16 +83293,12 @@ var Conv3DDerFilterProgram2 = class {
   }
 };
 var Conv3DDerInputProgram2 = class {
-  variableNames = ["dy", "W"];
-  uniforms = `filterDims : vec3<i32>, pads : vec3<i32>, strides : vec3<i32>,
-      outDepth : i32, outHeight : i32, outWidth : i32, outChannels : i32,`;
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["dy", "W"];
+    this.uniforms = `filterDims : vec3<i32>, pads : vec3<i32>, strides : vec3<i32>,
+      outDepth : i32, outHeight : i32, outWidth : i32, outChannels : i32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -84509,13 +83448,11 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
       }
       return ${typeSnippet(innerElementSize)}(0.0);`;
   const userCode = `
-  fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${typeSnippet(innerElementSize)} {
-    let col = colIn * ${innerElementSize};
+  fn mm_readA(batch: i32, row : i32, col : i32) -> ${typeSnippet(innerElementSize)} {
     ${sampleA}
   }
 
-  fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${typeSnippet(innerElementSize)} {
-    let col = colIn * ${innerElementSize};
+  fn mm_readB(batch: i32, row : i32, col : i32) -> ${typeSnippet(innerElementSize)} {
     let coordX = uniforms.filterDims.x - 1 -
         row / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
     let coordY = uniforms.filterDims.y - 1 -
@@ -84529,9 +83466,8 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
     return ${typeSnippet(innerElementSize)}(0.0);
   }
 
-  fn mm_write(batch: i32, row : i32, colIn : i32, valueInput : ${typeSnippet(innerElementSize)}) {
-    let col = colIn * ${innerElementSize};
-    if (row < uniforms.dimAOuter && (col + ${innerElementSize - 1}) < uniforms.dimBOuter) {
+  fn mm_write(batch: i32, row : i32, col : i32, valueInput : ${typeSnippet(innerElementSize)}) {
+    if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
       var value = valueInput;
       let outCoord = vec4<i32>(
           batch,
@@ -84544,18 +83480,9 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
   return userCode;
 }
 var Conv2DDerInputMMProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "W"];
-  variableComponents;
-  uniforms = "filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,";
-  workgroupSize;
-  elementsPerThread;
-  isVec4;
-  outputComponent;
   constructor(convInfo) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = "filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,";
     this.outputShape = convInfo.inShape;
     util_exports.assert(
       convInfo.dataFormat === "channelsLast",
@@ -84655,15 +83582,11 @@ var conv2DBackpropInputConfig3 = {
 
 // src/tfjs-backend-webgpu/src/conv3d_naive_webgpu.ts
 var Conv3DNaiveProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "W"];
-  uniforms = "filterDims: vec3<i32>, pads: vec3<i32>, strides: vec3<i32>, dilations: vec3<i32>,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = "filterDims: vec3<i32>, pads: vec3<i32>, strides: vec3<i32>, dilations: vec3<i32>,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -84902,18 +83825,11 @@ var coshConfig3 = {
 
 // src/tfjs-backend-webgpu/src/crop_and_resize_webgpu.ts
 var CropAndResizeProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["Image", "Boxes", "BoxInd"];
-  uniforms = "extrapolationValue : f32,";
-  workgroupSize = [64, 1, 1];
-  methodId;
-  cropHeightBiggerThan1;
-  cropWidthBiggerThan1;
-  size = true;
   constructor(channnel, boxShape, cropSize, method) {
+    this.variableNames = ["Image", "Boxes", "BoxInd"];
+    this.uniforms = "extrapolationValue : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     const [numBoxes] = boxShape;
     this.outputShape = [numBoxes, cropSize[0], cropSize[1], channnel];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -85035,19 +83951,11 @@ var cropAndResizeConfig3 = {
 
 // src/tfjs-backend-webgpu/src/cum_webgpu.ts
 var CumProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  workgroupSize;
-  // pow(i32, i32) is not supported, use pow(f32, f32) instead.
-  uniforms = "index : f32,";
-  size = true;
-  exclusive;
-  reverse;
-  op;
   constructor(op2, shape, exclusive, reverse6) {
+    this.variableNames = ["x"];
+    // pow(i32, i32) is not supported, use pow(f32, f32) instead.
+    this.uniforms = "index : f32,";
+    this.size = true;
     this.workgroupSize = [128, 1, 1];
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -85221,16 +84129,11 @@ var denseBincountConfig3 = {
 
 // src/tfjs-backend-webgpu/src/depth_to_space_webgpu.ts
 var DepthToSpaceProgram2 = class {
-  variableNames = ["x"];
-  outputShape;
-  dataFormat;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  size = true;
-  uniforms = "blockSize : i32,";
   constructor(outputShape, dataFormat) {
+    this.variableNames = ["x"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
+    this.uniforms = "blockSize : i32,";
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -85329,19 +84232,10 @@ var depthToSpaceConfig3 = {
 
 // src/tfjs-backend-webgpu/src/depthwise_conv2d_nchw_shared_webgpu.ts
 var DepthwiseConv2DNCHWSharedProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "W"];
-  uniforms = `pads : vec2<i32>, inDims : vec2<i32>,`;
-  workgroupSize = [16, 16, 1];
-  addBias;
-  activation;
-  hasPreluActivation;
-  filterHeight;
-  filterWidth;
   constructor(outputShape, filterHeight, filterWidth, addBias = false, activation2 = null, hasPreluActivation = false) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = `pads : vec2<i32>, inDims : vec2<i32>,`;
+    this.workgroupSize = [16, 16, 1];
     this.outputShape = outputShape;
     this.dispatchLayout = { x: [3], y: [2], z: [0, 1] };
     this.dispatch = computeDispatch(
@@ -85436,27 +84330,26 @@ var DepthwiseConv2DNCHWSharedProgram = class {
 
 // src/tfjs-backend-webgpu/src/depthwise_conv2d_vec4_webgpu.ts
 var DepthwiseConv2DVec4Program = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "W"];
-  uniforms = "pads : vec2<i32>, inDims : vec2<i32>,";
-  workgroupSize = [4, 4, 4];
-  workPerThread = 4;
-  convInfo;
-  addBias;
-  activation;
-  hasPreluActivation;
-  outputComponent = 4;
   constructor(convInfo, addBias = false, activation2 = null, hasPreluActivation = false) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = "pads : vec2<i32>, inDims : vec2<i32>, virtualWidth : i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.workPerThread = 4;
+    this.outputComponent = 4;
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = { x: [3], y: [2], z: [0, 1] };
+    this.virtualWidth = Math.ceil(this.outputShape[2] / this.workPerThread) * this.workPerThread;
+    const virtualOutputShape = [
+      this.outputShape[0],
+      this.outputShape[1],
+      this.virtualWidth,
+      this.outputShape[3]
+    ];
+    this.dispatchLayout = flatDispatchLayout(virtualOutputShape);
     this.dispatch = computeDispatch(
       this.dispatchLayout,
-      this.outputShape,
+      virtualOutputShape,
       this.workgroupSize,
-      [4, this.workPerThread, 1]
+      [this.outputComponent * this.workPerThread, 1, 1]
     );
     util_exports.assert(
       convInfo.dataFormat === "channelsLast",
@@ -85488,11 +84381,16 @@ var DepthwiseConv2DVec4Program = class {
         return value;
       }
 
-      ${getMainHeaderString()} {
-        let batch = i32(globalId.z) / uniforms.outShape[1];
-        let r = i32(globalId.z) % uniforms.outShape[1];
-        let c = i32(globalId.y) * ${this.workPerThread};
-        let d1 = i32(globalId.x) * 4;
+      ${getMainHeaderString("index")} {
+        let width0 = uniforms.outShape[3] / ${this.outputComponent};
+        let d1 = (index % width0) * ${this.outputComponent};
+        var index1 = index / width0;
+        let width1 = uniforms.virtualWidth / ${this.workPerThread};
+        let c = (index1 % width1) * ${this.workPerThread};
+        index1 = index1 / width1;
+        let r = index1 % uniforms.outShape[1];
+        let batch = index1 / uniforms.outShape[1];
+
         let xRCCorner = vec2<i32>(r, c) * vec2<i32>(${strideHeight}, ${strideWidth}) - uniforms.pads;
 
         let xRCorner = xRCCorner.x;
@@ -85535,22 +84433,13 @@ var DepthwiseConv2DVec4Program = class {
 
 // src/tfjs-backend-webgpu/src/depthwise_conv2d_webgpu.ts
 var DepthwiseConv2DProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "W"];
-  uniforms = `pads : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
-      filterWidth : i32, strides : vec2<i32>, dilations : vec2<i32>,`;
-  // This is an experimental value.
-  workgroupSize = [256, 1, 1];
-  convInfo;
-  addBias;
-  activation;
-  hasPreluActivation;
-  isChannelsLast;
-  size = true;
   constructor(convInfo, addBias = false, activation2 = null, hasPreluActivation = false) {
+    this.variableNames = ["x", "W"];
+    this.uniforms = `pads : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
+      filterWidth : i32, strides : vec2<i32>, dilations : vec2<i32>,`;
+    // This is an experimental value.
+    this.workgroupSize = [256, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -85678,6 +84567,7 @@ function depthwiseConv2dNative3(args) {
     );
   } else if (isChannelsLast && convInfo.outHeight > 4 && convInfo.outWidth > 4 && convInfo.strideWidth <= 2 && convInfo.inChannels === convInfo.outChannels && convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 && convInfo.inChannels % 4 === 0) {
     program = new DepthwiseConv2DVec4Program(convInfo);
+    dimensions.push({ type: "int32", data: [program.virtualWidth] });
   } else {
     program = new DepthwiseConv2DProgram2(convInfo);
     dimensions.push(
@@ -85700,16 +84590,12 @@ var depthwiseConv2dNativeConfig3 = {
 
 // src/tfjs-backend-webgpu/src/conv_backprop_depthwise_webgpu.ts
 var DepthwiseConv2DDerFilterProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "dy"];
-  uniforms = `strides : vec2<i32>, pads : vec2<i32>, filterDims : vec2<i32>, outHeight : i32,
-      outWidth : i32, inHeight : i32, inWidth : i32, batchSize : i32, channelMul : i32,`;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["x", "dy"];
+    this.uniforms = `strides : vec2<i32>, pads : vec2<i32>, filterDims : vec2<i32>, outHeight : i32,
+      outWidth : i32, inHeight : i32, inWidth : i32, batchSize : i32, channelMul : i32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.filterShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -85760,16 +84646,12 @@ var DepthwiseConv2DDerFilterProgram2 = class {
   }
 };
 var DepthwiseConv2DDerInputProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["dy", "W"];
-  uniforms = `strides : vec2<i32>, pads : vec2<i32>, filterDims : vec2<i32>,
-       outHeight : i32, outWidth : i32, channelMul : i32,`;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["dy", "W"];
+    this.uniforms = `strides : vec2<i32>, pads : vec2<i32>, filterDims : vec2<i32>,
+       outHeight : i32, outWidth : i32, channelMul : i32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -85902,14 +84784,10 @@ var depthwiseConv2dNativeBackpropInputConfig3 = {
 
 // src/tfjs-backend-webgpu/src/diag_webgpu.ts
 var DiagProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(size) {
+    this.variableNames = ["x"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [size, size];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -85955,15 +84833,11 @@ var diagConfig3 = {
 
 // src/tfjs-backend-webgpu/src/dilation_webgpu.ts
 var Dilation2DProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "w"];
-  uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["x", "w"];
+    this.uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -86043,16 +84917,11 @@ var dilation2DConfig3 = {
 
 // src/tfjs-backend-webgpu/src/dilation_backprop_webgpu.ts
 var Dilation2DBackpropInputProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "w", "dy"];
-  uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, dySize: i32,";
-  workgroupSize = [64, 1, 1];
-  atomic = true;
-  type;
   constructor(convInfo, outputDtype) {
+    this.variableNames = ["x", "w", "dy"];
+    this.uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, dySize: i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.atomic = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(convInfo.outShape);
     this.dispatch = computeDispatch(
@@ -86120,16 +84989,11 @@ var Dilation2DBackpropInputProgram = class {
   }
 };
 var Dilation2DBackpropFilterProgram = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "w", "dy"];
-  uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, dySize: i32,";
-  workgroupSize = [64, 1, 1];
-  atomic = true;
-  type;
   constructor(convInfo, shape, outputDtype) {
+    this.variableNames = ["x", "w", "dy"];
+    this.uniforms = "filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, dySize: i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.atomic = true;
     this.outputShape = convInfo.filterShape;
     this.dispatchLayout = flatDispatchLayout(convInfo.outShape);
     this.dispatch = computeDispatch(
@@ -86446,16 +85310,12 @@ var expm1Config3 = {
 
 // src/tfjs-backend-webgpu/src/fft_webgpu.ts
 var FFTProgram2 = class {
-  variableNames = ["real", "imag"];
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  uniforms = "exponentMultiplier : f32, denominator: f32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
-  component;
   constructor(component, shape) {
+    this.variableNames = ["real", "imag"];
+    this.outputShape = [];
+    this.uniforms = "exponentMultiplier : f32, denominator: f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -86563,14 +85423,11 @@ var fftConfig3 = {
 
 // src/tfjs-backend-webgpu/src/flip_left_right_webgpu.ts
 var FlipLeftRightProgram2 = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(imageShape) {
+    this.outputShape = [];
+    this.variableNames = ["x"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = imageShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -86630,16 +85487,12 @@ var floorDivConfig3 = {
 
 // src/tfjs-backend-webgpu/src/from_pixels_webgpu.ts
 var FromPixelsProgram2 = class {
-  dispatch;
-  dispatchLayout;
-  isFromPixels = true;
-  outputShape = [0];
-  shaderKey;
-  importVideo;
-  variableNames = [];
-  workgroupSize = [256, 1, 1];
   // The empirical value.
   constructor(outputShape, numChannels, importVideo = false) {
+    this.isFromPixels = true;
+    this.outputShape = [0];
+    this.variableNames = [];
+    this.workgroupSize = [256, 1, 1];
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -86772,19 +85625,11 @@ function fromPixels3(args) {
 
 // src/tfjs-backend-webgpu/src/batchnorm_webgpu.ts
 var BatchNormProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames;
-  uniforms = "varianceEpsilon : f32,";
-  // This is an experimental value.
-  workgroupSize = [128, 1, 1];
-  offsetShape;
-  scaleShape;
-  varianceEpsilon;
-  size = true;
   constructor(xShape, meanShape, varianceShape, offsetShape, scaleShape) {
+    this.uniforms = "varianceEpsilon : f32,";
+    // This is an experimental value.
+    this.workgroupSize = [128, 1, 1];
+    this.size = true;
     this.variableNames = ["x", "mean", "variance"];
     backend_util_exports.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util_exports.assertAndGetBroadcastShape(xShape, varianceShape);
@@ -86955,6 +85800,7 @@ function fusedDepthwiseConv2D3(args) {
       activation2,
       hasPreluActivationWeights
     );
+    dimensions.push({ type: "int32", data: [program.virtualWidth] });
   } else {
     program = new DepthwiseConv2DProgram2(
       convInfo,
@@ -86987,16 +85833,10 @@ var fusedDepthwiseConv2DConfig3 = {
 
 // src/tfjs-backend-webgpu/src/gather_nd_webgpu.ts
 var GatherNDProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["A", "indices"];
-  uniforms;
-  workgroupSize = [64, 1, 1];
-  size = true;
-  sliceDim;
   constructor(sliceDim, shape) {
+    this.variableNames = ["A", "indices"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -87088,15 +85928,10 @@ var gatherNdConfig3 = {
 
 // src/tfjs-backend-webgpu/src/gather_webgpu.ts
 var GatherProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["A", "indices"];
-  workgroupSize = [64, 1, 1];
-  aShape;
-  size = true;
   constructor(aShape, outputShape) {
+    this.variableNames = ["A", "indices"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = aShape.slice();
     this.aShape = aShape;
     this.outputShape = outputShape;
@@ -87308,15 +86143,12 @@ var lessEqualConfig3 = {
 
 // src/tfjs-backend-webgpu/src/lin_space_webgpu.ts
 var LinSpaceProgram = class {
-  variableNames = [];
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  uniforms = "start : f32, step : f32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(shape) {
+    this.variableNames = [];
+    this.outputShape = [];
+    this.uniforms = "start : f32, step : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [shape];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -87406,15 +86238,12 @@ var powOperatorSnippet = `
   }
 `;
 var LRNProgram2 = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = "radius : i32, bias : f32, alpha : f32, beta : f32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(xShape) {
+    this.outputShape = [];
+    this.variableNames = ["x"];
+    this.uniforms = "radius : i32, bias : f32, alpha : f32, beta : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = xShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -87453,16 +86282,12 @@ var LRNProgram2 = class {
   }
 };
 var LRNSharedProgram = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = "radius : i32, bias : f32, alpha : f32, beta : f32,";
-  workgroupSize = [256, 1, 1];
-  maxAllowRadius = 16;
-  elementsPerWorkgroup;
   constructor(xShape, radius) {
+    this.outputShape = [];
+    this.variableNames = ["x"];
+    this.uniforms = "radius : i32, bias : f32, alpha : f32, beta : f32,";
+    this.workgroupSize = [256, 1, 1];
+    this.maxAllowRadius = 16;
     util_exports.assert(
       radius <= this.maxAllowRadius,
       () => `Radius must be less than or equal to ${this.maxAllowRadius}, current radius is ${radius}`
@@ -87543,15 +86368,12 @@ var lrnConfig = {
 
 // src/tfjs-backend-webgpu/src/lrn_grad_webgpu.ts
 var LRNGradProgram2 = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["inputImage", "outputImage", "dy"];
-  uniforms = "depthRadius : i32, bias : f32, alpha : f32, beta : f32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(inputShape) {
+    this.outputShape = [];
+    this.variableNames = ["inputImage", "outputImage", "dy"];
+    this.uniforms = "depthRadius : i32, bias : f32, alpha : f32, beta : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = inputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -87719,16 +86541,12 @@ var maxPool3DConfig3 = {
 
 // src/tfjs-backend-webgpu/src/max_pool_backprop_webgpu.ts
 var MaxPool2DBackpropProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["dy", "maxPos"];
-  uniforms = `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, filterDims : vec2<i32>,
-       outHeight : i32, outWidth : i32`;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["dy", "maxPos"];
+    this.uniforms = `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, filterDims : vec2<i32>,
+       outHeight : i32, outWidth : i32`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -87788,16 +86606,12 @@ var MaxPool2DBackpropProgram2 = class {
   }
 };
 var MaxPool3DBackpropProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["dy", "maxPos"];
-  uniforms = `strides : vec3<i32>, pads : vec3<i32>, filterDims : vec3<i32>,
-      outDepth : i32, outHeight : i32, outWidth : i32`;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(convInfo) {
+    this.variableNames = ["dy", "maxPos"];
+    this.uniforms = `strides : vec3<i32>, pads : vec3<i32>, filterDims : vec3<i32>,
+      outDepth : i32, outHeight : i32, outWidth : i32`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -88094,17 +86908,11 @@ var minimumConfig3 = {
 
 // src/tfjs-backend-webgpu/src/mirror_pad_webgpu.ts
 var MirrorPadProgram2 = class {
-  outputShape;
-  shaderKey;
-  uniforms = "";
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  workgroupSize = [64, 1, 1];
-  xShape;
-  offset;
-  size = true;
   constructor(xShape, paddings, mode) {
+    this.uniforms = "";
+    this.variableNames = ["x"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = paddings.map(
       (p2, i) => p2[0] + xShape[i] + p2[1]
       /* afterPad */
@@ -88181,15 +86989,12 @@ var modConfig3 = {
 
 // src/tfjs-backend-webgpu/src/multinomial_webgpu.ts
 var MultinomialProgram2 = class {
-  variableNames = ["probs"];
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  uniforms = "seed : f32, numOutcomes: i32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(batchSize, numSamples) {
+    this.variableNames = ["probs"];
+    this.outputShape = [];
+    this.uniforms = "seed : f32, numOutcomes: i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [batchSize, numSamples];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -88240,13 +87045,8 @@ var MultinomialProgram2 = class {
 
 // src/tfjs-backend-webgpu/src/softmax_webgpu.ts
 var SoftmaxProgram = class {
-  variableNames = ["logits"];
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize;
   constructor(outputShape) {
+    this.variableNames = ["logits"];
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = [this.outputShape[0], 1, 1];
@@ -88464,15 +87264,11 @@ var nonMaxSuppressionV5Config3 = {
 
 // src/tfjs-backend-webgpu/src/onehot_webgpu.ts
 var OneHotProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = "onValue : f32, offValue : f32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(numIndices, depth) {
+    this.variableNames = ["x"];
+    this.uniforms = "onValue : f32, offValue : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [numIndices, depth];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -88616,17 +87412,35 @@ var packConfig3 = {
 };
 
 // src/tfjs-backend-webgpu/src/pad_webgpu.ts
+function padCommon(shape, fillZero = false) {
+  const rank = shape.length;
+  const type = getCoordsDataType2(rank);
+  const start = shape.map((_, i) => `uniforms.pad${i}[0]`).join(",");
+  const end = shape.map(
+    (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${rank > 1 ? `[${i}]` : ""}`
+  ).join(",");
+  const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
+  const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
+  const leftPadCondition = rank > 1 ? `any(paddedCoords < start)` : `paddedCoords < start`;
+  const rightPadCondition = rank > 1 ? `any(paddedCoords >= end)` : `paddedCoords >= end`;
+  const unpackedCoords = rank > 1 ? ["coords[0]", "coords[1]", "coords[2]", "coords[3]"].slice(0, rank) : "coords";
+  return `
+        let start = ${startValue};
+        let end = ${endValue};
+        if (${leftPadCondition} || ${rightPadCondition}) {
+          setOutputAtIndex(index, ${fillZero ? 0 : "uniforms.constantValue"});
+        } else {
+          let coords = paddedCoords - start;
+          setOutputAtIndex(index, getX(${unpackedCoords}));
+        }
+  `;
+}
 var PadProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = "constantValue : f32,";
-  workgroupSize = [64, 1, 1];
-  xShape;
-  size = true;
   constructor(xShape, paddings) {
+    this.variableNames = ["x"];
+    this.uniforms = "constantValue : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = paddings.map(
       (p2, i) => p2[0] + xShape[i] + p2[1]
       /* afterPad */
@@ -88644,30 +87458,11 @@ var PadProgram2 = class {
     this.shaderKey = "pad";
   }
   getUserCode() {
-    const rank = this.xShape.length;
-    const type = getCoordsDataType2(rank);
-    const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(",");
-    const end = this.xShape.map(
-      (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${rank > 1 ? `[${i}]` : ""}`
-    ).join(",");
-    const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
-    const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
-    const leftPadCondition = rank > 1 ? `any(outC < start)` : `outC < start`;
-    const rightPadCondition = rank > 1 ? `any(outC >= end)` : `outC >= end`;
-    const unpackedCoords = rank > 1 ? ["coords[0]", "coords[1]", "coords[2]", "coords[3]"].slice(0, rank) : "coords";
     const userCode = `
       ${getMainHeaderString("index")} {
         if (index < uniforms.size) {
-          let start = ${startValue};
-          let end = ${endValue};
-          let outC = getCoordsFromIndex(index);
-
-          if (${leftPadCondition} || ${rightPadCondition}) {
-            setOutputAtIndex(index, uniforms.constantValue);
-          } else {
-            let coords = outC - start;
-            setOutputAtIndex(index, getX(${unpackedCoords}));
-          }
+          let paddedCoords = getCoordsFromIndex(index);
+          ${padCommon(this.xShape)}
         }
       }
     `;
@@ -88787,15 +87582,11 @@ var relu6Config3 = {
 
 // src/tfjs-backend-webgpu/src/resize_bilinear_webgpu.ts
 var ResizeBilinearProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = "adjustHeightWidth : vec2<f32>, halfPixelCenters : f32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(inputShape, newHeight, newWidth) {
+    this.variableNames = ["x"];
+    this.uniforms = "adjustHeightWidth : vec2<f32>, halfPixelCenters : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -88882,17 +87673,12 @@ var resizeBilinearConfig3 = {
 
 // src/tfjs-backend-webgpu/src/resize_bilinear_backprop_webgpu.ts
 var ResizeBilinearBackpropProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["dy"];
-  uniforms = `effectiveXSize : vec2<i32>, effectiveYSize : vec2<i32>, heightScale : f32, widthScale : f32,
-       invHeightScale : f32, invWidthScale : f32, winHeight : i32, winWidth : i32,`;
-  workgroupSize = [64, 1, 1];
-  alignCorners;
-  size = true;
   constructor(inputShape, alignCorners) {
+    this.variableNames = ["dy"];
+    this.uniforms = `effectiveXSize : vec2<i32>, effectiveYSize : vec2<i32>, heightScale : f32, widthScale : f32,
+       invHeightScale : f32, invWidthScale : f32, winHeight : i32, winWidth : i32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = inputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -89028,16 +87814,11 @@ var resizeBilinearGradConfig4 = {
 
 // src/tfjs-backend-webgpu/src/resize_nearest_neighbor_webgpu.ts
 var ResizeNearestNeighborProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms = "adjustHeightWidth : vec2<f32>, roundBase : f32,";
-  workgroupSize = [64, 1, 1];
-  halfPixelCenters;
-  size = true;
   constructor(inputShape, newHeight, newWidth, halfPixelCenters) {
+    this.variableNames = ["x"];
+    this.uniforms = "adjustHeightWidth : vec2<f32>, roundBase : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -89120,17 +87901,12 @@ var resizeNearestNeighborConfig3 = {
 
 // src/tfjs-backend-webgpu/src/resize_nearest_neighbor_backprop_webgpu.ts
 var ResizeNearestNeigborBackpropProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["dy"];
-  uniforms = `effectiveXSize : vec2<i32>, effectiveYSize : vec2<i32>, invHeightScale : f32, invWidthScale : f32,
-       winHeight : i32, winWidth : i32,`;
-  workgroupSize = [64, 1, 1];
-  alignCorners;
-  size = true;
   constructor(inputShape, alignCorners) {
+    this.variableNames = ["dy"];
+    this.uniforms = `effectiveXSize : vec2<i32>, effectiveYSize : vec2<i32>, invHeightScale : f32, invWidthScale : f32,
+       winHeight : i32, winWidth : i32,`;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = inputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -89249,15 +88025,10 @@ var resizeNearestNeighborGradConfig4 = {
 
 // src/tfjs-backend-webgpu/src/reverse_webgpu.ts
 var ReverseProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(xShape) {
+    this.variableNames = ["x"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = xShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -89348,16 +88119,11 @@ var reverseConfig3 = {
 
 // src/tfjs-backend-webgpu/src/rotate_webgpu.ts
 var RotateProgram2 = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x"];
-  uniforms;
-  workgroupSize = [64, 1, 1];
-  fillSnippet;
-  size = true;
   constructor(imageShape, fillValue) {
+    this.outputShape = [];
+    this.variableNames = ["x"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = imageShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -89456,20 +88222,10 @@ var rsqrtConfig3 = {
 
 // src/tfjs-backend-webgpu/src/scatter_webgpu.ts
 var ScatterProgram2 = class {
-  variableNames = ["updates", "indices"];
-  uniforms;
-  outputShape;
-  sumDupeIndices;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  updatesRank;
-  indicesRank;
-  sliceDimGreaterThanOne;
-  atomic = true;
-  type;
   constructor(flattenXShape, sliceDim, indicesRank, updatesRank, strides, shape, outputDtype, sumDupeIndices = true) {
+    this.variableNames = ["updates", "indices"];
+    this.workgroupSize = [64, 1, 1];
+    this.atomic = true;
     this.outputShape = shape;
     this.type = outputDtype;
     this.sumDupeIndices = sumDupeIndices;
@@ -89596,16 +88352,12 @@ var scatterNdConfig3 = {
 
 // src/tfjs-backend-webgpu/src/search_sorted_webgpu.ts
 var SearchSortedProgram2 = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["sortedSequence", "values"];
-  uniforms = "numInputs : i32,";
-  workgroupSize = [64, 1, 1];
-  size = true;
-  side;
   constructor(outputShape, side) {
+    this.outputShape = [];
+    this.variableNames = ["sortedSequence", "values"];
+    this.uniforms = "numInputs : i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -89667,16 +88419,10 @@ var searchSortedConfig3 = {
 
 // src/tfjs-backend-webgpu/src/select_webgpu.ts
 var SelectProgram2 = class {
-  variableNames = ["c", "a", "b"];
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  cRank;
-  rank;
-  size = true;
   constructor(cRank, shape, rank) {
+    this.variableNames = ["c", "a", "b"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -89792,6 +88538,54 @@ var softplusConfig3 = {
   kernelFunc: softplus4
 };
 
+// src/tfjs-backend-webgpu/src/space_to_batchND_webgpu.ts
+var SpaceToBatchNDProgram = class {
+  constructor(xShape, paddedXShape, paddings, reshapedPaddedXShape, newDim, paddedXShapeStridesShapeLength) {
+    this.variableNames = ["x"];
+    this.outputShape = [];
+    this.uniforms = "";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
+    const outputShape = new Array(reshapedPaddedXShape.length);
+    for (let i = 0; i < outputShape.length; i++) {
+      outputShape[i] = reshapedPaddedXShape[newDim[i]];
+    }
+    this.outputShape = outputShape;
+    this.newDim = newDim;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize
+    );
+    this.xShape = xShape;
+    this.paddedXShape = paddedXShape;
+    this.uniforms += `reshapedPaddedXShape : ${getCoordsDataType2(
+      reshapedPaddedXShape.length
+    )}, paddedXShapeStrides : ${getCoordsDataType2(paddedXShapeStridesShapeLength)}, `;
+    paddings.map((_, i) => {
+      this.uniforms += ` pad${i} : vec2<i32>,`;
+    });
+    this.shaderKey = `spaceToBatchND_${newDim}`;
+  }
+  getUserCode() {
+    const dtype = getCoordsDataType2(this.outputShape.length);
+    const switched = getSwitchedCoords2(this.newDim);
+    const userCode = `
+      ${getCoordsFromIndexSnippet(this.paddedXShape, "PaddedX")}
+      ${getMainHeaderString("index")} {
+        if(index < uniforms.size) {
+          let coords = getCoordsFromIndex(index);
+          let switchedIndex = getIndexFromCoords${this.outputShape.length}D(${dtype}(${switched}), uniforms.reshapedPaddedXShape);
+          let paddedCoords = getPaddedXCoordsFromIndex(switchedIndex);
+          ${padCommon(this.xShape, true)}
+        }
+      }
+    `;
+    return userCode;
+  }
+};
+
 // src/tfjs-backend-webgpu/src/kernels/SpaceToBatchND.ts
 var spaceToBatchND4 = (args) => {
   const { inputs, backend: backend2, attrs } = args;
@@ -89807,32 +88601,36 @@ var spaceToBatchND4 = (args) => {
   for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
     completePaddings.push([0, 0]);
   }
-  const toDispose = [];
-  const paddedX = padV23({
-    inputs: { x },
-    backend: backend2,
-    attrs: { paddings: completePaddings, constantValue: 0 }
-  });
-  const reshapedPaddedShape = backend_util_exports.getReshaped(paddedX.shape, blockShape, prod6, false);
+  const paddedXShape = completePaddings.map(
+    (p2, i) => p2[0] + x.shape[i] + p2[1]
+    /* afterPad */
+  );
+  const reshapedPaddedShape = backend_util_exports.getReshaped(paddedXShape, blockShape, prod6, false);
   const permutedReshapedPaddedPermutation = backend_util_exports.getPermuted(
     reshapedPaddedShape.length,
     blockShape.length,
     false
   );
-  const flattenShape = backend_util_exports.getReshapedPermuted(paddedX.shape, blockShape, prod6, false);
-  const reshapedPaddedX = reshape5(
-    { inputs: { x: paddedX }, backend: backend2, attrs: { shape: reshapedPaddedShape } }
+  const flattenShape = backend_util_exports.getReshapedPermuted(paddedXShape, blockShape, prod6, false);
+  const paddedXShapeStrides = util_exports.computeStrides(paddedXShape);
+  const program = new SpaceToBatchNDProgram(
+    x.shape,
+    paddedXShape,
+    completePaddings,
+    reshapedPaddedShape,
+    permutedReshapedPaddedPermutation,
+    paddedXShapeStrides.length
   );
-  const paddedXT = transpose4({
-    inputs: { x: reshapedPaddedX },
-    backend: backend2,
-    attrs: { perm: permutedReshapedPaddedPermutation }
-  });
+  const uniformData = [
+    { type: "int32", data: reshapedPaddedShape },
+    { type: "int32", data: paddedXShapeStrides }
+  ];
+  completePaddings.map(
+    (p2) => uniformData.push({ type: "int32", data: [p2[0], p2[1]] })
+  );
+  const paddedXT = backend2.runWebGPUProgram(program, [x], x.dtype, uniformData);
   const result = reshape5({ inputs: { x: paddedXT }, backend: backend2, attrs: { shape: flattenShape } });
-  toDispose.push(paddedX);
-  toDispose.push(reshapedPaddedX);
-  toDispose.push(paddedXT);
-  toDispose.forEach((t) => backend2.disposeData(t.dataId));
+  backend2.disposeData(paddedXT.dataId);
   return result;
 };
 var spaceToBatchNDConfig3 = {
@@ -89841,17 +88639,181 @@ var spaceToBatchNDConfig3 = {
   kernelFunc: spaceToBatchND4
 };
 
+// src/tfjs-backend-webgpu/src/sparse_segment_reduce_webgpu.ts
+var SparseSegmentSumProgram = class {
+  constructor(outShape, sparseSize, outputDtype) {
+    this.variableNames = ["input", "indices", "segmentIds"];
+    this.outputShape = [];
+    this.uniforms = "segmentSize : i32, sparseSize : i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.atomic = true;
+    this.outputShape = outShape;
+    this.type = outputDtype;
+    this.dispatchLayout = flatDispatchLayout([sparseSize]);
+    this.dispatch = computeDispatch(this.dispatchLayout, [sparseSize], this.workgroupSize);
+    this.shaderKey = "sparseSegmentSum";
+  }
+  getUserCode() {
+    const userCode = `
+    ${getMainHeaderString("index")} {
+      if (index < uniforms.sparseSize) {
+        let indexInSegmentIds = index / uniforms.segmentSize;
+        let indexInSegment = index % uniforms.segmentSize;
+        let indexInInput = indices[indexInSegmentIds];
+        let segmentId = segmentIds[indexInSegmentIds];
+
+        let value = input[indexInInput * uniforms.segmentSize + indexInSegment];
+        let outIndex = segmentId * uniforms.segmentSize + indexInSegment;
+        ${atomicAddSnippet(
+      "&result[outIndex]",
+      "value",
+      this.type
+    )}
+      }
+    }
+  `;
+    return userCode;
+  }
+};
+var SparseSegmentIdCountProgram = class {
+  constructor(outShape, segmentIdsShape) {
+    this.variableNames = ["segmentIds"];
+    this.outputShape = [];
+    this.workgroupSize = [64, 1, 1];
+    this.atomic = true;
+    this.outputShape = [outShape];
+    this.dispatchLayout = flatDispatchLayout(segmentIdsShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      segmentIdsShape,
+      this.workgroupSize
+    );
+    this.shaderKey = "sparseSegmentIdCountProgram";
+  }
+  getUserCode() {
+    const userCode = `
+    ${getMainHeaderString("index")} {
+      if (index < uniforms.segmentIdsShape) {
+        let segmentId = segmentIds[index];
+        ${atomicAddSnippet("&result[segmentId]", "1", "int32")}
+      }
+    }
+  `;
+    return userCode;
+  }
+};
+var SparseSegmentMeanProgram = class {
+  constructor(outShape, outputDtype) {
+    this.variableNames = ["segmentSum", "sameSegmentIdCount"];
+    this.outputShape = [];
+    this.uniforms = "segmentSize : i32";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
+    this.outputShape = outShape;
+    this.type = outputDtype;
+    this.dispatchLayout = flatDispatchLayout(outShape);
+    this.dispatch = computeDispatch(this.dispatchLayout, outShape, this.workgroupSize);
+    this.shaderKey = "sparseSegmentMean";
+  }
+  getUserCode() {
+    const userCode = `
+    ${getMainHeaderString("index")} {
+      if (index < uniforms.size) {
+        let segmentId = index / uniforms.segmentSize;
+        let count = sameSegmentIdCount[segmentId];
+        if (count != 0) {
+          ${this.type === "float32" ? "setOutputAtIndex(index, segmentSum[index] / f32(count));" : "setOutputAtIndexI32(index, segmentSum[index] / count);"}
+        }
+      }
+    }
+  `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernel_utils/sparse_segment_reduce.ts
+function sparseSegmentReduce(input2, indices, segmentIds, isSum = false, backend2) {
+  const inputSize = util_exports.sizeFromShape(input2.shape);
+  const segmentSize = inputSize / input2.shape[0];
+  const dtype = input2.dtype;
+  const numIndices = util_exports.sizeFromShape(indices.shape);
+  const $segmentIds = backend2.readSync(segmentIds.dataId);
+  const lastSegmentIdPlusOne = numIndices > 0 ? $segmentIds[numIndices - 1] + 1 : 0;
+  const outputRows = lastSegmentIdPlusOne;
+  let program;
+  const outputShape = input2.shape.slice();
+  outputShape[0] = outputRows;
+  const sparseSize = numIndices * segmentSize;
+  const sparseSegmentSum6 = fill4({ backend: backend2, attrs: { shape: outputShape, value: 0, dtype } });
+  program = new SparseSegmentSumProgram(outputShape, sparseSize, dtype);
+  let uniformData = [
+    { type: "int32", data: [segmentSize] },
+    { type: "int32", data: [sparseSize] }
+  ];
+  const $sparseSegmentSum = backend2.runWebGPUProgram(
+    program,
+    [input2, indices, segmentIds],
+    dtype,
+    uniformData,
+    sparseSegmentSum6
+  );
+  if (isSum) {
+    return $sparseSegmentSum;
+  }
+  const sparseSegmentIdCount = fill4({ backend: backend2, attrs: { shape: [outputRows], value: 0, dtype: "int32" } });
+  program = new SparseSegmentIdCountProgram(outputRows, segmentIds.shape);
+  const $sparseSegmentIdCount = backend2.runWebGPUProgram(
+    program,
+    [segmentIds],
+    "int32",
+    null,
+    sparseSegmentIdCount
+  );
+  const sparseSegmentMean6 = fill4({ backend: backend2, attrs: { shape: outputShape, value: 0, dtype } });
+  program = new SparseSegmentMeanProgram(outputShape, dtype);
+  uniformData = [{ type: "int32", data: [segmentSize] }];
+  const $sparseSegmentMean = backend2.runWebGPUProgram(
+    program,
+    [$sparseSegmentSum, $sparseSegmentIdCount],
+    dtype,
+    uniformData,
+    sparseSegmentMean6
+  );
+  backend2.disposeData($sparseSegmentSum.dataId);
+  backend2.disposeData($sparseSegmentIdCount.dataId);
+  return $sparseSegmentMean;
+}
+
+// src/tfjs-backend-webgpu/src/kernels/SparseSegmentMean.ts
+function sparseSegmentMean4(args) {
+  const { inputs, backend: backend2 } = args;
+  const { data, indices, segmentIds } = inputs;
+  return sparseSegmentReduce(data, indices, segmentIds, false, backend2);
+}
+var sparseSegmentMeanConfig3 = {
+  kernelName: SparseSegmentMean,
+  backendName: "webgpu",
+  kernelFunc: sparseSegmentMean4
+};
+
+// src/tfjs-backend-webgpu/src/kernels/SparseSegmentSum.ts
+function sparseSegmentSum4(args) {
+  const { inputs, backend: backend2 } = args;
+  const { data, indices, segmentIds } = inputs;
+  return sparseSegmentReduce(data, indices, segmentIds, true, backend2);
+}
+var sparseSegmentSumConfig3 = {
+  kernelName: SparseSegmentSum,
+  backendName: "webgpu",
+  kernelFunc: sparseSegmentSum4
+};
+
 // src/tfjs-backend-webgpu/src/tile_webgpu.ts
 var TileProgram2 = class {
-  variableNames = ["A"];
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  size = true;
-  rank;
   constructor(aShape, reps) {
+    this.variableNames = ["A"];
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     const outputShape = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[i] * reps[i];
@@ -90116,17 +89078,12 @@ var stepConfig3 = {
 
 // src/tfjs-backend-webgpu/src/strided_slice_webgpu.ts
 var StridedSliceProgram2 = class {
-  variableNames = ["x"];
-  uniforms;
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  // TODO(xing.xu): Increase the workPerThread.
-  workPerThread = 1;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(destSize) {
+    this.variableNames = ["x"];
+    // TODO(xing.xu): Increase the workPerThread.
+    this.workPerThread = 1;
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = destSize;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -90357,15 +89314,10 @@ var tensorScatterUpdateConfig3 = {
 
 // src/tfjs-backend-webgpu/src/top_k_webgpu.ts
 var SwapProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "indices"];
-  uniforms;
-  workgroupSize = [256, 1, 1];
-  size = true;
   constructor(shape) {
+    this.variableNames = ["x", "indices"];
+    this.workgroupSize = [256, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -90450,15 +89402,10 @@ var SwapProgram2 = class {
   }
 };
 var MergeProgram2 = class {
-  outputShape;
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "indices"];
-  uniforms;
-  workgroupSize = [256, 1, 1];
-  size = true;
   constructor(shape) {
+    this.variableNames = ["x", "indices"];
+    this.workgroupSize = [256, 1, 1];
+    this.size = true;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -90665,15 +89612,11 @@ var topKConfig3 = {
 
 // src/tfjs-backend-webgpu/src/transform_webgpu.ts
 var TransformProgram2 = class {
-  variableNames = ["Image", "Transforms"];
-  outputShape;
-  uniforms = "interpolationModeId : i32, fillModeId : i32, fillValue : f32,";
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  workgroupSize = [64, 1, 1];
-  size = true;
   constructor(outShape) {
+    this.variableNames = ["Image", "Transforms"];
+    this.uniforms = "interpolationModeId : i32, fillModeId : i32, fillValue : f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.size = true;
     this.outputShape = outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -90897,16 +89840,12 @@ var unpackConfig3 = {
 
 // src/tfjs-backend-webgpu/src/unsorted_segment_sum_webgpu.ts
 var UnsortedSegmentSumProgram = class {
-  outputShape = [];
-  shaderKey;
-  dispatchLayout;
-  dispatch;
-  variableNames = ["x", "segmentIds"];
-  uniforms = "numSegments : i32, xSize: i32,";
-  workgroupSize = [64, 1, 1];
-  atomic = true;
-  type;
   constructor(inShape, outShape, outputDtype) {
+    this.outputShape = [];
+    this.variableNames = ["x", "segmentIds"];
+    this.uniforms = "numSegments : i32, xSize: i32,";
+    this.workgroupSize = [64, 1, 1];
+    this.atomic = true;
     this.outputShape = outShape;
     this.dispatchLayout = flatDispatchLayout(inShape);
     this.dispatch = computeDispatch(this.dispatchLayout, inShape, this.workgroupSize);
@@ -91142,6 +90081,8 @@ var kernelConfigs3 = [
   softmaxConfig3,
   softplusConfig3,
   spaceToBatchNDConfig3,
+  sparseSegmentMeanConfig3,
+  sparseSegmentSumConfig3,
   sparseToDenseConfig3,
   splitVConfig3,
   sqrtConfig3,
@@ -91315,7 +90256,7 @@ var acosConfig4 = createUnaryKernelConfig(Acos);
 var acoshConfig4 = createUnaryKernelConfig(Acosh);
 
 // src/tfjs-backend-wasm/src/kernels/binary_kernel.ts
-function createBinaryKernelConfig(kernelName, supportsFullBroadcast19, dtype) {
+function createBinaryKernelConfig(kernelName, supportsFullBroadcast20, dtype) {
   let wasmFunc8;
   function setupFunc3(backend2) {
     wasmFunc8 = backend2.wasm.cwrap(kernelName, null, [
@@ -92004,6 +90945,93 @@ var avgPool3DGradConfig5 = {
   kernelFunc: avgPool3DGrad4
 };
 
+// src/tfjs-backend-wasm/src/kernels/AvgPoolGrad.ts
+var wasmAvgPoolGrad;
+function setup8(backend2) {
+  wasmAvgPoolGrad = backend2.wasm.cwrap("AvgPoolGrad", null, [
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padTop
+    "number",
+    // padLeft
+    "number",
+    // filterHeight
+    "number"
+    // filterWidth
+  ]);
+}
+function avgPoolGrad5(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { dy, input: input2 } = inputs;
+  const { filterSize, strides, pad: pad3 } = attrs;
+  const convInfo = backend_util_exports.computePool2DInfo(
+    input2.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3
+  );
+  const dx = backend2.makeOutput(input2.shape, input2.dtype);
+  wasmAvgPoolGrad(
+    backend2.dataIdMap.get(dy.dataId).id,
+    backend2.dataIdMap.get(dx.dataId).id,
+    convInfo.batchSize,
+    // Since Pool ops (AvgPool and MaxPool) support 2D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left,
+    convInfo.filterHeight,
+    convInfo.filterWidth
+  );
+  return dx;
+}
+var avgPoolGradConfig5 = {
+  kernelName: AvgPoolGrad,
+  backendName: "wasm",
+  setupFunc: setup8,
+  kernelFunc: avgPoolGrad5
+};
+
 // src/tfjs-backend-wasm/src/kernels/Reshape.ts
 function reshape6(args) {
   const { inputs, attrs } = args;
@@ -92026,7 +91054,7 @@ var reshapeConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/BatchMatMul.ts
 var wasmBatchMatMul;
-function setup8(backend2) {
+function setup9(backend2) {
   wasmBatchMatMul = backend2.wasm.cwrap(BatchMatMul, null, [
     "number",
     // a_id
@@ -92108,7 +91136,7 @@ function batchMatMul4(args) {
 var batchMatMulConfig4 = {
   kernelName: BatchMatMul,
   backendName: "wasm",
-  setupFunc: setup8,
+  setupFunc: setup9,
   kernelFunc: batchMatMul4
 };
 
@@ -92258,7 +91286,7 @@ var batchToSpaceNDConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/Bincount.ts
 var wasmBincount;
-function setup9(backend2) {
+function setup10(backend2) {
   wasmBincount = backend2.wasm.cwrap(Bincount, null, [
     "number",
     // xId
@@ -92297,9 +91325,13 @@ function bincount5(args) {
 var bincountConfig4 = {
   kernelName: Bincount,
   backendName: "wasm",
-  setupFunc: setup9,
+  setupFunc: setup10,
   kernelFunc: bincount5
 };
+
+// src/tfjs-backend-wasm/src/kernels/BitwiseAnd.ts
+var supportsFullBroadcast2 = true;
+var bitwiseAndConfig3 = createBinaryKernelConfig(BitwiseAnd, supportsFullBroadcast2);
 
 // src/tfjs-backend-wasm/src/kernels/BroadcastArgs.ts
 function broadcastArgs5(args) {
@@ -92346,7 +91378,7 @@ var ceilConfig4 = createUnaryKernelConfig(Ceil);
 
 // src/tfjs-backend-wasm/src/kernels/ClipByValue.ts
 var wasmClip;
-function setup10(backend2) {
+function setup11(backend2) {
   wasmClip = backend2.wasm.cwrap(ClipByValue, null, [
     "number",
     // x_id
@@ -92371,7 +91403,7 @@ function clip(args) {
 var clipByValueConfig4 = {
   kernelName: ClipByValue,
   backendName: "wasm",
-  setupFunc: setup10,
+  setupFunc: setup11,
   kernelFunc: clip
 };
 
@@ -92447,7 +91479,7 @@ var concatConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/Conv2D.ts
 var wasmConv2d;
-function setup11(backend2) {
+function setup12(backend2) {
   wasmConv2d = backend2.wasm.cwrap(Conv2D, null, [
     "number",
     // xId
@@ -92552,13 +91584,13 @@ function conv2d6(args) {
 var conv2DConfig4 = {
   kernelName: Conv2D,
   backendName: "wasm",
-  setupFunc: setup11,
+  setupFunc: setup12,
   kernelFunc: conv2d6
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv2DBackpropInput.ts
 var wasmConv2DBackpropInput;
-function setup12(backend2) {
+function setup13(backend2) {
   wasmConv2DBackpropInput = backend2.wasm.cwrap(Conv2DBackpropInput, null, [
     "number",
     // dyId
@@ -92697,13 +91729,13 @@ function conv2DBackpropInput5(args) {
 var conv2DBackpropInputConfig4 = {
   kernelName: Conv2DBackpropInput,
   backendName: "wasm",
-  setupFunc: setup12,
+  setupFunc: setup13,
   kernelFunc: conv2DBackpropInput5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv3D.ts
 var wasmConv3D;
-function setup13(backend2) {
+function setup14(backend2) {
   wasmConv3D = backend2.wasm.cwrap(Conv3D, null, [
     "number",
     // xId
@@ -92806,13 +91838,13 @@ function conv3D4(args) {
 var conv3DConfig4 = {
   kernelName: Conv3D,
   backendName: "wasm",
-  setupFunc: setup13,
+  setupFunc: setup14,
   kernelFunc: conv3D4
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv3DBackpropFilterV2.ts
 var wasmConv3DBackpropFilterV2;
-function setup14(backend2) {
+function setup15(backend2) {
   wasmConv3DBackpropFilterV2 = backend2.wasm.cwrap(Conv3DBackpropFilterV2, null, [
     "number",
     // xId
@@ -92914,13 +91946,13 @@ function conv3DBackpropFilterV24(args) {
 var conv3DBackpropFilterV2Config4 = {
   kernelName: Conv3DBackpropFilterV2,
   backendName: "wasm",
-  setupFunc: setup14,
+  setupFunc: setup15,
   kernelFunc: conv3DBackpropFilterV24
 };
 
 // src/tfjs-backend-wasm/src/kernels/Conv3DBackpropInputV2.ts
 var wasmConv3DBackpropInputV2;
-function setup15(backend2) {
+function setup16(backend2) {
   wasmConv3DBackpropInputV2 = backend2.wasm.cwrap(Conv3DBackpropInputV2, null, [
     "number",
     // filterId
@@ -93024,7 +92056,7 @@ function conv3DBackpropInputV23(args) {
 var conv3DBackpropInputV2Config3 = {
   kernelName: Conv3DBackpropInputV2,
   backendName: "wasm",
-  setupFunc: setup15,
+  setupFunc: setup16,
   kernelFunc: conv3DBackpropInputV23
 };
 
@@ -93041,7 +92073,7 @@ var InterpolationMethod = /* @__PURE__ */ ((InterpolationMethod2) => {
   return InterpolationMethod2;
 })(InterpolationMethod || {});
 var wasmCropAndResize;
-function setup16(backend2) {
+function setup17(backend2) {
   wasmCropAndResize = backend2.wasm.cwrap(CropAndResize, null, [
     "number",
     // imagesId
@@ -93104,13 +92136,13 @@ function cropAndResize6(args) {
 var cropAndResizeConfig4 = {
   kernelName: CropAndResize,
   backendName: "wasm",
-  setupFunc: setup16,
+  setupFunc: setup17,
   kernelFunc: cropAndResize6
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cumprod.ts
 var wasmCumprod;
-function setup17(backend2) {
+function setup18(backend2) {
   wasmCumprod = backend2.wasm.cwrap(Cumprod, null, [
     "number",
     // x_id
@@ -93168,13 +92200,13 @@ function cumprod5(args) {
 var cumprodConfig4 = {
   kernelName: Cumprod,
   backendName: "wasm",
-  setupFunc: setup17,
+  setupFunc: setup18,
   kernelFunc: cumprod5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Cumsum.ts
 var wasmCumsum;
-function setup18(backend2) {
+function setup19(backend2) {
   wasmCumsum = backend2.wasm.cwrap(Cumsum, null, [
     "number",
     // x_id
@@ -93232,13 +92264,13 @@ function cumsum5(args) {
 var cumsumConfig4 = {
   kernelName: Cumsum,
   backendName: "wasm",
-  setupFunc: setup18,
+  setupFunc: setup19,
   kernelFunc: cumsum5
 };
 
 // src/tfjs-backend-wasm/src/kernels/DenseBincount.ts
 var wasmDenseBincount;
-function setup19(backend2) {
+function setup20(backend2) {
   wasmDenseBincount = backend2.wasm.cwrap("DenseBincount", null, [
     "number",
     // xId
@@ -93286,13 +92318,13 @@ function denseBincount5(args) {
 var denseBincountConfig4 = {
   kernelName: DenseBincount,
   backendName: "wasm",
-  setupFunc: setup19,
+  setupFunc: setup20,
   kernelFunc: denseBincount5
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthToSpace.ts
 var wasmDepthToSpace;
-function setup20(backend2) {
+function setup21(backend2) {
   wasmDepthToSpace = backend2.wasm.cwrap(DepthToSpace, null, [
     "number",
     // xId
@@ -93350,13 +92382,13 @@ function depthToSpace5(args) {
 var depthToSpaceConfig4 = {
   kernelName: DepthToSpace,
   backendName: "wasm",
-  setupFunc: setup20,
+  setupFunc: setup21,
   kernelFunc: depthToSpace5
 };
 
 // src/tfjs-backend-wasm/src/kernels/DepthwiseConv2dNative.ts
 var wasmDepthwiseConv2d;
-function setup21(backend2) {
+function setup22(backend2) {
   wasmDepthwiseConv2d = backend2.wasm.cwrap(DepthwiseConv2dNative, null, [
     "number",
     // xId
@@ -93461,13 +92493,13 @@ function depthwiseConv2d5(args) {
 var depthwiseConv2dNativeConfig4 = {
   kernelName: DepthwiseConv2dNative,
   backendName: "wasm",
-  setupFunc: setup21,
+  setupFunc: setup22,
   kernelFunc: depthwiseConv2d5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Diag.ts
 var wasmDiag;
-function setup22(backend2) {
+function setup23(backend2) {
   wasmDiag = backend2.wasm.cwrap("Diag", null, [
     "number",
     // xId
@@ -93495,13 +92527,13 @@ function diag5(args) {
 var diagConfig4 = {
   kernelName: Diag,
   backendName: "wasm",
-  setupFunc: setup22,
+  setupFunc: setup23,
   kernelFunc: diag5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Dilation2D.ts
 var wasmDilation2D;
-function setup23(backend2) {
+function setup24(backend2) {
   wasmDilation2D = backend2.wasm.cwrap(Dilation2D, null, [
     "number",
     // xId
@@ -93586,13 +92618,13 @@ function dilation2D3(args) {
 var dilation2DConfig4 = {
   kernelName: Dilation2D,
   backendName: "wasm",
-  setupFunc: setup23,
+  setupFunc: setup24,
   kernelFunc: dilation2D3
 };
 
 // src/tfjs-backend-wasm/src/kernels/Dilation2DBackpropFilter.ts
 var wasmDilation2DBackpropFilter;
-function setup24(backend2) {
+function setup25(backend2) {
   wasmDilation2DBackpropFilter = backend2.wasm.cwrap(Dilation2DBackpropFilter, null, [
     "number",
     // xId
@@ -93680,13 +92712,13 @@ function dilation2DBackpropFilter2(args) {
 var dilation2DBackpropFilterConfig3 = {
   kernelName: Dilation2DBackpropFilter,
   backendName: "wasm",
-  setupFunc: setup24,
+  setupFunc: setup25,
   kernelFunc: dilation2DBackpropFilter2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Dilation2DBackpropInput.ts
 var wasmDilation2DBackpropInput;
-function setup25(backend2) {
+function setup26(backend2) {
   wasmDilation2DBackpropInput = backend2.wasm.cwrap(Dilation2DBackpropInput, null, [
     "number",
     // xId
@@ -93774,7 +92806,7 @@ function dilation2DBackpropInput2(args) {
 var dilation2DBackpropInputConfig3 = {
   kernelName: Dilation2DBackpropInput,
   backendName: "wasm",
-  setupFunc: setup25,
+  setupFunc: setup26,
   kernelFunc: dilation2DBackpropInput2
 };
 
@@ -93783,7 +92815,7 @@ var eluConfig4 = createUnaryKernelConfig(Elu);
 
 // src/tfjs-backend-wasm/src/kernels/EluGrad.ts
 var wasmEluGrad;
-function setup26(backend2) {
+function setup27(backend2) {
   wasmEluGrad = backend2.wasm.cwrap(EluGrad, null, [
     "number",
     // yId
@@ -93806,13 +92838,16 @@ function eluGrad4(args) {
 var eluGradConfig5 = {
   kernelName: EluGrad,
   backendName: "wasm",
-  setupFunc: setup26,
+  setupFunc: setup27,
   kernelFunc: eluGrad4
 };
 
 // src/tfjs-backend-wasm/src/kernels/Equal.ts
-var supportsFullBroadcast2 = false;
-var equalConfig4 = createBinaryKernelConfig(Equal, supportsFullBroadcast2, "bool");
+var supportsFullBroadcast3 = false;
+var equalConfig4 = createBinaryKernelConfig(Equal, supportsFullBroadcast3, "bool");
+
+// src/tfjs-backend-wasm/src/kernels/Erf.ts
+var erfConfig4 = createUnaryKernelConfig(Erf);
 
 // src/tfjs-backend-wasm/src/kernels/Exp.ts
 var expConfig4 = createUnaryKernelConfig(Exp, "float32");
@@ -93860,7 +92895,7 @@ var fillConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/FlipLeftRight.ts
 var wasmFlipLeftRight;
-function setup27(backend2) {
+function setup28(backend2) {
   wasmFlipLeftRight = backend2.wasm.cwrap(FlipLeftRight, null, [
     "number",
     // xId
@@ -93897,19 +92932,19 @@ var flipLeftRightConfig4 = {
   kernelName: FlipLeftRight,
   backendName: "wasm",
   kernelFunc: flipLeftRight2,
-  setupFunc: setup27
+  setupFunc: setup28
 };
 
 // src/tfjs-backend-wasm/src/kernels/Floor.ts
 var floorConfig4 = createUnaryKernelConfig(Floor);
 
 // src/tfjs-backend-wasm/src/kernels/FloorDiv.ts
-var supportsFullBroadcast3 = false;
-var floorDivConfig4 = createBinaryKernelConfig(FloorDiv, supportsFullBroadcast3);
+var supportsFullBroadcast4 = false;
+var floorDivConfig4 = createBinaryKernelConfig(FloorDiv, supportsFullBroadcast4);
 
 // src/tfjs-backend-wasm/src/kernels/FusedBatchNorm.ts
 var wasmBatchNorm;
-function setup28(backend2) {
+function setup29(backend2) {
   wasmBatchNorm = backend2.wasm.cwrap(
     FusedBatchNorm,
     null,
@@ -93944,13 +92979,13 @@ function fusedBatchNorm(args) {
 var fusedBatchNormConfig2 = {
   kernelName: FusedBatchNorm,
   backendName: "wasm",
-  setupFunc: setup28,
+  setupFunc: setup29,
   kernelFunc: fusedBatchNorm
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedConv2D.ts
 var wasmFusedConv2d;
-function setup29(backend2) {
+function setup30(backend2) {
   wasmFusedConv2d = backend2.wasm.cwrap(FusedConv2D, null, [
     "number",
     // xId
@@ -94097,13 +93132,13 @@ function fusedConv2d3(args) {
 var fusedConv2DConfig4 = {
   kernelName: FusedConv2D,
   backendName: "wasm",
-  setupFunc: setup29,
+  setupFunc: setup30,
   kernelFunc: fusedConv2d3
 };
 
 // src/tfjs-backend-wasm/src/kernels/FusedDepthwiseConv2D.ts
 var wasmFusedDepthwiseConv2d;
-function setup30(backend2) {
+function setup31(backend2) {
   wasmFusedDepthwiseConv2d = backend2.wasm.cwrap(FusedDepthwiseConv2D, null, [
     "number",
     // xId
@@ -94252,13 +93287,13 @@ function fusedDepthwiseConv2d(args) {
 var fusedDepthwiseConv2DConfig4 = {
   kernelName: FusedDepthwiseConv2D,
   backendName: "wasm",
-  setupFunc: setup30,
+  setupFunc: setup31,
   kernelFunc: fusedDepthwiseConv2d
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherNd.ts
 var wasmGatherNd;
-function setup31(backend2) {
+function setup32(backend2) {
   wasmGatherNd = backend2.wasm.cwrap(GatherNd, null, [
     "number",
     // xId
@@ -94309,13 +93344,13 @@ function gatherNd4(args) {
 var gatherNdConfig4 = {
   kernelName: GatherNd,
   backendName: "wasm",
-  setupFunc: setup31,
+  setupFunc: setup32,
   kernelFunc: gatherNd4
 };
 
 // src/tfjs-backend-wasm/src/kernels/GatherV2.ts
 var wasmGather;
-function setup32(backend2) {
+function setup33(backend2) {
   wasmGather = backend2.wasm.cwrap("Gather", null, [
     "number",
     // xId
@@ -94413,17 +93448,17 @@ function gatherV24(args) {
 var gatherV2Config4 = {
   kernelName: GatherV2,
   backendName: "wasm",
-  setupFunc: setup32,
+  setupFunc: setup33,
   kernelFunc: gatherV24
 };
 
 // src/tfjs-backend-wasm/src/kernels/Greater.ts
-var supportsFullBroadcast4 = false;
-var greaterConfig4 = createBinaryKernelConfig(Greater, supportsFullBroadcast4, "bool");
+var supportsFullBroadcast5 = false;
+var greaterConfig4 = createBinaryKernelConfig(Greater, supportsFullBroadcast5, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/GreaterEqual.ts
-var supportsFullBroadcast5 = false;
-var greaterEqualConfig4 = createBinaryKernelConfig(GreaterEqual, supportsFullBroadcast5, "bool");
+var supportsFullBroadcast6 = false;
+var greaterEqualConfig4 = createBinaryKernelConfig(GreaterEqual, supportsFullBroadcast6, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/IsFinite.ts
 var isFiniteConfig4 = createUnaryKernelConfig(IsFinite, "bool");
@@ -94466,16 +93501,16 @@ var leakyReluConfig4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Less.ts
-var supportsFullBroadcast6 = false;
-var lessConfig4 = createBinaryKernelConfig(Less, supportsFullBroadcast6, "bool");
+var supportsFullBroadcast7 = false;
+var lessConfig4 = createBinaryKernelConfig(Less, supportsFullBroadcast7, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LessEqual.ts
-var supportsFullBroadcast7 = false;
-var lessEqualConfig4 = createBinaryKernelConfig(LessEqual, supportsFullBroadcast7, "bool");
+var supportsFullBroadcast8 = false;
+var lessEqualConfig4 = createBinaryKernelConfig(LessEqual, supportsFullBroadcast8, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LinSpace.ts
 var wasmLinSpace;
-function setup33(backend2) {
+function setup34(backend2) {
   wasmLinSpace = backend2.wasm.cwrap(LinSpace, null, [
     "number",
     // outId
@@ -94498,7 +93533,7 @@ function linSpace4(args) {
 var linSpaceConfig4 = {
   kernelName: LinSpace,
   backendName: "wasm",
-  setupFunc: setup33,
+  setupFunc: setup34,
   kernelFunc: linSpace4
 };
 
@@ -94509,23 +93544,23 @@ var logConfig4 = createUnaryKernelConfig(Log);
 var log1pConfig4 = createUnaryKernelConfig(Log1p);
 
 // src/tfjs-backend-wasm/src/kernels/LogicalAnd.ts
-var supportsFullBroadcast8 = false;
-var logicalAndConfig4 = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast8, "bool");
+var supportsFullBroadcast9 = false;
+var logicalAndConfig4 = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast9, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LogicalNot.ts
 var logicalNotConfig4 = createUnaryKernelConfig(LogicalNot);
 
 // src/tfjs-backend-wasm/src/kernels/LogicalOr.ts
-var supportsFullBroadcast9 = false;
-var logicalOrConfig4 = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast9, "bool");
+var supportsFullBroadcast10 = false;
+var logicalOrConfig4 = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast10, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LogicalXor.ts
-var supportsFullBroadcast10 = false;
-var logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast10, "bool");
+var supportsFullBroadcast11 = false;
+var logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast11, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/LRN.ts
 var wasmLRN;
-function setup34(backend2) {
+function setup35(backend2) {
   wasmLRN = backend2.wasm.cwrap(LRN, null, [
     "number",
     // xId
@@ -94566,13 +93601,13 @@ function lrn3(args) {
 var lrnConfig2 = {
   kernelName: LRN,
   backendName: "wasm",
-  setupFunc: setup34,
+  setupFunc: setup35,
   kernelFunc: lrn3
 };
 
 // src/tfjs-backend-wasm/src/kernels/LRNGrad.ts
 var wasmLRNGrad;
-function setup35(backend2) {
+function setup36(backend2) {
   wasmLRNGrad = backend2.wasm.cwrap(LRNGrad, null, [
     "number",
     // xId
@@ -94619,13 +93654,13 @@ function lrnGrad3(args) {
 var lrnGradConfig3 = {
   kernelName: LRNGrad,
   backendName: "wasm",
-  setupFunc: setup35,
+  setupFunc: setup36,
   kernelFunc: lrnGrad3
 };
 
 // src/tfjs-backend-wasm/src/kernels/Max.ts
 var wasmMax;
-function setup36(backend2) {
+function setup37(backend2) {
   wasmMax = backend2.wasm.cwrap(Max, null, [
     "number",
     // x_id
@@ -94671,17 +93706,17 @@ function max6(args) {
 var maxConfig4 = {
   kernelName: Max,
   backendName: "wasm",
-  setupFunc: setup36,
+  setupFunc: setup37,
   kernelFunc: max6
 };
 
 // src/tfjs-backend-wasm/src/kernels/Maximum.ts
-var supportsFullBroadcast11 = false;
-var maximumConfig4 = createBinaryKernelConfig(Maximum, supportsFullBroadcast11);
+var supportsFullBroadcast12 = false;
+var maximumConfig4 = createBinaryKernelConfig(Maximum, supportsFullBroadcast12);
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool.ts
 var wasmMaxPool;
-function setup37(backend2) {
+function setup38(backend2) {
   wasmMaxPool = backend2.wasm.cwrap(MaxPool, null, [
     "number",
     // xId
@@ -94779,13 +93814,13 @@ function maxPool5(args) {
 var maxPoolConfig4 = {
   kernelName: MaxPool,
   backendName: "wasm",
-  setupFunc: setup37,
+  setupFunc: setup38,
   kernelFunc: maxPool5
 };
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool3D.ts
 var wasmMaxPool3D;
-function setup38(backend2) {
+function setup39(backend2) {
   wasmMaxPool3D = backend2.wasm.cwrap("MaxPool3D", null, [
     "number",
     // xId
@@ -94880,13 +93915,13 @@ function maxPool3D2(args) {
 var maxPool3DConfig4 = {
   kernelName: MaxPool3D,
   backendName: "wasm",
-  setupFunc: setup38,
+  setupFunc: setup39,
   kernelFunc: maxPool3D2
 };
 
 // src/tfjs-backend-wasm/src/kernels/MaxPool3DGrad.ts
 var wasmMaxPool3DGrad;
-function setup39(backend2) {
+function setup40(backend2) {
   wasmMaxPool3DGrad = backend2.wasm.cwrap("MaxPool3DGrad", null, [
     "number",
     // xId
@@ -94983,13 +94018,194 @@ function maxPool3DGrad4(args) {
 var maxPool3DGradConfig5 = {
   kernelName: MaxPool3DGrad,
   backendName: "wasm",
-  setupFunc: setup39,
+  setupFunc: setup40,
   kernelFunc: maxPool3DGrad4
+};
+
+// src/tfjs-backend-wasm/src/kernels/MaxPoolGrad.ts
+var wasmMaxPoolGrad;
+function setup41(backend2) {
+  wasmMaxPoolGrad = backend2.wasm.cwrap("MaxPoolGrad", null, [
+    "number",
+    // xId
+    "number",
+    // dyId
+    "number",
+    // dxId
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function maxPoolGrad5(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { dy, input: input2 } = inputs;
+  const { filterSize, strides, pad: pad3, dimRoundingMode } = attrs;
+  const convInfo = backend_util_exports.computePool2DInfo(
+    input2.shape,
+    filterSize,
+    strides,
+    /*dilations=*/
+    1,
+    pad3,
+    dimRoundingMode
+  );
+  const dx = backend2.makeOutput(input2.shape, input2.dtype);
+  wasmMaxPoolGrad(
+    backend2.dataIdMap.get(input2.dataId).id,
+    backend2.dataIdMap.get(dy.dataId).id,
+    backend2.dataIdMap.get(dx.dataId).id,
+    convInfo.batchSize,
+    // Since Pool ops (MaxPool and MaxPool) support 2D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/
+    convInfo.inChannels,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return dx;
+}
+var maxPoolGradConfig5 = {
+  kernelName: MaxPoolGrad,
+  backendName: "wasm",
+  setupFunc: setup41,
+  kernelFunc: maxPoolGrad5
+};
+
+// src/tfjs-backend-wasm/src/kernels/MaxPoolWithArgmax.ts
+var wasmMaxPoolWithArgmax;
+function setup42(backend2) {
+  wasmMaxPoolWithArgmax = backend2.wasm.cwrap("MaxPoolWithArgmax", null, [
+    "number",
+    // xId
+    "number",
+    // pooledId
+    "number",
+    // indexesId
+    "number",
+    // dtype
+    "boolean",
+    // includeBatchIndex
+    "number",
+    // batchSize
+    "number",
+    // channelSize
+    "number",
+    // inHeight
+    "number",
+    // inWidth
+    "number",
+    // outHeight
+    "number",
+    // outWidth
+    "number",
+    // strideHeight
+    "number",
+    // strideWidth
+    "number",
+    // dilationHeight
+    "number",
+    // dilationWidth
+    "number",
+    // effectiveFilterHeight
+    "number",
+    // effectiveFilterWidth
+    "number",
+    // padTop
+    "number"
+    // padLeft
+  ]);
+}
+function maxPoolWithArgmax3(args) {
+  const { inputs, backend: backend2, attrs } = args;
+  const { x } = inputs;
+  const { filterSize, strides, pad: pad3, includeBatchInIndex } = attrs;
+  util_exports.assert(
+    x.shape.length === 4,
+    () => `Error in maxPool: input must be rank 4 but got rank ${x.shape.length}.`
+  );
+  const dilations = [1, 1];
+  util_exports.assert(
+    backend_util_exports.eitherStridesOrDilationsAreOne(strides, dilations),
+    () => `Error in maxPool: Either strides or dilations must be 1. Got strides ${strides} and dilations '${dilations}'`
+  );
+  const convInfo = backend_util_exports.computePool2DInfo(
+    x.shape,
+    filterSize,
+    strides,
+    [1, 1],
+    pad3
+  );
+  const pooled = backend2.makeOutput(convInfo.outShape, x.dtype);
+  const indexes = backend2.makeOutput(convInfo.outShape, "int32");
+  wasmMaxPoolWithArgmax(
+    backend2.dataIdMap.get(x.dataId).id,
+    backend2.dataIdMap.get(pooled.dataId).id,
+    backend2.dataIdMap.get(indexes.dataId).id,
+    CppDType[x.dtype],
+    includeBatchInIndex,
+    convInfo.batchSize,
+    convInfo.inChannels,
+    convInfo.inHeight,
+    convInfo.inWidth,
+    convInfo.outHeight,
+    convInfo.outWidth,
+    convInfo.strideHeight,
+    convInfo.strideWidth,
+    convInfo.dilationHeight,
+    convInfo.dilationWidth,
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth,
+    convInfo.padInfo.top,
+    convInfo.padInfo.left
+  );
+  return [pooled, indexes];
+}
+var maxPoolWithArgmaxConfig4 = {
+  kernelName: MaxPoolWithArgmax,
+  backendName: "wasm",
+  setupFunc: setup42,
+  kernelFunc: maxPoolWithArgmax3
 };
 
 // src/tfjs-backend-wasm/src/kernels/Mean.ts
 var wasmMean;
-function setup40(backend2) {
+function setup43(backend2) {
   wasmMean = backend2.wasm.cwrap(Mean, null, ["number, number, number"]);
 }
 function mean4(args) {
@@ -95044,13 +94260,13 @@ function mean4(args) {
 var meanConfig4 = {
   kernelName: Mean,
   backendName: "wasm",
-  setupFunc: setup40,
+  setupFunc: setup43,
   kernelFunc: mean4
 };
 
 // src/tfjs-backend-wasm/src/kernels/Min.ts
 var wasmMin;
-function setup41(backend2) {
+function setup44(backend2) {
   wasmMin = backend2.wasm.cwrap(Min, null, [
     "number",
     // x_id
@@ -95098,13 +94314,13 @@ function min6(args) {
 var minConfig4 = {
   kernelName: Min,
   backendName: "wasm",
-  setupFunc: setup41,
+  setupFunc: setup44,
   kernelFunc: min6
 };
 
 // src/tfjs-backend-wasm/src/kernels/Minimum.ts
-var supportsFullBroadcast12 = false;
-var minimumConfig4 = createBinaryKernelConfig(Minimum, supportsFullBroadcast12);
+var supportsFullBroadcast13 = false;
+var minimumConfig4 = createBinaryKernelConfig(Minimum, supportsFullBroadcast13);
 
 // src/tfjs-backend-wasm/src/kernels/MirrorPad.ts
 var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
@@ -95113,7 +94329,7 @@ var MirrorPaddingMode = /* @__PURE__ */ ((MirrorPaddingMode2) => {
   return MirrorPaddingMode2;
 })(MirrorPaddingMode || {});
 var wasmMirrorPad;
-function setup42(backend2) {
+function setup45(backend2) {
   wasmMirrorPad = backend2.wasm.cwrap(MirrorPad, null, [
     "number",
     // xId
@@ -95163,12 +94379,12 @@ var mirrorPadConfig4 = {
   kernelName: MirrorPad,
   backendName: "wasm",
   kernelFunc: mirrorPad3,
-  setupFunc: setup42
+  setupFunc: setup45
 };
 
 // src/tfjs-backend-wasm/src/kernels/Softmax.ts
 var wasmFunc3;
-function setup43(backend2) {
+function setup46(backend2) {
   wasmFunc3 = backend2.wasm.cwrap(Softmax, null, [
     "number",
     // xId
@@ -95196,13 +94412,13 @@ function softmax6(args) {
 var softmaxConfig4 = {
   kernelName: Softmax,
   backendName: "wasm",
-  setupFunc: setup43,
+  setupFunc: setup46,
   kernelFunc: softmax6
 };
 
 // src/tfjs-backend-wasm/src/kernels/Multinomial.ts
 var wasmMultinomial;
-function setup44(backend2) {
+function setup47(backend2) {
   wasmMultinomial = backend2.wasm.cwrap(Multinomial, null, [
     "number",
     // probabilitiesId
@@ -95250,13 +94466,20 @@ function multinomial5(args) {
 var multinomialConfig4 = {
   kernelName: Multinomial,
   backendName: "wasm",
-  setupFunc: setup44,
+  setupFunc: setup47,
   kernelFunc: multinomial5
 };
 
+// src/tfjs-backend-wasm/src/kernels/Mod.ts
+var modConfig4 = createBinaryKernelConfig(
+  Mod,
+  /*supportsFullBroadcast=*/
+  true
+);
+
 // src/tfjs-backend-wasm/src/kernels/Multiply.ts
-var supportsFullBroadcast13 = true;
-var multiplyConfig4 = createBinaryKernelConfig(Multiply, supportsFullBroadcast13);
+var supportsFullBroadcast14 = true;
+var multiplyConfig4 = createBinaryKernelConfig(Multiply, supportsFullBroadcast14);
 
 // src/tfjs-backend-wasm/src/kernels/Neg.ts
 var negConfig4 = createUnaryKernelConfig(Neg);
@@ -95274,7 +94497,7 @@ function parseResultStruct(backend2, resOffset) {
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV3.ts
 var wasmFunc4;
-function setup45(backend2) {
+function setup48(backend2) {
   wasmFunc4 = backend2.wasm.cwrap(
     NonMaxSuppressionV3,
     "number",
@@ -95309,13 +94532,13 @@ function kernelFunc(args) {
 var nonMaxSuppressionV3Config4 = {
   kernelName: NonMaxSuppressionV3,
   backendName: "wasm",
-  setupFunc: setup45,
+  setupFunc: setup48,
   kernelFunc
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV4.ts
 var wasmFunc5;
-function setup46(backend2) {
+function setup49(backend2) {
   wasmFunc5 = backend2.wasm.cwrap(
     NonMaxSuppressionV4,
     "number",
@@ -95359,13 +94582,13 @@ function nonMaxSuppressionV43(args) {
 var nonMaxSuppressionV4Config3 = {
   kernelName: NonMaxSuppressionV4,
   backendName: "wasm",
-  setupFunc: setup46,
+  setupFunc: setup49,
   kernelFunc: nonMaxSuppressionV43
 };
 
 // src/tfjs-backend-wasm/src/kernels/NonMaxSuppressionV5.ts
 var wasmFunc6;
-function setup47(backend2) {
+function setup50(backend2) {
   wasmFunc6 = backend2.wasm.cwrap(
     NonMaxSuppressionV5,
     "number",
@@ -95409,17 +94632,17 @@ function kernelFunc2(args) {
 var nonMaxSuppressionV5Config4 = {
   kernelName: NonMaxSuppressionV5,
   backendName: "wasm",
-  setupFunc: setup47,
+  setupFunc: setup50,
   kernelFunc: kernelFunc2
 };
 
 // src/tfjs-backend-wasm/src/kernels/NotEqual.ts
-var supportsFullBroadcast14 = false;
-var notEqualConfig4 = createBinaryKernelConfig(NotEqual, supportsFullBroadcast14, "bool");
+var supportsFullBroadcast15 = false;
+var notEqualConfig4 = createBinaryKernelConfig(NotEqual, supportsFullBroadcast15, "bool");
 
 // src/tfjs-backend-wasm/src/kernels/OneHot.ts
 var wasmOneHot;
-function setup48(backend2) {
+function setup51(backend2) {
   wasmOneHot = backend2.wasm.cwrap(OneHot, null, [
     "number",
     // indices_id
@@ -95447,7 +94670,7 @@ function oneHot5(args) {
 var oneHotConfig4 = {
   kernelName: OneHot,
   backendName: "wasm",
-  setupFunc: setup48,
+  setupFunc: setup51,
   kernelFunc: oneHot5
 };
 
@@ -95505,7 +94728,7 @@ var packConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/PadV2.ts
 var wasmPadV2;
-function setup49(backend2) {
+function setup52(backend2) {
   wasmPadV2 = backend2.wasm.cwrap(PadV2, null, [
     "number",
     // xId
@@ -95562,16 +94785,16 @@ var padV2Config4 = {
   kernelName: PadV2,
   backendName: "wasm",
   kernelFunc: pad2,
-  setupFunc: setup49
+  setupFunc: setup52
 };
 
 // src/tfjs-backend-wasm/src/kernels/Pow.ts
-var supportsFullBroadcast15 = false;
-var powConfig4 = createBinaryKernelConfig(Pow, supportsFullBroadcast15);
+var supportsFullBroadcast16 = false;
+var powConfig4 = createBinaryKernelConfig(Pow, supportsFullBroadcast16);
 
 // src/tfjs-backend-wasm/src/kernels/Prelu.ts
 var wasmPrelu;
-function setup50(backend2) {
+function setup53(backend2) {
   wasmPrelu = backend2.wasm.cwrap(Prelu, null, [
     "number",
     // x_id
@@ -95604,13 +94827,13 @@ function prelu6(args) {
 var preluConfig4 = {
   kernelName: Prelu,
   backendName: "wasm",
-  setupFunc: setup50,
+  setupFunc: setup53,
   kernelFunc: prelu6
 };
 
 // src/tfjs-backend-wasm/src/kernels/Prod.ts
 var wasmProd;
-function setup51(backend2) {
+function setup54(backend2) {
   wasmProd = backend2.wasm.cwrap(Prod, null, [
     "number",
     "number",
@@ -95662,7 +94885,7 @@ function prod5(args) {
 var prodConfig4 = {
   kernelName: Prod,
   backendName: "wasm",
-  setupFunc: setup51,
+  setupFunc: setup54,
   kernelFunc: prod5
 };
 
@@ -95683,8 +94906,8 @@ var rangeConfig4 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/RealDiv.ts
-var supportsFullBroadcast16 = true;
-var realDivConfig4 = createBinaryKernelConfig(RealDiv, supportsFullBroadcast16);
+var supportsFullBroadcast17 = true;
+var realDivConfig4 = createBinaryKernelConfig(RealDiv, supportsFullBroadcast17);
 
 // src/tfjs-backend-wasm/src/kernels/Reciprocal.ts
 var reciprocalConfig4 = createUnaryKernelConfig(Reciprocal);
@@ -95697,7 +94920,7 @@ var relu6Config4 = createUnaryKernelConfig(Relu6);
 
 // src/tfjs-backend-wasm/src/kernels/ResizeBilinear.ts
 var wasmResizeBilinear;
-function setup52(backend2) {
+function setup55(backend2) {
   wasmResizeBilinear = backend2.wasm.cwrap(ResizeBilinear, null, [
     "number",
     // xId
@@ -95760,13 +94983,13 @@ function resizeBilinear6(args) {
 var resizeBilinearConfig4 = {
   kernelName: ResizeBilinear,
   backendName: "wasm",
-  setupFunc: setup52,
+  setupFunc: setup55,
   kernelFunc: resizeBilinear6
 };
 
 // src/tfjs-backend-wasm/src/kernels/ResizeBilinearGrad.ts
 var wasmResizeBilinearGrad;
-function setup53(backend2) {
+function setup56(backend2) {
   wasmResizeBilinearGrad = backend2.wasm.cwrap(
     ResizeBilinearGrad,
     null,
@@ -95817,13 +95040,13 @@ function resizeBilinearGrad4(args) {
 var resizeBilinearGradConfig5 = {
   kernelName: ResizeBilinearGrad,
   backendName: "wasm",
-  setupFunc: setup53,
+  setupFunc: setup56,
   kernelFunc: resizeBilinearGrad4
 };
 
 // src/tfjs-backend-wasm/src/kernels/ResizeNearestNeighbor.ts
 var wasmResizeNearestNeighbor;
-function setup54(backend2) {
+function setup57(backend2) {
   wasmResizeNearestNeighbor = backend2.wasm.cwrap(
     ResizeNearestNeighbor,
     null,
@@ -95894,13 +95117,13 @@ function resizeNearestNeighbor5(args) {
 var resizeNearestNeighborConfig4 = {
   kernelName: ResizeNearestNeighbor,
   backendName: "wasm",
-  setupFunc: setup54,
+  setupFunc: setup57,
   kernelFunc: resizeNearestNeighbor5
 };
 
 // src/tfjs-backend-wasm/src/kernels/ResizeNearestNeighborGrad.ts
 var wasmResizeNearestNeighborGrad;
-function setup55(backend2) {
+function setup58(backend2) {
   wasmResizeNearestNeighborGrad = backend2.wasm.cwrap(
     ResizeNearestNeighborGrad,
     null,
@@ -95951,13 +95174,13 @@ function resizeNearestNeighborGrad4(args) {
 var resizeNearestNeighborGradConfig5 = {
   kernelName: ResizeNearestNeighborGrad,
   backendName: "wasm",
-  setupFunc: setup55,
+  setupFunc: setup58,
   kernelFunc: resizeNearestNeighborGrad4
 };
 
 // src/tfjs-backend-wasm/src/kernels/Reverse.ts
 var wasmReverse;
-function setup56(backend2) {
+function setup59(backend2) {
   wasmReverse = backend2.wasm.cwrap(Reverse, null, [
     "number",
     // x_id
@@ -96002,12 +95225,12 @@ var reverseConfig4 = {
   kernelName: Reverse,
   backendName: "wasm",
   kernelFunc: reverse5,
-  setupFunc: setup56
+  setupFunc: setup59
 };
 
 // src/tfjs-backend-wasm/src/kernels/RotateWithOffset.ts
 var wasmRotate;
-function setup57(backend2) {
+function setup60(backend2) {
   wasmRotate = backend2.wasm.cwrap(RotateWithOffset, null, [
     "number",
     // xId
@@ -96065,7 +95288,7 @@ var rotateWithOffsetConfig4 = {
   kernelName: RotateWithOffset,
   backendName: "wasm",
   kernelFunc: rotateWithOffset2,
-  setupFunc: setup57
+  setupFunc: setup60
 };
 
 // src/tfjs-backend-wasm/src/kernels/Round.ts
@@ -96076,7 +95299,7 @@ var rsqrtConfig4 = createUnaryKernelConfig(Rsqrt);
 
 // src/tfjs-backend-wasm/src/kernels/ScatterNd.ts
 var wasmScatterNd;
-function setup58(backend2) {
+function setup61(backend2) {
   wasmScatterNd = backend2.wasm.cwrap(ScatterNd, null, [
     "number",
     // indicesId
@@ -96129,13 +95352,13 @@ function scatterNd4(args) {
 var scatterNdConfig4 = {
   kernelName: ScatterNd,
   backendName: "wasm",
-  setupFunc: setup58,
+  setupFunc: setup61,
   kernelFunc: scatterNd4
 };
 
 // src/tfjs-backend-wasm/src/kernels/SearchSorted.ts
 var wasmSearchSorted;
-function setup59(backend2) {
+function setup62(backend2) {
   wasmSearchSorted = backend2.wasm.cwrap(SearchSorted, null, [
     "number",
     // sortedSequenceId
@@ -96188,13 +95411,13 @@ function searchSorted5(args) {
 var searchSortedConfig4 = {
   kernelName: SearchSorted,
   backendName: "wasm",
-  setupFunc: setup59,
+  setupFunc: setup62,
   kernelFunc: searchSorted5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Select.ts
 var wasmSelect;
-function setup60(backend2) {
+function setup63(backend2) {
   wasmSelect = backend2.wasm.cwrap("SelectV2", null, [
     "number",
     // conditionId
@@ -96226,7 +95449,7 @@ var selectConfig4 = {
   kernelName: Select,
   backendName: "wasm",
   kernelFunc: select5,
-  setupFunc: setup60
+  setupFunc: setup63
 };
 
 // src/tfjs-backend-wasm/src/kernels/Selu.ts
@@ -96234,7 +95457,7 @@ var seluConfig4 = createUnaryKernelConfig(Selu);
 
 // src/tfjs-backend-wasm/src/kernels/Sigmoid.ts
 var wasmFunc7;
-function setup61(backend2) {
+function setup64(backend2) {
   wasmFunc7 = backend2.wasm.cwrap(Sigmoid, null, ["number", "number"]);
 }
 function sigmoid5(args) {
@@ -96251,7 +95474,7 @@ function sigmoid5(args) {
 var sigmoidConfig4 = {
   kernelName: "Sigmoid",
   backendName: "wasm",
-  setupFunc: setup61,
+  setupFunc: setup64,
   kernelFunc: sigmoid5
 };
 
@@ -96260,6 +95483,9 @@ var signConfig4 = createUnaryKernelConfig(Sign);
 
 // src/tfjs-backend-wasm/src/kernels/Sin.ts
 var sinConfig4 = createUnaryKernelConfig(Sin);
+
+// src/tfjs-backend-wasm/src/kernels/Sinh.ts
+var sinhConfig4 = createUnaryKernelConfig(Sinh);
 
 // src/tfjs-backend-wasm/src/kernels/Softplus.ts
 var softplusConfig4 = createUnaryKernelConfig(Softplus);
@@ -96311,7 +95537,7 @@ var spaceToBatchNDConfig4 = {
 
 // src/tfjs-backend-wasm/src/kernels/SparseFillEmptyRows.ts
 var wasmSparseFillEmptyRows;
-function setup62(backend2) {
+function setup65(backend2) {
   wasmSparseFillEmptyRows = backend2.wasm.cwrap("SparseFillEmptyRows", "number", [
     "number",
     // indicesId
@@ -96428,13 +95654,13 @@ function sparseFillEmptyRows4(args) {
 var sparseFillEmptyRowsConfig3 = {
   kernelName: SparseFillEmptyRows,
   backendName: "wasm",
-  setupFunc: setup62,
+  setupFunc: setup65,
   kernelFunc: sparseFillEmptyRows4
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseReshape.ts
 var wasmSparseReshape;
-function setup63(backend2) {
+function setup66(backend2) {
   wasmSparseReshape = backend2.wasm.cwrap(SparseReshape, null, [
     "number",
     // inputIndicesId
@@ -96538,13 +95764,13 @@ function sparseReshape4(args) {
 var sparseReshapeConfig3 = {
   kernelName: SparseReshape,
   backendName: "wasm",
-  setupFunc: setup63,
+  setupFunc: setup66,
   kernelFunc: sparseReshape4
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseSegmentReduction.ts
 var wasmSparseSegmentReduction;
-function setup64(backend2) {
+function setup67(backend2) {
   wasmSparseSegmentReduction = backend2.wasm.cwrap("SparseSegmentReduction", null, [
     "number",
     // dataId
@@ -96634,30 +95860,30 @@ function sparseSegmentReduction(args, isMean) {
 }
 
 // src/tfjs-backend-wasm/src/kernels/SparseSegmentMean.ts
-function sparseSegmentMean4(args) {
+function sparseSegmentMean5(args) {
   return sparseSegmentReduction(args, true);
 }
-var sparseSegmentMeanConfig3 = {
+var sparseSegmentMeanConfig4 = {
   kernelName: SparseSegmentMean,
   backendName: "wasm",
-  setupFunc: setup64,
-  kernelFunc: sparseSegmentMean4
+  setupFunc: setup67,
+  kernelFunc: sparseSegmentMean5
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseSegmentSum.ts
-function sparseSegmentSum4(args) {
+function sparseSegmentSum5(args) {
   return sparseSegmentReduction(args, false);
 }
-var sparseSegmentSumConfig3 = {
+var sparseSegmentSumConfig4 = {
   kernelName: SparseSegmentSum,
   backendName: "wasm",
-  setupFunc: setup64,
-  kernelFunc: sparseSegmentSum4
+  setupFunc: setup67,
+  kernelFunc: sparseSegmentSum5
 };
 
 // src/tfjs-backend-wasm/src/kernels/SparseToDense.ts
 var wasmSparseToDense;
-function setup65(backend2) {
+function setup68(backend2) {
   wasmSparseToDense = backend2.wasm.cwrap(SparseToDense, null, [
     "number",
     // sparseIndicesId
@@ -96715,7 +95941,7 @@ function sparseToDense5(args) {
 var sparseToDenseConfig4 = {
   kernelName: SparseToDense,
   backendName: "wasm",
-  setupFunc: setup65,
+  setupFunc: setup68,
   kernelFunc: sparseToDense5
 };
 
@@ -96749,12 +95975,12 @@ var sqrtConfig4 = createUnaryKernelConfig(Sqrt);
 var squareConfig4 = createUnaryKernelConfig(Square);
 
 // src/tfjs-backend-wasm/src/kernels/SquaredDifference.ts
-var supportsFullBroadcast17 = true;
-var squaredDifferenceConfig4 = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast17);
+var supportsFullBroadcast18 = true;
+var squaredDifferenceConfig4 = createBinaryKernelConfig(SquaredDifference, supportsFullBroadcast18);
 
 // src/tfjs-backend-wasm/src/kernels/Step.ts
 var wasmStep;
-function setup66(backend2) {
+function setup69(backend2) {
   wasmStep = backend2.wasm.cwrap(Step, null, [
     "number",
     // x_id
@@ -96779,13 +96005,13 @@ function step5(args) {
 var stepConfig4 = {
   kernelName: Step,
   backendName: "wasm",
-  setupFunc: setup66,
+  setupFunc: setup69,
   kernelFunc: step5
 };
 
 // src/tfjs-backend-wasm/src/kernels/StridedSlice.ts
 var wasmStridedSlice;
-function setup67(backend2) {
+function setup70(backend2) {
   wasmStridedSlice = backend2.wasm.cwrap(StridedSlice, null, [
     "number",
     // xId
@@ -96886,7 +96112,7 @@ function stridedSlice5(args) {
 var stridedSliceConfig4 = {
   kernelName: StridedSlice,
   backendName: "wasm",
-  setupFunc: setup67,
+  setupFunc: setup70,
   kernelFunc: stridedSlice5
 };
 
@@ -96973,12 +96199,12 @@ var stringToHashBucketFastConfig3 = {
 };
 
 // src/tfjs-backend-wasm/src/kernels/Sub.ts
-var supportsFullBroadcast18 = true;
-var subConfig4 = createBinaryKernelConfig(Sub, supportsFullBroadcast18);
+var supportsFullBroadcast19 = true;
+var subConfig4 = createBinaryKernelConfig(Sub, supportsFullBroadcast19);
 
 // src/tfjs-backend-wasm/src/kernels/Sum.ts
 var wasmSum;
-function setup68(backend2) {
+function setup71(backend2) {
   wasmSum = backend2.wasm.cwrap(Sum, null, [
     "number",
     // input_id
@@ -97034,7 +96260,7 @@ function sum6(args) {
 var sumConfig4 = {
   kernelName: Sum,
   backendName: "wasm",
-  setupFunc: setup68,
+  setupFunc: setup71,
   kernelFunc: sum6
 };
 
@@ -97046,7 +96272,7 @@ var tanhConfig4 = createUnaryKernelConfig(Tanh);
 
 // src/tfjs-backend-wasm/src/kernels/TensorScatterUpdate.ts
 var wasmTensorScatterUpdate;
-function setup69(backend2) {
+function setup72(backend2) {
   wasmTensorScatterUpdate = backend2.wasm.cwrap(TensorScatterUpdate, null, [
     "number",
     // indicesId
@@ -97104,13 +96330,13 @@ function tensorScatterUpdate5(args) {
 var tensorScatterUpdateConfig4 = {
   kernelName: TensorScatterUpdate,
   backendName: "wasm",
-  setupFunc: setup69,
+  setupFunc: setup72,
   kernelFunc: tensorScatterUpdate5
 };
 
 // src/tfjs-backend-wasm/src/kernels/Tile.ts
 var wasmTile;
-function setup70(backend2) {
+function setup73(backend2) {
   wasmTile = backend2.wasm.cwrap(Tile, null, [
     "number",
     // x_id
@@ -97153,13 +96379,13 @@ function tile6(args) {
 var tileConfig4 = {
   kernelName: Tile,
   backendName: "wasm",
-  setupFunc: setup70,
+  setupFunc: setup73,
   kernelFunc: tile6
 };
 
 // src/tfjs-backend-wasm/src/kernels/TopK.ts
 var wasmTopK;
-function setup71(backend2) {
+function setup74(backend2) {
   wasmTopK = backend2.wasm.cwrap(TopK, null, [
     "number",
     // xId
@@ -97205,13 +96431,13 @@ var topk2 = ({ inputs, backend: backend2, attrs }) => {
 var topKConfig4 = {
   kernelName: TopK,
   backendName: "wasm",
-  setupFunc: setup71,
+  setupFunc: setup74,
   kernelFunc: topk2
 };
 
 // src/tfjs-backend-wasm/src/kernels/Transform.ts
 var wasmTransform;
-function setup72(backend2) {
+function setup75(backend2) {
   wasmTransform = backend2.wasm.cwrap(Transform, null, [
     "number",
     // imageId
@@ -97312,7 +96538,7 @@ function transform5(args) {
 var transformConfig4 = {
   kernelName: Transform,
   backendName: "wasm",
-  setupFunc: setup72,
+  setupFunc: setup75,
   kernelFunc: transform5
 };
 
@@ -97410,11 +96636,13 @@ var kernelConfigs4 = [
   atan2Config4,
   atanhConfig4,
   avgPoolConfig4,
+  avgPoolGradConfig5,
   avgPool3DConfig4,
   avgPool3DGradConfig5,
   batchMatMulConfig4,
   batchToSpaceNDConfig4,
   bincountConfig4,
+  bitwiseAndConfig3,
   broadcastArgsConfig4,
   castConfig4,
   ceilConfig4,
@@ -97440,6 +96668,7 @@ var kernelConfigs4 = [
   eluConfig4,
   eluGradConfig5,
   equalConfig4,
+  erfConfig4,
   expConfig4,
   expandDimsConfig4,
   expm1Config4,
@@ -97475,11 +96704,14 @@ var kernelConfigs4 = [
   maxPoolConfig4,
   maxPool3DConfig4,
   maxPool3DGradConfig5,
+  maxPoolGradConfig5,
+  maxPoolWithArgmaxConfig4,
   meanConfig4,
   minConfig4,
   minimumConfig4,
   mirrorPadConfig4,
   multinomialConfig4,
+  modConfig4,
   multiplyConfig4,
   negConfig4,
   nonMaxSuppressionV3Config4,
@@ -97514,14 +96746,15 @@ var kernelConfigs4 = [
   sigmoidConfig4,
   signConfig4,
   sinConfig4,
+  sinhConfig4,
   sliceConfig4,
   softmaxConfig4,
   softplusConfig4,
   spaceToBatchNDConfig4,
   sparseFillEmptyRowsConfig3,
   sparseReshapeConfig3,
-  sparseSegmentMeanConfig3,
-  sparseSegmentSumConfig3,
+  sparseSegmentMeanConfig4,
+  sparseSegmentSumConfig4,
   sparseToDenseConfig4,
   splitVConfig4,
   sqrtConfig4,
@@ -97651,7 +96884,7 @@ function(WasmBackendModuleThreadedSimd) {
 
 function GROWABLE_HEAP_I8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP8}function GROWABLE_HEAP_U8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU8}function GROWABLE_HEAP_I16(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP16}function GROWABLE_HEAP_I32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAP32}function GROWABLE_HEAP_U32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPU32}function GROWABLE_HEAP_F32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF32}function GROWABLE_HEAP_F64(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer)}return HEAPF64}var Module=typeof WasmBackendModuleThreadedSimd!="undefined"?WasmBackendModuleThreadedSimd:{};var readyPromiseResolve,readyPromiseReject;Module["ready"]=new Promise(function(resolve,reject){readyPromiseResolve=resolve;readyPromiseReject=reject});var beforeListeners;if(typeof process!=="undefined"&&process.listeners){beforeListeners={uncaughtException:process.listeners("uncaughtException"),unhandledRejection:process.listeners("unhandledRejection")}}var moduleOverrides=Object.assign({},Module);var arguments_=[];var thisProgram="./this.program";var quit_=(status,toThrow)=>{throw toThrow};var ENVIRONMENT_IS_WEB=typeof window=="object";var ENVIRONMENT_IS_WORKER=typeof importScripts=="function";var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";var ENVIRONMENT_IS_PTHREAD=Module["ENVIRONMENT_IS_PTHREAD"]||false;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary,setWindowTitle;function logExceptionOnExit(e){if(e instanceof ExitStatus)return;let toLog=e;err("exiting due to exception: "+toLog)}if(ENVIRONMENT_IS_NODE){var fs=require("fs");var nodePath=require("path");if(ENVIRONMENT_IS_WORKER){scriptDirectory=nodePath.dirname(scriptDirectory)+"/"}else{scriptDirectory=__dirname+"/"}read_=(filename,binary)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);return fs.readFileSync(filename,binary?undefined:"utf8")};readBinary=filename=>{var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret)}return ret};readAsync=(filename,onload,onerror)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);fs.readFile(filename,function(err,data){if(err)onerror(err);else onload(data.buffer)})};if(process["argv"].length>1){thisProgram=process["argv"][1].replace(/\\/g,"/")}arguments_=process["argv"].slice(2);process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",function(reason){throw reason});quit_=(status,toThrow)=>{if(keepRuntimeAlive()){process["exitCode"]=status;throw toThrow}logExceptionOnExit(toThrow);process["exit"](status)};Module["inspect"]=function(){return"[Emscripten Module object]"};let nodeWorkerThreads;try{nodeWorkerThreads=require("worker_threads")}catch(e){console.error('The "worker_threads" module is not supported in this node.js build - perhaps a newer version is needed?');throw e}global.Worker=nodeWorkerThreads.Worker}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href}else if(typeof document!="undefined"&&document.currentScript){scriptDirectory=document.currentScript.src}if(_scriptDir){scriptDirectory=_scriptDir}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/")+1)}else{scriptDirectory=""}if(!ENVIRONMENT_IS_NODE){read_=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)}}readAsync=(url,onload,onerror)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror()};xhr.onerror=onerror;xhr.send(null)}}setWindowTitle=title=>document.title=title}else{}if(ENVIRONMENT_IS_NODE){if(typeof performance=="undefined"){global.performance=require("perf_hooks").performance}}var defaultPrint=console.log.bind(console);var defaultPrintErr=console.warn.bind(console);if(ENVIRONMENT_IS_NODE){defaultPrint=str=>fs.writeSync(1,str+"
 ");defaultPrintErr=str=>fs.writeSync(2,str+"
-")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){idx>>>=0;var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){ptr>>>=0;return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){outIdx>>>=0;if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++>>>0]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++>>>0]=192|u>>6;heap[outIdx++>>>0]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++>>>0]=224|u>>12;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++>>>0]=240|u>>18;heap[outIdx++>>>0]=128|u>>12&63;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}}heap[outIdx>>>0]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":4294967296/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref()}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread};if(worker.loaded){worker.runPthread()}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref()}__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref()}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread()}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"])}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler)}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker)},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 4294901760}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest>>>0,src>>>0,src+num>>>0)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i>>>0]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i>>>0]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>>2];var len=GROWABLE_HEAP_U32()[iov+4>>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j>>>0])}num+=len}GROWABLE_HEAP_U32()[pnum>>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer>>>0)}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Acos=Module["_Acos"]=function(){return(_Acos=Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};var _Acosh=Module["_Acosh"]=function(){return(_Acosh=Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _ArgMin=Module["_ArgMin"]=function(){return(_ArgMin=Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};var _Asin=Module["_Asin"]=function(){return(_Asin=Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};var _Asinh=Module["_Asinh"]=function(){return(_Asinh=Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};var _Atan=Module["_Atan"]=function(){return(_Atan=Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};var _Atan2=Module["_Atan2"]=function(){return(_Atan2=Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};var _Atanh=Module["_Atanh"]=function(){return(_Atanh=Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _AvgPool3D=Module["_AvgPool3D"]=function(){return(_AvgPool3D=Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};var _AvgPool3DGrad=Module["_AvgPool3DGrad"]=function(){return(_AvgPool3DGrad=Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Bincount=Module["_Bincount"]=function(){return(_Bincount=Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Conv3D=Module["_Conv3D"]=function(){return(_Conv3D=Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};var _Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=function(){return(_Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};var _Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=function(){return(_Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DenseBincount=Module["_DenseBincount"]=function(){return(_DenseBincount=Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Diag=Module["_Diag"]=function(){return(_Diag=Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};var _Dilation2D=Module["_Dilation2D"]=function(){return(_Dilation2D=Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};var _Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=function(){return(_Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};var _Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=function(){return(_Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _EluGrad=Module["_EluGrad"]=function(){return(_EluGrad=Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _Expm1=Module["_Expm1"]=function(){return(_Expm1=Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsFinite=Module["_IsFinite"]=function(){return(_IsFinite=Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};var _IsInf=Module["_IsInf"]=function(){return(_IsInf=Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LRN=Module["_LRN"]=function(){return(_LRN=Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};var _LRNGrad=Module["_LRNGrad"]=function(){return(_LRNGrad=Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _LinSpace=Module["_LinSpace"]=function(){return(_LinSpace=Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _Log1p=Module["_Log1p"]=function(){return(_Log1p=Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _MaxPool3D=Module["_MaxPool3D"]=function(){return(_MaxPool3D=Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};var _MaxPool3DGrad=Module["_MaxPool3DGrad"]=function(){return(_MaxPool3DGrad=Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Multinomial=Module["_Multinomial"]=function(){return(_Multinomial=Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=function(){return(_ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=function(){return(_ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SearchSorted=Module["_SearchSorted"]=function(){return(_SearchSorted=Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Selu=Module["_Selu"]=function(){return(_Selu=Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sign=Module["_Sign"]=function(){return(_Sign=Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _Softplus=Module["_Softplus"]=function(){return(_Softplus=Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _SparseToDense=Module["_SparseToDense"]=function(){return(_SparseToDense=Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _TensorScatterUpdate=Module["_TensorScatterUpdate"]=function(){return(_TensorScatterUpdate=Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
+")}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var POINTER_SIZE=4;var Atomics_load=Atomics.load;var Atomics_store=Atomics.store;var Atomics_compareExchange=Atomics.compareExchange;var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected")}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text)}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){idx>>>=0;var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str}function UTF8ToString(ptr,maxBytesToRead){ptr>>>=0;return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){outIdx>>>=0;if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++>>>0]=u}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++>>>0]=192|u>>6;heap[outIdx++>>>0]=128|u&63}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++>>>0]=224|u>>12;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}else{if(outIdx+3>=endIdx)break;heap[outIdx++>>>0]=240|u>>18;heap[outIdx++>>>0]=128|u>>12&63;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63}}heap[outIdx>>>0]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"]}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf)}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"]}else{if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"]}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":4294967296/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)")}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];var runtimeInitialized=false;function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(__ATPRERUN__)}function initRuntime(){runtimeInitialized=true;if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__)}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(__ATPOSTRUN__)}function addOnPreRun(cb){__ATPRERUN__.unshift(cb)}function addOnInit(cb){__ATINIT__.unshift(cb)}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb)}var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies)}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what)}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile)}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}catch(err){abort(err)}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw"failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else{if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response))},reject)})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency("wasm-instantiate")})})}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency("wasm-instantiate")}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"])}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason)})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else{return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e)}}instantiateAsync().catch(readyPromiseReject);return{}}var tempDouble;var tempI64;var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"})}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker)}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref()}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread};if(worker.loaded){worker.runPthread()}return 0}var SYSCALLS={varargs:undefined,get:function(){SYSCALLS.varargs+=4;var ret=GROWABLE_HEAP_I32()[SYSCALLS.varargs-4>>>2];return ret},getStr:function(ptr){var ret=UTF8ToString(ptr);return ret}};function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true}quit_(code,new ExitStatus(code))}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw"unwind"}else{}}_proc_exit(status)}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker()}else{PThread.initMainThread()}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker()}},initWorker:function(){noExitRuntime=false},setExitStatus:function(status){EXITSTATUS=status},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker)}for(var worker of PThread.unusedWorkers){worker.terminate()}PThread.unusedWorkers=[]},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref()}__emscripten_thread_free_data(pthread_ptr)},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f())},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"])}else{err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!")}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"])}else if(cmd==="spawnThread"){spawnThread(d)}else if(cmd==="cleanupThread"){cleanupThread(d["thread"])}else if(cmd==="killThread"){killThread(d["thread"])}else if(cmd==="cancelThread"){cancelThread(d["thread"])}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref()}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread()}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"])}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"])}else if(d.target==="setimmediate"){worker.postMessage(d)}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"])}else if(cmd){err("worker sent an unknown command "+cmd)}PThread.currentProxiedOperationCallerThread=undefined};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data})});worker.on("error",function(e){worker.onerror(e)});worker.on("detachedExit",function(){})}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler)}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule})},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker)},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0])}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module)}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop)}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode)}catch(e){handleException(e)}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr)}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result)}else{__emscripten_thread_exit(result)}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc)}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS()}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread})}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}if(error)return error;var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue)}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0)}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue))}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue})}else{var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue})}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return-1}function _abort(){abort("")}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text)}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread")}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 4294901760}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6}}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest>>>0,src>>>0,src+num>>>0)}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require("os").cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i>>>0]=arg}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i>>>0]}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw"unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0}else{buffer.push(curr)}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>>2];var len=GROWABLE_HEAP_U32()[iov+4>>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j>>>0])}num+=len}GROWABLE_HEAP_U32()[pnum>>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer>>>0)}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len)}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i])}else{cArgs[i]=args[i]}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments,opts)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};var asm=createWasm();var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return(___wasm_call_ctors=Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};var _init=Module["_init"]=function(){return(_init=Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};var _init_with_threads_count=Module["_init_with_threads_count"]=function(){return(_init_with_threads_count=Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};var _get_threads_count=Module["_get_threads_count"]=function(){return(_get_threads_count=Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return(_register_tensor=Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return(_dispose_data=Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return(_dispose=Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return(_Abs=Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};var _Acos=Module["_Acos"]=function(){return(_Acos=Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};var _Acosh=Module["_Acosh"]=function(){return(_Acosh=Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};var _Add=Module["_Add"]=function(){return(_Add=Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return(_AddN=Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};var _All=Module["_All"]=function(){return(_All=Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};var _Any=Module["_Any"]=function(){return(_Any=Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return(_ArgMax=Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};var _ArgMin=Module["_ArgMin"]=function(){return(_ArgMin=Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};var _Asin=Module["_Asin"]=function(){return(_Asin=Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};var _Asinh=Module["_Asinh"]=function(){return(_Asinh=Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};var _Atan=Module["_Atan"]=function(){return(_Atan=Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};var _Atan2=Module["_Atan2"]=function(){return(_Atan2=Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};var _Atanh=Module["_Atanh"]=function(){return(_Atanh=Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return(_AvgPool=Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};var _AvgPool3D=Module["_AvgPool3D"]=function(){return(_AvgPool3D=Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};var _AvgPool3DGrad=Module["_AvgPool3DGrad"]=function(){return(_AvgPool3DGrad=Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};var _AvgPoolGrad=Module["_AvgPoolGrad"]=function(){return(_AvgPoolGrad=Module["_AvgPoolGrad"]=Module["asm"]["AvgPoolGrad"]).apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return(_BatchMatMul=Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};var _Bincount=Module["_Bincount"]=function(){return(_Bincount=Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};var _BitwiseAnd=Module["_BitwiseAnd"]=function(){return(_BitwiseAnd=Module["_BitwiseAnd"]=Module["asm"]["BitwiseAnd"]).apply(null,arguments)};var _Ceil=Module["_Ceil"]=function(){return(_Ceil=Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return(_ClipByValue=Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return(_Conv2D=Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};var _Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=function(){return(_Conv2DBackpropInput=Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};var _Conv3D=Module["_Conv3D"]=function(){return(_Conv3D=Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};var _Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=function(){return(_Conv3DBackpropFilterV2=Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};var _Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=function(){return(_Conv3DBackpropInputV2=Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};var _Cos=Module["_Cos"]=function(){return(_Cos=Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};var _Cosh=Module["_Cosh"]=function(){return(_Cosh=Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return(_CropAndResize=Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};var _Cumprod=Module["_Cumprod"]=function(){return(_Cumprod=Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};var _Cumsum=Module["_Cumsum"]=function(){return(_Cumsum=Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};var _DenseBincount=Module["_DenseBincount"]=function(){return(_DenseBincount=Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};var _DepthToSpace=Module["_DepthToSpace"]=function(){return(_DepthToSpace=Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return(_DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};var _Diag=Module["_Diag"]=function(){return(_Diag=Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};var _Dilation2D=Module["_Dilation2D"]=function(){return(_Dilation2D=Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};var _Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=function(){return(_Dilation2DBackpropFilter=Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};var _Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=function(){return(_Dilation2DBackpropInput=Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};var _Elu=Module["_Elu"]=function(){return(_Elu=Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};var _EluGrad=Module["_EluGrad"]=function(){return(_EluGrad=Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};var _Equal=Module["_Equal"]=function(){return(_Equal=Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};var _Erf=Module["_Erf"]=function(){return(_Erf=Module["_Erf"]=Module["asm"]["Erf"]).apply(null,arguments)};var _Exp=Module["_Exp"]=function(){return(_Exp=Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};var _Expm1=Module["_Expm1"]=function(){return(_Expm1=Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};var _FlipLeftRight=Module["_FlipLeftRight"]=function(){return(_FlipLeftRight=Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};var _Floor=Module["_Floor"]=function(){return(_Floor=Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return(_FloorDiv=Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return(_FusedBatchNorm=Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return(_FusedConv2D=Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return(_FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};var _Gather=Module["_Gather"]=function(){return(_Gather=Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};var _GatherNd=Module["_GatherNd"]=function(){return(_GatherNd=Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};var _Greater=Module["_Greater"]=function(){return(_Greater=Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};var _GreaterEqual=Module["_GreaterEqual"]=function(){return(_GreaterEqual=Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};var _IsFinite=Module["_IsFinite"]=function(){return(_IsFinite=Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};var _IsInf=Module["_IsInf"]=function(){return(_IsInf=Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};var _IsNan=Module["_IsNan"]=function(){return(_IsNan=Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};var _LRN=Module["_LRN"]=function(){return(_LRN=Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};var _LRNGrad=Module["_LRNGrad"]=function(){return(_LRNGrad=Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};var _LeakyRelu=Module["_LeakyRelu"]=function(){return(_LeakyRelu=Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};var _Less=Module["_Less"]=function(){return(_Less=Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};var _LessEqual=Module["_LessEqual"]=function(){return(_LessEqual=Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};var _LinSpace=Module["_LinSpace"]=function(){return(_LinSpace=Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};var _Log=Module["_Log"]=function(){return(_Log=Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};var _Log1p=Module["_Log1p"]=function(){return(_Log1p=Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};var _LogicalAnd=Module["_LogicalAnd"]=function(){return(_LogicalAnd=Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};var _LogicalNot=Module["_LogicalNot"]=function(){return(_LogicalNot=Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};var _LogicalOr=Module["_LogicalOr"]=function(){return(_LogicalOr=Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};var _LogicalXor=Module["_LogicalXor"]=function(){return(_LogicalXor=Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};var _Max=Module["_Max"]=function(){return(_Max=Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return(_MaxPool=Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};var _MaxPool3D=Module["_MaxPool3D"]=function(){return(_MaxPool3D=Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};var _MaxPool3DGrad=Module["_MaxPool3DGrad"]=function(){return(_MaxPool3DGrad=Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};var _MaxPoolGrad=Module["_MaxPoolGrad"]=function(){return(_MaxPoolGrad=Module["_MaxPoolGrad"]=Module["asm"]["MaxPoolGrad"]).apply(null,arguments)};var _MaxPoolWithArgmax=Module["_MaxPoolWithArgmax"]=function(){return(_MaxPoolWithArgmax=Module["_MaxPoolWithArgmax"]=Module["asm"]["MaxPoolWithArgmax"]).apply(null,arguments)};var _Maximum=Module["_Maximum"]=function(){return(_Maximum=Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};var _Mean=Module["_Mean"]=function(){return(_Mean=Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};var _Min=Module["_Min"]=function(){return(_Min=Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};var _Minimum=Module["_Minimum"]=function(){return(_Minimum=Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};var _MirrorPad=Module["_MirrorPad"]=function(){return(_MirrorPad=Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};var _Mod=Module["_Mod"]=function(){return(_Mod=Module["_Mod"]=Module["asm"]["Mod"]).apply(null,arguments)};var _Multinomial=Module["_Multinomial"]=function(){return(_Multinomial=Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};var _Multiply=Module["_Multiply"]=function(){return(_Multiply=Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};var _Neg=Module["_Neg"]=function(){return(_Neg=Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return(_NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};var _NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=function(){return(_NonMaxSuppressionV4=Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};var _NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=function(){return(_NonMaxSuppressionV5=Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};var _NotEqual=Module["_NotEqual"]=function(){return(_NotEqual=Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};var _OneHot=Module["_OneHot"]=function(){return(_OneHot=Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return(_PadV2=Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};var _Pow=Module["_Pow"]=function(){return(_Pow=Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return(_Prelu=Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};var _Prod=Module["_Prod"]=function(){return(_Prod=Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};var _RealDiv=Module["_RealDiv"]=function(){return(_RealDiv=Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};var _Reciprocal=Module["_Reciprocal"]=function(){return(_Reciprocal=Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return(_Relu=Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return(_Relu6=Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return(_ResizeBilinear=Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};var _ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=function(){return(_ResizeBilinearGrad=Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};var _ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=function(){return(_ResizeNearestNeighbor=Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};var _ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=function(){return(_ResizeNearestNeighborGrad=Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};var _Reverse=Module["_Reverse"]=function(){return(_Reverse=Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};var _RotateWithOffset=Module["_RotateWithOffset"]=function(){return(_RotateWithOffset=Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};var _Round=Module["_Round"]=function(){return(_Round=Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};var _Rsqrt=Module["_Rsqrt"]=function(){return(_Rsqrt=Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};var _ScatterNd=Module["_ScatterNd"]=function(){return(_ScatterNd=Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};var _SearchSorted=Module["_SearchSorted"]=function(){return(_SearchSorted=Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};var _SelectV2=Module["_SelectV2"]=function(){return(_SelectV2=Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};var _Selu=Module["_Selu"]=function(){return(_Selu=Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return(_Sigmoid=Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};var _Sign=Module["_Sign"]=function(){return(_Sign=Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};var _Sin=Module["_Sin"]=function(){return(_Sin=Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};var _Sinh=Module["_Sinh"]=function(){return(_Sinh=Module["_Sinh"]=Module["asm"]["Sinh"]).apply(null,arguments)};var _Softmax=Module["_Softmax"]=function(){return(_Softmax=Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};var _Softplus=Module["_Softplus"]=function(){return(_Softplus=Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};var _SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=function(){return(_SparseFillEmptyRows=Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};var _SparseReshape=Module["_SparseReshape"]=function(){return(_SparseReshape=Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};var _SparseSegmentReduction=Module["_SparseSegmentReduction"]=function(){return(_SparseSegmentReduction=Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};var _SparseToDense=Module["_SparseToDense"]=function(){return(_SparseToDense=Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};var _Sqrt=Module["_Sqrt"]=function(){return(_Sqrt=Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};var _Square=Module["_Square"]=function(){return(_Square=Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};var _SquaredDifference=Module["_SquaredDifference"]=function(){return(_SquaredDifference=Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};var _Step=Module["_Step"]=function(){return(_Step=Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};var _StridedSlice=Module["_StridedSlice"]=function(){return(_StridedSlice=Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return(_Sub=Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};var _Sum=Module["_Sum"]=function(){return(_Sum=Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};var _Tan=Module["_Tan"]=function(){return(_Tan=Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};var _Tanh=Module["_Tanh"]=function(){return(_Tanh=Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};var _TensorScatterUpdate=Module["_TensorScatterUpdate"]=function(){return(_TensorScatterUpdate=Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};var _Tile=Module["_Tile"]=function(){return(_Tile=Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};var _TopK=Module["_TopK"]=function(){return(_TopK=Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};var _Transform=Module["_Transform"]=function(){return(_Transform=Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return(_Transpose=Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};var __FusedMatMul=Module["__FusedMatMul"]=function(){return(__FusedMatMul=Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return(_malloc=Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};var _free=Module["_free"]=function(){return(_free=Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};var __emscripten_tls_init=Module["__emscripten_tls_init"]=function(){return(__emscripten_tls_init=Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return(_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};var ___errno_location=Module["___errno_location"]=function(){return(___errno_location=Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return(__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};var __emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=function(){return(__emscripten_thread_crashed=Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};var _emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=function(){return(_emscripten_main_thread_process_queued_calls=Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};var _emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=function(){return(_emscripten_main_browser_thread_id=Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return(_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};var _emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=function(){return(_emscripten_dispatch_to_thread_=Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return(__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return(__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return(__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return(_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return(stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return(stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return(stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};var dynCall_iijjiiii=Module["dynCall_iijjiiii"]=function(){return(dynCall_iijjiiii=Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};var dynCall_jiji=Module["dynCall_jiji"]=function(){return(dynCall_jiji=Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller};function run(args){args=args||arguments_;if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("")},1);doRun()},1)}else{doRun()}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()()}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return!beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return!beforeListeners.unhandledRejection.indexOf(listener)>-1})}}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd}else{throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener)});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener)})}}
 
 
   return WasmBackendModuleThreadedSimd.ready
@@ -97673,13 +96906,12 @@ var BackendWasm = class extends KernelBackend {
   constructor(wasm) {
     super();
     this.wasm = wasm;
+    // 0 is reserved for null data ids.
+    this.dataIdNextNumber = 1;
     this.wasm.tfjs.initWithThreadsCount(threadsCount);
     actualThreadsCount = this.wasm.tfjs.getThreadsCount();
     this.dataIdMap = new DataStorage(this, engine());
   }
-  // 0 is reserved for null data ids.
-  dataIdNextNumber = 1;
-  dataIdMap;
   write(values, shape, dtype) {
     const dataId = { id: this.dataIdNextNumber++ };
     this.move(dataId, values, shape, dtype, 1);
@@ -98012,7 +97244,7 @@ registerBackend("wasm", async () => {
 }, WASM_PRIORITY);
 
 // .tfjs-browser.ts
-var externalVersion = "4.5.0-20230508";
+var externalVersion = "4.7.0-20230612";
 var version8 = {
   tfjs: externalVersion,
   "tfjs-core": externalVersion,

@@ -4,7 +4,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod3) => function __require() {
   return mod3 || (0, cb[__getOwnPropNames(cb)[0]])((mod3 = { exports: {} }).exports, mod3), mod3.exports;
 };
@@ -28,10 +27,6 @@ var __toESM = (mod3, isNodeMode, target) => (target = mod3 != null ? __create(__
   isNodeMode || !mod3 || !mod3.__esModule ? __defProp(target, "default", { value: mod3, enumerable: true }) : target,
   mod3
 ));
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 
 // src/node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
 var require_long = __commonJS({
@@ -1212,7 +1207,7 @@ var require_xorshift7 = __commonJS({
       }
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1324,7 +1319,7 @@ var require_xor4096 = __commonJS({
       ;
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1568,7 +1563,7 @@ var require_seedrandom = __commonJS({
           return tostring(out);
         } catch (e) {
           var browser = global2.navigator, plugins = browser && browser.plugins;
-          return [+new Date(), global2, plugins, global2.screen, tostring(pool3)];
+          return [+/* @__PURE__ */ new Date(), global2, plugins, global2.screen, tostring(pool3)];
         }
       }
       function tostring(a) {
@@ -1627,9 +1622,9 @@ var DataStorage = class {
   constructor(backend, dataMover) {
     this.backend = backend;
     this.dataMover = dataMover;
+    this.data = /* @__PURE__ */ new WeakMap();
+    this.dataIdsCount = 0;
   }
-  data = /* @__PURE__ */ new WeakMap();
-  dataIdsCount = 0;
   get(dataId) {
     if (!this.data.has(dataId)) {
       this.dataMover.moveData(this.backend, dataId);
@@ -2193,15 +2188,13 @@ var Environment = class {
   // tslint:disable-next-line: no-any
   constructor(global2) {
     this.global = global2;
+    this.flags = {};
+    this.flagRegistry = {};
+    this.urlFlags = {};
+    // Jasmine spies on this in 'environment_test.ts'
+    this.getQueryParams = getQueryParams;
     this.populateURLFlags();
   }
-  flags = {};
-  flagRegistry = {};
-  urlFlags = {};
-  platformName;
-  platform;
-  // Jasmine spies on this in 'environment_test.ts'
-  getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
       if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
@@ -3311,10 +3304,6 @@ var TensorBuffer = class {
     this.values = values || getArrayFromDType(dtype, this.size);
     this.strides = computeStrides(shape);
   }
-  size;
-  shape;
-  strides;
-  values;
   /**
    * Sets a value in the buffer at a given location.
    *
@@ -3410,32 +3399,10 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
-  /** Unique id of this tensor. */
-  id;
-  /**
-   * Id of the bucket holding the data for this tensor. Multiple arrays can
-   * point to the same bucket (e.g. when calling array.reshape()).
-   */
-  dataId;
-  /** The shape of the tensor. */
-  shape;
-  /** Number of elements in the tensor. */
-  size;
-  /** The data type for the array. */
-  dtype;
-  /** The rank type for the array (see `Rank` enum). */
-  rankType;
-  /** Whether this tensor has been globally kept. */
-  kept = false;
-  /** The id of the scope this tensor is being tracked in. */
-  scopeId;
-  /**
-   * Number of elements to skip in each dimension when indexing. See
-   * https://docs.scipy.org/doc/numpy/reference/generated/\
-   * numpy.ndarray.strides.html
-   */
-  strides;
   constructor(shape, dtype, dataId, id) {
+    /** Whether this tensor has been globally kept. */
+    this.kept = false;
+    this.isDisposedInternal = false;
     this.shape = shape.slice();
     this.dtype = dtype || "float32";
     this.size = sizeFromShape(shape);
@@ -3587,7 +3554,6 @@ var Tensor = class {
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
-  isDisposedInternal = false;
   get isDisposed() {
     return this.isDisposedInternal;
   }
@@ -3655,7 +3621,6 @@ var Variable = class extends Tensor {
     this.trainable = trainable;
     this.name = name;
   }
-  name;
   /**
    * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
    * the same shape and dtype as the old `tf.Tensor`.
@@ -3794,42 +3759,41 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
-  // Public since optimizers will use it.
-  registeredVariables = {};
-  nextTapeNodeId = 0;
-  numBytes = 0;
-  numTensors = 0;
-  numStringTensors = 0;
-  numDataBuffers = 0;
-  activeTape;
-  // Number of nested tf.grad() statements when computing higher-order
-  // gradients. E.g. `1` for first-order gradients and `2` for second-order
-  // gradients. Used to track if the tape should be removed after a backprop.
-  gradientDepth = 0;
-  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
-  // off the tape.
-  kernelDepth = 0;
-  // Keep Tensors that parallel the tapes.
-  activeScope;
-  scopeStack = [];
-  /**
-   * Keeps track of the number of data moves during a kernel execution. We
-   * maintain a stack since kernels can call other kernels, recursively.
-   */
-  numDataMovesStack = [];
-  nextScopeId = 0;
-  tensorInfo = /* @__PURE__ */ new WeakMap();
-  profiling = false;
-  activeProfile = {
-    newBytes: 0,
-    newTensors: 0,
-    peakBytes: 0,
-    kernels: [],
-    result: null,
-    get kernelNames() {
-      return Array.from(new Set(this.kernels.map((k) => k.name)));
-    }
-  };
+  constructor() {
+    // Public since optimizers will use it.
+    this.registeredVariables = {};
+    this.nextTapeNodeId = 0;
+    this.numBytes = 0;
+    this.numTensors = 0;
+    this.numStringTensors = 0;
+    this.numDataBuffers = 0;
+    // Number of nested tf.grad() statements when computing higher-order
+    // gradients. E.g. `1` for first-order gradients and `2` for second-order
+    // gradients. Used to track if the tape should be removed after a backprop.
+    this.gradientDepth = 0;
+    // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+    // off the tape.
+    this.kernelDepth = 0;
+    this.scopeStack = [];
+    /**
+     * Keeps track of the number of data moves during a kernel execution. We
+     * maintain a stack since kernels can call other kernels, recursively.
+     */
+    this.numDataMovesStack = [];
+    this.nextScopeId = 0;
+    this.tensorInfo = /* @__PURE__ */ new WeakMap();
+    this.profiling = false;
+    this.activeProfile = {
+      newBytes: 0,
+      newTensors: 0,
+      peakBytes: 0,
+      kernels: [],
+      result: null,
+      get kernelNames() {
+        return Array.from(new Set(this.kernels.map((k) => k.name)));
+      }
+    };
+  }
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
@@ -3839,16 +3803,11 @@ var EngineState = class {
 var _Engine = class {
   constructor(ENV3) {
     this.ENV = ENV3;
+    this.registry = {};
+    this.registryFactory = {};
+    this.pendingBackendInitId = 0;
     this.state = new EngineState();
   }
-  state;
-  backendName;
-  registry = {};
-  registryFactory = {};
-  profiler;
-  backendInstance;
-  pendingBackendInit;
-  pendingBackendInitId = 0;
   async ready() {
     if (this.pendingBackendInit != null) {
       return this.pendingBackendInit.then(() => {
@@ -4716,8 +4675,8 @@ var _Engine = class {
   }
 };
 var Engine = _Engine;
-__publicField(Engine, "nextTensorId", 0);
-__publicField(Engine, "nextVariableId", 0);
+Engine.nextTensorId = 0;
+Engine.nextVariableId = 0;
 function ones(shape) {
   const values = makeOnesTypedArray(sizeFromShape(shape), "float32");
   return ENGINE.makeTensor(values, shape, "float32");
@@ -4980,21 +4939,9 @@ function tensor(values, shape, dtype) {
 
 // src/tfjs-core/src/io/composite_array_buffer.ts
 var CompositeArrayBuffer = class {
-  shards = [];
-  previousShardIndex = 0;
-  bufferUniformSize;
-  byteLength;
-  /**
-   * Concatenate a number of ArrayBuffers into one.
-   *
-   * @param buffers An array of ArrayBuffers to concatenate, or a single
-   *     ArrayBuffer.
-   * @returns Result of concatenating `buffers` in order.
-   */
-  static join(buffers) {
-    return new CompositeArrayBuffer(buffers).slice();
-  }
   constructor(buffers) {
+    this.shards = [];
+    this.previousShardIndex = 0;
     if (buffers == null) {
       return;
     }
@@ -5025,6 +4972,16 @@ var CompositeArrayBuffer = class {
       this.byteLength = 0;
     }
     this.byteLength = this.shards[this.shards.length - 1].end;
+  }
+  /**
+   * Concatenate a number of ArrayBuffers into one.
+   *
+   * @param buffers An array of ArrayBuffers to concatenate, or a single
+   *     ArrayBuffer.
+   * @returns Result of concatenating `buffers` in order.
+   */
+  static join(buffers) {
+    return new CompositeArrayBuffer(buffers).slice();
   }
   slice(start = 0, end = this.byteLength) {
     if (this.shards.length === 0) {
@@ -5216,7 +5173,7 @@ function getModelArtifactsInfoForJSON(modelArtifacts) {
     throw new Error("Expected JSON model topology, received ArrayBuffer.");
   }
   return {
-    dateSaved: new Date(),
+    dateSaved: /* @__PURE__ */ new Date(),
     modelTopologyType: "JSON",
     modelTopologyBytes: modelArtifacts.modelTopology == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),
     weightSpecsBytes: modelArtifacts.weightSpecs == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
@@ -5232,18 +5189,16 @@ function getWeightSpecs(weightsManifest) {
 }
 
 // src/tfjs-core/src/io/router_registry.ts
-var _IORouterRegistry = class {
-  saveRouters;
-  loadRouters;
+var IORouterRegistry = class {
   constructor() {
     this.saveRouters = [];
     this.loadRouters = [];
   }
   static getInstance() {
-    if (_IORouterRegistry.instance == null) {
-      _IORouterRegistry.instance = new _IORouterRegistry();
+    if (IORouterRegistry.instance == null) {
+      IORouterRegistry.instance = new IORouterRegistry();
     }
-    return _IORouterRegistry.instance;
+    return IORouterRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -5252,7 +5207,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `save` method defined or `null`.
    */
   static registerSaveRouter(saveRouter) {
-    _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
+    IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
   /**
    * Register a load-handler router.
@@ -5261,7 +5216,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `load` method defined or `null`.
    */
   static registerLoadRouter(loadRouter) {
-    _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
+    IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
   /**
    * Look up IOHandler for saving, given a URL-like string.
@@ -5272,7 +5227,7 @@ var _IORouterRegistry = class {
    * @throws Error, if more than one match is found.
    */
   static getSaveHandlers(url) {
-    return _IORouterRegistry.getHandlers(url, "save");
+    return IORouterRegistry.getHandlers(url, "save");
   }
   /**
    * Look up IOHandler for loading, given a URL-like string.
@@ -5283,11 +5238,11 @@ var _IORouterRegistry = class {
    *   handler routers.
    */
   static getLoadHandlers(url, loadOptions) {
-    return _IORouterRegistry.getHandlers(url, "load", loadOptions);
+    return IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
   static getHandlers(url, handlerType, loadOptions) {
     const validHandlers = [];
-    const routers = handlerType === "load" ? _IORouterRegistry.getInstance().loadRouters : _IORouterRegistry.getInstance().saveRouters;
+    const routers = handlerType === "load" ? IORouterRegistry.getInstance().loadRouters : IORouterRegistry.getInstance().saveRouters;
     routers.forEach((router) => {
       const handler = router(url, loadOptions);
       if (handler !== null) {
@@ -5297,9 +5252,6 @@ var _IORouterRegistry = class {
     return validHandlers;
   }
 };
-var IORouterRegistry = _IORouterRegistry;
-// Singleton instance.
-__publicField(IORouterRegistry, "instance");
 
 // src/tfjs-core/src/io/indexed_db.ts
 var DATABASE_NAME = "tensorflowjs";
@@ -5327,8 +5279,6 @@ function setUpDatabase(openRequest) {
   db.createObjectStore(INFO_STORE_NAME, { keyPath: "modelPath" });
 }
 var BrowserIndexedDB = class {
-  indexedDB;
-  modelPath;
   constructor(modelPath) {
     this.indexedDB = getIndexedDBFactory();
     if (modelPath == null || !modelPath) {
@@ -5389,6 +5339,9 @@ var BrowserIndexedDB = class {
           };
           modelTx.oncomplete = () => db.close();
         } else {
+          modelArtifacts.weightData = CompositeArrayBuffer.join(
+            modelArtifacts.weightData
+          );
           const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
           const infoTx = db.transaction(INFO_STORE_NAME, "readwrite");
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
@@ -5443,7 +5396,7 @@ var BrowserIndexedDB = class {
     });
   }
 };
-__publicField(BrowserIndexedDB, "URL_SCHEME", "indexeddb://");
+BrowserIndexedDB.URL_SCHEME = "indexeddb://";
 var indexedDBRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5464,7 +5417,6 @@ function maybeStripScheme(key) {
   return key.startsWith(BrowserIndexedDB.URL_SCHEME) ? key.slice(BrowserIndexedDB.URL_SCHEME.length) : key;
 }
 var BrowserIndexedDBManager = class {
-  indexedDB;
   constructor() {
     this.indexedDB = getIndexedDBFactory();
   }
@@ -5579,9 +5531,6 @@ function maybeStripScheme2(key) {
   return key.startsWith(BrowserLocalStorage.URL_SCHEME) ? key.slice(BrowserLocalStorage.URL_SCHEME.length) : key;
 }
 var BrowserLocalStorage = class {
-  LS;
-  modelPath;
-  keys;
   constructor(modelPath) {
     if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
       throw new Error(
@@ -5711,7 +5660,7 @@ var BrowserLocalStorage = class {
     return out;
   }
 };
-__publicField(BrowserLocalStorage, "URL_SCHEME", "localstorage://");
+BrowserLocalStorage.URL_SCHEME = "localstorage://";
 var localStorageRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5731,7 +5680,6 @@ function browserLocalStorage(modelPath) {
   return new BrowserLocalStorage(modelPath);
 }
 var BrowserLocalStorageManager = class {
-  LS;
   constructor() {
     assert(
       env().getBool("IS_BROWSER"),
@@ -5770,16 +5718,15 @@ var BrowserLocalStorageManager = class {
 
 // src/tfjs-core/src/io/model_management.ts
 var URL_SCHEME_SUFFIX = "://";
-var _ModelStoreManagerRegistry = class {
-  managers;
+var ModelStoreManagerRegistry = class {
   constructor() {
     this.managers = {};
   }
   static getInstance() {
-    if (_ModelStoreManagerRegistry.instance == null) {
-      _ModelStoreManagerRegistry.instance = new _ModelStoreManagerRegistry();
+    if (ModelStoreManagerRegistry.instance == null) {
+      ModelStoreManagerRegistry.instance = new ModelStoreManagerRegistry();
     }
-    return _ModelStoreManagerRegistry.instance;
+    return ModelStoreManagerRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -5793,7 +5740,7 @@ var _ModelStoreManagerRegistry = class {
       scheme = scheme.slice(0, scheme.indexOf(URL_SCHEME_SUFFIX));
     }
     assert(scheme.length > 0, () => "scheme must not be an empty string.");
-    const registry = _ModelStoreManagerRegistry.getInstance();
+    const registry = ModelStoreManagerRegistry.getInstance();
     assert(
       registry.managers[scheme] == null,
       () => `A model store manager is already registered for scheme '${scheme}'.`
@@ -5801,30 +5748,26 @@ var _ModelStoreManagerRegistry = class {
     registry.managers[scheme] = manager;
   }
   static getManager(scheme) {
-    const manager = _ModelStoreManagerRegistry.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
     return manager;
   }
   static getSchemes() {
-    return Object.keys(_ModelStoreManagerRegistry.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 };
-var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
-// Singleton instance.
-__publicField(ModelStoreManagerRegistry, "instance");
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
-  // According to the spec, the built-in encoder can do only UTF-8 encoding.
-  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
-  textEncoder;
-  // For setTimeoutCustom
-  messageName = "setTimeoutCustom";
-  functionRefs = [];
-  handledMessageCount = 0;
-  hasEventListener = false;
+  constructor() {
+    // For setTimeoutCustom
+    this.messageName = "setTimeoutCustom";
+    this.functionRefs = [];
+    this.handledMessageCount = 0;
+    this.hasEventListener = false;
+  }
   fetch(path, init) {
     return fetch(path, init);
   }
@@ -5906,9 +5849,6 @@ var getNodeFetch = {
 };
 var systemFetch;
 var PlatformNode = class {
-  textEncoder;
-  // tslint:disable-next-line:no-any
-  util;
   constructor() {
     this.util = require_util();
     this.textEncoder = new this.util.TextEncoder();
@@ -9117,14 +9057,6 @@ var rand = op({ rand_ });
 // src/tfjs-core/src/ops/rand_util.ts
 var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
-  mean;
-  stdDev;
-  nextVal;
-  dtype;
-  truncated;
-  upper;
-  lower;
-  random;
   constructor(mean3, stdDeviation, dtype, truncated, seed) {
     this.mean = mean3;
     this.stdDev = stdDeviation;
@@ -9179,13 +9111,6 @@ var MPRandGauss = class {
   }
 };
 var RandGamma = class {
-  alpha;
-  beta;
-  d;
-  c;
-  dtype;
-  randu;
-  randn;
   constructor(alpha, beta, dtype, seed) {
     this.alpha = alpha;
     this.beta = 1 / beta;
@@ -9232,11 +9157,9 @@ var RandGamma = class {
   }
 };
 var UniformRandom = class {
-  min;
-  range;
-  random;
-  dtype;
   constructor(min3 = 0, max3 = 1, dtype, seed) {
+    /** Handles proper rounding for non floating point numbers. */
+    this.canReturnFloat = () => this.dtype == null || this.dtype === "float32";
     this.min = min3;
     this.range = max3 - min3;
     this.dtype = dtype;
@@ -9253,8 +9176,6 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
-  /** Handles proper rounding for non floating point numbers. */
-  canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
       return value;
@@ -12155,6 +12076,8 @@ function staticRegexReplace_(input, pattern, rewrite, replaceGlobal = true) {
 var staticRegexReplace = op({ staticRegexReplace_ });
 
 // src/tfjs-core/src/serialization.ts
+var GLOBAL_CUSTOM_OBJECT = /* @__PURE__ */ new Map();
+var GLOBAL_CUSTOM_NAMES = /* @__PURE__ */ new Map();
 var Serializable = class {
   /**
    * Return the class name for this class to use in serialization contexts.
@@ -12183,8 +12106,7 @@ var Serializable = class {
     return new cls(config);
   }
 };
-var _SerializationMap = class {
-  classNameMap;
+var SerializationMap = class {
   constructor() {
     this.classNameMap = {};
   }
@@ -12192,21 +12114,19 @@ var _SerializationMap = class {
    * Returns the singleton instance of the map.
    */
   static getMap() {
-    if (_SerializationMap.instance == null) {
-      _SerializationMap.instance = new _SerializationMap();
+    if (SerializationMap.instance == null) {
+      SerializationMap.instance = new SerializationMap();
     }
-    return _SerializationMap.instance;
+    return SerializationMap.instance;
   }
   /**
    * Registers the class as serializable.
    */
   static register(cls) {
-    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+    SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
   }
 };
-var SerializationMap = _SerializationMap;
-__publicField(SerializationMap, "instance");
-function registerClass(cls) {
+function registerClass(cls, pkg, name) {
   assert(
     cls.className != null,
     () => `Class being registered does not have the static className property defined.`
@@ -12219,12 +12139,22 @@ function registerClass(cls) {
     cls.className.length > 0,
     () => `Class being registered has an empty-string as its className, which is disallowed.`
   );
+  if (typeof pkg === "undefined") {
+    pkg = "Custom";
+  }
+  if (typeof name === "undefined") {
+    name = cls.className;
+  }
+  const className = name;
+  const registerName = pkg + ">" + className;
   SerializationMap.register(cls);
+  GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
+  GLOBAL_CUSTOM_NAMES.set(cls, registerName);
+  return cls;
 }
 
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
-  iterations_;
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by
@@ -12335,6 +12265,8 @@ var AdadeltaOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.rho = rho;
     this.epsilon = epsilon2;
+    this.accumulatedGrads = [];
+    this.accumulatedUpdates = [];
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
@@ -12343,8 +12275,6 @@ var AdadeltaOptimizer = class extends Optimizer {
   static get className() {
     return "Adadelta";
   }
-  accumulatedGrads = [];
-  accumulatedUpdates = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12438,12 +12368,12 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
+    this.accumulatedGrads = [];
   }
   /** @nocollapse */
   static get className() {
     return "Adagrad";
   }
-  accumulatedGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12517,6 +12447,8 @@ var AdamOptimizer = class extends Optimizer {
     this.beta1 = beta1;
     this.beta2 = beta2;
     this.epsilon = epsilon2;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedSecondMoment = [];
     tidy(() => {
       this.accBeta1 = scalar(beta1).variable();
       this.accBeta2 = scalar(beta2).variable();
@@ -12529,10 +12461,6 @@ var AdamOptimizer = class extends Optimizer {
   static get className() {
     return "Adam";
   }
-  accBeta1;
-  accBeta2;
-  accumulatedFirstMoment = [];
-  accumulatedSecondMoment = [];
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -12648,6 +12576,8 @@ var AdamaxOptimizer = class extends Optimizer {
     this.beta2 = beta2;
     this.epsilon = epsilon2;
     this.decay = decay;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedWeightedInfNorm = [];
     tidy(() => {
       this.iteration = scalar(0).variable();
       this.accBeta1 = scalar(beta1).variable();
@@ -12660,10 +12590,6 @@ var AdamaxOptimizer = class extends Optimizer {
   static get className() {
     return "Adamax";
   }
-  accBeta1;
-  iteration;
-  accumulatedFirstMoment = [];
-  accumulatedWeightedInfNorm = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -12758,7 +12684,6 @@ var SGDOptimizer = class extends Optimizer {
   static get className() {
     return "SGD";
   }
-  c;
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     varNames.forEach((name, i) => {
@@ -12812,6 +12737,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.learningRate = learningRate;
     this.momentum = momentum;
     this.useNesterov = useNesterov;
+    this.accumulations = [];
     this.m = scalar(this.momentum);
   }
   /** @nocollapse */
@@ -12819,8 +12745,6 @@ var MomentumOptimizer = class extends SGDOptimizer {
   static get className() {
     return "Momentum";
   }
-  m;
-  accumulations = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12905,6 +12829,9 @@ var RMSPropOptimizer = class extends Optimizer {
     this.decay = decay;
     this.momentum = momentum;
     this.epsilon = epsilon2;
+    this.accumulatedMeanSquares = [];
+    this.accumulatedMoments = [];
+    this.accumulatedMeanGrads = [];
     this.centered = centered;
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
@@ -12917,10 +12844,6 @@ var RMSPropOptimizer = class extends Optimizer {
   static get className() {
     return "RMSProp";
   }
-  centered;
-  accumulatedMeanSquares = [];
-  accumulatedMoments = [];
-  accumulatedMeanGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -13083,10 +13006,6 @@ function defer(f) {
   return new Promise((resolve) => setTimeout(resolve)).then(f);
 }
 var _BrowserDownloads = class {
-  modelJsonFileName;
-  weightDataFileName;
-  modelJsonAnchor;
-  weightDataAnchor;
   constructor(fileNamePrefix) {
     if (!env().getBool("IS_BROWSER")) {
       throw new Error(
@@ -13143,7 +13062,7 @@ var _BrowserDownloads = class {
   }
 };
 var BrowserDownloads = _BrowserDownloads;
-__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
+BrowserDownloads.URL_SCHEME = "downloads://";
 var browserDownloadsRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -13231,14 +13150,8 @@ async function loadWeightsAsArrayBuffer(fetchURLs, loadOptions) {
 var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
 var JSON_TYPE = "application/json";
 var HTTPRequest = class {
-  path;
-  requestInit;
-  fetch;
-  weightUrlConverter;
-  DEFAULT_METHOD = "POST";
-  weightPathPrefix;
-  onProgress;
   constructor(path, loadOptions) {
+    this.DEFAULT_METHOD = "POST";
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -13379,7 +13292,7 @@ var HTTPRequest = class {
     return [weightSpecs, buffers];
   }
 };
-__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
+HTTPRequest.URL_SCHEME_REGEX = /^https?:\/\//;
 function parseUrl(url) {
   const lastSlash = url.lastIndexOf("/");
   const lastSearchParam = url.lastIndexOf("?");
@@ -14845,15 +14758,14 @@ function assertNotComplex(tensor2, opName) {
 // src/tfjs-backend-cpu/src/backend_cpu.ts
 var whereImpl2 = kernel_impls_exports.whereImpl;
 var _MathBackendCPU = class extends KernelBackend {
-  blockSize = 48;
-  data;
-  firstUse = true;
-  nextDataId() {
-    return _MathBackendCPU.nextDataId++;
-  }
   constructor() {
     super();
+    this.blockSize = 48;
+    this.firstUse = true;
     this.data = new DataStorage(this, engine());
+  }
+  nextDataId() {
+    return _MathBackendCPU.nextDataId++;
   }
   write(values, shape, dtype) {
     if (this.firstUse) {
@@ -14997,7 +14909,7 @@ var _MathBackendCPU = class extends KernelBackend {
   }
 };
 var MathBackendCPU = _MathBackendCPU;
-__publicField(MathBackendCPU, "nextDataId", 0);
+MathBackendCPU.nextDataId = 0;
 
 // src/tfjs-backend-cpu/src/shared.ts
 var shared_exports = {};
@@ -16048,8 +15960,6 @@ var RaggedTensorToTensorOp = class {
     this.rowPartitionTypes = backend_util_exports.getRowPartitionTypesHelper(rowPartitionTypeStrings);
     this.raggedRank = backend_util_exports.getRaggedRank(this.rowPartitionTypes);
   }
-  rowPartitionTypes;
-  raggedRank;
   getRowPartitionTypeByDimension(dimension) {
     if (this.rowPartitionTypes[0] === RowPartitionType2.FIRST_DIM_SIZE) {
       return this.rowPartitionTypes[dimension + 1];
@@ -16888,12 +16798,6 @@ function stridedSliceImpl(outShape, xBuf, strides, begin) {
 
 // src/tfjs-backend-cpu/src/kernels/StringNGrams_impl.ts
 var StringNGramsOp = class {
-  separator;
-  nGramWidths;
-  padWidth;
-  leftPad;
-  rightPad;
-  preserveShort;
   constructor(separator, nGramWidths, leftPad, rightPad2, padWidth, preserveShortSequences) {
     this.separator = util_exports.encodeString(separator);
     this.nGramWidths = nGramWidths;

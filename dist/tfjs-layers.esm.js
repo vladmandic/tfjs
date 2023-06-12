@@ -4,7 +4,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod2) => function __require() {
   return mod2 || (0, cb[__getOwnPropNames(cb)[0]])((mod2 = { exports: {} }).exports, mod2), mod2.exports;
 };
@@ -28,10 +27,6 @@ var __toESM = (mod2, isNodeMode, target) => (target = mod2 != null ? __create(__
   isNodeMode || !mod2 || !mod2.__esModule ? __defProp(target, "default", { value: mod2, enumerable: true }) : target,
   mod2
 ));
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 
 // src/node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
 var require_long = __commonJS({
@@ -1212,7 +1207,7 @@ var require_xorshift7 = __commonJS({
       }
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1324,7 +1319,7 @@ var require_xor4096 = __commonJS({
       ;
       function impl(seed, opts) {
         if (seed == null)
-          seed = +new Date();
+          seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -1568,7 +1563,7 @@ var require_seedrandom = __commonJS({
           return tostring(out);
         } catch (e) {
           var browser = global2.navigator, plugins = browser && browser.plugins;
-          return [+new Date(), global2, plugins, global2.screen, tostring(pool2)];
+          return [+/* @__PURE__ */ new Date(), global2, plugins, global2.screen, tostring(pool2)];
         }
       }
       function tostring(a) {
@@ -2165,15 +2160,13 @@ var Environment = class {
   // tslint:disable-next-line: no-any
   constructor(global2) {
     this.global = global2;
+    this.flags = {};
+    this.flagRegistry = {};
+    this.urlFlags = {};
+    // Jasmine spies on this in 'environment_test.ts'
+    this.getQueryParams = getQueryParams;
     this.populateURLFlags();
   }
-  flags = {};
-  flagRegistry = {};
-  urlFlags = {};
-  platformName;
-  platform;
-  // Jasmine spies on this in 'environment_test.ts'
-  getQueryParams = getQueryParams;
   setPlatform(platformName, platform) {
     if (this.platform != null) {
       if (!(env().getBool("IS_TEST") || env().getBool("PROD"))) {
@@ -3282,10 +3275,6 @@ var TensorBuffer = class {
     this.values = values || getArrayFromDType(dtype, this.size);
     this.strides = computeStrides(shape);
   }
-  size;
-  shape;
-  strides;
-  values;
   /**
    * Sets a value in the buffer at a given location.
    *
@@ -3381,32 +3370,10 @@ function setDeprecationWarningFn(fn) {
   deprecationWarningFn = fn;
 }
 var Tensor = class {
-  /** Unique id of this tensor. */
-  id;
-  /**
-   * Id of the bucket holding the data for this tensor. Multiple arrays can
-   * point to the same bucket (e.g. when calling array.reshape()).
-   */
-  dataId;
-  /** The shape of the tensor. */
-  shape;
-  /** Number of elements in the tensor. */
-  size;
-  /** The data type for the array. */
-  dtype;
-  /** The rank type for the array (see `Rank` enum). */
-  rankType;
-  /** Whether this tensor has been globally kept. */
-  kept = false;
-  /** The id of the scope this tensor is being tracked in. */
-  scopeId;
-  /**
-   * Number of elements to skip in each dimension when indexing. See
-   * https://docs.scipy.org/doc/numpy/reference/generated/\
-   * numpy.ndarray.strides.html
-   */
-  strides;
   constructor(shape, dtype, dataId, id) {
+    /** Whether this tensor has been globally kept. */
+    this.kept = false;
+    this.isDisposedInternal = false;
     this.shape = shape.slice();
     this.dtype = dtype || "float32";
     this.size = sizeFromShape(shape);
@@ -3558,7 +3525,6 @@ var Tensor = class {
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
-  isDisposedInternal = false;
   get isDisposed() {
     return this.isDisposedInternal;
   }
@@ -3626,7 +3592,6 @@ var Variable = class extends Tensor {
     this.trainable = trainable;
     this.name = name;
   }
-  name;
   /**
    * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
    * the same shape and dtype as the old `tf.Tensor`.
@@ -3765,42 +3730,41 @@ function isRegisteredKernelInvocation(kernelInvocation) {
   return kernelInvocation.kernelName != null;
 }
 var EngineState = class {
-  // Public since optimizers will use it.
-  registeredVariables = {};
-  nextTapeNodeId = 0;
-  numBytes = 0;
-  numTensors = 0;
-  numStringTensors = 0;
-  numDataBuffers = 0;
-  activeTape;
-  // Number of nested tf.grad() statements when computing higher-order
-  // gradients. E.g. `1` for first-order gradients and `2` for second-order
-  // gradients. Used to track if the tape should be removed after a backprop.
-  gradientDepth = 0;
-  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
-  // off the tape.
-  kernelDepth = 0;
-  // Keep Tensors that parallel the tapes.
-  activeScope;
-  scopeStack = [];
-  /**
-   * Keeps track of the number of data moves during a kernel execution. We
-   * maintain a stack since kernels can call other kernels, recursively.
-   */
-  numDataMovesStack = [];
-  nextScopeId = 0;
-  tensorInfo = /* @__PURE__ */ new WeakMap();
-  profiling = false;
-  activeProfile = {
-    newBytes: 0,
-    newTensors: 0,
-    peakBytes: 0,
-    kernels: [],
-    result: null,
-    get kernelNames() {
-      return Array.from(new Set(this.kernels.map((k) => k.name)));
-    }
-  };
+  constructor() {
+    // Public since optimizers will use it.
+    this.registeredVariables = {};
+    this.nextTapeNodeId = 0;
+    this.numBytes = 0;
+    this.numTensors = 0;
+    this.numStringTensors = 0;
+    this.numDataBuffers = 0;
+    // Number of nested tf.grad() statements when computing higher-order
+    // gradients. E.g. `1` for first-order gradients and `2` for second-order
+    // gradients. Used to track if the tape should be removed after a backprop.
+    this.gradientDepth = 0;
+    // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+    // off the tape.
+    this.kernelDepth = 0;
+    this.scopeStack = [];
+    /**
+     * Keeps track of the number of data moves during a kernel execution. We
+     * maintain a stack since kernels can call other kernels, recursively.
+     */
+    this.numDataMovesStack = [];
+    this.nextScopeId = 0;
+    this.tensorInfo = /* @__PURE__ */ new WeakMap();
+    this.profiling = false;
+    this.activeProfile = {
+      newBytes: 0,
+      newTensors: 0,
+      peakBytes: 0,
+      kernels: [],
+      result: null,
+      get kernelNames() {
+        return Array.from(new Set(this.kernels.map((k) => k.name)));
+      }
+    };
+  }
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
@@ -3810,16 +3774,11 @@ var EngineState = class {
 var _Engine = class {
   constructor(ENV4) {
     this.ENV = ENV4;
+    this.registry = {};
+    this.registryFactory = {};
+    this.pendingBackendInitId = 0;
     this.state = new EngineState();
   }
-  state;
-  backendName;
-  registry = {};
-  registryFactory = {};
-  profiler;
-  backendInstance;
-  pendingBackendInit;
-  pendingBackendInitId = 0;
   async ready() {
     if (this.pendingBackendInit != null) {
       return this.pendingBackendInit.then(() => {
@@ -4687,8 +4646,8 @@ var _Engine = class {
   }
 };
 var Engine = _Engine;
-__publicField(Engine, "nextTensorId", 0);
-__publicField(Engine, "nextVariableId", 0);
+Engine.nextTensorId = 0;
+Engine.nextVariableId = 0;
 function ones(shape) {
   const values = makeOnesTypedArray(sizeFromShape(shape), "float32");
   return ENGINE.makeTensor(values, shape, "float32");
@@ -4962,21 +4921,9 @@ var DTYPE_VALUE_SIZE_MAP = {
 
 // src/tfjs-core/src/io/composite_array_buffer.ts
 var CompositeArrayBuffer = class {
-  shards = [];
-  previousShardIndex = 0;
-  bufferUniformSize;
-  byteLength;
-  /**
-   * Concatenate a number of ArrayBuffers into one.
-   *
-   * @param buffers An array of ArrayBuffers to concatenate, or a single
-   *     ArrayBuffer.
-   * @returns Result of concatenating `buffers` in order.
-   */
-  static join(buffers) {
-    return new CompositeArrayBuffer(buffers).slice();
-  }
   constructor(buffers) {
+    this.shards = [];
+    this.previousShardIndex = 0;
     if (buffers == null) {
       return;
     }
@@ -5007,6 +4954,16 @@ var CompositeArrayBuffer = class {
       this.byteLength = 0;
     }
     this.byteLength = this.shards[this.shards.length - 1].end;
+  }
+  /**
+   * Concatenate a number of ArrayBuffers into one.
+   *
+   * @param buffers An array of ArrayBuffers to concatenate, or a single
+   *     ArrayBuffer.
+   * @returns Result of concatenating `buffers` in order.
+   */
+  static join(buffers) {
+    return new CompositeArrayBuffer(buffers).slice();
   }
   slice(start = 0, end = this.byteLength) {
     if (this.shards.length === 0) {
@@ -5388,7 +5345,7 @@ function getModelArtifactsInfoForJSON(modelArtifacts) {
     throw new Error("Expected JSON model topology, received ArrayBuffer.");
   }
   return {
-    dateSaved: new Date(),
+    dateSaved: /* @__PURE__ */ new Date(),
     modelTopologyType: "JSON",
     modelTopologyBytes: modelArtifacts.modelTopology == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),
     weightSpecsBytes: modelArtifacts.weightSpecs == null ? 0 : stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
@@ -5463,18 +5420,16 @@ function getFloat16Decoder() {
 }
 
 // src/tfjs-core/src/io/router_registry.ts
-var _IORouterRegistry = class {
-  saveRouters;
-  loadRouters;
+var IORouterRegistry = class {
   constructor() {
     this.saveRouters = [];
     this.loadRouters = [];
   }
   static getInstance() {
-    if (_IORouterRegistry.instance == null) {
-      _IORouterRegistry.instance = new _IORouterRegistry();
+    if (IORouterRegistry.instance == null) {
+      IORouterRegistry.instance = new IORouterRegistry();
     }
-    return _IORouterRegistry.instance;
+    return IORouterRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -5483,7 +5438,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `save` method defined or `null`.
    */
   static registerSaveRouter(saveRouter) {
-    _IORouterRegistry.getInstance().saveRouters.push(saveRouter);
+    IORouterRegistry.getInstance().saveRouters.push(saveRouter);
   }
   /**
    * Register a load-handler router.
@@ -5492,7 +5447,7 @@ var _IORouterRegistry = class {
    * of `IOHandler` with the `load` method defined or `null`.
    */
   static registerLoadRouter(loadRouter) {
-    _IORouterRegistry.getInstance().loadRouters.push(loadRouter);
+    IORouterRegistry.getInstance().loadRouters.push(loadRouter);
   }
   /**
    * Look up IOHandler for saving, given a URL-like string.
@@ -5503,7 +5458,7 @@ var _IORouterRegistry = class {
    * @throws Error, if more than one match is found.
    */
   static getSaveHandlers(url) {
-    return _IORouterRegistry.getHandlers(url, "save");
+    return IORouterRegistry.getHandlers(url, "save");
   }
   /**
    * Look up IOHandler for loading, given a URL-like string.
@@ -5514,11 +5469,11 @@ var _IORouterRegistry = class {
    *   handler routers.
    */
   static getLoadHandlers(url, loadOptions) {
-    return _IORouterRegistry.getHandlers(url, "load", loadOptions);
+    return IORouterRegistry.getHandlers(url, "load", loadOptions);
   }
   static getHandlers(url, handlerType, loadOptions) {
     const validHandlers = [];
-    const routers = handlerType === "load" ? _IORouterRegistry.getInstance().loadRouters : _IORouterRegistry.getInstance().saveRouters;
+    const routers = handlerType === "load" ? IORouterRegistry.getInstance().loadRouters : IORouterRegistry.getInstance().saveRouters;
     routers.forEach((router) => {
       const handler = router(url, loadOptions);
       if (handler !== null) {
@@ -5528,9 +5483,6 @@ var _IORouterRegistry = class {
     return validHandlers;
   }
 };
-var IORouterRegistry = _IORouterRegistry;
-// Singleton instance.
-__publicField(IORouterRegistry, "instance");
 var registerSaveRouter = (loudRouter) => IORouterRegistry.registerSaveRouter(loudRouter);
 var registerLoadRouter = (loudRouter) => IORouterRegistry.registerLoadRouter(loudRouter);
 var getSaveHandlers = (url) => IORouterRegistry.getSaveHandlers(url);
@@ -5562,8 +5514,6 @@ function setUpDatabase(openRequest) {
   db.createObjectStore(INFO_STORE_NAME, { keyPath: "modelPath" });
 }
 var BrowserIndexedDB = class {
-  indexedDB;
-  modelPath;
   constructor(modelPath) {
     this.indexedDB = getIndexedDBFactory();
     if (modelPath == null || !modelPath) {
@@ -5624,6 +5574,9 @@ var BrowserIndexedDB = class {
           };
           modelTx.oncomplete = () => db.close();
         } else {
+          modelArtifacts.weightData = CompositeArrayBuffer.join(
+            modelArtifacts.weightData
+          );
           const modelArtifactsInfo = getModelArtifactsInfoForJSON(modelArtifacts);
           const infoTx = db.transaction(INFO_STORE_NAME, "readwrite");
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
@@ -5678,7 +5631,7 @@ var BrowserIndexedDB = class {
     });
   }
 };
-__publicField(BrowserIndexedDB, "URL_SCHEME", "indexeddb://");
+BrowserIndexedDB.URL_SCHEME = "indexeddb://";
 var indexedDBRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5699,7 +5652,6 @@ function maybeStripScheme(key) {
   return key.startsWith(BrowserIndexedDB.URL_SCHEME) ? key.slice(BrowserIndexedDB.URL_SCHEME.length) : key;
 }
 var BrowserIndexedDBManager = class {
-  indexedDB;
   constructor() {
     this.indexedDB = getIndexedDBFactory();
   }
@@ -5814,9 +5766,6 @@ function maybeStripScheme2(key) {
   return key.startsWith(BrowserLocalStorage.URL_SCHEME) ? key.slice(BrowserLocalStorage.URL_SCHEME.length) : key;
 }
 var BrowserLocalStorage = class {
-  LS;
-  modelPath;
-  keys;
   constructor(modelPath) {
     if (!env().getBool("IS_BROWSER") || typeof window === "undefined" || typeof window.localStorage === "undefined") {
       throw new Error(
@@ -5946,7 +5895,7 @@ var BrowserLocalStorage = class {
     return out;
   }
 };
-__publicField(BrowserLocalStorage, "URL_SCHEME", "localstorage://");
+BrowserLocalStorage.URL_SCHEME = "localstorage://";
 var localStorageRouter = (url) => {
   if (!env().getBool("IS_BROWSER")) {
     return null;
@@ -5966,7 +5915,6 @@ function browserLocalStorage(modelPath) {
   return new BrowserLocalStorage(modelPath);
 }
 var BrowserLocalStorageManager = class {
-  LS;
   constructor() {
     assert(
       env().getBool("IS_BROWSER"),
@@ -6005,16 +5953,15 @@ var BrowserLocalStorageManager = class {
 
 // src/tfjs-core/src/io/model_management.ts
 var URL_SCHEME_SUFFIX = "://";
-var _ModelStoreManagerRegistry = class {
-  managers;
+var ModelStoreManagerRegistry = class {
   constructor() {
     this.managers = {};
   }
   static getInstance() {
-    if (_ModelStoreManagerRegistry.instance == null) {
-      _ModelStoreManagerRegistry.instance = new _ModelStoreManagerRegistry();
+    if (ModelStoreManagerRegistry.instance == null) {
+      ModelStoreManagerRegistry.instance = new ModelStoreManagerRegistry();
     }
-    return _ModelStoreManagerRegistry.instance;
+    return ModelStoreManagerRegistry.instance;
   }
   /**
    * Register a save-handler router.
@@ -6028,7 +5975,7 @@ var _ModelStoreManagerRegistry = class {
       scheme = scheme.slice(0, scheme.indexOf(URL_SCHEME_SUFFIX));
     }
     assert(scheme.length > 0, () => "scheme must not be an empty string.");
-    const registry = _ModelStoreManagerRegistry.getInstance();
+    const registry = ModelStoreManagerRegistry.getInstance();
     assert(
       registry.managers[scheme] == null,
       () => `A model store manager is already registered for scheme '${scheme}'.`
@@ -6036,19 +5983,16 @@ var _ModelStoreManagerRegistry = class {
     registry.managers[scheme] = manager;
   }
   static getManager(scheme) {
-    const manager = _ModelStoreManagerRegistry.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
     return manager;
   }
   static getSchemes() {
-    return Object.keys(_ModelStoreManagerRegistry.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 };
-var ModelStoreManagerRegistry = _ModelStoreManagerRegistry;
-// Singleton instance.
-__publicField(ModelStoreManagerRegistry, "instance");
 function parseURL(url) {
   if (url.indexOf(URL_SCHEME_SUFFIX) === -1) {
     throw new Error(
@@ -6126,14 +6070,13 @@ async function moveModel(sourceURL, destURL) {
 
 // src/tfjs-core/src/platforms/platform_browser.ts
 var PlatformBrowser = class {
-  // According to the spec, the built-in encoder can do only UTF-8 encoding.
-  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
-  textEncoder;
-  // For setTimeoutCustom
-  messageName = "setTimeoutCustom";
-  functionRefs = [];
-  handledMessageCount = 0;
-  hasEventListener = false;
+  constructor() {
+    // For setTimeoutCustom
+    this.messageName = "setTimeoutCustom";
+    this.functionRefs = [];
+    this.handledMessageCount = 0;
+    this.hasEventListener = false;
+  }
   fetch(path, init) {
     return fetch(path, init);
   }
@@ -6215,9 +6158,6 @@ var getNodeFetch = {
 };
 var systemFetch;
 var PlatformNode = class {
-  textEncoder;
-  // tslint:disable-next-line:no-any
-  util;
   constructor() {
     this.util = require_util();
     this.textEncoder = new this.util.TextEncoder();
@@ -9420,14 +9360,6 @@ var rand = op({ rand_ });
 // src/tfjs-core/src/ops/rand_util.ts
 var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
-  mean;
-  stdDev;
-  nextVal;
-  dtype;
-  truncated;
-  upper;
-  lower;
-  random;
   constructor(mean2, stdDeviation, dtype, truncated, seed) {
     this.mean = mean2;
     this.stdDev = stdDeviation;
@@ -9482,13 +9414,6 @@ var MPRandGauss = class {
   }
 };
 var RandGamma = class {
-  alpha;
-  beta;
-  d;
-  c;
-  dtype;
-  randu;
-  randn;
   constructor(alpha, beta, dtype, seed) {
     this.alpha = alpha;
     this.beta = 1 / beta;
@@ -9535,11 +9460,9 @@ var RandGamma = class {
   }
 };
 var UniformRandom = class {
-  min;
-  range;
-  random;
-  dtype;
   constructor(min3 = 0, max3 = 1, dtype, seed) {
+    /** Handles proper rounding for non floating point numbers. */
+    this.canReturnFloat = () => this.dtype == null || this.dtype === "float32";
     this.min = min3;
     this.range = max3 - min3;
     this.dtype = dtype;
@@ -9556,8 +9479,6 @@ var UniformRandom = class {
     }
     this.random = seedrandom.alea(seed);
   }
-  /** Handles proper rounding for non floating point numbers. */
-  canReturnFloat = () => this.dtype == null || this.dtype === "float32";
   convertValue(value) {
     if (this.canReturnFloat()) {
       return value;
@@ -12592,8 +12513,11 @@ var serialization_exports = {};
 __export(serialization_exports, {
   Serializable: () => Serializable,
   SerializationMap: () => SerializationMap,
+  getRegisteredName: () => getRegisteredName,
   registerClass: () => registerClass
 });
+var GLOBAL_CUSTOM_OBJECT = /* @__PURE__ */ new Map();
+var GLOBAL_CUSTOM_NAMES = /* @__PURE__ */ new Map();
 var Serializable = class {
   /**
    * Return the class name for this class to use in serialization contexts.
@@ -12622,8 +12546,7 @@ var Serializable = class {
     return new cls(config);
   }
 };
-var _SerializationMap = class {
-  classNameMap;
+var SerializationMap = class {
   constructor() {
     this.classNameMap = {};
   }
@@ -12631,21 +12554,19 @@ var _SerializationMap = class {
    * Returns the singleton instance of the map.
    */
   static getMap() {
-    if (_SerializationMap.instance == null) {
-      _SerializationMap.instance = new _SerializationMap();
+    if (SerializationMap.instance == null) {
+      SerializationMap.instance = new SerializationMap();
     }
-    return _SerializationMap.instance;
+    return SerializationMap.instance;
   }
   /**
    * Registers the class as serializable.
    */
   static register(cls) {
-    _SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+    SerializationMap.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
   }
 };
-var SerializationMap = _SerializationMap;
-__publicField(SerializationMap, "instance");
-function registerClass(cls) {
+function registerClass(cls, pkg, name) {
   assert(
     cls.className != null,
     () => `Class being registered does not have the static className property defined.`
@@ -12658,12 +12579,29 @@ function registerClass(cls) {
     cls.className.length > 0,
     () => `Class being registered has an empty-string as its className, which is disallowed.`
   );
+  if (typeof pkg === "undefined") {
+    pkg = "Custom";
+  }
+  if (typeof name === "undefined") {
+    name = cls.className;
+  }
+  const className = name;
+  const registerName = pkg + ">" + className;
   SerializationMap.register(cls);
+  GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
+  GLOBAL_CUSTOM_NAMES.set(cls, registerName);
+  return cls;
+}
+function getRegisteredName(cls) {
+  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
+    return GLOBAL_CUSTOM_NAMES.get(cls);
+  } else {
+    return cls.className;
+  }
 }
 
 // src/tfjs-core/src/optimizers/optimizer.ts
 var Optimizer = class extends Serializable {
-  iterations_;
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by
@@ -12774,6 +12712,8 @@ var AdadeltaOptimizer = class extends Optimizer {
     this.learningRate = learningRate;
     this.rho = rho;
     this.epsilon = epsilon2;
+    this.accumulatedGrads = [];
+    this.accumulatedUpdates = [];
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
@@ -12782,8 +12722,6 @@ var AdadeltaOptimizer = class extends Optimizer {
   static get className() {
     return "Adadelta";
   }
-  accumulatedGrads = [];
-  accumulatedUpdates = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12877,12 +12815,12 @@ var AdagradOptimizer = class extends Optimizer {
     super();
     this.learningRate = learningRate;
     this.initialAccumulatorValue = initialAccumulatorValue;
+    this.accumulatedGrads = [];
   }
   /** @nocollapse */
   static get className() {
     return "Adagrad";
   }
-  accumulatedGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -12956,6 +12894,8 @@ var AdamOptimizer = class extends Optimizer {
     this.beta1 = beta1;
     this.beta2 = beta2;
     this.epsilon = epsilon2;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedSecondMoment = [];
     tidy(() => {
       this.accBeta1 = scalar(beta1).variable();
       this.accBeta2 = scalar(beta2).variable();
@@ -12968,10 +12908,6 @@ var AdamOptimizer = class extends Optimizer {
   static get className() {
     return "Adam";
   }
-  accBeta1;
-  accBeta2;
-  accumulatedFirstMoment = [];
-  accumulatedSecondMoment = [];
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -13087,6 +13023,8 @@ var AdamaxOptimizer = class extends Optimizer {
     this.beta2 = beta2;
     this.epsilon = epsilon2;
     this.decay = decay;
+    this.accumulatedFirstMoment = [];
+    this.accumulatedWeightedInfNorm = [];
     tidy(() => {
       this.iteration = scalar(0).variable();
       this.accBeta1 = scalar(beta1).variable();
@@ -13099,10 +13037,6 @@ var AdamaxOptimizer = class extends Optimizer {
   static get className() {
     return "Adamax";
   }
-  accBeta1;
-  iteration;
-  accumulatedFirstMoment = [];
-  accumulatedWeightedInfNorm = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     tidy(() => {
@@ -13197,7 +13131,6 @@ var SGDOptimizer = class extends Optimizer {
   static get className() {
     return "SGD";
   }
-  c;
   applyGradients(variableGradients) {
     const varNames = Array.isArray(variableGradients) ? variableGradients.map((v) => v.name) : Object.keys(variableGradients);
     varNames.forEach((name, i) => {
@@ -13251,6 +13184,7 @@ var MomentumOptimizer = class extends SGDOptimizer {
     this.learningRate = learningRate;
     this.momentum = momentum;
     this.useNesterov = useNesterov;
+    this.accumulations = [];
     this.m = scalar(this.momentum);
   }
   /** @nocollapse */
@@ -13258,8 +13192,6 @@ var MomentumOptimizer = class extends SGDOptimizer {
   static get className() {
     return "Momentum";
   }
-  m;
-  accumulations = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -13344,6 +13276,9 @@ var RMSPropOptimizer = class extends Optimizer {
     this.decay = decay;
     this.momentum = momentum;
     this.epsilon = epsilon2;
+    this.accumulatedMeanSquares = [];
+    this.accumulatedMoments = [];
+    this.accumulatedMeanGrads = [];
     this.centered = centered;
     if (epsilon2 == null) {
       this.epsilon = ENGINE.backend.epsilon();
@@ -13356,10 +13291,6 @@ var RMSPropOptimizer = class extends Optimizer {
   static get className() {
     return "RMSProp";
   }
-  centered;
-  accumulatedMeanSquares = [];
-  accumulatedMoments = [];
-  accumulatedMeanGrads = [];
   applyGradients(variableGradients) {
     const variableNames = Array.isArray(variableGradients) ? variableGradients.map((item) => item.name) : Object.keys(variableGradients);
     variableNames.forEach((name, i) => {
@@ -13553,10 +13484,6 @@ function defer(f) {
   return new Promise((resolve) => setTimeout(resolve)).then(f);
 }
 var _BrowserDownloads = class {
-  modelJsonFileName;
-  weightDataFileName;
-  modelJsonAnchor;
-  weightDataAnchor;
   constructor(fileNamePrefix) {
     if (!env().getBool("IS_BROWSER")) {
       throw new Error(
@@ -13613,10 +13540,8 @@ var _BrowserDownloads = class {
   }
 };
 var BrowserDownloads = _BrowserDownloads;
-__publicField(BrowserDownloads, "URL_SCHEME", "downloads://");
+BrowserDownloads.URL_SCHEME = "downloads://";
 var BrowserFiles = class {
-  jsonFile;
-  weightsFiles;
   constructor(files) {
     if (files == null || files.length < 1) {
       throw new Error(
@@ -13889,14 +13814,8 @@ Manifest JSON has weights with names: ${allManifestWeightNames.join(", ")}.`
 var OCTET_STREAM_MIME_TYPE = "application/octet-stream";
 var JSON_TYPE = "application/json";
 var HTTPRequest = class {
-  path;
-  requestInit;
-  fetch;
-  weightUrlConverter;
-  DEFAULT_METHOD = "POST";
-  weightPathPrefix;
-  onProgress;
   constructor(path, loadOptions) {
+    this.DEFAULT_METHOD = "POST";
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -14037,7 +13956,7 @@ var HTTPRequest = class {
     return [weightSpecs, buffers];
   }
 };
-__publicField(HTTPRequest, "URL_SCHEME_REGEX", /^https?:\/\//);
+HTTPRequest.URL_SCHEME_REGEX = /^https?:\/\//;
 function parseUrl(url) {
   const lastSlash = url.lastIndexOf("/");
   const lastSearchParam = url.lastIndexOf("?");
@@ -14091,8 +14010,6 @@ var PassthroughSaver = class {
   }
 };
 var PassthroughAsync = class {
-  load;
-  save;
   constructor(handler) {
     if (handler.load) {
       this.load = () => Promise.resolve(handler.load());
@@ -15738,8 +15655,6 @@ var AssertionError = class extends Error {
 
 // src/tfjs-layers/src/utils/executor_utils.ts
 var LruCache = class {
-  cache;
-  maxEntries;
   constructor(maxEntries) {
     this.maxEntries = maxEntries || 100;
     this.cache = /* @__PURE__ */ new Map();
@@ -16610,7 +16525,7 @@ var Zeros = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Zeros, "className", "Zeros");
+Zeros.className = "Zeros";
 serialization_exports.registerClass(Zeros);
 var Ones = class extends Initializer {
   apply(shape, dtype) {
@@ -16618,10 +16533,9 @@ var Ones = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Ones, "className", "Ones");
+Ones.className = "Ones";
 serialization_exports.registerClass(Ones);
 var Constant = class extends Initializer {
-  value;
   constructor(args) {
     super();
     if (typeof args !== "object") {
@@ -16644,16 +16558,13 @@ var Constant = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Constant, "className", "Constant");
+Constant.className = "Constant";
 serialization_exports.registerClass(Constant);
 var RandomUniform = class extends Initializer {
-  DEFAULT_MINVAL = -0.05;
-  DEFAULT_MAXVAL = 0.05;
-  minval;
-  maxval;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_MINVAL = -0.05;
+    this.DEFAULT_MAXVAL = 0.05;
     this.minval = args.minval || this.DEFAULT_MINVAL;
     this.maxval = args.maxval || this.DEFAULT_MAXVAL;
     this.seed = args.seed;
@@ -16666,16 +16577,13 @@ var RandomUniform = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(RandomUniform, "className", "RandomUniform");
+RandomUniform.className = "RandomUniform";
 serialization_exports.registerClass(RandomUniform);
 var RandomNormal = class extends Initializer {
-  DEFAULT_MEAN = 0;
-  DEFAULT_STDDEV = 0.05;
-  mean;
-  stddev;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_MEAN = 0;
+    this.DEFAULT_STDDEV = 0.05;
     this.mean = args.mean || this.DEFAULT_MEAN;
     this.stddev = args.stddev || this.DEFAULT_STDDEV;
     this.seed = args.seed;
@@ -16694,16 +16602,13 @@ var RandomNormal = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(RandomNormal, "className", "RandomNormal");
+RandomNormal.className = "RandomNormal";
 serialization_exports.registerClass(RandomNormal);
 var TruncatedNormal = class extends Initializer {
-  DEFAULT_MEAN = 0;
-  DEFAULT_STDDEV = 0.05;
-  mean;
-  stddev;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_MEAN = 0;
+    this.DEFAULT_STDDEV = 0.05;
     this.mean = args.mean || this.DEFAULT_MEAN;
     this.stddev = args.stddev || this.DEFAULT_STDDEV;
     this.seed = args.seed;
@@ -16722,10 +16627,9 @@ var TruncatedNormal = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(TruncatedNormal, "className", "TruncatedNormal");
+TruncatedNormal.className = "TruncatedNormal";
 serialization_exports.registerClass(TruncatedNormal);
 var Identity2 = class extends Initializer {
-  gain;
   constructor(args) {
     super();
     this.gain = args.gain != null ? args.gain : 1;
@@ -16746,7 +16650,7 @@ var Identity2 = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Identity2, "className", "Identity");
+Identity2.className = "Identity";
 serialization_exports.registerClass(Identity2);
 function computeFans(shape, dataFormat = "channelsLast") {
   let fanIn;
@@ -16773,10 +16677,6 @@ function computeFans(shape, dataFormat = "channelsLast") {
   return [fanIn, fanOut];
 }
 var VarianceScaling = class extends Initializer {
-  scale;
-  mode;
-  distribution;
-  seed;
   /**
    * Constructor of VarianceScaling.
    * @throws ValueError for invalid value in scale.
@@ -16831,7 +16731,7 @@ var VarianceScaling = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(VarianceScaling, "className", "VarianceScaling");
+VarianceScaling.className = "VarianceScaling";
 serialization_exports.registerClass(VarianceScaling);
 var GlorotUniform = class extends VarianceScaling {
   /**
@@ -16854,7 +16754,7 @@ var GlorotUniform = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(GlorotUniform, "className", "GlorotUniform");
+GlorotUniform.className = "GlorotUniform";
 serialization_exports.registerClass(GlorotUniform);
 var GlorotNormal = class extends VarianceScaling {
   /**
@@ -16877,7 +16777,7 @@ var GlorotNormal = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(GlorotNormal, "className", "GlorotNormal");
+GlorotNormal.className = "GlorotNormal";
 serialization_exports.registerClass(GlorotNormal);
 var HeNormal = class extends VarianceScaling {
   constructor(args) {
@@ -16893,7 +16793,7 @@ var HeNormal = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(HeNormal, "className", "HeNormal");
+HeNormal.className = "HeNormal";
 serialization_exports.registerClass(HeNormal);
 var HeUniform = class extends VarianceScaling {
   constructor(args) {
@@ -16909,7 +16809,7 @@ var HeUniform = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(HeUniform, "className", "HeUniform");
+HeUniform.className = "HeUniform";
 serialization_exports.registerClass(HeUniform);
 var LeCunNormal = class extends VarianceScaling {
   constructor(args) {
@@ -16925,7 +16825,7 @@ var LeCunNormal = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(LeCunNormal, "className", "LeCunNormal");
+LeCunNormal.className = "LeCunNormal";
 serialization_exports.registerClass(LeCunNormal);
 var LeCunUniform = class extends VarianceScaling {
   constructor(args) {
@@ -16941,15 +16841,13 @@ var LeCunUniform = class extends VarianceScaling {
   }
 };
 /** @nocollapse */
-__publicField(LeCunUniform, "className", "LeCunUniform");
+LeCunUniform.className = "LeCunUniform";
 serialization_exports.registerClass(LeCunUniform);
 var Orthogonal = class extends Initializer {
-  DEFAULT_GAIN = 1;
-  ELEMENTS_WARN_SLOW = 2e3;
-  gain;
-  seed;
   constructor(args) {
     super();
+    this.DEFAULT_GAIN = 1;
+    this.ELEMENTS_WARN_SLOW = 2e3;
     this.gain = args.gain == null ? this.DEFAULT_GAIN : args.gain;
     this.seed = args.seed;
   }
@@ -16995,7 +16893,7 @@ var Orthogonal = class extends Initializer {
   }
 };
 /** @nocollapse */
-__publicField(Orthogonal, "className", "Orthogonal");
+Orthogonal.className = "Orthogonal";
 serialization_exports.registerClass(Orthogonal);
 var INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP = {
   "constant": "Constant",
@@ -17107,18 +17005,6 @@ function countParamsInWeights(weights) {
 // src/tfjs-layers/src/variables.ts
 var DEFAULT_VARIABLE_NAME_PREFIX = "Variable";
 var LayerVariable = class {
-  dtype;
-  shape;
-  id;
-  // The fully scoped name of this Variable, including a unique suffix if needed
-  name;
-  // The originally requested fully scoped name of this Variable, not including
-  // any unique suffix.  This may be needed when restoring weights because this
-  // original name is used as a key.
-  originalName;
-  trainable_;
-  val;
-  constraint;
   /**
    * Construct Variable from a `tf.Tensor`.
    *
@@ -17212,18 +17098,6 @@ function batchSetValue(variablesAndValues) {
 
 // src/tfjs-layers/src/engine/topology.ts
 var InputSpec = class {
-  /** Expected datatype of the input. */
-  dtype;
-  /** Expected shape of the input (may include null for unchecked axes). */
-  shape;
-  /** Expected rank of the input. */
-  ndim;
-  /** Maximum rank of the input. */
-  maxNDim;
-  /** Minimum rank of the input. */
-  minNDim;
-  /** Dictionary mapping integer axes to a specific dimension value. */
-  axes;
   constructor(args) {
     this.dtype = args.dtype;
     this.shape = args.shape;
@@ -17265,26 +17139,6 @@ var SymbolicTensor = class {
     }
     this.rank = shape.length;
   }
-  /* A unique ID for the tensor to be able to differentiate tensors. */
-  id;
-  // The fully scoped name of this Variable, including a unique suffix if needed
-  name;
-  // The originally requested fully scoped name of this Variable, not including
-  // any unique suffix.  This may be needed when restoring weights because this
-  // original name is used as a key.
-  originalName;
-  /**
-   * Rank/dimensionality of the tensor.
-   */
-  rank;
-  /**
-   * Replacement for _keras_history.
-   */
-  nodeIndex;
-  /**
-   * Replacement for _keras_history.
-   */
-  tensorIndex;
 };
 var _nextNodeID = 0;
 var Node = class {
@@ -17308,43 +17162,6 @@ var Node = class {
     }
     args.outboundLayer.inboundNodes.push(this);
   }
-  /**
-   * The layer that takes `inputTensors` and turns them into `outputTensors`
-   * (the node gets created when the `call` method of the layer is called).
-   */
-  outboundLayer;
-  /**
-   * A list of layers, the same length as `inputTensors`, the layers from where
-   * `inputTensors` originate.
-   */
-  inboundLayers;
-  /**
-   * A list of integers, the same length as `inboundLayers`. `nodeIndices[i]` is
-   * the origin node of `inputTensors[i]` (necessary since each inbound layer
-   * might have several nodes, e.g. if the layer is being shared with a
-   * different data stream).
-   */
-  nodeIndices;
-  /**
-   * A list of integers, the same length as `inboundLayers`. `tensorIndices[i]`
-   * is the index of `inputTensors[i]` within the output of the inbound layer
-   * (necessary since each inbound layer might have multiple tensor outputs,
-   * with each one being independently manipulable).
-   */
-  tensorIndices;
-  /** List of input tensors. */
-  inputTensors;
-  /** List of output tensors. */
-  outputTensors;
-  /** List of input masks (a mask can be a tensor, or null). */
-  inputMasks;
-  /** List of output masks (a mask can be a tensor, or null). */
-  outputMasks;
-  /** List of input shape tuples. */
-  inputShapes;
-  /** List of output shape tuples. */
-  outputShapes;
-  id;
   getConfig() {
     const inboundNames = [];
     for (const layer of this.inboundLayers) {
@@ -17364,49 +17181,15 @@ var Node = class {
 };
 var _nextLayerID = 0;
 var Layer = class extends serialization_exports.Serializable {
-  /** Name for this layer. Must be unique within a model. */
-  name;
-  /**
-   * List of InputSpec class instances.
-   *
-   * Each entry describes one required input:
-   * - ndim
-   * - dtype
-   * A layer with `n` input tensors must have an `inputSpec` of length `n`.
-   */
-  inputSpec;
-  supportsMasking;
-  /** Whether the layer weights will be updated during training. */
-  trainable_;
-  batchInputShape;
-  dtype;
-  initialWeights;
-  inboundNodes;
-  outboundNodes;
-  activityRegularizer;
-  _trainableWeights;
-  _nonTrainableWeights;
-  _losses;
-  // TODO(cais): _updates is currently unused.
-  _updates;
-  _built;
-  _callHook = null;
-  _addedWeightNames = [];
-  id;
-  // Porting Notes: PyKeras does not have this property in this base Layer
-  //   class. Instead lets Layer subclass set it dynamically and checks the
-  //   value with `hasattr`. In tfjs-layers, we let this be a member of this
-  //   base class.
-  _stateful = false;
-  _refCount;
-  // A flag for whether fast (i.e., all-zero) weight initialization is to
-  // be used during `build()` call. This speeds up weight initialization
-  // by saving unnecessary calls to expensive initializers in cases where
-  // the initialized values will be overwritten by loaded weight values
-  // during model loading.
-  fastWeightInitDuringBuild;
   constructor(args = {}) {
     super();
+    this._callHook = null;
+    this._addedWeightNames = [];
+    // Porting Notes: PyKeras does not have this property in this base Layer
+    //   class. Instead lets Layer subclass set it dynamically and checks the
+    //   value with `hasattr`. In tfjs-layers, we let this be a member of this
+    //   base class.
+    this._stateful = false;
     this.id = _nextLayerID++;
     this.activityRegularizer = null;
     this.inputSpec = null;
@@ -18379,7 +18162,6 @@ function getSourceInputs(tensor2, layer, nodeIndex) {
 
 // src/tfjs-layers/src/engine/input_layer.ts
 var InputLayer = class extends Layer {
-  sparse;
   constructor(args) {
     super({
       dtype: args.dtype,
@@ -18460,7 +18242,7 @@ var InputLayer = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(InputLayer, "className", "InputLayer");
+InputLayer.className = "InputLayer";
 serialization_exports.registerClass(InputLayer);
 function Input(config) {
   if (config.batchShape == null && config.shape == null) {
@@ -18505,15 +18287,15 @@ function assertFeedCompatibility(key, val) {
   }
 }
 var FeedDict = class {
-  id2Value = {};
-  id2Mask = {};
-  name2Id = {};
   /**
    * Constructor, optionally does copy-construction.
    * @param feeds An Array of `Feed`s, or another `FeedDict`, in which case
    *   copy-construction will be performed.
    */
   constructor(feeds) {
+    this.id2Value = {};
+    this.id2Mask = {};
+    this.name2Id = {};
     if (feeds instanceof FeedDict) {
       for (const id in feeds.id2Value) {
         this.id2Value[id] = feeds.id2Value[id];
@@ -20916,12 +20698,10 @@ var Constraint = class extends serialization_exports.Serializable {
   }
 };
 var MaxNorm = class extends Constraint {
-  maxValue;
-  axis;
-  defaultMaxValue = 2;
-  defaultAxis = 0;
   constructor(args) {
     super();
+    this.defaultMaxValue = 2;
+    this.defaultAxis = 0;
     this.maxValue = args.maxValue != null ? args.maxValue : this.defaultMaxValue;
     this.axis = args.axis != null ? args.axis : this.defaultAxis;
   }
@@ -20937,13 +20717,12 @@ var MaxNorm = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(MaxNorm, "className", "MaxNorm");
+MaxNorm.className = "MaxNorm";
 serialization_exports.registerClass(MaxNorm);
 var UnitNorm = class extends Constraint {
-  axis;
-  defaultAxis = 0;
   constructor(args) {
     super();
+    this.defaultAxis = 0;
     this.axis = args.axis != null ? args.axis : this.defaultAxis;
   }
   apply(w) {
@@ -20956,7 +20735,7 @@ var UnitNorm = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(UnitNorm, "className", "UnitNorm");
+UnitNorm.className = "UnitNorm";
 serialization_exports.registerClass(UnitNorm);
 var NonNeg = class extends Constraint {
   apply(w) {
@@ -20964,19 +20743,15 @@ var NonNeg = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(NonNeg, "className", "NonNeg");
+NonNeg.className = "NonNeg";
 serialization_exports.registerClass(NonNeg);
 var MinMaxNorm = class extends Constraint {
-  minValue;
-  maxValue;
-  rate;
-  axis;
-  defaultMinValue = 0;
-  defaultMaxValue = 1;
-  defaultRate = 1;
-  defaultAxis = 0;
   constructor(args) {
     super();
+    this.defaultMinValue = 0;
+    this.defaultMaxValue = 1;
+    this.defaultRate = 1;
+    this.defaultAxis = 0;
     this.minValue = args.minValue != null ? args.minValue : this.defaultMinValue;
     this.maxValue = args.maxValue != null ? args.maxValue : this.defaultMaxValue;
     this.rate = args.rate != null ? args.rate : this.defaultRate;
@@ -21005,7 +20780,7 @@ var MinMaxNorm = class extends Constraint {
   }
 };
 /** @nocollapse */
-__publicField(MinMaxNorm, "className", "MinMaxNorm");
+MinMaxNorm.className = "MinMaxNorm";
 serialization_exports.registerClass(MinMaxNorm);
 var CONSTRAINT_IDENTIFIER_REGISTRY_SYMBOL_MAP = {
   "maxNorm": "MaxNorm",
@@ -21243,12 +21018,10 @@ function disposeTensorsInLogs(logs) {
 // src/tfjs-layers/src/base_callbacks.ts
 var DEFAULT_YIELD_EVERY_MS = 125;
 var BaseCallback = class {
-  // TODO(michaelterry): This type is a best guess.
-  validationData = null;
-  /**
-   * Training parameters (eg. verbosity, batch size, number of epochs...).
-   */
-  params;
+  constructor() {
+    // TODO(michaelterry): This type is a best guess.
+    this.validationData = null;
+  }
   setParams(params) {
     this.params = params;
   }
@@ -21275,8 +21048,6 @@ var BaseCallback = class {
   }
 };
 var CallbackList = class {
-  callbacks;
-  queueLength;
   // TODO(cais): When the need arises, uncomment the following lines and
   // implement the queue for time values.
   // private deltaTBatch: number;
@@ -21386,8 +21157,6 @@ var CallbackList = class {
   }
 };
 var BaseLogger = class extends BaseCallback {
-  seen;
-  totals;
   constructor() {
     super();
   }
@@ -21444,8 +21213,6 @@ var BaseLogger = class extends BaseCallback {
   }
 };
 var History = class extends BaseCallback {
-  epoch;
-  history;
   async onTrainBegin(logs) {
     this.epoch = [];
     this.history = {};
@@ -21489,19 +21256,9 @@ var History = class extends BaseCallback {
   }
 };
 var CustomCallback = class extends BaseCallback {
-  trainBegin;
-  trainEnd;
-  epochBegin;
-  epochEnd;
-  batchBegin;
-  batchEnd;
-  yield;
-  yieldEvery;
-  currentEpoch = 0;
-  nowFunc;
-  nextFrameFunc;
   constructor(args, yieldEvery) {
     super();
+    this.currentEpoch = 0;
     this.nowFunc = args.nowFunc;
     this.nextFrameFunc = args.nextFrameFunc || nextFrame;
     this.yieldEvery = yieldEvery || "auto";
@@ -21669,7 +21426,7 @@ var _CallbackConstructorRegistry = class {
   }
 };
 var CallbackConstructorRegistry = _CallbackConstructorRegistry;
-__publicField(CallbackConstructorRegistry, "constructors", {});
+CallbackConstructorRegistry.constructors = {};
 function configureCallbacks(callbacks2, verbose, epochs, initialEpoch, numTrainSamples, stepsPerEpoch, batchSize, doValidation, callbackMetrics) {
   const history = new History();
   const actualCallbacks = [
@@ -22330,34 +22087,9 @@ var version2 = "0.0.0";
 
 // src/tfjs-layers/src/engine/container.ts
 var Container = class extends Layer {
-  inputs;
-  outputs;
-  inputLayers;
-  inputLayersNodeIndices;
-  inputLayersTensorIndices;
-  outputLayers;
-  outputLayersNodeIndices;
-  outputLayersTensorIndices;
-  layers;
-  layersByDepth;
-  nodesByDepth;
-  internalContainerRefs;
-  containerNodes = /* @__PURE__ */ new Set();
-  // TODO(michaelterry): Add cache support
-  // private outputMaskCache: any;
-  // private outputTensorCache: any;
-  // private outputShapeCache: any;
-  inputNames;
-  outputNames;
-  feedInputShapes;
-  internalInputShapes;
-  internalOutputShapes;
-  // TODO(cais): Maybe 'feed' should not in the names of these variables,
-  //   due to the fact that our backend is not symbolic.
-  feedInputNames;
-  feedOutputNames;
   constructor(args) {
     super({});
+    this.containerNodes = /* @__PURE__ */ new Set();
     this.name = args.name;
     if (this.name == null) {
       const prefix = this.getClassName().toLowerCase();
@@ -22996,45 +22728,32 @@ var Container = class extends Layer {
     }
     return nodeConversionMap;
   }
-  /**
-   * Retrieves a layer based on either its name (unique) or index.
-   *
-   * Indices are based on order of horizontal graph traversal (bottom-up).
-   *
-   * If both `name` and `index` are specified, `index` takes precedence.
-   *
-   * @param name Name of layer.
-   * @param index Index of layer.
-   * @returns A Layer instance.
-   * @throws ValueError: In case of invalid layer name or index.
-   *
-   * @doc {
-   *    heading: 'Layers',
-   *    subheading: 'Classes',
-   *    namespace: 'layers',
-   *    subclasses: ['LayersModel']
-   * }
-   */
-  getLayer(name, index) {
+  getLayer(nameOrIndex, index) {
     if (index != null) {
-      if (this.layers.length <= index) {
-        throw new ValueError(
-          `Was asked to retrieve layer at index ${index}, but model only has ${this.layers.length} layer(s).`
-        );
-      } else {
-        return this.layers[index];
-      }
+      return this.findLayer(index);
     } else {
-      if (name == null) {
+      if (nameOrIndex == null) {
         throw new ValueError("Provide either a layer name or layer index");
+      }
+      if (typeof nameOrIndex === "number") {
+        return this.findLayer(nameOrIndex);
       }
     }
     for (const layer of this.layers) {
-      if (layer.name === name) {
+      if (layer.name === nameOrIndex) {
         return layer;
       }
     }
-    throw new ValueError(`No such layer: ${name}`);
+    throw new ValueError(`No such layer: ${nameOrIndex}`);
+  }
+  findLayer(index) {
+    if (this.layers.length <= index) {
+      throw new ValueError(
+        `Was asked to retrieve layer at index ${index}, but model only has ${this.layers.length} layer(s).`
+      );
+    } else {
+      return this.layers[index];
+    }
   }
   /**
    * Retrieves the Container's current loss values.
@@ -24010,37 +23729,6 @@ function collectMetrics(metrics, outputNames) {
 }
 var LAYERS_MODEL_FORMAT_NAME = "layers-model";
 var LayersModel = class extends Container {
-  optimizer_;
-  // Whether the model instance owns the optimizer: `true` if and only if
-  // `optimizer` is created from a string parameter during `compile()` call.
-  isOptimizerOwned;
-  loss;
-  lossFunctions;
-  // TODO(cais): These private variables should probably not have the string
-  //   'feed' in their names, because we are not dealing with a symbolic
-  //   backend.
-  feedOutputShapes;
-  feedLossFns;
-  collectedTrainableWeights;
-  testFunction;
-  history;
-  // A public property that can be set by Callbacks to order early stopping
-  // during `fit()` calls.
-  stopTraining_;
-  isTraining;
-  metrics;
-  metricsNames;
-  // Porting Note: `metrics_tensors` in PyKeras is a symbolic tensor. But given
-  //   the imperative nature of tfjs-core, `metricsTensors` is a
-  //   TypeScript function here.
-  //   Also note that due to the imperative nature of tfjs-core, `metricsTensor`
-  //   here needs an output index to keep track of which output of the
-  //   LayersModel a metric belongs to. This is unlike `metrics_tensors` in
-  //   PyKeras, which is a `list` of symbolic tensors, each of which has
-  //   implicit "knowledge" of the outputs it depends on.
-  metricsTensors;
-  // User defind metadata (if any).
-  userDefinedMetadata;
   constructor(args) {
     super(args);
     this.isTraining = false;
@@ -25471,11 +25159,11 @@ var LayersModel = class extends Container {
 // The class name is 'Model' rather than 'LayersModel' for backwards
 // compatibility since this class name shows up in the serialization format.
 /** @nocollapse */
-__publicField(LayersModel, "className", "Model");
+LayersModel.className = "Model";
 serialization_exports.registerClass(LayersModel);
 var Functional = class extends LayersModel {
 };
-__publicField(Functional, "className", "Functional");
+Functional.className = "Functional";
 serialization_exports.registerClass(Functional);
 
 // src/tfjs-layers/src/models.ts
@@ -25583,7 +25271,6 @@ function decodeModelAndOptimizerWeights(weightData, specs) {
   return { modelWeights, optimizerWeights };
 }
 var _Sequential = class extends LayersModel {
-  model;
   constructor(args) {
     super({ inputs: [], outputs: [] });
     args = args || {};
@@ -26205,7 +25892,7 @@ var _Sequential = class extends LayersModel {
 };
 var Sequential = _Sequential;
 /** @nocollapse */
-__publicField(Sequential, "className", "Sequential");
+Sequential.className = "Sequential";
 serialization_exports.registerClass(Sequential);
 
 // src/tfjs-layers/src/exports.ts
@@ -26244,7 +25931,7 @@ var Elu2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Elu2, "className", "elu");
+Elu2.className = "elu";
 serialization_exports.registerClass(Elu2);
 var Selu2 = class extends Activation2 {
   apply(x) {
@@ -26252,7 +25939,7 @@ var Selu2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Selu2, "className", "selu");
+Selu2.className = "selu";
 serialization_exports.registerClass(Selu2);
 var Relu2 = class extends Activation2 {
   apply(x) {
@@ -26260,7 +25947,7 @@ var Relu2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Relu2, "className", "relu");
+Relu2.className = "relu";
 serialization_exports.registerClass(Relu2);
 var Relu62 = class extends Activation2 {
   apply(x) {
@@ -26268,7 +25955,7 @@ var Relu62 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Relu62, "className", "relu6");
+Relu62.className = "relu6";
 serialization_exports.registerClass(Relu62);
 var Linear = class extends Activation2 {
   apply(x) {
@@ -26276,7 +25963,7 @@ var Linear = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Linear, "className", "linear");
+Linear.className = "linear";
 serialization_exports.registerClass(Linear);
 var Sigmoid2 = class extends Activation2 {
   apply(x) {
@@ -26284,7 +25971,7 @@ var Sigmoid2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Sigmoid2, "className", "sigmoid");
+Sigmoid2.className = "sigmoid";
 serialization_exports.registerClass(Sigmoid2);
 var HardSigmoid = class extends Activation2 {
   apply(x) {
@@ -26292,7 +25979,7 @@ var HardSigmoid = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(HardSigmoid, "className", "hardSigmoid");
+HardSigmoid.className = "hardSigmoid";
 serialization_exports.registerClass(HardSigmoid);
 var Softplus2 = class extends Activation2 {
   apply(x) {
@@ -26300,7 +25987,7 @@ var Softplus2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Softplus2, "className", "softplus");
+Softplus2.className = "softplus";
 serialization_exports.registerClass(Softplus2);
 var Softsign = class extends Activation2 {
   apply(x) {
@@ -26308,7 +25995,7 @@ var Softsign = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Softsign, "className", "softsign");
+Softsign.className = "softsign";
 serialization_exports.registerClass(Softsign);
 var Tanh2 = class extends Activation2 {
   apply(x) {
@@ -26316,7 +26003,7 @@ var Tanh2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Tanh2, "className", "tanh");
+Tanh2.className = "tanh";
 serialization_exports.registerClass(Tanh2);
 var Softmax2 = class extends Activation2 {
   /**
@@ -26336,7 +26023,7 @@ var Softmax2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Softmax2, "className", "softmax");
+Softmax2.className = "softmax";
 serialization_exports.registerClass(Softmax2);
 var LogSoftmax2 = class extends Activation2 {
   /**
@@ -26357,7 +26044,7 @@ var LogSoftmax2 = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(LogSoftmax2, "className", "logSoftmax");
+LogSoftmax2.className = "logSoftmax";
 serialization_exports.registerClass(LogSoftmax2);
 var Swish = class extends Activation2 {
   /**
@@ -26372,7 +26059,7 @@ var Swish = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Swish, "className", "swish");
+Swish.className = "swish";
 serialization_exports.registerClass(Swish);
 var Mish = class extends Activation2 {
   /**
@@ -26386,7 +26073,7 @@ var Mish = class extends Activation2 {
   }
 };
 /** @nocollapse */
-__publicField(Mish, "className", "mish");
+Mish.className = "mish";
 serialization_exports.registerClass(Mish);
 function serializeActivation(activation2) {
   return activation2.getClassName();
@@ -26429,10 +26116,6 @@ function assertObjectArgs(args) {
 var Regularizer = class extends serialization_exports.Serializable {
 };
 var L1L2 = class extends Regularizer {
-  l1;
-  l2;
-  hasL1;
-  hasL2;
   constructor(args) {
     super();
     assertObjectArgs(args);
@@ -26466,7 +26149,7 @@ var L1L2 = class extends Regularizer {
   }
 };
 /** @nocollapse */
-__publicField(L1L2, "className", "L1L2");
+L1L2.className = "L1L2";
 serialization_exports.registerClass(L1L2);
 function l1(args) {
   assertObjectArgs(args);
@@ -26507,7 +26190,6 @@ function getRegularizer(identifier) {
 
 // src/tfjs-layers/src/layers/advanced_activations.ts
 var ReLU = class extends Layer {
-  maxValue;
   constructor(args) {
     super(args == null ? {} : args);
     this.supportsMasking = true;
@@ -26534,13 +26216,12 @@ var ReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ReLU, "className", "ReLU");
+ReLU.className = "ReLU";
 serialization_exports.registerClass(ReLU);
 var LeakyReLU = class extends Layer {
-  alpha;
-  DEFAULT_ALPHA = 0.3;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_ALPHA = 0.3;
     if (args == null) {
       args = {};
     }
@@ -26561,17 +26242,12 @@ var LeakyReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(LeakyReLU, "className", "LeakyReLU");
+LeakyReLU.className = "LeakyReLU";
 serialization_exports.registerClass(LeakyReLU);
 var PReLU = class extends Layer {
-  alphaInitializer;
-  alphaRegularizer;
-  alphaConstraint;
-  sharedAxes;
-  alpha;
-  DEFAULT_ALPHA_INITIALIZER = "zeros";
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_ALPHA_INITIALIZER = "zeros";
     if (args == null) {
       args = {};
     }
@@ -26637,13 +26313,12 @@ var PReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(PReLU, "className", "PReLU");
+PReLU.className = "PReLU";
 serialization_exports.registerClass(PReLU);
 var ELU = class extends Layer {
-  alpha;
-  DEFAULT_ALPHA = 1;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_ALPHA = 1;
     if (args == null) {
       args = {};
     }
@@ -26669,13 +26344,12 @@ var ELU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ELU, "className", "ELU");
+ELU.className = "ELU";
 serialization_exports.registerClass(ELU);
 var ThresholdedReLU = class extends Layer {
-  theta;
-  DEFAULT_THETA = 1;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_THETA = 1;
     if (args == null) {
       args = {};
     }
@@ -26696,14 +26370,12 @@ var ThresholdedReLU = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ThresholdedReLU, "className", "ThresholdedReLU");
+ThresholdedReLU.className = "ThresholdedReLU";
 serialization_exports.registerClass(ThresholdedReLU);
 var Softmax3 = class extends Layer {
-  axis;
-  softmax;
-  DEFAULT_AXIS = 1;
   constructor(args) {
     super(args == null ? {} : args);
+    this.DEFAULT_AXIS = 1;
     if (args == null) {
       args = {};
     }
@@ -26725,7 +26397,7 @@ var Softmax3 = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Softmax3, "className", "Softmax");
+Softmax3.className = "Softmax";
 serialization_exports.registerClass(Softmax3);
 
 // src/tfjs-layers/src/utils/conv_utils.ts
@@ -26918,27 +26590,11 @@ function conv3dWithBias(x, kernel, bias, strides = [1, 1, 1], padding = "valid",
   });
 }
 var BaseConv = class extends Layer {
-  rank;
-  kernelSize;
-  strides;
-  padding;
-  dataFormat;
-  activation;
-  useBias;
-  dilationRate;
-  // Bias-related members are here because all convolution subclasses use the
-  // same configuration parmeters to control bias.  Kernel-related members
-  // are in subclass `Conv` because some subclasses use different parameters to
-  // control kernel properties, for instance, `DepthwiseConv2D` uses
-  // `depthwiseInitializer` instead of `kernelInitializer`.
-  biasInitializer;
-  biasConstraint;
-  biasRegularizer;
-  bias = null;
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
   constructor(rank, args) {
     super(args);
+    this.bias = null;
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     BaseConv.verifyArgs(args);
     this.rank = rank;
     assertPositiveInteger(this.rank, "rank");
@@ -27026,18 +26682,9 @@ var BaseConv = class extends Layer {
   }
 };
 var Conv = class extends BaseConv {
-  filters;
-  kernel = null;
-  // Bias-related properties are stored in the superclass `BaseConv` because all
-  // convolution subclasses use the same configuration parameters to control
-  // bias. Kernel-related properties are defined here rather than in the
-  // superclass because some convolution subclasses use different names and
-  // configuration parameters for their internal kernel state.
-  kernelInitializer;
-  kernelConstraint;
-  kernelRegularizer;
   constructor(rank, args) {
     super(rank, args);
+    this.kernel = null;
     Conv.verifyArgs(args);
     this.filters = args.filters;
     assertPositiveInteger(this.filters, "filters");
@@ -27210,7 +26857,7 @@ var _Conv2D = class extends Conv {
 };
 var Conv2D2 = _Conv2D;
 /** @nocollapse */
-__publicField(Conv2D2, "className", "Conv2D");
+Conv2D2.className = "Conv2D";
 serialization_exports.registerClass(Conv2D2);
 var _Conv3D = class extends Conv {
   constructor(args) {
@@ -27234,7 +26881,7 @@ var _Conv3D = class extends Conv {
 };
 var Conv3D2 = _Conv3D;
 /** @nocollapse */
-__publicField(Conv3D2, "className", "Conv3D");
+Conv3D2.className = "Conv3D";
 serialization_exports.registerClass(Conv3D2);
 var Conv2DTranspose = class extends Conv2D2 {
   constructor(args) {
@@ -27365,7 +27012,7 @@ var Conv2DTranspose = class extends Conv2D2 {
   }
 };
 /** @nocollapse */
-__publicField(Conv2DTranspose, "className", "Conv2DTranspose");
+Conv2DTranspose.className = "Conv2DTranspose";
 serialization_exports.registerClass(Conv2DTranspose);
 var Conv3DTranspose = class extends Conv3D2 {
   constructor(args) {
@@ -27509,22 +27156,15 @@ var Conv3DTranspose = class extends Conv3D2 {
   }
 };
 /** @nocollapse */
-__publicField(Conv3DTranspose, "className", "Conv3DTranspose");
+Conv3DTranspose.className = "Conv3DTranspose";
 serialization_exports.registerClass(Conv3DTranspose);
 var SeparableConv = class extends Conv {
-  depthMultiplier;
-  depthwiseInitializer;
-  depthwiseRegularizer;
-  depthwiseConstraint;
-  pointwiseInitializer;
-  pointwiseRegularizer;
-  pointwiseConstraint;
-  DEFAULT_DEPTHWISE_INITIALIZER = "glorotUniform";
-  DEFAULT_POINTWISE_INITIALIZER = "glorotUniform";
-  depthwiseKernel = null;
-  pointwiseKernel = null;
   constructor(rank, config) {
     super(rank, config);
+    this.DEFAULT_DEPTHWISE_INITIALIZER = "glorotUniform";
+    this.DEFAULT_POINTWISE_INITIALIZER = "glorotUniform";
+    this.depthwiseKernel = null;
+    this.pointwiseKernel = null;
     if (config.filters == null) {
       throw new ValueError(
         "The `filters` configuration field is required by SeparableConv, but is unspecified."
@@ -27657,14 +27297,14 @@ var SeparableConv = class extends Conv {
   }
 };
 /** @nocollapse */
-__publicField(SeparableConv, "className", "SeparableConv");
+SeparableConv.className = "SeparableConv";
 var SeparableConv2D = class extends SeparableConv {
   constructor(args) {
     super(2, args);
   }
 };
 /** @nocollapse */
-__publicField(SeparableConv2D, "className", "SeparableConv2D");
+SeparableConv2D.className = "SeparableConv2D";
 serialization_exports.registerClass(SeparableConv2D);
 var _Conv1D = class extends Conv {
   constructor(args) {
@@ -27693,11 +27333,9 @@ var _Conv1D = class extends Conv {
 };
 var Conv1D = _Conv1D;
 /** @nocollapse */
-__publicField(Conv1D, "className", "Conv1D");
+Conv1D.className = "Conv1D";
 serialization_exports.registerClass(Conv1D);
 var Cropping2D = class extends Layer {
-  cropping;
-  dataFormat;
   constructor(args) {
     super(args);
     if (typeof args.cropping === "number") {
@@ -27770,15 +27408,12 @@ var Cropping2D = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Cropping2D, "className", "Cropping2D");
+Cropping2D.className = "Cropping2D";
 serialization_exports.registerClass(Cropping2D);
 var UpSampling2D = class extends Layer {
-  DEFAULT_SIZE = [2, 2];
-  size;
-  dataFormat;
-  interpolation;
   constructor(args) {
     super(args);
+    this.DEFAULT_SIZE = [2, 2];
     this.inputSpec = [{ ndim: 4 }];
     this.size = args.size == null ? this.DEFAULT_SIZE : args.size;
     this.dataFormat = args.dataFormat == null ? "channelsLast" : args.dataFormat;
@@ -27826,7 +27461,7 @@ var UpSampling2D = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(UpSampling2D, "className", "UpSampling2D");
+UpSampling2D.className = "UpSampling2D";
 serialization_exports.registerClass(UpSampling2D);
 
 // src/tfjs-layers/src/layers/convolutional_depthwise.ts
@@ -27862,13 +27497,9 @@ function depthwiseConv2d3(x, depthwiseKernel, strides = [1, 1], padding = "valid
   });
 }
 var DepthwiseConv2D = class extends BaseConv {
-  depthMultiplier;
-  depthwiseInitializer;
-  depthwiseConstraint;
-  depthwiseRegularizer;
-  depthwiseKernel = null;
   constructor(args) {
     super(2, args);
+    this.depthwiseKernel = null;
     this.depthMultiplier = args.depthMultiplier == null ? 1 : args.depthMultiplier;
     this.depthwiseInitializer = getInitializer(
       args.depthwiseInitializer || this.DEFAULT_KERNEL_INITIALIZER
@@ -27973,7 +27604,7 @@ var DepthwiseConv2D = class extends BaseConv {
   }
 };
 /** @nocollapse */
-__publicField(DepthwiseConv2D, "className", "DepthwiseConv2D");
+DepthwiseConv2D.className = "DepthwiseConv2D";
 serialization_exports.registerClass(DepthwiseConv2D);
 
 // src/tfjs-layers/src/layers/recurrent.ts
@@ -28082,20 +27713,6 @@ function rnn(stepFunction, inputs, initialStates, goBackwards = false, mask, con
   });
 }
 var _RNN = class extends Layer {
-  cell;
-  returnSequences;
-  returnState;
-  goBackwards;
-  unroll;
-  stateSpec;
-  states_;
-  // NOTE(cais): For stateful RNNs, the old states cannot be disposed right
-  // away when new states are set, because the old states may need to be used
-  // later for backpropagation through time (BPTT) and other purposes. So we
-  // keep them here for final disposal when the state is reset completely
-  // (i.e., through no-arg call to `resetStates()`).
-  keptStates;
-  numConstants;
   constructor(args) {
     super(args);
     let cell;
@@ -28477,38 +28094,17 @@ var _RNN = class extends Layer {
 };
 var RNN = _RNN;
 /** @nocollapse */
-__publicField(RNN, "className", "RNN");
+RNN.className = "RNN";
 serialization_exports.registerClass(RNN);
 var RNNCell = class extends Layer {
-  dropoutMask;
-  recurrentDropoutMask;
 };
 var SimpleRNNCell = class extends RNNCell {
-  units;
-  activation;
-  useBias;
-  kernelInitializer;
-  recurrentInitializer;
-  biasInitializer;
-  kernelConstraint;
-  recurrentConstraint;
-  biasConstraint;
-  kernelRegularizer;
-  recurrentRegularizer;
-  biasRegularizer;
-  dropout;
-  recurrentDropout;
-  dropoutFunc;
-  stateSize;
-  kernel;
-  recurrentKernel;
-  bias;
-  DEFAULT_ACTIVATION = "tanh";
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
   constructor(args) {
     super(args);
+    this.DEFAULT_ACTIVATION = "tanh";
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     this.units = args.units;
     assertPositiveInteger(this.units, `units`);
     this.activation = getActivation(
@@ -28654,7 +28250,7 @@ var SimpleRNNCell = class extends RNNCell {
   }
 };
 /** @nocollapse */
-__publicField(SimpleRNNCell, "className", "SimpleRNNCell");
+SimpleRNNCell.className = "SimpleRNNCell";
 serialization_exports.registerClass(SimpleRNNCell);
 var SimpleRNN = class extends RNN {
   constructor(args) {
@@ -28683,37 +28279,16 @@ var SimpleRNN = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(SimpleRNN, "className", "SimpleRNN");
+SimpleRNN.className = "SimpleRNN";
 serialization_exports.registerClass(SimpleRNN);
 var GRUCell = class extends RNNCell {
-  units;
-  activation;
-  recurrentActivation;
-  useBias;
-  kernelInitializer;
-  recurrentInitializer;
-  biasInitializer;
-  kernelRegularizer;
-  recurrentRegularizer;
-  biasRegularizer;
-  kernelConstraint;
-  recurrentConstraint;
-  biasConstraint;
-  dropout;
-  recurrentDropout;
-  dropoutFunc;
-  stateSize;
-  implementation;
-  DEFAULT_ACTIVATION = "tanh";
-  DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
-  kernel;
-  recurrentKernel;
-  bias;
   constructor(args) {
     super(args);
+    this.DEFAULT_ACTIVATION = "tanh";
+    this.DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     if (args.resetAfter) {
       throw new ValueError(
         `GRUCell does not support reset_after parameter set to true.`
@@ -28879,7 +28454,7 @@ var GRUCell = class extends RNNCell {
   }
 };
 /** @nocollapse */
-__publicField(GRUCell, "className", "GRUCell");
+GRUCell.className = "GRUCell";
 serialization_exports.registerClass(GRUCell);
 var GRU = class extends RNN {
   constructor(args) {
@@ -28916,38 +28491,16 @@ var GRU = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(GRU, "className", "GRU");
+GRU.className = "GRU";
 serialization_exports.registerClass(GRU);
 var LSTMCell = class extends RNNCell {
-  units;
-  activation;
-  recurrentActivation;
-  useBias;
-  kernelInitializer;
-  recurrentInitializer;
-  biasInitializer;
-  unitForgetBias;
-  kernelConstraint;
-  recurrentConstraint;
-  biasConstraint;
-  kernelRegularizer;
-  recurrentRegularizer;
-  biasRegularizer;
-  dropout;
-  recurrentDropout;
-  dropoutFunc;
-  stateSize;
-  implementation;
-  DEFAULT_ACTIVATION = "tanh";
-  DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
-  kernel;
-  recurrentKernel;
-  bias;
   constructor(args) {
     super(args);
+    this.DEFAULT_ACTIVATION = "tanh";
+    this.DEFAULT_RECURRENT_ACTIVATION = "hardSigmoid";
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_RECURRENT_INITIALIZER = "orthogonal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     this.units = args.units;
     assertPositiveInteger(this.units, "units");
     this.activation = getActivation(
@@ -28987,6 +28540,7 @@ var LSTMCell = class extends RNNCell {
     this.recurrentDropoutMask = null;
   }
   build(inputShape) {
+    var _a;
     inputShape = getExactlyOneShape(inputShape);
     const inputDim = inputShape[inputShape.length - 1];
     this.kernel = this.addWeight(
@@ -29012,9 +28566,7 @@ var LSTMCell = class extends RNNCell {
       if (this.unitForgetBias) {
         const capturedBiasInit = this.biasInitializer;
         const capturedUnits = this.units;
-        biasInitializer = new class CustomInit extends Initializer {
-          /** @nocollapse */
-          static className = "CustomInit";
+        biasInitializer = new (_a = class extends Initializer {
           apply(shape, dtype) {
             const bI = capturedBiasInit.apply([capturedUnits]);
             const bF = new Ones().apply([capturedUnits]);
@@ -29024,7 +28576,8 @@ var LSTMCell = class extends RNNCell {
               bCAndH
             );
           }
-        }();
+        }, /** @nocollapse */
+        _a.className = "CustomInit", _a)();
       } else {
         biasInitializer = this.biasInitializer;
       }
@@ -29124,7 +28677,7 @@ var LSTMCell = class extends RNNCell {
   }
 };
 /** @nocollapse */
-__publicField(LSTMCell, "className", "LSTMCell");
+LSTMCell.className = "LSTMCell";
 serialization_exports.registerClass(LSTMCell);
 var LSTM = class extends RNN {
   constructor(args) {
@@ -29161,10 +28714,9 @@ var LSTM = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(LSTM, "className", "LSTM");
+LSTM.className = "LSTM";
 serialization_exports.registerClass(LSTM);
 var StackedRNNCells = class extends RNNCell {
-  cells;
   constructor(args) {
     super(args);
     this.cells = args.cells;
@@ -29308,7 +28860,7 @@ var StackedRNNCells = class extends RNNCell {
   // TODO(cais): Maybe implemnt `losses` and `getLossesFor`.
 };
 /** @nocollapse */
-__publicField(StackedRNNCells, "className", "StackedRNNCells");
+StackedRNNCells.className = "StackedRNNCells";
 serialization_exports.registerClass(StackedRNNCells);
 function generateDropoutMask(args) {
   const { ones: ones4, rate, training = false, count: count2 = 1, dropoutFunc } = args;
@@ -29467,14 +29019,8 @@ var ConvRNN2D = class extends RNN {
   }
 };
 /** @nocollapse */
-__publicField(ConvRNN2D, "className", "ConvRNN2D");
+ConvRNN2D.className = "ConvRNN2D";
 var ConvLSTM2DCell = class extends LSTMCell {
-  filters;
-  kernelSize;
-  strides;
-  padding;
-  dataFormat;
-  dilationRate;
   constructor(args) {
     const {
       filters,
@@ -29501,6 +29047,7 @@ var ConvLSTM2DCell = class extends LSTMCell {
     );
   }
   build(inputShape) {
+    var _a;
     inputShape = getExactlyOneShape(inputShape);
     const channelAxis = this.dataFormat === "channelsFirst" ? 1 : inputShape.length - 1;
     if (inputShape[channelAxis] == null) {
@@ -29535,16 +29082,15 @@ var ConvLSTM2DCell = class extends LSTMCell {
       if (this.unitForgetBias) {
         const init = this.biasInitializer;
         const filters = this.filters;
-        biasInitializer = new class CustomInit extends Initializer {
-          /** @nocollapse */
-          static className = "CustomInit";
+        biasInitializer = new (_a = class extends Initializer {
           apply(shape, dtype) {
             const biasI = init.apply([filters]);
             const biasF = ones2([filters]);
             const biasCAndO = init.apply([filters * 2]);
             return concatenate([biasI, biasF, biasCAndO]);
           }
-        }();
+        }, /** @nocollapse */
+        _a.className = "CustomInit", _a)();
       } else {
         biasInitializer = this.biasInitializer;
       }
@@ -29673,7 +29219,7 @@ var ConvLSTM2DCell = class extends LSTMCell {
   }
 };
 /** @nocollapse */
-__publicField(ConvLSTM2DCell, "className", "ConvLSTM2DCell");
+ConvLSTM2DCell.className = "ConvLSTM2DCell";
 serialization_exports.registerClass(ConvLSTM2DCell);
 var ConvLSTM2D = class extends ConvRNN2D {
   constructor(args) {
@@ -29686,14 +29232,11 @@ var ConvLSTM2D = class extends ConvRNN2D {
   }
 };
 /** @nocollapse */
-__publicField(ConvLSTM2D, "className", "ConvLSTM2D");
+ConvLSTM2D.className = "ConvLSTM2D";
 serialization_exports.registerClass(ConvLSTM2D);
 
 // src/tfjs-layers/src/layers/core.ts
 var Dropout = class extends Layer {
-  rate;
-  noiseShape;
-  seed;
   constructor(args) {
     super(args);
     this.rate = Math.max(Math.min(args.rate, 1), 0);
@@ -29746,7 +29289,7 @@ var Dropout = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Dropout, "className", "Dropout");
+Dropout.className = "Dropout";
 serialization_exports.registerClass(Dropout);
 var SpatialDropout1D = class extends Dropout {
   constructor(args) {
@@ -29759,25 +29302,18 @@ var SpatialDropout1D = class extends Dropout {
   }
 };
 /** @nocollapse */
-__publicField(SpatialDropout1D, "className", "SpatialDropout1D");
+SpatialDropout1D.className = "SpatialDropout1D";
 serialization_exports.registerClass(SpatialDropout1D);
 var Dense = class extends Layer {
-  units;
-  // Default activation: Linear (none).
-  activation = null;
-  useBias = true;
-  kernelInitializer;
-  biasInitializer;
-  kernel = null;
-  bias = null;
-  DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
-  DEFAULT_BIAS_INITIALIZER = "zeros";
-  kernelConstraint;
-  biasConstraint;
-  kernelRegularizer;
-  biasRegularizer;
   constructor(args) {
     super(args);
+    // Default activation: Linear (none).
+    this.activation = null;
+    this.useBias = true;
+    this.kernel = null;
+    this.bias = null;
+    this.DEFAULT_KERNEL_INITIALIZER = "glorotNormal";
+    this.DEFAULT_BIAS_INITIALIZER = "zeros";
     if (args.batchInputShape == null && args.inputShape == null && args.inputDim != null) {
       let batchSize = null;
       if (args.batchSize != null) {
@@ -29881,10 +29417,9 @@ var Dense = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Dense, "className", "Dense");
+Dense.className = "Dense";
 serialization_exports.registerClass(Dense);
 var Flatten = class extends Layer {
-  dataFormat;
   constructor(args) {
     args = args || {};
     super(args);
@@ -29928,10 +29463,9 @@ var Flatten = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Flatten, "className", "Flatten");
+Flatten.className = "Flatten";
 serialization_exports.registerClass(Flatten);
 var Activation5 = class extends Layer {
-  activation;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -29952,10 +29486,9 @@ var Activation5 = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Activation5, "className", "Activation");
+Activation5.className = "Activation";
 serialization_exports.registerClass(Activation5);
 var RepeatVector = class extends Layer {
-  n;
   constructor(args) {
     super(args);
     this.n = args.n;
@@ -29980,10 +29513,9 @@ var RepeatVector = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(RepeatVector, "className", "RepeatVector");
+RepeatVector.className = "RepeatVector";
 serialization_exports.registerClass(RepeatVector);
 var Reshape2 = class extends Layer {
-  targetShape;
   constructor(args) {
     super(args);
     this.targetShape = args.targetShape;
@@ -30075,11 +29607,9 @@ var Reshape2 = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Reshape2, "className", "Reshape");
+Reshape2.className = "Reshape";
 serialization_exports.registerClass(Reshape2);
 var Permute = class extends Layer {
-  dims;
-  dimsIncludingBatch;
   constructor(args) {
     super(args);
     if (args.dims == null) {
@@ -30123,10 +29653,9 @@ var Permute = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Permute, "className", "Permute");
+Permute.className = "Permute";
 serialization_exports.registerClass(Permute);
 var Masking = class extends Layer {
-  maskValue;
   constructor(args) {
     super(args == null ? {} : args);
     this.supportsMasking = true;
@@ -30163,22 +29692,15 @@ var Masking = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Masking, "className", "Masking");
+Masking.className = "Masking";
 serialization_exports.registerClass(Masking);
 
 // src/tfjs-layers/src/layers/embeddings.ts
 var Embedding = class extends Layer {
-  inputDim;
-  outputDim;
-  embeddingsInitializer;
-  maskZero;
-  inputLength;
-  embeddings = null;
-  DEFAULT_EMBEDDINGS_INITIALIZER = "randomUniform";
-  embeddingsRegularizer;
-  embeddingsConstraint;
   constructor(args) {
     super(args);
+    this.embeddings = null;
+    this.DEFAULT_EMBEDDINGS_INITIALIZER = "randomUniform";
     if (args.batchInputShape == null && args.inputShape == null) {
       let batchSize = null;
       if (args.batchSize != null) {
@@ -30288,12 +29810,11 @@ var Embedding = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Embedding, "className", "Embedding");
+Embedding.className = "Embedding";
 serialization_exports.registerClass(Embedding);
 
 // src/tfjs-layers/src/layers/merge.ts
 var Merge = class extends Layer {
-  reshapeRequired;
   constructor(args) {
     super(args || {});
     this.supportsMasking = true;
@@ -30511,7 +30032,7 @@ var Add2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Add2, "className", "Add");
+Add2.className = "Add";
 serialization_exports.registerClass(Add2);
 var Multiply2 = class extends Merge {
   constructor(args) {
@@ -30528,7 +30049,7 @@ var Multiply2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Multiply2, "className", "Multiply");
+Multiply2.className = "Multiply";
 serialization_exports.registerClass(Multiply2);
 var Average = class extends Merge {
   constructor(args) {
@@ -30545,7 +30066,7 @@ var Average = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Average, "className", "Average");
+Average.className = "Average";
 serialization_exports.registerClass(Average);
 var Maximum2 = class extends Merge {
   constructor(args) {
@@ -30562,7 +30083,7 @@ var Maximum2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Maximum2, "className", "Maximum");
+Maximum2.className = "Maximum";
 serialization_exports.registerClass(Maximum2);
 var Minimum2 = class extends Merge {
   constructor(args) {
@@ -30579,13 +30100,12 @@ var Minimum2 = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Minimum2, "className", "Minimum");
+Minimum2.className = "Minimum";
 serialization_exports.registerClass(Minimum2);
 var Concatenate = class extends Merge {
-  DEFAULT_AXIS = -1;
-  axis;
   constructor(args) {
     super(args);
+    this.DEFAULT_AXIS = -1;
     if (args == null) {
       args = {};
     }
@@ -30704,7 +30224,7 @@ var Concatenate = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Concatenate, "className", "Concatenate");
+Concatenate.className = "Concatenate";
 serialization_exports.registerClass(Concatenate);
 function interpretAxis(axis, dim) {
   while (axis < 0) {
@@ -30791,8 +30311,6 @@ function batchDot(x, y, axes) {
   });
 }
 var Dot = class extends Merge {
-  axes;
-  normalize;
   constructor(args) {
     super(args);
     this.axes = args.axes;
@@ -30895,12 +30413,11 @@ var Dot = class extends Merge {
   }
 };
 /** @nocollapse */
-__publicField(Dot, "className", "Dot");
+Dot.className = "Dot";
 serialization_exports.registerClass(Dot);
 
 // src/tfjs-layers/src/layers/noise.ts
 var GaussianNoise = class extends Layer {
-  stddev;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -30926,10 +30443,9 @@ var GaussianNoise = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(GaussianNoise, "className", "GaussianNoise");
+GaussianNoise.className = "GaussianNoise";
 serialization_exports.registerClass(GaussianNoise);
 var GaussianDropout = class extends Layer {
-  rate;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -30960,11 +30476,9 @@ var GaussianDropout = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(GaussianDropout, "className", "GaussianDropout");
+GaussianDropout.className = "GaussianDropout";
 serialization_exports.registerClass(GaussianDropout);
 var AlphaDropout = class extends Layer {
-  rate;
-  noiseShape;
   constructor(args) {
     super(args);
     this.supportsMasking = true;
@@ -31010,7 +30524,7 @@ var AlphaDropout = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(AlphaDropout, "className", "AlphaDropout");
+AlphaDropout.className = "AlphaDropout";
 serialization_exports.registerClass(AlphaDropout);
 
 // src/tfjs-layers/src/layers/normalization.ts
@@ -31110,23 +30624,6 @@ function normalizeBatchInTraining(x, gamma, beta, reductionAxes, epsilon2 = 1e-3
   }
 }
 var BatchNormalization = class extends Layer {
-  axis;
-  momentum;
-  epsilon;
-  center;
-  scale;
-  betaInitializer;
-  gammaInitializer;
-  movingMeanInitializer;
-  movingVarianceInitializer;
-  betaConstraint;
-  gammaConstraint;
-  betaRegularizer;
-  gammaRegularizer;
-  gamma;
-  beta;
-  movingMean;
-  movingVariance;
   constructor(args) {
     if (args == null) {
       args = {};
@@ -31288,19 +30785,9 @@ var BatchNormalization = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(BatchNormalization, "className", "BatchNormalization");
+BatchNormalization.className = "BatchNormalization";
 serialization_exports.registerClass(BatchNormalization);
 var LayerNormalization = class extends Layer {
-  axis;
-  epsilon;
-  center;
-  scale;
-  betaInitializer;
-  gammaInitializer;
-  betaRegularizer;
-  gammaRegularizer;
-  gamma;
-  beta;
   constructor(args) {
     if (args == null) {
       args = {};
@@ -31448,7 +30935,7 @@ var LayerNormalization = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(LayerNormalization, "className", "LayerNormalization");
+LayerNormalization.className = "LayerNormalization";
 serialization_exports.registerClass(LayerNormalization);
 
 // src/tfjs-layers/src/layers/padding.ts
@@ -31485,8 +30972,6 @@ function spatial2dPadding(x, padding, dataFormat) {
   });
 }
 var ZeroPadding2D = class extends Layer {
-  dataFormat;
-  padding;
   constructor(args) {
     if (args == null) {
       args = {};
@@ -31578,7 +31063,7 @@ var ZeroPadding2D = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(ZeroPadding2D, "className", "ZeroPadding2D");
+ZeroPadding2D.className = "ZeroPadding2D";
 serialization_exports.registerClass(ZeroPadding2D);
 
 // src/tfjs-layers/src/layers/pooling.ts
@@ -31651,9 +31136,6 @@ function pool3d(x, poolSize, strides, padding, dataFormat, poolMode) {
   });
 }
 var Pooling1D = class extends Layer {
-  poolSize;
-  strides;
-  padding;
   /**
    *
    * @param args Parameters for the Pooling layer.
@@ -31739,7 +31221,7 @@ var MaxPooling1D = class extends Pooling1D {
   }
 };
 /** @nocollapse */
-__publicField(MaxPooling1D, "className", "MaxPooling1D");
+MaxPooling1D.className = "MaxPooling1D";
 serialization_exports.registerClass(MaxPooling1D);
 var AveragePooling1D = class extends Pooling1D {
   constructor(args) {
@@ -31752,13 +31234,9 @@ var AveragePooling1D = class extends Pooling1D {
   }
 };
 /** @nocollapse */
-__publicField(AveragePooling1D, "className", "AveragePooling1D");
+AveragePooling1D.className = "AveragePooling1D";
 serialization_exports.registerClass(AveragePooling1D);
 var Pooling2D = class extends Layer {
-  poolSize;
-  strides;
-  padding;
-  dataFormat;
   constructor(args) {
     if (args.poolSize == null) {
       args.poolSize = [2, 2];
@@ -31832,7 +31310,7 @@ var MaxPooling2D = class extends Pooling2D {
   }
 };
 /** @nocollapse */
-__publicField(MaxPooling2D, "className", "MaxPooling2D");
+MaxPooling2D.className = "MaxPooling2D";
 serialization_exports.registerClass(MaxPooling2D);
 var AveragePooling2D = class extends Pooling2D {
   constructor(args) {
@@ -31845,13 +31323,9 @@ var AveragePooling2D = class extends Pooling2D {
   }
 };
 /** @nocollapse */
-__publicField(AveragePooling2D, "className", "AveragePooling2D");
+AveragePooling2D.className = "AveragePooling2D";
 serialization_exports.registerClass(AveragePooling2D);
 var Pooling3D = class extends Layer {
-  poolSize;
-  strides;
-  padding;
-  dataFormat;
   constructor(args) {
     if (args.poolSize == null) {
       args.poolSize = [2, 2, 2];
@@ -31939,7 +31413,7 @@ var MaxPooling3D = class extends Pooling3D {
   }
 };
 /** @nocollapse */
-__publicField(MaxPooling3D, "className", "MaxPooling3D");
+MaxPooling3D.className = "MaxPooling3D";
 serialization_exports.registerClass(MaxPooling3D);
 var AveragePooling3D = class extends Pooling3D {
   constructor(args) {
@@ -31959,7 +31433,7 @@ var AveragePooling3D = class extends Pooling3D {
   }
 };
 /** @nocollapse */
-__publicField(AveragePooling3D, "className", "AveragePooling3D");
+AveragePooling3D.className = "AveragePooling3D";
 serialization_exports.registerClass(AveragePooling3D);
 var GlobalPooling1D = class extends Layer {
   constructor(args) {
@@ -31985,7 +31459,7 @@ var GlobalAveragePooling1D = class extends GlobalPooling1D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalAveragePooling1D, "className", "GlobalAveragePooling1D");
+GlobalAveragePooling1D.className = "GlobalAveragePooling1D";
 serialization_exports.registerClass(GlobalAveragePooling1D);
 var GlobalMaxPooling1D = class extends GlobalPooling1D {
   constructor(args) {
@@ -31999,10 +31473,9 @@ var GlobalMaxPooling1D = class extends GlobalPooling1D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalMaxPooling1D, "className", "GlobalMaxPooling1D");
+GlobalMaxPooling1D.className = "GlobalMaxPooling1D";
 serialization_exports.registerClass(GlobalMaxPooling1D);
 var GlobalPooling2D = class extends Layer {
-  dataFormat;
   constructor(args) {
     super(args);
     this.dataFormat = args.dataFormat == null ? "channelsLast" : args.dataFormat;
@@ -32040,7 +31513,7 @@ var GlobalAveragePooling2D = class extends GlobalPooling2D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalAveragePooling2D, "className", "GlobalAveragePooling2D");
+GlobalAveragePooling2D.className = "GlobalAveragePooling2D";
 serialization_exports.registerClass(GlobalAveragePooling2D);
 var GlobalMaxPooling2D = class extends GlobalPooling2D {
   call(inputs, kwargs) {
@@ -32055,12 +31528,11 @@ var GlobalMaxPooling2D = class extends GlobalPooling2D {
   }
 };
 /** @nocollapse */
-__publicField(GlobalMaxPooling2D, "className", "GlobalMaxPooling2D");
+GlobalMaxPooling2D.className = "GlobalMaxPooling2D";
 serialization_exports.registerClass(GlobalMaxPooling2D);
 
 // src/tfjs-layers/src/layers/wrappers.ts
 var Wrapper = class extends Layer {
-  layer;
   constructor(args) {
     super(args);
     this.layer = args.layer;
@@ -32182,7 +31654,7 @@ var TimeDistributed = class extends Wrapper {
   // TODO(cais): Implement detailed computeMask() logic.
 };
 /** @nocollapse */
-__publicField(TimeDistributed, "className", "TimeDistributed");
+TimeDistributed.className = "TimeDistributed";
 serialization_exports.registerClass(TimeDistributed);
 function checkBidirectionalMergeMode(value) {
   checkStringTypeUnionValue(
@@ -32193,13 +31665,6 @@ function checkBidirectionalMergeMode(value) {
 }
 var DEFAULT_BIDIRECTIONAL_MERGE_MODE = "concat";
 var Bidirectional = class extends Wrapper {
-  mergeMode;
-  forwardLayer;
-  backwardLayer;
-  returnSequences;
-  returnState;
-  numConstants;
-  _trainable;
   constructor(args) {
     super(args);
     const layerConfig = args.layer.getConfig();
@@ -32481,13 +31946,11 @@ var Bidirectional = class extends Wrapper {
   }
 };
 /** @nocollapse */
-__publicField(Bidirectional, "className", "Bidirectional");
+Bidirectional.className = "Bidirectional";
 serialization_exports.registerClass(Bidirectional);
 
 // src/tfjs-layers/src/layers/preprocessing/image_preprocessing.ts
 var Rescaling = class extends Layer {
-  scale;
-  offset;
   constructor(args) {
     super(args);
     this.scale = args.scale;
@@ -32517,14 +31980,12 @@ var Rescaling = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Rescaling, "className", "Rescaling");
+Rescaling.className = "Rescaling";
 serialization_exports.registerClass(Rescaling);
 
 // src/tfjs-layers/src/layers/preprocessing/center_crop.ts
 var { resizeBilinear: resizeBilinear2, cropAndResize: cropAndResize2 } = image;
 var CenterCrop = class extends Layer {
-  height;
-  width;
   constructor(args) {
     super(args);
     this.height = args.height;
@@ -32618,7 +32079,7 @@ var CenterCrop = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(CenterCrop, "className", "CenterCrop");
+CenterCrop.className = "CenterCrop";
 serialization_exports.registerClass(CenterCrop);
 
 // src/tfjs-layers/src/layers/preprocessing/preprocessing_utils.ts
@@ -32664,8 +32125,6 @@ function encodeCategoricalInputs(inputs, outputMode, depth, weights) {
 
 // src/tfjs-layers/src/layers/preprocessing/category_encoding.ts
 var CategoryEncoding = class extends Layer {
-  numTokens;
-  outputMode;
   constructor(args) {
     super(args);
     this.numTokens = args.numTokens;
@@ -32729,19 +32188,13 @@ var CategoryEncoding = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(CategoryEncoding, "className", "CategoryEncoding");
+CategoryEncoding.className = "CategoryEncoding";
 serialization_exports.registerClass(CategoryEncoding);
 
 // src/tfjs-layers/src/layers/preprocessing/image_resizing.ts
 var INTERPOLATION_KEYS = ["bilinear", "nearest"];
 var INTERPOLATION_METHODS = new Set(INTERPOLATION_KEYS);
 var Resizing = class extends Layer {
-  height;
-  width;
-  // method of interpolation to be used; default = "bilinear";
-  interpolation;
-  // toggle whether the aspect ratio should be preserved; default = false;
-  cropToAspectRatio;
   constructor(args) {
     super(args);
     this.height = args.height;
@@ -32791,12 +32244,11 @@ var Resizing = class extends Layer {
   }
 };
 /** @nocollapse */
-__publicField(Resizing, "className", "Resizing");
+Resizing.className = "Resizing";
 serialization_exports.registerClass(Resizing);
 
 // src/tfjs-layers/src/backend/random_seed.ts
 var RandomSeed = class {
-  seed;
   constructor(seed) {
     this.seed = seed;
   }
@@ -32807,11 +32259,10 @@ var RandomSeed = class {
     return this.seed++;
   }
 };
-__publicField(RandomSeed, "className", "RandomSeed");
+RandomSeed.className = "RandomSeed";
 
 // src/tfjs-layers/src/engine/base_random_layer.ts
 var BaseRandomLayer = class extends Layer {
-  randomGenerator;
   constructor(args) {
     super(args);
     this.randomGenerator = new RandomSeed(args.seed);
@@ -32827,19 +32278,12 @@ var BaseRandomLayer = class extends Layer {
 };
 // A layer handle the random number creation and savemodel behavior.
 /** @nocollapse */
-__publicField(BaseRandomLayer, "className", "BaseRandomLayer");
+BaseRandomLayer.className = "BaseRandomLayer";
 
 // src/tfjs-layers/src/layers/preprocessing/random_width.ts
 var INTERPOLATION_KEYS2 = ["bilinear", "nearest"];
 var INTERPOLATION_METHODS2 = new Set(INTERPOLATION_KEYS2);
 var RandomWidth = class extends BaseRandomLayer {
-  factor;
-  interpolation;
-  // defualt = 'bilinear
-  widthLower;
-  widthUpper;
-  imgHeight;
-  widthFactor;
   constructor(args) {
     super(args);
     const { factor, interpolation = "bilinear" } = args;
@@ -32918,7 +32362,7 @@ var RandomWidth = class extends BaseRandomLayer {
   }
 };
 /** @nocollapse */
-__publicField(RandomWidth, "className", "RandomWidth");
+RandomWidth.className = "RandomWidth";
 serialization_exports.registerClass(RandomWidth);
 
 // src/tfjs-layers/src/exports_layers.ts
@@ -33233,8 +32677,11 @@ function l22(config) {
 
 // src/tfjs-layers/src/callbacks.ts
 var Callback = class extends BaseCallback {
-  /** Instance of `keras.models.Model`. Reference of the model being trained. */
-  model = null;
+  constructor() {
+    super(...arguments);
+    /** Instance of `keras.models.Model`. Reference of the model being trained. */
+    this.model = null;
+  }
   setModel(model2) {
     if (!(model2 instanceof LayersModel)) {
       throw new Error("model must be a LayersModel, not some other Container");
@@ -33249,16 +32696,6 @@ function greater2(currVal, prevVal) {
   return currVal > prevVal;
 }
 var EarlyStopping = class extends Callback {
-  monitor;
-  minDelta;
-  patience;
-  baseline;
-  verbose;
-  mode;
-  monitorFunc;
-  wait;
-  stoppedEpoch;
-  best;
   constructor(args) {
     super();
     if (args == null) {
