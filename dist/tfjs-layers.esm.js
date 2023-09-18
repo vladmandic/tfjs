@@ -3522,6 +3522,9 @@ var Tensor = class {
     if (this.isDisposed) {
       return;
     }
+    if (this.kerasMask) {
+      this.kerasMask.dispose();
+    }
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
@@ -11251,6 +11254,47 @@ function grayscaleToRGB_(image2) {
 }
 var grayscaleToRGB = op({ grayscaleToRGB_ });
 
+// src/tfjs-core/src/ops/image/rgb_to_grayscale.ts
+function rgbToGrayscale_(image2) {
+  const $image = convertToTensor(image2, "image", "RGBToGrayscale");
+  const lastDimsIdx = $image.rank - 1;
+  const lastDims = $image.shape[lastDimsIdx];
+  assert(
+    $image.rank >= 2,
+    () => `Error in RGBToGrayscale: images must be at least rank 2, but got rank ${$image.rank}.`
+  );
+  assert(
+    lastDims === 3,
+    () => `Error in RGBToGrayscale: last dimension of an RGB image should be size 3, but got size ${lastDims}.`
+  );
+  const origDtype = $image.dtype;
+  const fltImage = cast($image, "float32");
+  const rgbWeights = tensor1d([0.2989, 0.587, 0.114]);
+  let grayFloat;
+  switch ($image.rank) {
+    case 2:
+      grayFloat = einsum("ij,j->i", fltImage, rgbWeights);
+      break;
+    case 3:
+      grayFloat = einsum("ijk,k->ij", fltImage, rgbWeights);
+      break;
+    case 4:
+      grayFloat = einsum("ijkl,l->ijk", fltImage, rgbWeights);
+      break;
+    case 5:
+      grayFloat = einsum("ijklm,m->ijkl", fltImage, rgbWeights);
+      break;
+    case 6:
+      grayFloat = einsum("ijklmn,n->ijklm", fltImage, rgbWeights);
+      break;
+    default:
+      throw new Error("Not a valid tensor rank.");
+  }
+  grayFloat = expandDims(grayFloat, -1);
+  return cast(grayFloat, origDtype);
+}
+var rgbToGrayscale = op({ rgbToGrayscale_ });
+
 // src/tfjs-core/src/ops/image/rotate_with_offset.ts
 function rotateWithOffset_(image2, radians, fillValue = 0, center = 0.5) {
   const $image = convertToTensor(image2, "image", "rotateWithOffset", "float32");
@@ -12491,6 +12535,7 @@ var image = {
   grayscaleToRGB,
   resizeNearestNeighbor,
   resizeBilinear,
+  rgbToGrayscale,
   rotateWithOffset,
   cropAndResize,
   nonMaxSuppression,
@@ -17433,18 +17478,18 @@ var Layer = class extends serialization_exports.Serializable {
    *   the provided inputs and the expectations of the layer.
    */
   assertInputCompatibility(inputs) {
-    inputs = toList(inputs);
+    const inputsList = toList(inputs);
     if (this.inputSpec == null || this.inputSpec.length === 0) {
       return;
     }
     const inputSpec = toList(this.inputSpec);
-    if (inputs.length !== inputSpec.length) {
+    if (inputsList.length !== inputSpec.length) {
       throw new ValueError(
-        `Layer ${this.name} expects ${inputSpec.length} inputs, but it received ${inputs.length} input tensors. Input received: ${inputs}`
+        `Layer ${this.name} expects ${inputSpec.length} inputs, but it received ${inputsList.length} input tensors. Input received: ${inputs}`
       );
     }
-    for (let inputIndex = 0; inputIndex < inputs.length; inputIndex++) {
-      const x = inputs[inputIndex];
+    for (let inputIndex = 0; inputIndex < inputsList.length; inputIndex++) {
+      const x = inputsList[inputIndex];
       const spec = inputSpec[inputIndex];
       if (spec == null) {
         continue;
@@ -17610,20 +17655,8 @@ var Layer = class extends serialization_exports.Serializable {
     kwargs = kwargs || {};
     this.assertNotDisposed();
     const inputsList = toList(inputs);
-    let allAreSymbolic = true;
-    for (const input2 of inputsList) {
-      if (!(input2 instanceof SymbolicTensor)) {
-        allAreSymbolic = false;
-        break;
-      }
-    }
-    let noneAreSymbolic = true;
-    for (const input2 of inputsList) {
-      if (input2 instanceof SymbolicTensor) {
-        noneAreSymbolic = false;
-        break;
-      }
-    }
+    const allAreSymbolic = checkAllSymbolic(inputs);
+    const noneAreSymbolic = checkNoneSymbolic(inputs);
     if (allAreSymbolic === noneAreSymbolic) {
       throw new ValueError(
         "Arguments to apply() must be all SymbolicTensors or all Tensors"
@@ -17648,6 +17681,9 @@ var Layer = class extends serialization_exports.Serializable {
       this.assertInputCompatibility(inputs);
       if (noneAreSymbolic) {
         let output = this.call(inputs, kwargs);
+        if (this.supportsMasking) {
+          this.setMaskMetadata(inputs, output);
+        }
         const outputList = toList(output);
         const outputListCopy = [];
         for (let x of outputList) {
@@ -17978,6 +18014,26 @@ var Layer = class extends serialization_exports.Serializable {
     }
     return mask;
   }
+  setMaskMetadata(inputs, outputs, previousMask) {
+    if (!this.supportsMasking) {
+      return;
+    }
+    const outputMasks = this.computeMask(inputs, previousMask);
+    if (outputs instanceof Array && outputMasks instanceof Array) {
+      if (outputs.length !== outputMasks.length) {
+        throw new Error(`${this.name} outputs ${outputs.length} tensors but ${outputMasks.length} masks for those tensors`);
+      }
+      for (let i = 0; i < outputs.length; i++) {
+        outputs[i].kerasMask = outputMasks[i];
+      }
+    } else if (outputMasks instanceof Array) {
+      throw new Error(`{this.name} outputs a single tensor but ${outputMasks.length} masks`);
+    } else if (outputs instanceof Array) {
+      throw new Error(`{this.name} outputs ${outputs.length} tensors but only one mask`);
+    } else {
+      outputs.kerasMask = outputMasks;
+    }
+  }
   /**
    * Internal method to create an inbound node for the layer.
    *
@@ -18158,6 +18214,26 @@ function getSourceInputs(tensor2, layer, nodeIndex) {
       return sourceTensors;
     }
   }
+}
+function checkAllSymbolic(tensors) {
+  let allAreSymbolic = true;
+  for (const tensor2 of toList(tensors)) {
+    if (!(tensor2 instanceof SymbolicTensor)) {
+      allAreSymbolic = false;
+      break;
+    }
+  }
+  return allAreSymbolic;
+}
+function checkNoneSymbolic(tensors) {
+  let noneAreSymbolic = true;
+  for (const tensor2 of toList(tensors)) {
+    if (tensor2 instanceof SymbolicTensor) {
+      noneAreSymbolic = false;
+      break;
+    }
+  }
+  return noneAreSymbolic;
 }
 
 // src/tfjs-layers/src/engine/input_layer.ts
@@ -19454,32 +19530,52 @@ var gatherGradConfig = {
   inputsToSave: ["x", "indices"],
   gradFunc: (dy, saved, attrs) => {
     const [x, indices] = saved;
-    const { axis } = attrs;
+    const { axis, batchDims } = attrs;
     const parsedAxis = parseAxisParam(axis, x.shape)[0];
-    const derX = () => {
-      const paramsShape = x.shape;
-      const indicesSize = indices.size;
-      const outerShape = paramsShape.slice(0, parsedAxis);
-      const outerDims = outerShape.length;
-      const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
-      const innerDims = innerShape.length;
-      const outerAxesIndices = arrayRange(0, outerDims);
-      const innerAxesIndices = arrayRange(outerDims + 1, outerDims + 1 + innerDims);
-      const valuesShape = arrayConcat([outerShape, [indicesSize], innerShape]);
-      const values = reshape(dy, valuesShape);
-      const reshapedIndices = reshape(indices, [indicesSize]);
-      const transposeDims = arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
-      const valuesTranspose = transpose(values, transposeDims);
-      let paramsGrad = unsortedSegmentSum(
-        valuesTranspose,
-        reshapedIndices,
-        x.shape[parsedAxis]
-      );
-      const invertTransposeDims = getUndoAxesPermutation(transposeDims);
-      paramsGrad = transpose(paramsGrad, invertTransposeDims);
-      return paramsGrad;
+    const derXBatch = (x2, indices2, dy2) => {
+      return () => {
+        const paramsShape = x2.shape;
+        const indicesSize = indices2.size;
+        const outerShape = paramsShape.slice(0, parsedAxis);
+        const outerDims = outerShape.length;
+        const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
+        const innerDims = innerShape.length;
+        const outerAxesIndices = arrayRange(0, outerDims);
+        const innerAxesIndices = arrayRange(outerDims + 1, outerDims + 1 + innerDims);
+        const valuesShape = arrayConcat([
+          outerShape,
+          [indicesSize],
+          innerShape
+        ]);
+        const values = reshape(dy2, valuesShape);
+        const reshapedIndices = reshape(indices2, [indicesSize]);
+        const transposeDims = arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
+        const valuesTranspose = transpose(values, transposeDims);
+        let paramsGrad = unsortedSegmentSum(
+          valuesTranspose,
+          reshapedIndices,
+          x2.shape[parsedAxis]
+        );
+        const invertTransposeDims = getUndoAxesPermutation(transposeDims);
+        paramsGrad = transpose(paramsGrad, invertTransposeDims);
+        return paramsGrad;
+      };
     };
-    return { x: derX, indices: () => indices };
+    if (batchDims === 1) {
+      const batchSize = x.shape[0];
+      const xBatch = x.split(batchSize, 0);
+      const derXBatched = () => {
+        const stacked = stack(
+          xBatch.map((x2, i) => {
+            return derXBatch(x2, indices.slice(i, 1), dy.slice(i, 1))();
+          })
+        );
+        return stacked.reshape(x.shape);
+      };
+      return { x: derXBatched, indices: () => indices };
+    } else {
+      return { x: derXBatch(x, indices, dy), indices: () => indices };
+    }
   }
 };
 function arrayRange(start, stop) {
@@ -21354,7 +21450,9 @@ function standardizeCallbacks(callbacks2, yieldEvery) {
   if (Array.isArray(callbacks2) && callbacks2[0] instanceof BaseCallback) {
     return callbacks2;
   }
-  const callbackConfigs = toList(callbacks2);
+  const callbackConfigs = toList(
+    callbacks2
+  );
   return callbackConfigs.map(
     (callbackConfig) => new CustomCallback(callbackConfig, yieldEvery)
   );
@@ -22086,6 +22184,14 @@ function convertTsToPythonic(tsConfig, key) {
 var version2 = "0.0.0";
 
 // src/tfjs-layers/src/engine/container.ts
+var isKerasSavedModelFormat = (weights) => {
+  const keys = Object.keys(weights);
+  if (keys.length === 0) {
+    return false;
+  }
+  const key = keys[0].split("/");
+  return !isNaN(parseInt(key[key.length - 1], 10));
+};
 var Container = class extends Layer {
   constructor(args) {
     super({});
@@ -22430,12 +22536,17 @@ var Container = class extends Layer {
   loadWeights(weights, strict = true) {
     const nameToWeight = {};
     let totalWeightsCount = 0;
+    const modelIsKerasSavedModelFormat = isKerasSavedModelFormat(weights);
+    if (modelIsKerasSavedModelFormat) {
+      this.parseWeights(weights);
+    }
     for (const layer of this.layers) {
-      for (const weight of layer.weights) {
-        if (nameToWeight[weight.originalName] != null) {
-          throw new ValueError(`Duplicate weight name: ${weight.originalName}`);
+      for (const [index, weight] of layer.weights.entries()) {
+        const parsedName = modelIsKerasSavedModelFormat ? `${weight.name.split("/").slice(0, -1).join("/") + "/"}${index}` : weight.originalName;
+        if (nameToWeight[parsedName] != null) {
+          throw new ValueError(`Duplicate weight name: ${parsedName}`);
         }
-        nameToWeight[weight.originalName] = weight;
+        nameToWeight[parsedName] = weight;
         totalWeightsCount++;
       }
     }
@@ -22468,6 +22579,22 @@ var Container = class extends Layer {
       }
     }
     batchSetValue(weightValueTuples);
+  }
+  parseWeights(weights) {
+    for (const key in Object.keys(weights)) {
+      const listParts = key.split("/");
+      const list = ["vars", "layer_checkpoint_dependencies"];
+      const newKey = listParts.map((str) => {
+        if (str.startsWith("_")) {
+          return str.slice(1);
+        }
+        return str;
+      }).filter((str) => !list.includes(str)).join("/");
+      if (newKey !== key) {
+        weights[newKey] = weights[key];
+        delete weights[key];
+      }
+    }
   }
   /**
    * Util shared between different serialization methods.
@@ -26383,8 +26510,22 @@ var Softmax3 = class extends Layer {
     this.axis = args.axis == null ? this.DEFAULT_AXIS : args.axis;
   }
   call(inputs, kwargs) {
-    const x = getExactlyOneTensor(inputs);
-    return this.softmax(x, this.axis);
+    return tidy(() => {
+      let x = getExactlyOneTensor(inputs);
+      const mask = kwargs["mask"];
+      if (mask != null) {
+        const adder = mul(sub(ones2(x.shape), cast(mask, x.dtype)), scalar(-1e9));
+        x = add2(x, adder);
+      }
+      if (this.axis instanceof Array) {
+        if (this.axis.length > 1) {
+          return exp(sub(x, logSumExp(x, this.axis, true)));
+        } else {
+          return this.softmax(x, this.axis[0]);
+        }
+      }
+      return this.softmax(x, this.axis);
+    });
   }
   computeOutputShape(inputShape) {
     return inputShape;

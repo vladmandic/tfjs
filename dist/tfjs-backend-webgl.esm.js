@@ -3548,6 +3548,9 @@ var Tensor = class {
     if (this.isDisposed) {
       return;
     }
+    if (this.kerasMask) {
+      this.kerasMask.dispose();
+    }
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
@@ -10988,6 +10991,47 @@ function grayscaleToRGB_(image) {
 }
 var grayscaleToRGB = op({ grayscaleToRGB_ });
 
+// src/tfjs-core/src/ops/image/rgb_to_grayscale.ts
+function rgbToGrayscale_(image) {
+  const $image = convertToTensor(image, "image", "RGBToGrayscale");
+  const lastDimsIdx = $image.rank - 1;
+  const lastDims = $image.shape[lastDimsIdx];
+  assert(
+    $image.rank >= 2,
+    () => `Error in RGBToGrayscale: images must be at least rank 2, but got rank ${$image.rank}.`
+  );
+  assert(
+    lastDims === 3,
+    () => `Error in RGBToGrayscale: last dimension of an RGB image should be size 3, but got size ${lastDims}.`
+  );
+  const origDtype = $image.dtype;
+  const fltImage = cast($image, "float32");
+  const rgbWeights = tensor1d([0.2989, 0.587, 0.114]);
+  let grayFloat;
+  switch ($image.rank) {
+    case 2:
+      grayFloat = einsum("ij,j->i", fltImage, rgbWeights);
+      break;
+    case 3:
+      grayFloat = einsum("ijk,k->ij", fltImage, rgbWeights);
+      break;
+    case 4:
+      grayFloat = einsum("ijkl,l->ijk", fltImage, rgbWeights);
+      break;
+    case 5:
+      grayFloat = einsum("ijklm,m->ijkl", fltImage, rgbWeights);
+      break;
+    case 6:
+      grayFloat = einsum("ijklmn,n->ijklm", fltImage, rgbWeights);
+      break;
+    default:
+      throw new Error("Not a valid tensor rank.");
+  }
+  grayFloat = expandDims(grayFloat, -1);
+  return cast(grayFloat, origDtype);
+}
+var rgbToGrayscale = op({ rgbToGrayscale_ });
+
 // src/tfjs-core/src/ops/image/rotate_with_offset.ts
 function rotateWithOffset_(image, radians, fillValue = 0, center = 0.5) {
   const $image = convertToTensor(image, "image", "rotateWithOffset", "float32");
@@ -14888,7 +14932,13 @@ function getWebGLRenderingContext(webGLVersion, customCanvas) {
     WEBGL_ATTRIBUTES.failIfMajorPerformanceCaveat = false;
   }
   if (webGLVersion === 1) {
-    return canvas.getContext("webgl", WEBGL_ATTRIBUTES) || canvas.getContext("experimental-webgl", WEBGL_ATTRIBUTES);
+    return (
+      // tslint:disable-next-line
+      canvas.getContext("webgl", WEBGL_ATTRIBUTES) || canvas.getContext(
+        "experimental-webgl",
+        WEBGL_ATTRIBUTES
+      )
+    );
   }
   return canvas.getContext("webgl2", WEBGL_ATTRIBUTES);
 }
@@ -15595,6 +15645,7 @@ ENV3.registerFlag(
 ENV3.registerFlag("WEBGL_PACK_REDUCE", () => ENV3.getBool("WEBGL_PACK"));
 ENV3.registerFlag("WEBGL_LAZILY_UNPACK", () => ENV3.getBool("WEBGL_PACK"));
 ENV3.registerFlag("WEBGL_CONV_IM2COL", () => ENV3.getBool("WEBGL_PACK"));
+ENV3.registerFlag("WEBGL_PACK_CONV2DTRANSPOSE", () => ENV3.getBool("WEBGL_PACK"));
 ENV3.registerFlag(
   "WEBGL_MAX_TEXTURE_SIZE",
   () => getWebGLMaxTextureSize(ENV3.getNumber("WEBGL_VERSION"))
@@ -15639,6 +15690,9 @@ ENV3.registerFlag(
     return -1;
   },
   (threshold2) => {
+    if (!(typeof threshold2 === "number")) {
+      throw new Error(`WEBGL_DELETE_TEXTURE_THRESHOLD must be a number but got ${threshold2}.`);
+    }
     if (threshold2 < 0 && threshold2 !== -1) {
       throw new Error(
         `WEBGL_DELETE_TEXTURE_THRESHOLD must be -1 (indicating never delete) or at least 0, but got ${threshold2}.`
@@ -15652,6 +15706,9 @@ ENV3.registerFlag(
     return device_util_exports.isMobile() ? 1 : -1;
   },
   (threshold2) => {
+    if (!(typeof threshold2 === "number")) {
+      throw new Error(`WEBGL_FLUSH_THRESHOLD must be a number but got ${threshold2}.`);
+    }
     if (threshold2 < 0 && threshold2 !== -1) {
       throw new Error(
         `WEBGL_FLUSH_THRESHOLD must be -1 (indicating never manual flush) or at least 0, but got ${threshold2}.`
@@ -21487,7 +21544,7 @@ var TextureManager = class {
       this.gpgpu.textureConfig,
       isPacked
     );
-    const deleteTexThreshold = env().get("WEBGL_DELETE_TEXTURE_THRESHOLD");
+    const deleteTexThreshold = env().getNumber("WEBGL_DELETE_TEXTURE_THRESHOLD");
     if (deleteTexThreshold !== -1 && this._numBytesAllocated > deleteTexThreshold) {
       this.gpgpu.deleteMatrixTexture(texture.texture);
       this._numBytesAllocated -= texBytes;
@@ -22457,7 +22514,7 @@ var _MathBackendWebGL = class extends KernelBackend {
         { name: program.constructor.name, query: this.getQueryTime(query) }
       );
     }
-    const glFlushThreshold = env().get("WEBGL_FLUSH_THRESHOLD");
+    const glFlushThreshold = env().getNumber("WEBGL_FLUSH_THRESHOLD");
     if (glFlushThreshold > 0) {
       const time = util_exports.now();
       if (time - this.lastGlFlushTime > glFlushThreshold) {
@@ -24010,7 +24067,7 @@ function addN2(args) {
   if (tensors.length === 1) {
     return identity2({ inputs: { x: tensors[0] }, backend });
   }
-  if (tensors.length > env().get("WEBGL_MAX_TEXTURES_IN_SHADER")) {
+  if (tensors.length > env().getNumber("WEBGL_MAX_TEXTURES_IN_SHADER")) {
     const midIndex = Math.floor(tensors.length / 2);
     const leftSide = addN2({ inputs: tensors.slice(0, midIndex), backend });
     const rightSide = addN2({ inputs: tensors.slice(midIndex), backend });
@@ -27279,7 +27336,7 @@ function conv2DBackpropInput2(args) {
     false,
     $dataFormat
   );
-  if (env().getBool("WEBGL_PACK") && $dataFormat === "channelsLast") {
+  if (env().getBool("WEBGL_PACK_CONV2DTRANSPOSE") && $dataFormat === "channelsLast") {
     const customValues = [
       [convInfo.strideHeight, convInfo.strideWidth]
     ];

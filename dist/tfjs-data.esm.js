@@ -3507,6 +3507,9 @@ var Tensor = class {
     if (this.isDisposed) {
       return;
     }
+    if (this.kerasMask) {
+      this.kerasMask.dispose();
+    }
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
@@ -10637,6 +10640,47 @@ function grayscaleToRGB_(image2) {
 }
 var grayscaleToRGB = op({ grayscaleToRGB_ });
 
+// src/tfjs-core/src/ops/image/rgb_to_grayscale.ts
+function rgbToGrayscale_(image2) {
+  const $image = convertToTensor(image2, "image", "RGBToGrayscale");
+  const lastDimsIdx = $image.rank - 1;
+  const lastDims = $image.shape[lastDimsIdx];
+  assert(
+    $image.rank >= 2,
+    () => `Error in RGBToGrayscale: images must be at least rank 2, but got rank ${$image.rank}.`
+  );
+  assert(
+    lastDims === 3,
+    () => `Error in RGBToGrayscale: last dimension of an RGB image should be size 3, but got size ${lastDims}.`
+  );
+  const origDtype = $image.dtype;
+  const fltImage = cast($image, "float32");
+  const rgbWeights = tensor1d([0.2989, 0.587, 0.114]);
+  let grayFloat;
+  switch ($image.rank) {
+    case 2:
+      grayFloat = einsum("ij,j->i", fltImage, rgbWeights);
+      break;
+    case 3:
+      grayFloat = einsum("ijk,k->ij", fltImage, rgbWeights);
+      break;
+    case 4:
+      grayFloat = einsum("ijkl,l->ijk", fltImage, rgbWeights);
+      break;
+    case 5:
+      grayFloat = einsum("ijklm,m->ijkl", fltImage, rgbWeights);
+      break;
+    case 6:
+      grayFloat = einsum("ijklmn,n->ijklm", fltImage, rgbWeights);
+      break;
+    default:
+      throw new Error("Not a valid tensor rank.");
+  }
+  grayFloat = expandDims(grayFloat, -1);
+  return cast(grayFloat, origDtype);
+}
+var rgbToGrayscale = op({ rgbToGrayscale_ });
+
 // src/tfjs-core/src/ops/image/rotate_with_offset.ts
 function rotateWithOffset_(image2, radians, fillValue = 0, center = 0.5) {
   const $image = convertToTensor(image2, "image", "rotateWithOffset", "float32");
@@ -11877,6 +11921,7 @@ var image = {
   grayscaleToRGB,
   resizeNearestNeighbor,
   resizeBilinear,
+  rgbToGrayscale,
   rotateWithOffset,
   cropAndResize,
   nonMaxSuppression,

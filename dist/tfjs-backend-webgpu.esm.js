@@ -2412,6 +2412,7 @@ var Diag = "Diag";
 var Dilation2D = "Dilation2D";
 var Dilation2DBackpropInput = "Dilation2DBackpropInput";
 var Dilation2DBackpropFilter = "Dilation2DBackpropFilter";
+var Draw = "Draw";
 var RealDiv = "RealDiv";
 var Einsum = "Einsum";
 var Elu = "Elu";
@@ -3549,6 +3550,9 @@ var Tensor = class {
   dispose() {
     if (this.isDisposed) {
       return;
+    }
+    if (this.kerasMask) {
+      this.kerasMask.dispose();
     }
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
@@ -10955,6 +10959,47 @@ function grayscaleToRGB_(image) {
 }
 var grayscaleToRGB = op({ grayscaleToRGB_ });
 
+// src/tfjs-core/src/ops/image/rgb_to_grayscale.ts
+function rgbToGrayscale_(image) {
+  const $image = convertToTensor(image, "image", "RGBToGrayscale");
+  const lastDimsIdx = $image.rank - 1;
+  const lastDims = $image.shape[lastDimsIdx];
+  assert(
+    $image.rank >= 2,
+    () => `Error in RGBToGrayscale: images must be at least rank 2, but got rank ${$image.rank}.`
+  );
+  assert(
+    lastDims === 3,
+    () => `Error in RGBToGrayscale: last dimension of an RGB image should be size 3, but got size ${lastDims}.`
+  );
+  const origDtype = $image.dtype;
+  const fltImage = cast($image, "float32");
+  const rgbWeights = tensor1d([0.2989, 0.587, 0.114]);
+  let grayFloat;
+  switch ($image.rank) {
+    case 2:
+      grayFloat = einsum("ij,j->i", fltImage, rgbWeights);
+      break;
+    case 3:
+      grayFloat = einsum("ijk,k->ij", fltImage, rgbWeights);
+      break;
+    case 4:
+      grayFloat = einsum("ijkl,l->ijk", fltImage, rgbWeights);
+      break;
+    case 5:
+      grayFloat = einsum("ijklm,m->ijkl", fltImage, rgbWeights);
+      break;
+    case 6:
+      grayFloat = einsum("ijklmn,n->ijklm", fltImage, rgbWeights);
+      break;
+    default:
+      throw new Error("Not a valid tensor rank.");
+  }
+  grayFloat = expandDims(grayFloat, -1);
+  return cast(grayFloat, origDtype);
+}
+var rgbToGrayscale = op({ rgbToGrayscale_ });
+
 // src/tfjs-core/src/ops/image/rotate_with_offset.ts
 function rotateWithOffset_(image, radians, fillValue = 0, center = 0.5) {
   const $image = convertToTensor(image, "image", "rotateWithOffset", "float32");
@@ -14753,7 +14798,10 @@ ENV3.registerFlag("WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD", () => 1e3);
 ENV3.registerFlag("WEBGPU_USE_PROFILE_TOOL", () => false);
 ENV3.registerFlag("WEBGPU_IMPORT_EXTERNAL_TEXTURE", () => true);
 ENV3.registerFlag("WEBGPU_USE_NAIVE_CONV2D_DEBUG", () => false);
-ENV3.registerFlag("WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL", () => 0);
+ENV3.registerFlag(
+  "WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL",
+  () => -1
+);
 ENV3.registerFlag("WEBGPU_CONV_SEPARATE_IM2COL_SHADER", () => false);
 ENV3.registerFlag("WEBGPU_PRINT_SHADER", () => "");
 ENV3.registerFlag("WEBGPU_ENGINE_COMPILE_ONLY", () => false);
@@ -15151,15 +15199,18 @@ function makeShader(inputInfo, outputData, program) {
         `}
       }
     `);
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
+    const inoutSnippet = program.pixelsOpType === 0 /* FROM_PIXELS */ ? `@group(0) @binding(0) var<storage, read_write> result: array<${dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;` : `@group(0) @binding(1) var<storage, read> inBuf : array<${dataTypeToGPUType(inputInfo[0].dtype, program.outputComponent)}>;`;
+    const outShapeStridesType = outputData.shape.length === 3 ? "vec2<i32>" : "i32";
     prefixSnippets.push(`
         struct Uniform {
+          outShapeStrides : ${outShapeStridesType},
           size            : i32,
           numChannels     : i32,
-          outShapeStrides : vec2<i32>,
+          alpha           : f32,
         };
 
-        @group(0) @binding(0) var<storage, read_write> result: array<${dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;
+        ${inoutSnippet}
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
     const useGlobalIndex2 = isFlatDispatchLayout(program);
@@ -15253,7 +15304,7 @@ function makeShader(inputInfo, outputData, program) {
 }
 function makeShaderKey(program, inputsData, output) {
   let key = program.shaderKey;
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
     return key;
   }
   const shapes = [];
@@ -15306,15 +15357,6 @@ var commonSnippet = `
   fn getIndexFromCoords6D(coords : vec6, shape : vec6) -> i32 {
     let shapeStrides: vec6 = vec6(shape.y * shape.z * shape.w * shape.u * shape.v, shape.z * shape.w * shape.u * shape.v, shape.w * shape.u * shape.v, shape.u * shape.v, shape.v, 1);
     return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u + coords.v*shapeStrides.v;
-  }
-
-  fn idiv(a: i32, b: i32, sign: f32) -> i32 {
-    var res: i32 = a / b;
-    let modulo: i32 = a % b;
-    if (sign < 0. && modulo != 0) {
-      res = res - 1;
-    }
-    return res;
   }
 
   // NaN defination in IEEE 754-1985 is :
@@ -16458,25 +16500,29 @@ var _WebGPUBackend = class extends KernelBackend {
     }
     let programUniform = [];
     let bufferShapes = [];
-    if (!program.isFromPixels) {
+    const uniformsType = "int32";
+    if (program.pixelsOpType == null) {
       programUniform.push(
         { type: "float32", data: [NaN] },
         { type: "float32", data: [Infinity] }
       );
       bufferShapes = inputs.concat(output).map((d) => d.shape);
-      const uniformsType = "int32";
+      const uniformsType2 = "int32";
       bufferShapes.map((d) => {
-        programUniform.push({ type: uniformsType, data: d });
+        programUniform.push({ type: uniformsType2, data: d });
         const strides = util_exports.computeStrides(d);
-        programUniform.push({ type: uniformsType, data: strides });
+        programUniform.push({ type: uniformsType2, data: strides });
       });
-      if (program.size) {
-        const size = util_exports.sizeFromShape(program.outputShape);
-        programUniform.push({
-          type: uniformsType,
-          data: [program.outputComponent ? size / program.outputComponent : size]
-        });
-      }
+    } else {
+      const strides = util_exports.computeStrides(output.shape);
+      programUniform.push({ type: uniformsType, data: strides });
+    }
+    if (program.size) {
+      const size = util_exports.sizeFromShape(program.outputShape);
+      programUniform.push({
+        type: uniformsType,
+        data: [program.outputComponent ? size / program.outputComponent : size]
+      });
     }
     if (programDefinedUniform) {
       programUniform = [...programUniform, ...programDefinedUniform];
@@ -16529,7 +16575,7 @@ var _WebGPUBackend = class extends KernelBackend {
       program.dispatch[2]
     );
     this.dispatchCountInPass++;
-    if (shouldTimeProgram || env().get("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE") <= this.dispatchCountInPass) {
+    if (shouldTimeProgram || env().get("WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE") <= this.dispatchCountInPass || program.pixelsOpType === 1 /* DRAW */) {
       this.endComputePassEncoder();
       if (shouldTimeProgram) {
         this.activeTimers.push(
@@ -16609,9 +16655,14 @@ if (isWebGPUSupported()) {
       };
       const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
       const deviceDescriptor = {};
+      const requiredFeatures = [];
       if (adapter.features.has("timestamp-query")) {
-        deviceDescriptor.requiredFeatures = ["timestamp-query"];
+        requiredFeatures.push("timestamp-query");
       }
+      if (adapter.features.has("bgra8unorm-storage")) {
+        requiredFeatures.push(["bgra8unorm-storage"]);
+      }
+      deviceDescriptor.requiredFeatures = requiredFeatures;
       const adapterLimits = adapter.limits;
       deviceDescriptor.requiredLimits = {
         "maxComputeWorkgroupStorageSize": adapterLimits.maxComputeWorkgroupStorageSize,
@@ -16637,44 +16688,38 @@ var COMPLEX_MULTIPLY_REAL = "let resultTemp = areal * breal - aimag * bimag;";
 var COMPLEX_MULTIPLY_IMAG = "let resultTemp = areal * bimag + aimag * breal;";
 var DIV = "let resultTemp = a / b;";
 var ELU_DER = "let resultTemp = select(a * (b + 1.0), a, b >= b - b);";
-var EQUAL = "return f32(a == b);";
-var EQUAL_VEC4 = "return vec4<f32>(a == b);";
-var GREATER = "return f32(a > b);";
-var GREATER_VEC4 = "return vec4<f32>(a > b);";
-var GREATER_EQUAL = "return f32(a >= b);";
-var GREATER_EQUAL_VEC4 = "return vec4<f32>(a >= b);";
-var INT_DIV = `
-  let s = sign(a) * sign(b);
-  let ia = i32(round(a));
-  let ib = i32(round(b));
-  return f32(idiv(ia, ib, s));
+var EQUAL = `
+  let zero = sign(a) * 0 + 0;
+  let one = sign(b) * 0 + 1;
+  let resultTemp = select(zero, one, a == b);
 `;
-var INT_DIV_VEC4 = `
-  let ia = vec4<i32>(round(a));
-  let ib = vec4<i32>(round(b));
-  let cond = ib != vec4<i32>(0);
-  var resultTemp = vec4<i32>(0);
-  let s = sign(a) * sign(b);
-
-  // Windows (D3D) wants guaranteed non-zero int division at compile-time.
-  if (cond[0]) {
-    resultTemp[0] = idiv(ia[0], ib[0], s[0]);
-  }
-  if (cond[1]) {
-    resultTemp[1] = idiv(ia[1], ib[1], s[1]);
-  }
-  if (cond[2]) {
-    resultTemp[2] = idiv(ia[2], ib[2], s[2]);
-  }
-  if (cond[3]) {
-    resultTemp[3] = idiv(ia[3], ib[3], s[3]);
-  }
-  return vec4<f32>(resultTemp);
+var FLOOR_DIV = `
+  let remainder =
+      select(a % b, round(a % b), (round(a) == a) & (round(b) == b));
+  let quotient = (a - remainder) / b;
+  let resultTemp =
+      round(select(quotient, quotient - 1, sign(remainder) == -sign(b)));
 `;
-var LESS = "return f32(a < b);";
-var LESS_VEC4 = "return vec4<f32>(a < b);";
-var LESS_EQUAL = "return f32(a <= b);";
-var LESS_EQUAL_VEC4 = "return vec4<f32>(a <= b);";
+var GREATER = `
+  let zero = sign(a) * 0 + 0;
+  let one = sign(b) * 0 + 1;
+  let resultTemp = select(zero, one, a > b);
+`;
+var GREATER_EQUAL = `
+  let zero = sign(a) * 0 + 0;
+  let one = sign(b) * 0 + 1;
+  let resultTemp = select(zero, one, a >= b);
+`;
+var LESS = `
+  let zero = sign(a) * 0 + 0;
+  let one = sign(b) * 0 + 1;
+  let resultTemp = select(zero, one, a < b);
+`;
+var LESS_EQUAL = `
+  let zero = sign(a) * 0 + 0;
+  let one = sign(b) * 0 + 1;
+  let resultTemp = select(zero, one, a <= b);
+`;
 var LOGICAL_AND = "return f32(a >= 1.0 && b >= 1.0);";
 var LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
@@ -16822,17 +16867,23 @@ function getBinaryOpString(type, useVec4) {
       doOpSnippet = ELU_DER;
       break;
     case 6 /* EQUAL */:
-      return useVec4 ? EQUAL_VEC4 : EQUAL;
-    case 7 /* GREATER */:
-      return useVec4 ? GREATER_VEC4 : GREATER;
-    case 8 /* GREATER_EQUAL */:
-      return useVec4 ? GREATER_EQUAL_VEC4 : GREATER_EQUAL;
-    case 9 /* INT_DIV */:
-      return useVec4 ? INT_DIV_VEC4 : INT_DIV;
+      doOpSnippet = EQUAL;
+      break;
+    case 7 /* FLOOR_DIV */:
+      doOpSnippet = FLOOR_DIV;
+      break;
+    case 8 /* GREATER */:
+      doOpSnippet = GREATER;
+      break;
+    case 9 /* GREATER_EQUAL */:
+      doOpSnippet = GREATER_EQUAL;
+      break;
     case 10 /* LESS */:
-      return useVec4 ? LESS_VEC4 : LESS;
+      doOpSnippet = LESS;
+      break;
     case 11 /* LESS_EQUAL */:
-      return useVec4 ? LESS_EQUAL_VEC4 : LESS_EQUAL;
+      doOpSnippet = LESS_EQUAL;
+      break;
     case 12 /* LOGICAL_AND */:
       return useVec4 ? LOGICAL_AND_VEC4 : LOGICAL_AND;
     case 13 /* LOGICAL_OR */:
@@ -20937,6 +20988,11 @@ var ReduceProgram = class {
 };
 
 // src/tfjs-backend-webgpu/src/kernel_utils/reduce.ts
+var RETURN_TYPES = {
+  "mean": "float32",
+  "all": "bool",
+  "any": "bool"
+};
 function reduce(x, axis, keepDims, reduceType, backend) {
   const xRank = x.shape.length;
   const toDispose = [];
@@ -20982,7 +21038,7 @@ function reduce(x, axis, keepDims, reduceType, backend) {
     const xSize = util_exports.sizeFromShape(input.shape);
     const batchSize = xSize / inSize;
     const reduceInfo = { windowSize: inSize, inSize, batchSize, outSize: 1 };
-    const dtype = reduceType === "mean" ? "float32" : sumOutType(x.dtype);
+    const dtype = RETURN_TYPES[reduceType] || sumOutType(x.dtype);
     const uniformData = [
       { type: "int32", data: [inSize] }
     ];
@@ -22591,11 +22647,11 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
   const getXSnippet = (innerElementSize2) => {
     switch (innerElementSize2) {
       case 1:
-        return "resData = x[xIndex];";
+        return "resData = f32(x[xIndex]);";
       case 3:
         return "resData = vec3<f32>(x[xIndex], x[xIndex + 1], x[xIndex + 2]);";
       case 4:
-        return "resData = x[xIndex / 4];";
+        return "resData = vec4<f32>(x[xIndex / 4]);";
       default:
         throw new Error(
           `innerElementSize ${innerElementSize2} is not supported.`
@@ -22605,9 +22661,9 @@ function conv2dCommonSnippet(isChannelsLast, fitAOuter, fitBOuter, fitInner, add
   const getWSnippet = (innerElementSize2) => {
     switch (innerElementSize2) {
       case 1:
-        return "return W[row * uniforms.wShape[3] + col];";
+        return "return f32(W[row * uniforms.wShape[3] + col]);";
       case 4:
-        return "return W[(row * uniforms.wShape[3] + col) / 4];";
+        return "return vec4<f32>(W[(row * uniforms.wShape[3] + col) / 4]);";
       default:
         throw new Error(
           `innerElementSize ${innerElementSize2} is not supported.`
@@ -23158,10 +23214,8 @@ function conv2DImpl({
       leakyreluAlpha
     });
   }
-  const thresholdFlagValue = env().getNumber(
-    "WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL"
-  );
-  const thresholdToIncreaseWorkgroups = thresholdFlagValue > 0 ? thresholdFlagValue : backend.thresholdToIncreaseWorkgroups;
+  const thresholdFlagValue = env().getNumber("WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL");
+  const thresholdToIncreaseWorkgroups = thresholdFlagValue > -1 ? thresholdFlagValue : backend.thresholdToIncreaseWorkgroups;
   const workgroupsBy32x32 = convInfo.batchSize * Math.ceil(convInfo.outHeight * convInfo.outWidth / 32) * Math.ceil(convInfo.outChannels / 32);
   if (env().getBool("WEBGPU_CONV_SEPARATE_IM2COL_SHADER") || workgroupsBy32x32 <= thresholdToIncreaseWorkgroups) {
     return conv2dWithIm2Col({
@@ -25418,6 +25472,109 @@ var dilation2DBackpropInputConfig = {
   kernelFunc: dilation2DBackpropInput
 };
 
+// src/tfjs-backend-webgpu/src/draw_webgpu.ts
+var DrawProgram = class {
+  constructor(outShape, type, textureFormat) {
+    this.variableNames = ["Image"];
+    this.uniforms = "alpha: f32,";
+    this.workgroupSize = [64, 1, 1];
+    this.pixelsOpType = 1 /* DRAW */;
+    this.size = true;
+    this.outputShape = outShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout,
+      this.outputShape,
+      this.workgroupSize
+    );
+    this.type = type;
+    this.textureFormat = textureFormat;
+    this.shaderKey = `draw_${type}_${textureFormat}`;
+  }
+  getUserCode() {
+    let calculateResult;
+    const value = this.type === "float32" ? "value" : "value / 255.0";
+    calculateResult = `
+      if (uniforms.numChannels == 1) {
+        rgba[0] = ${value};
+        rgba[1] = ${value};
+        rgba[2] = ${value};
+      } else {
+        rgba[d] = ${value};
+      }`;
+    const userCode = `
+       @group(0) @binding(0) var outImage : texture_storage_2d<${this.textureFormat}, write>;
+       ${getMainHeaderString("index")} {
+         if (index < uniforms.size) {
+           var rgba = vec4<f32>(0.0, 0.0, 0.0, uniforms.alpha);
+           for (var d = 0; d < uniforms.numChannels; d = d + 1) {
+             let value = f32(inBuf[index * uniforms.numChannels + d]);
+             ${calculateResult}
+           }
+           rgba.x = rgba.x * rgba.w;
+           rgba.y = rgba.y * rgba.w;
+           rgba.z = rgba.z * rgba.w;
+           let coords = getCoordsFromIndex(index);
+           textureStore(outImage, vec2<i32>(coords.yx), rgba);
+         }
+       }
+      `;
+    return userCode;
+  }
+};
+
+// src/tfjs-backend-webgpu/src/kernels/Draw.ts
+function draw(args) {
+  const { inputs, backend, attrs } = args;
+  const { image } = inputs;
+  const { canvas, options } = attrs;
+  const [height, width] = image.shape.slice(0, 2);
+  const { imageOptions } = options || {};
+  const alpha = imageOptions?.alpha || 1;
+  const format = backend.device.features.has("bgra8unorm-storage") ? "bgra8unorm" : "rgba8unorm";
+  const outShape = [height, width];
+  const program = new DrawProgram(outShape, image.dtype, format);
+  canvas.width = width;
+  canvas.height = height;
+  const backendName = "webgpu";
+  let gpuContext = canvas.getContext(backendName);
+  let canvasWebGPU;
+  if (!gpuContext) {
+    canvasWebGPU = new OffscreenCanvas(width, height);
+    gpuContext = canvasWebGPU.getContext(backendName);
+  }
+  const numChannels = image.shape.length === 3 ? image.shape[2] : 1;
+  gpuContext.configure({
+    device: backend.device,
+    format,
+    usage: GPUTextureUsage.STORAGE_BINDING,
+    alphaMode: "premultiplied"
+  });
+  const outputDtype = "int32";
+  const output = backend.makeTensorInfo(outShape, outputDtype);
+  const info = backend.tensorMap.get(output.dataId);
+  info.resource = gpuContext.getCurrentTexture();
+  info.external = true;
+  const uniformData = [{ type: "uint32", data: [numChannels] }, { type: "float32", data: [alpha] }];
+  backend.runWebGPUProgram(program, [image], outputDtype, uniformData, output);
+  if (canvasWebGPU) {
+    const canvas2dContext = canvas.getContext("2d");
+    if (!canvas2dContext) {
+      throw new Error(
+        `Please make sure this canvas has only been used for 2d or webgpu context!`
+      );
+    }
+    canvas2dContext.drawImage(canvasWebGPU, 0, 0);
+  }
+  backend.disposeData(output.dataId);
+  return image;
+}
+var drawConfig = {
+  kernelName: Draw,
+  backendName: "webgpu",
+  kernelFunc: draw
+};
+
 // src/tfjs-backend-webgpu/src/kernels/Multiply.ts
 var multiplyKernelFunc = binaryKernelFunc({
   opType: 17 /* MUL */,
@@ -25759,7 +25916,7 @@ var floorConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/FloorDiv.ts
 var floorDiv3 = binaryKernelFunc({
-  opType: 9 /* INT_DIV */,
+  opType: 7 /* FLOOR_DIV */,
   cpuKernelImpl: floorDivImplCPU,
   dtype: "int32"
 });
@@ -25773,7 +25930,7 @@ var floorDivConfig = {
 var FromPixelsProgram = class {
   // The empirical value.
   constructor(outputShape, numChannels, importVideo = false) {
-    this.isFromPixels = true;
+    this.pixelsOpType = 0 /* FROM_PIXELS */;
     this.outputShape = [0];
     this.variableNames = [];
     this.workgroupSize = [256, 1, 1];
@@ -26330,7 +26487,7 @@ var gatherV2Config = {
 
 // src/tfjs-backend-webgpu/src/kernels/Greater.ts
 var greater3 = binaryKernelFunc({
-  opType: 7 /* GREATER */,
+  opType: 8 /* GREATER */,
   cpuKernelImpl: greaterImplCPU,
   dtype: "bool"
 });
@@ -26342,7 +26499,7 @@ var greaterConfig = {
 
 // src/tfjs-backend-webgpu/src/kernels/GreaterEqual.ts
 var greaterEqual3 = binaryKernelFunc({
-  opType: 8 /* GREATER_EQUAL */,
+  opType: 9 /* GREATER_EQUAL */,
   dtype: "bool",
   cpuKernelImpl: greaterEqualImplCPU
 });
@@ -30272,6 +30429,7 @@ var kernelConfigs = [
   dilation2DConfig,
   dilation2DBackpropFilterConfig,
   dilation2DBackpropInputConfig,
+  drawConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,
